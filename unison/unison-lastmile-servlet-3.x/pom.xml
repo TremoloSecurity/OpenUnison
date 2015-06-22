@@ -1,0 +1,46 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.tremolosecurity.unison</groupId>
+    <artifactId>unison</artifactId>
+    <version>1.0.6</version>
+  </parent>
+  <artifactId>unison-lastmile-servlet-3.x</artifactId>
+  <name>unison-lastmile-servlet-3.x</name>
+   <build>
+		<plugins>
+			<plugin>
+
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptors>
+						<descriptor>${project.basedir}/src/main/xml/create-distro.xml</descriptor>
+					</descriptors>
+					
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+    <dependencies>
+  	<dependency>
+  		<groupId>com.tremolosecurity.unison</groupId>
+  		<artifactId>unison-lastmile-sdk</artifactId>
+  		<version>1.0.6</version>
+  		
+  	</dependency>
+  	<dependency>
+    <groupId>org.apache.tomcat</groupId>
+    <artifactId>servlet-api</artifactId>
+    <version>6.0.41</version>
+</dependency>
+  </dependencies>
+</project>

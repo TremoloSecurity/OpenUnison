@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration>
+
+<log4j:configuration debug="true">
+
+
+	<appender name="server-log" class="org.apache.log4j.ConsoleAppender">
+		<param name="Target" value="System.out"/> 
+		<!-- <param name="file" value="${serverHome}/logs/tremolo-service.log" />
+		<param name="append" value="true" />
+		<rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
+      		<param name="FileNamePattern" value="${serverHome}/logs/tremolo-service.log.%d"/>
+    	</rollingPolicy> -->
+		
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="[%d][%t] %-5p %c{1} - %m%n" />
+		</layout>
+	</appender>
+
+	<!-- <appender name="access-log" class="org.apache.log4j.ConsoleAppender">
+		<param name="File" value="${serverHome}/logs/access.log" />
+		<param name="Append" value="true" /> 
+		<rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
+      		<param name="FileNamePattern" value="${serverHome}/logs/access.log.%d"/>
+    	</rollingPolicy>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="[%d] %m%n" />
+		</layout>
+	</appender>
+	
+	<appender name="ldap-access-log" class="org.apache.log4j.ConsoleAppender">
+		<param name="File" value="${serverHome}/logs/ldap-access.log" />
+		<param name="Append" value="true" /> 
+		<rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
+      		<param name="FileNamePattern" value="${serverHome}/logs/ldap-access.log.%d"/>
+    	</rollingPolicy> 
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="[%d] %m%n" />
+		</layout>
+	</appender>
+	 -->
+	 
+	 <root>
+	 	<level name="debug" />
+	 	<appender-ref ref="server-log" />
+	 </root>
+<!-- 
+	<logger name="org" additivity="false">
+		<level value="info" />
+		<appender-ref ref="server-log" />
+	</logger>
+	
+	<logger name="net" additivity="false">
+		<level value="info" />
+		<appender-ref ref="server-log" />
+	</logger>
+
+	<logger name="com.tremolosecurity" additivity="false">
+		<level value="info" />
+		<appender-ref ref="server-log" />
+	</logger>
+
+	<logger name="com.tremolosecurity.log" additivity="false">
+		<level value="warn" />
+		<appender-ref ref="server-log" />
+	</logger>
+
+	<logger name="com.tremolosecurity.log.AccessLog" additivity="false">
+		<level value="info" />
+		<appender-ref ref="access-log" />
+	</logger>
+	
+	<logger name="com.tremolosecurity.proxy.myvd.log.AccessLog" additivity="false">
+		<level value="info" />
+		<appender-ref ref="ldap-access-log" />
+	</logger>
+ -->
+
+
+
+
+
+
+</log4j:configuration>

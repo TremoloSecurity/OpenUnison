@@ -1,0 +1,123 @@
+/*
+Copyright 2015 Tremolo Security, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+
+package com.tremolosecurity.proxy.auth.persistentCookie;
+
+import java.net.URISyntaxException;
+import java.util.HashSet;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.joda.time.DateTime;
+
+import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.config.util.UrlHolder;
+import com.tremolosecurity.config.xml.AuthChainType;
+import com.tremolosecurity.config.xml.AuthMechType;
+import com.tremolosecurity.config.xml.MechanismType;
+import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.proxy.auth.AuthController;
+import com.tremolosecurity.proxy.results.CustomResult;
+import com.tremolosecurity.proxy.util.ProxyConstants;
+import com.tremolosecurity.saml.Attribute;
+
+public class PersistentCookieResult implements CustomResult {
+
+	@Override
+	public String getResultValue(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void createResultCookie(Cookie cookie, HttpServletRequest request,
+			HttpServletResponse response) throws ServletException {
+		
+		UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
+		ConfigManager mgr = holder.getConfig();
+		
+		HashSet<String> mechs = new HashSet<String>();
+		
+		for (String mechName : mgr.getAuthMechs().keySet()) {
+			MechanismType mech = mgr.getAuthMechs().get(mechName);
+			if (mech.getClassName().equalsIgnoreCase("com.tremolosecurity.proxy.auth.persistentCookie.PersistentCookie")) {
+				mechs.add(mechName);
+			}
+		}
+		
+		AuthController authCtl = (AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL);
+		String chainName = authCtl.getAuthInfo().getAuthChain();
+		
+		AuthChainType chain = mgr.getAuthChains().get(chainName);
+		
+		
+		int millisToLive = 0;
+		String keyAlias = "";
+		
+		boolean useSSLSession = false;
+		
+		for (AuthMechType amt : chain.getAuthMech()) {
+			if (mechs.contains(amt.getName())) {
+				for (ParamType pt : amt.getParams().getParam()) {
+					if (pt.getName().equalsIgnoreCase("millisToLive")) {
+						millisToLive = Integer.parseInt(pt.getValue());
+					} if (pt.getName().equalsIgnoreCase("useSSLSessionID") && pt.getValue().equalsIgnoreCase("true")) {
+						useSSLSession = true;
+					} else if (pt.getName().equalsIgnoreCase("keyAlias")) {
+						keyAlias = pt.getValue();
+					}
+				}
+			}
+		}
+		
+		DateTime now = new DateTime();
+		DateTime expires = now.plusMillis(millisToLive);
+		
+		com.tremolosecurity.lastmile.LastMile lastmile = null;
+		
+		try {
+			lastmile = new com.tremolosecurity.lastmile.LastMile("/",now,expires,0,"NONE");
+		} catch (URISyntaxException e) {
+			//not possible
+		}
+		
+		lastmile.getAttributes().add(new Attribute("DN",authCtl.getAuthInfo().getUserDN()));
+		lastmile.getAttributes().add(new Attribute("CLIENT_IP",request.getRemoteAddr()));
+		
+		if (useSSLSession) {
+			lastmile.getAttributes().add(new Attribute("SSL_SESSION_ID",(String) request.getAttribute("javax.servlet.request.ssl_session_id")));
+		}
+		
+		try {
+			cookie.setValue(lastmile.generateLastMileToken(mgr.getSecretKey(keyAlias)));
+		} catch (Exception e) {
+			throw new ServletException("Could not encrypt persistent cookie",e);
+		}
+		
+		cookie.setMaxAge(millisToLive / 1000);
+		
+		
+
+	}
+
+	
+
+}

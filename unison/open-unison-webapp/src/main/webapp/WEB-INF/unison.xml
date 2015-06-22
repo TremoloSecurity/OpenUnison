@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:tremoloConfig xmlns:tns="http://www.tremolosecurity.com/tremoloConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.tremolosecurity.com/tremoloConfig tremoloConfig.xsd ">
+  <tns:applications openSessionCookieName="unisonOpenSession" openSessionTimeout="900"/>
+  <tns:myvdConfig>/WEB-INF/myvd.conf</tns:myvdConfig>
+  <tns:authMechs ></tns:authMechs>
+  <tns:authChains/>
+  <tns:resultGroups/>
+  <tns:keyStorePath>/WEB-INF/unisonKeyStore.jks</tns:keyStorePath>
+  <tns:keyStorePassword></tns:keyStorePassword>
+</tns:tremoloConfig>

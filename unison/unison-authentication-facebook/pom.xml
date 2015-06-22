@@ -1,0 +1,22 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.tremolosecurity.unison</groupId>
+    <artifactId>unison</artifactId>
+    <version>1.0.6</version>
+  </parent>
+  <artifactId>unison-authentication-facebook</artifactId>
+  <name>unison-authentication-facebook</name>
+  <dependencies>
+  <dependency>
+    <groupId>com.restfb</groupId>
+    <artifactId>restfb</artifactId>
+    <version>1.6.9</version>
+</dependency>
+  	  	<dependency>
+  		<groupId>com.tremolosecurity.unison</groupId>
+  		<artifactId>unison-sdk</artifactId>
+  		<version>1.0.6</version>
+  	</dependency>
+  </dependencies>
+</project>

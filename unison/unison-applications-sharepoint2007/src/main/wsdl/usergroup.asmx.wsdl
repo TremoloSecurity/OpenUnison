@@ -1,0 +1,1965 @@
+
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://schemas.microsoft.com/sharepoint/soap/directory/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" targetNamespace="http://schemas.microsoft.com/sharepoint/soap/directory/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/sharepoint/soap/directory/">
+      <s:import namespace="http://www.w3.org/2001/XMLSchema" />
+      <s:complexType name="User">
+      	<s:attribute name="Email" type="s:string" />
+                  			<s:attribute name="Login" type="s:string" />
+                  			<s:attribute name="DisplayName" type="s:string" />
+                  			<s:attribute name="SiteUser" type="s:string" />
+      </s:complexType>
+      <s:complexType name="UsersList">
+                <s:sequence>
+                  <!-- <s:any /> -->
+                  <s:element minOccurs="1" maxOccurs="1" name="Users">
+                  	<s:complexType >
+                  	<s:sequence>
+                  		<s:element minOccurs="1" name="User" type="tns:User" />
+                  	</s:sequence>
+                  	</s:complexType>
+                  </s:element>
+                </s:sequence>
+              </s:complexType>
+           <s:complexType name="GetGroupCollectionFromUserType"> 
+    <s:sequence> 
+      <s:element minOccurs="0" maxOccurs="1" name="userLoginName" type="s:string"/>
+   <s:element minOccurs="0" maxOccurs="1" name="Groups"> 
+        <s:complexType> 
+          <s:sequence> 
+            <s:element maxOccurs="unbounded" name="Group" > 
+              <s:complexType> 
+                <s:attribute name="ID" type="s:unsignedShort" use="required" /> 
+                <s:attribute name="Name" type="s:string" use="required" /> 
+                <s:attribute name="Description" type="s:string" use="required" /> 
+                <s:attribute name="OwnerID" type="s:unsignedByte" use="required" /> 
+                <s:attribute name="OwnerIsUser" type="s:string" use="required" /> 
+              </s:complexType> 
+            </s:element> 
+          </s:sequence> 
+        </s:complexType> 
+      </s:element> 
+    </s:sequence> 
+</s:complexType>
+      <s:element name="GetUserCollectionFromSite">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetUserCollectionFromSiteResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetUserCollectionFromSiteResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetUserCollectionFromWeb">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetUserCollectionFromWebResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetUserCollectionFromWebResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetAllUserCollectionFromWeb">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetAllUserCollectionFromWebResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetAllUserCollectionFromWebResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetUserCollectionFromGroup">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="groupName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetUserCollectionFromGroupResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetUserCollectionFromGroupResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetUserCollectionFromRole">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="roleName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetUserCollectionFromRoleResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetUserCollectionFromRoleResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetUserCollection">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="userLoginNamesXml">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetUserCollectionResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetUserCollectionResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetUserInfo">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="userLoginName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetUserInfoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetUserInfoResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddUserToGroup">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="groupName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userLoginName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userEmail" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userNotes" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddUserToGroupResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="AddUserCollectionToGroup">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="groupName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="usersInfoXml">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddUserCollectionToGroupResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="AddUserToRole">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="roleName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userLoginName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userEmail" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userNotes" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddUserToRoleResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="AddUserCollectionToRole">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="roleName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="usersInfoXml">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddUserCollectionToRoleResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="UpdateUserInfo">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="userLoginName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userEmail" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userNotes" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdateUserInfoResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="RemoveUserFromSite">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="userLoginName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RemoveUserFromSiteResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="RemoveUserCollectionFromSite">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="userLoginNamesXml">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RemoveUserCollectionFromSiteResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="RemoveUserFromWeb">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="userLoginName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RemoveUserFromWebResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="RemoveUserFromGroup">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="groupName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userLoginName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RemoveUserFromGroupResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="RemoveUserCollectionFromGroup">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="groupName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userLoginNamesXml">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RemoveUserCollectionFromGroupResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="RemoveUserFromRole">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="roleName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userLoginName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RemoveUserFromRoleResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="RemoveUserCollectionFromRole">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="roleName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userLoginNamesXml">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RemoveUserCollectionFromRoleResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetGroupCollectionFromSite">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetGroupCollectionFromSiteResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetGroupCollectionFromSiteResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetGroupCollectionFromWeb">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetGroupCollectionFromWebResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetGroupCollectionFromWebResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetGroupCollectionFromRole">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="roleName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetGroupCollectionFromRoleResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetGroupCollectionFromRoleResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetGroupCollectionFromUser">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="userLoginName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetGroupCollectionFromUserResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetGroupCollectionFromUserResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element name="GetGroupCollectionFromUser" type="tns:GetGroupCollectionFromUserType" minOccurs="0" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetGroupCollection">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="groupNamesXml">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetGroupCollectionResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetGroupCollectionResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetGroupInfo">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="groupName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetGroupInfoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetGroupInfoResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddGroup">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="groupName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ownerIdentifier" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ownerType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="defaultUserLoginName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="description" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddGroupResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="AddGroupToRole">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="roleName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="groupName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddGroupToRoleResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="UpdateGroupInfo">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="oldGroupName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="groupName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ownerIdentifier" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ownerType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="description" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdateGroupInfoResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="RemoveGroup">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="groupName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RemoveGroupResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="RemoveGroupFromRole">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="roleName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="groupName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RemoveGroupFromRoleResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetRoleCollectionFromWeb">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetRoleCollectionFromWebResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetRoleCollectionFromWebResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRoleCollectionFromGroup">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="groupName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRoleCollectionFromGroupResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetRoleCollectionFromGroupResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRoleCollectionFromUser">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="userLoginName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRoleCollectionFromUserResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetRoleCollectionFromUserResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRoleCollection">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="roleNamesXml">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRoleCollectionResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetRoleCollectionResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRoleInfo">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="roleName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRoleInfoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetRoleInfoResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddRole">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="roleName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="description" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="permissionMask" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddRoleResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="AddRoleDef">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="roleName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="description" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="permissionMask" type="s:unsignedLong" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddRoleDefResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="UpdateRoleInfo">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="oldRoleName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="roleName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="description" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="permissionMask" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdateRoleInfoResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="UpdateRoleDefInfo">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="oldRoleName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="roleName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="description" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="permissionMask" type="s:unsignedLong" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdateRoleDefInfoResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="RemoveRole">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="roleName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RemoveRoleResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetUserLoginFromEmail" >
+        <s:complexType>
+        <s:sequence>
+      	<s:element name="emailXml" type="tns:UsersList" minOccurs="1" maxOccurs="1" />
+      	</s:sequence>
+      	</s:complexType>
+      </s:element>
+      <s:element name="GetUserLoginFromEmailResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetUserLoginFromEmailResult"  >
+            	<s:complexType>
+            		<s:sequence>
+            			<s:element name="GetUserLoginFromEmail">
+            				<s:complexType>
+            					<s:sequence>
+            						<s:element name="User" type="tns:User" />
+            					</s:sequence>
+            				</s:complexType>
+            			</s:element>
+            		</s:sequence>
+            	</s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRolesAndPermissionsForCurrentUser">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetRolesAndPermissionsForCurrentUserResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetRolesAndPermissionsForCurrentUserResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRolesAndPermissionsForSite">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetRolesAndPermissionsForSiteResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetRolesAndPermissionsForSiteResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="GetUserCollectionFromSiteSoapIn">
+    <wsdl:part name="parameters" element="tns:GetUserCollectionFromSite" />
+  </wsdl:message>
+  <wsdl:message name="GetUserCollectionFromSiteSoapOut">
+    <wsdl:part name="parameters" element="tns:GetUserCollectionFromSiteResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetUserCollectionFromWebSoapIn">
+    <wsdl:part name="parameters" element="tns:GetUserCollectionFromWeb" />
+  </wsdl:message>
+  <wsdl:message name="GetUserCollectionFromWebSoapOut">
+    <wsdl:part name="parameters" element="tns:GetUserCollectionFromWebResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetAllUserCollectionFromWebSoapIn">
+    <wsdl:part name="parameters" element="tns:GetAllUserCollectionFromWeb" />
+  </wsdl:message>
+  <wsdl:message name="GetAllUserCollectionFromWebSoapOut">
+    <wsdl:part name="parameters" element="tns:GetAllUserCollectionFromWebResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetUserCollectionFromGroupSoapIn">
+    <wsdl:part name="parameters" element="tns:GetUserCollectionFromGroup" />
+  </wsdl:message>
+  <wsdl:message name="GetUserCollectionFromGroupSoapOut">
+    <wsdl:part name="parameters" element="tns:GetUserCollectionFromGroupResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetUserCollectionFromRoleSoapIn">
+    <wsdl:part name="parameters" element="tns:GetUserCollectionFromRole" />
+  </wsdl:message>
+  <wsdl:message name="GetUserCollectionFromRoleSoapOut">
+    <wsdl:part name="parameters" element="tns:GetUserCollectionFromRoleResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetUserCollectionSoapIn">
+    <wsdl:part name="parameters" element="tns:GetUserCollection" />
+  </wsdl:message>
+  <wsdl:message name="GetUserCollectionSoapOut">
+    <wsdl:part name="parameters" element="tns:GetUserCollectionResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetUserInfoSoapIn">
+    <wsdl:part name="parameters" element="tns:GetUserInfo" />
+  </wsdl:message>
+  <wsdl:message name="GetUserInfoSoapOut">
+    <wsdl:part name="parameters" element="tns:GetUserInfoResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddUserToGroupSoapIn">
+    <wsdl:part name="parameters" element="tns:AddUserToGroup" />
+  </wsdl:message>
+  <wsdl:message name="AddUserToGroupSoapOut">
+    <wsdl:part name="parameters" element="tns:AddUserToGroupResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddUserCollectionToGroupSoapIn">
+    <wsdl:part name="parameters" element="tns:AddUserCollectionToGroup" />
+  </wsdl:message>
+  <wsdl:message name="AddUserCollectionToGroupSoapOut">
+    <wsdl:part name="parameters" element="tns:AddUserCollectionToGroupResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddUserToRoleSoapIn">
+    <wsdl:part name="parameters" element="tns:AddUserToRole" />
+  </wsdl:message>
+  <wsdl:message name="AddUserToRoleSoapOut">
+    <wsdl:part name="parameters" element="tns:AddUserToRoleResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddUserCollectionToRoleSoapIn">
+    <wsdl:part name="parameters" element="tns:AddUserCollectionToRole" />
+  </wsdl:message>
+  <wsdl:message name="AddUserCollectionToRoleSoapOut">
+    <wsdl:part name="parameters" element="tns:AddUserCollectionToRoleResponse" />
+  </wsdl:message>
+  <wsdl:message name="UpdateUserInfoSoapIn">
+    <wsdl:part name="parameters" element="tns:UpdateUserInfo" />
+  </wsdl:message>
+  <wsdl:message name="UpdateUserInfoSoapOut">
+    <wsdl:part name="parameters" element="tns:UpdateUserInfoResponse" />
+  </wsdl:message>
+  <wsdl:message name="RemoveUserFromSiteSoapIn">
+    <wsdl:part name="parameters" element="tns:RemoveUserFromSite" />
+  </wsdl:message>
+  <wsdl:message name="RemoveUserFromSiteSoapOut">
+    <wsdl:part name="parameters" element="tns:RemoveUserFromSiteResponse" />
+  </wsdl:message>
+  <wsdl:message name="RemoveUserCollectionFromSiteSoapIn">
+    <wsdl:part name="parameters" element="tns:RemoveUserCollectionFromSite" />
+  </wsdl:message>
+  <wsdl:message name="RemoveUserCollectionFromSiteSoapOut">
+    <wsdl:part name="parameters" element="tns:RemoveUserCollectionFromSiteResponse" />
+  </wsdl:message>
+  <wsdl:message name="RemoveUserFromWebSoapIn">
+    <wsdl:part name="parameters" element="tns:RemoveUserFromWeb" />
+  </wsdl:message>
+  <wsdl:message name="RemoveUserFromWebSoapOut">
+    <wsdl:part name="parameters" element="tns:RemoveUserFromWebResponse" />
+  </wsdl:message>
+  <wsdl:message name="RemoveUserFromGroupSoapIn">
+    <wsdl:part name="parameters" element="tns:RemoveUserFromGroup" />
+  </wsdl:message>
+  <wsdl:message name="RemoveUserFromGroupSoapOut">
+    <wsdl:part name="parameters" element="tns:RemoveUserFromGroupResponse" />
+  </wsdl:message>
+  <wsdl:message name="RemoveUserCollectionFromGroupSoapIn">
+    <wsdl:part name="parameters" element="tns:RemoveUserCollectionFromGroup" />
+  </wsdl:message>
+  <wsdl:message name="RemoveUserCollectionFromGroupSoapOut">
+    <wsdl:part name="parameters" element="tns:RemoveUserCollectionFromGroupResponse" />
+  </wsdl:message>
+  <wsdl:message name="RemoveUserFromRoleSoapIn">
+    <wsdl:part name="parameters" element="tns:RemoveUserFromRole" />
+  </wsdl:message>
+  <wsdl:message name="RemoveUserFromRoleSoapOut">
+    <wsdl:part name="parameters" element="tns:RemoveUserFromRoleResponse" />
+  </wsdl:message>
+  <wsdl:message name="RemoveUserCollectionFromRoleSoapIn">
+    <wsdl:part name="parameters" element="tns:RemoveUserCollectionFromRole" />
+  </wsdl:message>
+  <wsdl:message name="RemoveUserCollectionFromRoleSoapOut">
+    <wsdl:part name="parameters" element="tns:RemoveUserCollectionFromRoleResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetGroupCollectionFromSiteSoapIn">
+    <wsdl:part name="parameters" element="tns:GetGroupCollectionFromSite" />
+  </wsdl:message>
+  <wsdl:message name="GetGroupCollectionFromSiteSoapOut">
+    <wsdl:part name="parameters" element="tns:GetGroupCollectionFromSiteResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetGroupCollectionFromWebSoapIn">
+    <wsdl:part name="parameters" element="tns:GetGroupCollectionFromWeb" />
+  </wsdl:message>
+  <wsdl:message name="GetGroupCollectionFromWebSoapOut">
+    <wsdl:part name="parameters" element="tns:GetGroupCollectionFromWebResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetGroupCollectionFromRoleSoapIn">
+    <wsdl:part name="parameters" element="tns:GetGroupCollectionFromRole" />
+  </wsdl:message>
+  <wsdl:message name="GetGroupCollectionFromRoleSoapOut">
+    <wsdl:part name="parameters" element="tns:GetGroupCollectionFromRoleResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetGroupCollectionFromUserSoapIn">
+    <wsdl:part name="parameters" element="tns:GetGroupCollectionFromUser" />
+  </wsdl:message>
+  <wsdl:message name="GetGroupCollectionFromUserSoapOut">
+    <wsdl:part name="parameters" element="tns:GetGroupCollectionFromUserResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetGroupCollectionSoapIn">
+    <wsdl:part name="parameters" element="tns:GetGroupCollection" />
+  </wsdl:message>
+  <wsdl:message name="GetGroupCollectionSoapOut">
+    <wsdl:part name="parameters" element="tns:GetGroupCollectionResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetGroupInfoSoapIn">
+    <wsdl:part name="parameters" element="tns:GetGroupInfo" />
+  </wsdl:message>
+  <wsdl:message name="GetGroupInfoSoapOut">
+    <wsdl:part name="parameters" element="tns:GetGroupInfoResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddGroupSoapIn">
+    <wsdl:part name="parameters" element="tns:AddGroup" />
+  </wsdl:message>
+  <wsdl:message name="AddGroupSoapOut">
+    <wsdl:part name="parameters" element="tns:AddGroupResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddGroupToRoleSoapIn">
+    <wsdl:part name="parameters" element="tns:AddGroupToRole" />
+  </wsdl:message>
+  <wsdl:message name="AddGroupToRoleSoapOut">
+    <wsdl:part name="parameters" element="tns:AddGroupToRoleResponse" />
+  </wsdl:message>
+  <wsdl:message name="UpdateGroupInfoSoapIn">
+    <wsdl:part name="parameters" element="tns:UpdateGroupInfo" />
+  </wsdl:message>
+  <wsdl:message name="UpdateGroupInfoSoapOut">
+    <wsdl:part name="parameters" element="tns:UpdateGroupInfoResponse" />
+  </wsdl:message>
+  <wsdl:message name="RemoveGroupSoapIn">
+    <wsdl:part name="parameters" element="tns:RemoveGroup" />
+  </wsdl:message>
+  <wsdl:message name="RemoveGroupSoapOut">
+    <wsdl:part name="parameters" element="tns:RemoveGroupResponse" />
+  </wsdl:message>
+  <wsdl:message name="RemoveGroupFromRoleSoapIn">
+    <wsdl:part name="parameters" element="tns:RemoveGroupFromRole" />
+  </wsdl:message>
+  <wsdl:message name="RemoveGroupFromRoleSoapOut">
+    <wsdl:part name="parameters" element="tns:RemoveGroupFromRoleResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetRoleCollectionFromWebSoapIn">
+    <wsdl:part name="parameters" element="tns:GetRoleCollectionFromWeb" />
+  </wsdl:message>
+  <wsdl:message name="GetRoleCollectionFromWebSoapOut">
+    <wsdl:part name="parameters" element="tns:GetRoleCollectionFromWebResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetRoleCollectionFromGroupSoapIn">
+    <wsdl:part name="parameters" element="tns:GetRoleCollectionFromGroup" />
+  </wsdl:message>
+  <wsdl:message name="GetRoleCollectionFromGroupSoapOut">
+    <wsdl:part name="parameters" element="tns:GetRoleCollectionFromGroupResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetRoleCollectionFromUserSoapIn">
+    <wsdl:part name="parameters" element="tns:GetRoleCollectionFromUser" />
+  </wsdl:message>
+  <wsdl:message name="GetRoleCollectionFromUserSoapOut">
+    <wsdl:part name="parameters" element="tns:GetRoleCollectionFromUserResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetRoleCollectionSoapIn">
+    <wsdl:part name="parameters" element="tns:GetRoleCollection" />
+  </wsdl:message>
+  <wsdl:message name="GetRoleCollectionSoapOut">
+    <wsdl:part name="parameters" element="tns:GetRoleCollectionResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetRoleInfoSoapIn">
+    <wsdl:part name="parameters" element="tns:GetRoleInfo" />
+  </wsdl:message>
+  <wsdl:message name="GetRoleInfoSoapOut">
+    <wsdl:part name="parameters" element="tns:GetRoleInfoResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddRoleSoapIn">
+    <wsdl:part name="parameters" element="tns:AddRole" />
+  </wsdl:message>
+  <wsdl:message name="AddRoleSoapOut">
+    <wsdl:part name="parameters" element="tns:AddRoleResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddRoleDefSoapIn">
+    <wsdl:part name="parameters" element="tns:AddRoleDef" />
+  </wsdl:message>
+  <wsdl:message name="AddRoleDefSoapOut">
+    <wsdl:part name="parameters" element="tns:AddRoleDefResponse" />
+  </wsdl:message>
+  <wsdl:message name="UpdateRoleInfoSoapIn">
+    <wsdl:part name="parameters" element="tns:UpdateRoleInfo" />
+  </wsdl:message>
+  <wsdl:message name="UpdateRoleInfoSoapOut">
+    <wsdl:part name="parameters" element="tns:UpdateRoleInfoResponse" />
+  </wsdl:message>
+  <wsdl:message name="UpdateRoleDefInfoSoapIn">
+    <wsdl:part name="parameters" element="tns:UpdateRoleDefInfo" />
+  </wsdl:message>
+  <wsdl:message name="UpdateRoleDefInfoSoapOut">
+    <wsdl:part name="parameters" element="tns:UpdateRoleDefInfoResponse" />
+  </wsdl:message>
+  <wsdl:message name="RemoveRoleSoapIn">
+    <wsdl:part name="parameters" element="tns:RemoveRole" />
+  </wsdl:message>
+  <wsdl:message name="RemoveRoleSoapOut">
+    <wsdl:part name="parameters" element="tns:RemoveRoleResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetUserLoginFromEmailSoapIn">
+    <wsdl:part name="parameters" element="tns:GetUserLoginFromEmail" />
+  </wsdl:message>
+  <wsdl:message name="GetUserLoginFromEmailSoapOut">
+    <wsdl:part name="parameters" element="tns:GetUserLoginFromEmailResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetRolesAndPermissionsForCurrentUserSoapIn">
+    <wsdl:part name="parameters" element="tns:GetRolesAndPermissionsForCurrentUser" />
+  </wsdl:message>
+  <wsdl:message name="GetRolesAndPermissionsForCurrentUserSoapOut">
+    <wsdl:part name="parameters" element="tns:GetRolesAndPermissionsForCurrentUserResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetRolesAndPermissionsForSiteSoapIn">
+    <wsdl:part name="parameters" element="tns:GetRolesAndPermissionsForSite" />
+  </wsdl:message>
+  <wsdl:message name="GetRolesAndPermissionsForSiteSoapOut">
+    <wsdl:part name="parameters" element="tns:GetRolesAndPermissionsForSiteResponse" />
+  </wsdl:message>
+  <wsdl:portType name="UserGroupSoap">
+    <wsdl:operation name="GetUserCollectionFromSite">
+      <wsdl:input message="tns:GetUserCollectionFromSiteSoapIn" />
+      <wsdl:output message="tns:GetUserCollectionFromSiteSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetUserCollectionFromWeb">
+      <wsdl:input message="tns:GetUserCollectionFromWebSoapIn" />
+      <wsdl:output message="tns:GetUserCollectionFromWebSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetAllUserCollectionFromWeb">
+      <wsdl:input message="tns:GetAllUserCollectionFromWebSoapIn" />
+      <wsdl:output message="tns:GetAllUserCollectionFromWebSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetUserCollectionFromGroup">
+      <wsdl:input message="tns:GetUserCollectionFromGroupSoapIn" />
+      <wsdl:output message="tns:GetUserCollectionFromGroupSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetUserCollectionFromRole">
+      <wsdl:input message="tns:GetUserCollectionFromRoleSoapIn" />
+      <wsdl:output message="tns:GetUserCollectionFromRoleSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetUserCollection">
+      <wsdl:input message="tns:GetUserCollectionSoapIn" />
+      <wsdl:output message="tns:GetUserCollectionSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetUserInfo">
+      <wsdl:input message="tns:GetUserInfoSoapIn" />
+      <wsdl:output message="tns:GetUserInfoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddUserToGroup">
+      <wsdl:input message="tns:AddUserToGroupSoapIn" />
+      <wsdl:output message="tns:AddUserToGroupSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddUserCollectionToGroup">
+      <wsdl:input message="tns:AddUserCollectionToGroupSoapIn" />
+      <wsdl:output message="tns:AddUserCollectionToGroupSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddUserToRole">
+      <wsdl:input message="tns:AddUserToRoleSoapIn" />
+      <wsdl:output message="tns:AddUserToRoleSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddUserCollectionToRole">
+      <wsdl:input message="tns:AddUserCollectionToRoleSoapIn" />
+      <wsdl:output message="tns:AddUserCollectionToRoleSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="UpdateUserInfo">
+      <wsdl:input message="tns:UpdateUserInfoSoapIn" />
+      <wsdl:output message="tns:UpdateUserInfoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserFromSite">
+      <wsdl:input message="tns:RemoveUserFromSiteSoapIn" />
+      <wsdl:output message="tns:RemoveUserFromSiteSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserCollectionFromSite">
+      <wsdl:input message="tns:RemoveUserCollectionFromSiteSoapIn" />
+      <wsdl:output message="tns:RemoveUserCollectionFromSiteSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserFromWeb">
+      <wsdl:input message="tns:RemoveUserFromWebSoapIn" />
+      <wsdl:output message="tns:RemoveUserFromWebSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserFromGroup">
+      <wsdl:input message="tns:RemoveUserFromGroupSoapIn" />
+      <wsdl:output message="tns:RemoveUserFromGroupSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserCollectionFromGroup">
+      <wsdl:input message="tns:RemoveUserCollectionFromGroupSoapIn" />
+      <wsdl:output message="tns:RemoveUserCollectionFromGroupSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserFromRole">
+      <wsdl:input message="tns:RemoveUserFromRoleSoapIn" />
+      <wsdl:output message="tns:RemoveUserFromRoleSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserCollectionFromRole">
+      <wsdl:input message="tns:RemoveUserCollectionFromRoleSoapIn" />
+      <wsdl:output message="tns:RemoveUserCollectionFromRoleSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupCollectionFromSite">
+      <wsdl:input message="tns:GetGroupCollectionFromSiteSoapIn" />
+      <wsdl:output message="tns:GetGroupCollectionFromSiteSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupCollectionFromWeb">
+      <wsdl:input message="tns:GetGroupCollectionFromWebSoapIn" />
+      <wsdl:output message="tns:GetGroupCollectionFromWebSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupCollectionFromRole">
+      <wsdl:input message="tns:GetGroupCollectionFromRoleSoapIn" />
+      <wsdl:output message="tns:GetGroupCollectionFromRoleSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupCollectionFromUser">
+      <wsdl:input message="tns:GetGroupCollectionFromUserSoapIn" />
+      <wsdl:output message="tns:GetGroupCollectionFromUserSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupCollection">
+      <wsdl:input message="tns:GetGroupCollectionSoapIn" />
+      <wsdl:output message="tns:GetGroupCollectionSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupInfo">
+      <wsdl:input message="tns:GetGroupInfoSoapIn" />
+      <wsdl:output message="tns:GetGroupInfoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddGroup">
+      <wsdl:input message="tns:AddGroupSoapIn" />
+      <wsdl:output message="tns:AddGroupSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddGroupToRole">
+      <wsdl:input message="tns:AddGroupToRoleSoapIn" />
+      <wsdl:output message="tns:AddGroupToRoleSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="UpdateGroupInfo">
+      <wsdl:input message="tns:UpdateGroupInfoSoapIn" />
+      <wsdl:output message="tns:UpdateGroupInfoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RemoveGroup">
+      <wsdl:input message="tns:RemoveGroupSoapIn" />
+      <wsdl:output message="tns:RemoveGroupSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RemoveGroupFromRole">
+      <wsdl:input message="tns:RemoveGroupFromRoleSoapIn" />
+      <wsdl:output message="tns:RemoveGroupFromRoleSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetRoleCollectionFromWeb">
+      <wsdl:input message="tns:GetRoleCollectionFromWebSoapIn" />
+      <wsdl:output message="tns:GetRoleCollectionFromWebSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetRoleCollectionFromGroup">
+      <wsdl:input message="tns:GetRoleCollectionFromGroupSoapIn" />
+      <wsdl:output message="tns:GetRoleCollectionFromGroupSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetRoleCollectionFromUser">
+      <wsdl:input message="tns:GetRoleCollectionFromUserSoapIn" />
+      <wsdl:output message="tns:GetRoleCollectionFromUserSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetRoleCollection">
+      <wsdl:input message="tns:GetRoleCollectionSoapIn" />
+      <wsdl:output message="tns:GetRoleCollectionSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetRoleInfo">
+      <wsdl:input message="tns:GetRoleInfoSoapIn" />
+      <wsdl:output message="tns:GetRoleInfoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddRole">
+      <wsdl:input message="tns:AddRoleSoapIn" />
+      <wsdl:output message="tns:AddRoleSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddRoleDef">
+      <wsdl:input message="tns:AddRoleDefSoapIn" />
+      <wsdl:output message="tns:AddRoleDefSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="UpdateRoleInfo">
+      <wsdl:input message="tns:UpdateRoleInfoSoapIn" />
+      <wsdl:output message="tns:UpdateRoleInfoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="UpdateRoleDefInfo">
+      <wsdl:input message="tns:UpdateRoleDefInfoSoapIn" />
+      <wsdl:output message="tns:UpdateRoleDefInfoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RemoveRole">
+      <wsdl:input message="tns:RemoveRoleSoapIn" />
+      <wsdl:output message="tns:RemoveRoleSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetUserLoginFromEmail">
+      <wsdl:input message="tns:GetUserLoginFromEmailSoapIn" />
+      <wsdl:output message="tns:GetUserLoginFromEmailSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetRolesAndPermissionsForCurrentUser">
+      <wsdl:input message="tns:GetRolesAndPermissionsForCurrentUserSoapIn" />
+      <wsdl:output message="tns:GetRolesAndPermissionsForCurrentUserSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetRolesAndPermissionsForSite">
+      <wsdl:input message="tns:GetRolesAndPermissionsForSiteSoapIn" />
+      <wsdl:output message="tns:GetRolesAndPermissionsForSiteSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="UserGroupSoap" type="tns:UserGroupSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetUserCollectionFromSite">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetUserCollectionFromSite" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetUserCollectionFromWeb">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetUserCollectionFromWeb" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAllUserCollectionFromWeb">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetAllUserCollectionFromWeb" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetUserCollectionFromGroup">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetUserCollectionFromGroup" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetUserCollectionFromRole">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetUserCollectionFromRole" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetUserCollection">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetUserCollection" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetUserInfo">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetUserInfo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddUserToGroup">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddUserToGroup" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddUserCollectionToGroup">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddUserCollectionToGroup" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddUserToRole">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddUserToRole" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddUserCollectionToRole">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddUserCollectionToRole" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateUserInfo">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/UpdateUserInfo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserFromSite">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveUserFromSite" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserCollectionFromSite">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveUserCollectionFromSite" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserFromWeb">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveUserFromWeb" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserFromGroup">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveUserFromGroup" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserCollectionFromGroup">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveUserCollectionFromGroup" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserFromRole">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveUserFromRole" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserCollectionFromRole">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveUserCollectionFromRole" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupCollectionFromSite">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetGroupCollectionFromSite" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupCollectionFromWeb">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetGroupCollectionFromWeb" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupCollectionFromRole">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetGroupCollectionFromRole" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupCollectionFromUser">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetGroupCollectionFromUser" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupCollection">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetGroupCollection" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupInfo">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetGroupInfo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddGroup">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddGroup" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddGroupToRole">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddGroupToRole" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateGroupInfo">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/UpdateGroupInfo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveGroup">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveGroup" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveGroupFromRole">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveGroupFromRole" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRoleCollectionFromWeb">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetRoleCollectionFromWeb" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRoleCollectionFromGroup">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetRoleCollectionFromGroup" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRoleCollectionFromUser">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetRoleCollectionFromUser" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRoleCollection">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetRoleCollection" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRoleInfo">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetRoleInfo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddRole">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddRole" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddRoleDef">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddRoleDef" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateRoleInfo">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/UpdateRoleInfo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateRoleDefInfo">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/UpdateRoleDefInfo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveRole">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveRole" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetUserLoginFromEmail">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetUserLoginFromEmail" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRolesAndPermissionsForCurrentUser">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetRolesAndPermissionsForCurrentUser" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRolesAndPermissionsForSite">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetRolesAndPermissionsForSite" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="UserGroupSoap12" type="tns:UserGroupSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetUserCollectionFromSite">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetUserCollectionFromSite" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetUserCollectionFromWeb">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetUserCollectionFromWeb" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAllUserCollectionFromWeb">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetAllUserCollectionFromWeb" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetUserCollectionFromGroup">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetUserCollectionFromGroup" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetUserCollectionFromRole">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetUserCollectionFromRole" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetUserCollection">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetUserCollection" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetUserInfo">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetUserInfo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddUserToGroup">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddUserToGroup" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddUserCollectionToGroup">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddUserCollectionToGroup" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddUserToRole">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddUserToRole" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddUserCollectionToRole">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddUserCollectionToRole" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateUserInfo">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/UpdateUserInfo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserFromSite">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveUserFromSite" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserCollectionFromSite">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveUserCollectionFromSite" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserFromWeb">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveUserFromWeb" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserFromGroup">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveUserFromGroup" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserCollectionFromGroup">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveUserCollectionFromGroup" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserFromRole">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveUserFromRole" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUserCollectionFromRole">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveUserCollectionFromRole" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupCollectionFromSite">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetGroupCollectionFromSite" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupCollectionFromWeb">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetGroupCollectionFromWeb" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupCollectionFromRole">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetGroupCollectionFromRole" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupCollectionFromUser">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetGroupCollectionFromUser" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupCollection">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetGroupCollection" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetGroupInfo">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetGroupInfo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddGroup">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddGroup" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddGroupToRole">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddGroupToRole" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateGroupInfo">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/UpdateGroupInfo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveGroup">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveGroup" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveGroupFromRole">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveGroupFromRole" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRoleCollectionFromWeb">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetRoleCollectionFromWeb" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRoleCollectionFromGroup">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetRoleCollectionFromGroup" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRoleCollectionFromUser">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetRoleCollectionFromUser" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRoleCollection">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetRoleCollection" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRoleInfo">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetRoleInfo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddRole">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddRole" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddRoleDef">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddRoleDef" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateRoleInfo">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/UpdateRoleInfo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateRoleDefInfo">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/UpdateRoleDefInfo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveRole">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemoveRole" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetUserLoginFromEmail">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetUserLoginFromEmail" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRolesAndPermissionsForCurrentUser">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetRolesAndPermissionsForCurrentUser" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRolesAndPermissionsForSite">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetRolesAndPermissionsForSite" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="UserGroup">
+    <wsdl:port name="UserGroupSoap" binding="tns:UserGroupSoap">
+      <soap:address location="http://DNM/_vti_bin/usergroup.asmx" />
+    </wsdl:port>
+    <wsdl:port name="UserGroupSoap12" binding="tns:UserGroupSoap12">
+      <soap12:address location="http://DNM/_vti_bin/usergroup.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
