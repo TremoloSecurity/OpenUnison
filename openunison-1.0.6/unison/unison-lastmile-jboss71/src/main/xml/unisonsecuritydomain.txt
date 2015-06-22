@@ -1,0 +1,5 @@
+<security-domain name="unisonsecuritydomain" cache-type="default">
+    <authentication>
+        <login-module  code="com.tremolosecurity.lastmile.jboss71.loginModule.UnisonLoginModule" flag="required"/>
+    </authentication>
+</security-domain>
