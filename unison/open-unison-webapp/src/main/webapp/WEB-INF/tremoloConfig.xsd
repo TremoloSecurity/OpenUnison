@@ -677,24 +677,27 @@ limitations under the License.
     <annotation>
 			<documentation>Top level provisioning configuration</documentation>
 			</annotation>
-    	<sequence>
-    		<element name="targets" type="tns:targetsType"></element>
-    		<element name="workflows" type="tns:workflowsType"></element>
-    		<element name="approvalDB" type="tns:approvalDBType"
-    			maxOccurs="1" minOccurs="0">
-    		</element>
-    		<element name="org" type="tns:orgType"></element>
-    		<element name="queueConfig" type="tns:queueConfigType"
-    			maxOccurs="1" minOccurs="0">
-    		</element>
-    		<element name="portal" type="tns:portalUrlsType"
-    			minOccurs="0" maxOccurs="1">
-    		</element>
-    		<element name="scheduler" type="tns:schedulingType"
-    			minOccurs="0" maxOccurs="1">
-    		</element>
-    		<element name="listeners" type="tns:messageListenersType" minOccurs="0" maxOccurs="1"></element>
-    	</sequence>
+    <sequence>
+    	<element name="targets" type="tns:targetsType"></element>
+    	<element name="workflows" type="tns:workflowsType"></element>
+    	<element name="approvalDB" type="tns:approvalDBType"
+    		maxOccurs="1" minOccurs="0">
+    	</element>
+    	<element name="org" type="tns:orgType"></element>
+    	<element name="queueConfig" type="tns:queueConfigType"
+    		maxOccurs="1" minOccurs="0">
+    	</element>
+    	<element name="portal" type="tns:portalUrlsType" minOccurs="0"
+    		maxOccurs="1">
+    	</element>
+    	<element name="scheduler" type="tns:schedulingType"
+    		minOccurs="0" maxOccurs="1">
+    	</element>
+    	<element name="listeners" type="tns:messageListenersType"
+    		minOccurs="0" maxOccurs="1">
+    	</element>
+    	<element name="reports" type="tns:reportsType" minOccurs="0" maxOccurs="1"></element>
+    </sequence>
     </complexType>
 
 
@@ -1668,5 +1671,31 @@ limitations under the License.
 			<documentation>The name of the queue to listen on</documentation>
 			</annotation>
     	</attribute>
+    </complexType>
+
+    <complexType name="reportsType">
+    	<sequence>
+    		<element name="report" type="tns:reportType" minOccurs="0" maxOccurs="unbounded"></element>
+    	</sequence>
+    </complexType>
+    
+    <complexType name="reportType">
+    	<sequence>
+    		<element name="paramater" minOccurs="0"
+    			maxOccurs="unbounded">
+    			<simpleType>
+    				<restriction base="string">
+    					<enumeration value="currentUser"></enumeration>
+    					<enumeration value="userKey"></enumeration>
+    					<enumeration value="beginDate"></enumeration>
+    					<enumeration value="endDate"></enumeration>
+    				</restriction>
+    			</simpleType>
+    		</element>
+    		<element name="sql" type="string" minOccurs="1" maxOccurs="1"></element>
+    	</sequence>
+    	<attribute name="orgID" type="string"></attribute>
+    	<attribute name="name" type="string"></attribute>
+    	<attribute name="description" type="string"></attribute>
     </complexType>
 </schema>

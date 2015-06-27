@@ -18,23 +18,30 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * Configuration of a chain of authentication mechanisms
- * 
- * <p>Java class for authChainType complex type.
+ * <p>Java class for reportType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="authChainType">
+ * &lt;complexType name="reportType">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="authMech" type="{http://www.tremolosecurity.com/tremoloConfig}authMechType" maxOccurs="unbounded"/>
+ *         &lt;element name="paramater" maxOccurs="unbounded" minOccurs="0">
+ *           &lt;simpleType>
+ *             &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
+ *               &lt;enumeration value="currentUser"/>
+ *               &lt;enumeration value="userKey"/>
+ *               &lt;enumeration value="beginDate"/>
+ *               &lt;enumeration value="endDate"/>
+ *             &lt;/restriction>
+ *           &lt;/simpleType>
+ *         &lt;/element>
+ *         &lt;element name="sql" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *       &lt;/sequence>
+ *       &lt;attribute name="orgID" type="{http://www.w3.org/2001/XMLSchema}string" />
  *       &lt;attribute name="name" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="level" type="{http://www.w3.org/2001/XMLSchema}int" />
- *       &lt;attribute name="finishOnRequiredSucess" type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" />
- *       &lt;attribute name="root" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="description" type="{http://www.w3.org/2001/XMLSchema}string" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -43,49 +50,97 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "authChainType", propOrder = {
-    "authMech"
+@XmlType(name = "reportType", propOrder = {
+    "paramater",
+    "sql"
 })
-public class AuthChainType {
+public class ReportType {
 
+    protected List<String> paramater;
     @XmlElement(required = true)
-    protected List<AuthMechType> authMech;
+    protected String sql;
+    @XmlAttribute(name = "orgID")
+    protected String orgID;
     @XmlAttribute(name = "name")
     protected String name;
-    @XmlAttribute(name = "level")
-    protected Integer level;
-    @XmlAttribute(name = "finishOnRequiredSucess")
-    protected Boolean finishOnRequiredSucess;
-    @XmlAttribute(name = "root")
-    protected String root;
+    @XmlAttribute(name = "description")
+    protected String description;
 
     /**
-     * Gets the value of the authMech property.
+     * Gets the value of the paramater property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the authMech property.
+     * This is why there is not a <CODE>set</CODE> method for the paramater property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getAuthMech().add(newItem);
+     *    getParamater().add(newItem);
      * </pre>
      * 
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link AuthMechType }
+     * {@link String }
      * 
      * 
      */
-    public List<AuthMechType> getAuthMech() {
-        if (authMech == null) {
-            authMech = new ArrayList<AuthMechType>();
+    public List<String> getParamater() {
+        if (paramater == null) {
+            paramater = new ArrayList<String>();
         }
-        return this.authMech;
+        return this.paramater;
+    }
+
+    /**
+     * Gets the value of the sql property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getSql() {
+        return sql;
+    }
+
+    /**
+     * Sets the value of the sql property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setSql(String value) {
+        this.sql = value;
+    }
+
+    /**
+     * Gets the value of the orgID property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getOrgID() {
+        return orgID;
+    }
+
+    /**
+     * Sets the value of the orgID property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setOrgID(String value) {
+        this.orgID = value;
     }
 
     /**
@@ -113,79 +168,27 @@ public class AuthChainType {
     }
 
     /**
-     * Gets the value of the level property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Integer }
-     *     
-     */
-    public Integer getLevel() {
-        return level;
-    }
-
-    /**
-     * Sets the value of the level property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Integer }
-     *     
-     */
-    public void setLevel(Integer value) {
-        this.level = value;
-    }
-
-    /**
-     * Gets the value of the finishOnRequiredSucess property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
-     */
-    public boolean isFinishOnRequiredSucess() {
-        if (finishOnRequiredSucess == null) {
-            return false;
-        } else {
-            return finishOnRequiredSucess;
-        }
-    }
-
-    /**
-     * Sets the value of the finishOnRequiredSucess property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
-     */
-    public void setFinishOnRequiredSucess(Boolean value) {
-        this.finishOnRequiredSucess = value;
-    }
-
-    /**
-     * Gets the value of the root property.
+     * Gets the value of the description property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getRoot() {
-        return root;
+    public String getDescription() {
+        return description;
     }
 
     /**
-     * Sets the value of the root property.
+     * Sets the value of the description property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setRoot(String value) {
-        this.root = value;
+    public void setDescription(String value) {
+        this.description = value;
     }
 
 }
