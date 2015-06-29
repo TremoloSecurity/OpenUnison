@@ -1692,10 +1692,20 @@ limitations under the License.
     				</restriction>
     			</simpleType>
     		</element>
-    		<element name="sql" type="string" minOccurs="1" maxOccurs="1"></element>
+    		<element name="sql" type="string" minOccurs="1"
+    			maxOccurs="1">
+    		</element>
+    		<element name="headerFields" type="string" minOccurs="0"
+    			maxOccurs="unbounded">
+    		</element>
+    		<element name="dataFields" type="string" minOccurs="0"
+    			maxOccurs="unbounded">
+    		</element>
     	</sequence>
     	<attribute name="orgID" type="string"></attribute>
     	<attribute name="name" type="string"></attribute>
     	<attribute name="description" type="string"></attribute>
+    	<attribute name="groupBy" type="string"></attribute>
+    	<attribute name="groupings" type="boolean"></attribute>
     </complexType>
 </schema>
