@@ -34,7 +34,8 @@ public class ProvisioningResult {
 	private ApprovalDetails approvalDetail;
 	private Organization org;
 	private PortalURLs portalURLs;
-	
+	private ReportResults reportResults;
+	private ReportsList reportsList;
 	
 	
 	public PortalURLs getPortalURLs() {
@@ -112,6 +113,23 @@ public class ProvisioningResult {
 	public void setOrg(Organization org) {
 		this.org = org;
 	}
+
+	public ReportResults getReportResults() {
+		return reportResults;
+	}
+
+	public void setReportResults(ReportResults reportResults) {
+		this.reportResults = reportResults;
+	}
+
+	public ReportsList getReportsList() {
+		return reportsList;
+	}
+
+	public void setReportsList(ReportsList reportsList) {
+		this.reportsList = reportsList;
+	}
+	
 	
 	
 	
