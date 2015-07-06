@@ -1708,4 +1708,6 @@ limitations under the License.
     	<attribute name="groupBy" type="string"></attribute>
     	<attribute name="groupings" type="boolean"></attribute>
     </complexType>
+
+    <element name="reports" type="tns:reportsType"></element>
 </schema>
