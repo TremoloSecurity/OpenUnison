@@ -1089,10 +1089,15 @@ limitations under the License.
     			<sequence>
     				<element name="emailTemplate" type="string"
     					maxOccurs="1" minOccurs="1">
-    					
+
     					<annotation>
-			<documentation>A template for emails to be sent to approvers.  Attributes from the approver may be added using ${}, ie to add the givenName ${givenName}</documentation>
-			</annotation>
+    						<documentation>
+    							A template for emails to be sent to
+    							approvers. Attributes from the approver
+    							may be added using ${}, ie to add the
+    							givenName ${givenName}
+    						</documentation>
+    					</annotation>
     				</element>
     				<element name="approvers" type="tns:azRulesType"
     					maxOccurs="1" minOccurs="1">
@@ -1100,21 +1105,35 @@ limitations under the License.
     				<element name="mailAttr" type="string" maxOccurs="1"
     					minOccurs="1">
     					<annotation>
-			<documentation>The attribute on the user to find their email address</documentation>
-			</annotation>
+    						<documentation>
+    							The attribute on the user to find their
+    							email address
+    						</documentation>
+    					</annotation>
     				</element>
     				<element name="failureEmailSubject" type="string"
     					maxOccurs="1" minOccurs="1">
     					<annotation>
-			<documentation>Subject of the email to be sent to the requestor if the approval request is rejected</documentation>
-			</annotation>
+    						<documentation>
+    							Subject of the email to be sent to the
+    							requestor if the approval request is
+    							rejected
+    						</documentation>
+    					</annotation>
     				</element>
-    				<element name="failureEmailMsg" type="string" maxOccurs="1" minOccurs="1">
-    				<annotation>
-			<documentation>A template for emails to be sent to users after a failure.  Attributes from the approver may be added using ${}, ie to add the givenName ${givenName}</documentation>
-			</annotation>
-    				
+    				<element name="failureEmailMsg" type="string"
+    					maxOccurs="1" minOccurs="1">
+    					<annotation>
+    						<documentation>
+    							A template for emails to be sent to
+    							users after a failure. Attributes from
+    							the approver may be added using ${}, ie
+    							to add the givenName ${givenName}
+    						</documentation>
+    					</annotation>
+
     				</element>
+    				<element name="escalationPolicy" type="tns:escalationPolicyType" minOccurs="0" maxOccurs="1"></element>
     			</sequence>
     			<attribute name="label" type="string">
     			<annotation>
@@ -1710,4 +1729,51 @@ limitations under the License.
     </complexType>
 
     <element name="reports" type="tns:reportsType"></element>
+
+    <complexType name="escalationType">
+    	<sequence>
+    		<element name="azRules" type="tns:azRulesType" minOccurs="1"
+    			maxOccurs="1">
+    		</element>
+    		<element name="escalationFailure"
+    			type="tns:escalationFailureType" minOccurs="1" maxOccurs="1">
+    		</element>
+    	</sequence>
+    	<attribute name="executeAfterTime" type="int"></attribute>
+    	<attribute name="validateEscalationClass" type="string"></attribute>
+    	<attribute name="executeAfterUnits">
+    		<simpleType>
+    			<restriction base="string">
+    				<enumeration value="sec"></enumeration>
+    				<enumeration value="min"></enumeration>
+    				<enumeration value="hr"></enumeration>
+    				<enumeration value="wk"></enumeration>
+    				<enumeration value="day"></enumeration>
+    			</restriction>
+    		</simpleType>
+    	</attribute>
+    </complexType>
+    
+    <complexType name="escalationPolicyType">
+    	<sequence>
+            <element name="escalationFailure" type="tns:escalationFailureType" maxOccurs="1" minOccurs="1"></element>
+            <element name="escalation" type="tns:escalationType"
+    			minOccurs="0" maxOccurs="unbounded">
+    		</element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="escalationFailureType">
+    	<sequence>
+    		<element name="azRules" type="tns:azRulesType"></element>
+    	</sequence>
+    	<attribute name="action">
+    		<simpleType>
+    			<restriction base="string">
+    				<enumeration value="assign"></enumeration>
+    				<enumeration value="leave"></enumeration>
+    			</restriction>
+    		</simpleType>
+    	</attribute>
+    </complexType>
 </schema>

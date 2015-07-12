@@ -546,25 +546,14 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		}
 		
 		
-		try {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			ObjectOutputStream oos = new ObjectOutputStream(baos);
-			oos.writeObject(wf);
-			oos.close();
-			baos.close();
-			
-			ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-			ObjectInputStream ois = new ObjectInputStream(bais);
-			wf = (WorkflowImpl) ois.readObject();
-			ois.close();
-			bais.close();
-			
-			wf.reInit(this.cfgMgr);
-		} catch (IOException e) {
-			throw new ProvisioningException("Could not decode worflow",e);
-		} catch (ClassNotFoundException e) {
-			throw new ProvisioningException("Could not cast worflow",e);
-		}
+		
+
+		
+		
+		wf = (WorkflowImpl) JsonReader.jsonToJava(JsonWriter.objectToJson(wf));
+		
+		wf.reInit(this.cfgMgr);
+		
 		
 		if (this.approvalConPool != null) {
 			Connection con = null;

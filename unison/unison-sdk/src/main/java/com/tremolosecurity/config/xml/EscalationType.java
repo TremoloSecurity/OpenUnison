@@ -31,24 +31,31 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * A portal URL can be to any resource
- * 
- * <p>Java class for portalUrlType complex type.
+ * <p>Java class for escalationType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="portalUrlType">
+ * &lt;complexType name="escalationType">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
  *         &lt;element name="azRules" type="{http://www.tremolosecurity.com/tremoloConfig}azRulesType"/>
+ *         &lt;element name="escalationFailure" type="{http://www.tremolosecurity.com/tremoloConfig}escalationFailureType"/>
  *       &lt;/sequence>
- *       &lt;attribute name="label" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="url" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="name" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="org" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="icon" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="executeAfterTime" type="{http://www.w3.org/2001/XMLSchema}int" />
+ *       &lt;attribute name="validateEscalationClass" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="executeAfterUnits">
+ *         &lt;simpleType>
+ *           &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
+ *             &lt;enumeration value="sec"/>
+ *             &lt;enumeration value="min"/>
+ *             &lt;enumeration value="hr"/>
+ *             &lt;enumeration value="wk"/>
+ *             &lt;enumeration value="day"/>
+ *           &lt;/restriction>
+ *         &lt;/simpleType>
+ *       &lt;/attribute>
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -57,23 +64,22 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "portalUrlType", propOrder = {
-    "azRules"
+@XmlType(name = "escalationType", propOrder = {
+    "azRules",
+    "escalationFailure"
 })
-public class PortalUrlType {
+public class EscalationType {
 
     @XmlElement(required = true)
     protected AzRulesType azRules;
-    @XmlAttribute(name = "label")
-    protected String label;
-    @XmlAttribute(name = "url")
-    protected String url;
-    @XmlAttribute(name = "name")
-    protected String name;
-    @XmlAttribute(name = "org")
-    protected String org;
-    @XmlAttribute(name = "icon")
-    protected String icon;
+    @XmlElement(required = true)
+    protected EscalationFailureType escalationFailure;
+    @XmlAttribute(name = "executeAfterTime")
+    protected Integer executeAfterTime;
+    @XmlAttribute(name = "validateEscalationClass")
+    protected String validateEscalationClass;
+    @XmlAttribute(name = "executeAfterUnits")
+    protected String executeAfterUnits;
 
     /**
      * Gets the value of the azRules property.
@@ -100,123 +106,99 @@ public class PortalUrlType {
     }
 
     /**
-     * Gets the value of the label property.
+     * Gets the value of the escalationFailure property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link EscalationFailureType }
+     *     
+     */
+    public EscalationFailureType getEscalationFailure() {
+        return escalationFailure;
+    }
+
+    /**
+     * Sets the value of the escalationFailure property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link EscalationFailureType }
+     *     
+     */
+    public void setEscalationFailure(EscalationFailureType value) {
+        this.escalationFailure = value;
+    }
+
+    /**
+     * Gets the value of the executeAfterTime property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link Integer }
+     *     
+     */
+    public Integer getExecuteAfterTime() {
+        return executeAfterTime;
+    }
+
+    /**
+     * Sets the value of the executeAfterTime property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link Integer }
+     *     
+     */
+    public void setExecuteAfterTime(Integer value) {
+        this.executeAfterTime = value;
+    }
+
+    /**
+     * Gets the value of the validateEscalationClass property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getLabel() {
-        return label;
+    public String getValidateEscalationClass() {
+        return validateEscalationClass;
     }
 
     /**
-     * Sets the value of the label property.
+     * Sets the value of the validateEscalationClass property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setLabel(String value) {
-        this.label = value;
+    public void setValidateEscalationClass(String value) {
+        this.validateEscalationClass = value;
     }
 
     /**
-     * Gets the value of the url property.
+     * Gets the value of the executeAfterUnits property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getUrl() {
-        return url;
+    public String getExecuteAfterUnits() {
+        return executeAfterUnits;
     }
 
     /**
-     * Sets the value of the url property.
+     * Sets the value of the executeAfterUnits property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setUrl(String value) {
-        this.url = value;
-    }
-
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
-    }
-
-    /**
-     * Gets the value of the org property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getOrg() {
-        return org;
-    }
-
-    /**
-     * Sets the value of the org property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setOrg(String value) {
-        this.org = value;
-    }
-
-    /**
-     * Gets the value of the icon property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getIcon() {
-        return icon;
-    }
-
-    /**
-     * Sets the value of the icon property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setIcon(String value) {
-        this.icon = value;
+    public void setExecuteAfterUnits(String value) {
+        this.executeAfterUnits = value;
     }
 
 }

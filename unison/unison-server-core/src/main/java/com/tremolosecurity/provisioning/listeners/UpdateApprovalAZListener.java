@@ -130,7 +130,29 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 		delAllowedApprovers.executeUpdate();
 		delAllowedApprovers.close();
 		
-		approval.updateAllowedApprovals(con,cfg);
+		if (approval.updateAllowedApprovals(con,cfg)) {
+			//need to write the approval back to the db
+			json = JsonWriter.objectToJson(wf);
+			
+			
+			cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+			cipher.init(Cipher.ENCRYPT_MODE, decryptionKey);
+			
+			
+			byte[] encJson = cipher.doFinal(json.getBytes("UTF-8"));
+			String base64d = new String(org.bouncycastle.util.encoders.Base64.encode(encJson));
+			
+			token = new Token();
+			token.setEncryptedRequest(base64d);
+			token.setIv(new String(org.bouncycastle.util.encoders.Base64.encode(cipher.getIV())));
+			
+			//String base64 = new String(org.bouncycastle.util.encoders.Base64.encode(baos.toByteArray()));
+			
+			PreparedStatement ps = con.prepareStatement("UPDATE approvals SET workflowObj=? WHERE id=?");
+			ps.setString(1, gson.toJson(token));
+			ps.setInt(2, approval.getId());
+			ps.executeUpdate();
+		}
 		
 		con.commit();
 		
