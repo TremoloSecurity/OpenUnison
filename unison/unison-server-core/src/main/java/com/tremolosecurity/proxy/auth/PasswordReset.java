@@ -17,6 +17,8 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.auth;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -252,10 +254,12 @@ public class PasswordReset implements AuthMechanism {
 		} else {
 			
 			String email = rs.getString("email");
-			StringBuffer filter = new StringBuffer();
-			filter.append("(mail=").append(email).append(")");
+			
+			
+			
+			
 			try {
-				LDAPSearchResults res = this.cfgMgr.getMyVD().search(AuthUtil.getChainRoot(act), 2, filter.toString(), new ArrayList<String>());
+				LDAPSearchResults res = this.cfgMgr.getMyVD().search(AuthUtil.getChainRoot(act), 2, equal("mail",email).toString(), new ArrayList<String>());
 				
 				if (res.hasMore()) {
 					
@@ -408,9 +412,6 @@ public class PasswordReset implements AuthMechanism {
 		String emailAddress = request.getParameter("email");
 		
 		
-		StringBuffer filter = new StringBuffer();
-		
-		filter.append("(mail=").append(emailAddress).append(")");
 		ArrayList<String> attrs = new ArrayList<String>();
 		attrs.add("1.1");
 		
@@ -418,7 +419,7 @@ public class PasswordReset implements AuthMechanism {
 		
 		try {
 			
-			LDAPSearchResults res = this.cfgMgr.getMyVD().search(AuthUtil.getChainRoot(act), 2, filter.toString(), attrs);
+			LDAPSearchResults res = this.cfgMgr.getMyVD().search(AuthUtil.getChainRoot(act), 2, equal("mail",emailAddress).toString(), attrs);
 			
 			if (! res.hasMore()) {
 				response.sendRedirect(noUserSplash);

@@ -17,6 +17,8 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.core;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -619,8 +621,11 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		try {
 			
 			StringBuffer b = new StringBuffer();
-			b.append("(").append(this.userIDAttributeName).append("=").append(userID).append(")");
-			LDAPSearchResults res = this.cfgMgr.getMyVD().search("o=Tremolo", 2, b.toString(), new ArrayList<String>());
+			
+			
+			
+			
+			LDAPSearchResults res = this.cfgMgr.getMyVD().search("o=Tremolo", 2, equal(this.userIDAttributeName,userID).toString(), new ArrayList<String>());
 			if (! res.hasMore()) {
 				throw new ProvisioningException("Could not locate approver '" + userID + "'");
 			}

@@ -17,6 +17,8 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.service;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -142,7 +144,7 @@ public class SearchService extends HttpServlet {
 			
 			StringBuffer b = new StringBuffer();
 			b.append("(uniqueMember=").append(user.getDn()).append(")");
-			res = con.search("o=Tremolo", 2,b.toString() , reqAttrs);
+			res = con.search("o=Tremolo", 2,equal("uniqueMember",user.getDn()).toString() , reqAttrs);
 			
 			while (res.hasMore()) {
 				

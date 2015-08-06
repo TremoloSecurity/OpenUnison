@@ -48,7 +48,7 @@ import com.tremolosecurity.provisioning.util.ldap.pool.LdapPool;
 import com.tremolosecurity.proxy.ssl.TremoloSSLSocketFactory;
 import com.tremolosecurity.saml.Attribute;
 
-
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
 public class LDAPProvider implements UserStoreProvider {
 
@@ -473,8 +473,12 @@ public class LDAPProvider implements UserStoreProvider {
 		}
 		
 		StringBuffer b = new StringBuffer();
-		b.append("(uniqueMember=").append(ldapUser.getDN()).append(")");
-		res = con.search(searchBase, 2, b.toString(), new String[] {"cn"}, false);
+		
+		
+		
+		
+		//b.append("(uniqueMember=").append(ldapUser.getDN()).append(")");
+		res = con.search(searchBase, 2, equal("uniqueMember",ldapUser.getDN()).toString(), new String[] {"cn"}, false);
 		while (res.hasMore()) {
 			LDAPEntry group = res.next();
 			user.getGroups().add(group.getAttribute("cn").getStringValue());

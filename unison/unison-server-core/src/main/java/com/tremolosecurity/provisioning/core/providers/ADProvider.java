@@ -17,6 +17,8 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.core.providers;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -402,16 +404,15 @@ public class ADProvider implements UserStoreProvider {
 				fdn = fdn.replaceAll("\\\\,","\\\\5C,");               
 			}*/
 			
-			fdn = this.adEscape(fdn);
+			//fdn = this.adEscape(fdn);
 			
 			
 			
-			StringBuffer f = new StringBuffer();
-			f.append('(').append(this.externalGroupAttr).append('=').append(fdn).append(')');
 			
 			
 			
-			res = con.search(searchBase, 2, f.toString(), new String[] {"cn"}, false);
+			
+			res = con.search(searchBase, 2, equal(this.externalGroupAttr,fdn).toString(), new String[] {"cn"}, false);
 		} else {
 			
 			String fdn = ldapUser.getDN();
@@ -419,12 +420,12 @@ public class ADProvider implements UserStoreProvider {
 			/*if (fdn.contains("\\,")) { 
 				fdn = fdn.replaceAll("[\\\\][,]","\\\\5C,");               
 			} */
-			fdn = this.adEscape(fdn);
+			//fdn = this.adEscape(fdn);
 			
 			StringBuffer f = new StringBuffer();
-			f.append('(').append("member").append('=').append(fdn).append(')');
 			
-			res = con.search(searchBase, 2, f.toString(), new String[] {"cn"}, false);
+			
+			res = con.search(searchBase, 2, equal("member",fdn).toString(), new String[] {"cn"}, false);
 		}
 		
 		done.clear();
@@ -775,7 +776,7 @@ public class ADProvider implements UserStoreProvider {
 			
 		} catch (LDAPException e) {
 			StringBuffer b = new StringBuffer();
-			b.append("Could locate user ").append(userID);
+			b.append("Could not locate user ").append(userID);
 			throw new ProvisioningException(b.toString(),e);
 		}
 	}
@@ -833,9 +834,7 @@ public class ADProvider implements UserStoreProvider {
 		
 		
 		if (externalUser) {
-			StringBuffer f = new StringBuffer();
-			f.append('(').append(this.externalGroupAttr).append('=').append(ldapUser.getDN()).append(')');
-			String ldapf = f.toString();
+			
 			
 			/*if (ldapf.contains("\\,")) { 
 				ldapf = ldapf.replaceAll("\\\\\\\\,","\\5C,");               
@@ -843,12 +842,12 @@ public class ADProvider implements UserStoreProvider {
 			
 			
 			
-			ldapf = this.adEscape(ldapf);
+			//ldapf = this.adEscape(ldapf);
 			
 			
 			
 			
-			res = con.search(searchBase, 2, ldapf, new String[] {"cn"}, false);
+			res = con.search(searchBase, 2, equal(this.externalGroupAttr,ldapUser.getDN()).toString(), new String[] {"cn"}, false);
 			while (res.hasMore()) {
 				LDAPEntry group = null;
 				
@@ -862,13 +861,15 @@ public class ADProvider implements UserStoreProvider {
 			}
 		} else {
 			StringBuffer f = new StringBuffer();
-			f.append("(member=").append(ldapUser.getDN()).append(")");
-			String ldapf = f.toString();
+			
+			
+			
+			String ldapf = equal("member",ldapUser.getDN()).toString();
 			/*if (ldapf.contains("\\,")) { 
 			                       ldapf = ldapf.replaceAll("[\\\\][,]","\\\\5C,");               
 			} */
 			
-			ldapf = this.adEscape(ldapf);
+			//ldapf = this.adEscape(ldapf);
 			
 			res = con.search(searchBase, 2, ldapf, new String[] {"cn"}, false);
 			while (res.hasMore()) {

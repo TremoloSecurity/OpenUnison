@@ -17,6 +17,8 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.auth;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.cert.CertificateParsingException;
@@ -228,8 +230,12 @@ public class CertAuth implements AuthMechanism {
 		
 		} else {
 			StringBuffer b = new StringBuffer();
-			b.append("(").append(uidAttr).append("=").append(subject.get(uidAttr)).append(")");
-			filter = b.toString();
+			if (subject.get(uidAttr) == null) {
+				filter = "(!(objectClass=*))";
+			} else {
+				filter = equal(uidAttr,subject.get(uidAttr)).toString();
+			}
+			
 		}
 		
 		

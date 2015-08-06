@@ -17,6 +17,8 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.customTasks;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashSet;
@@ -67,12 +69,15 @@ public class LoadAttributes implements CustomTask {
 			throws ProvisioningException {
 		
 		StringBuffer filter = new StringBuffer();
-		filter.append('(').append(this.nameAttr).append('=').append(user.getUserID()).append(')');
+		
+		
+		
+		
 		ArrayList<String> params = new ArrayList<String>();
 		params.addAll(this.attrs);
 		
 		try {
-			LDAPSearchResults res = this.cfg.getMyVD().search("o=Tremolo", 2, filter.toString(), params);
+			LDAPSearchResults res = this.cfg.getMyVD().search("o=Tremolo", 2, equal(this.nameAttr,user.getUserID()).toString(), params);
 			res.hasMore();
 			LDAPEntry entry = res.next();
 			LDAPAttributeSet attrs = entry.getAttributeSet();

@@ -17,6 +17,8 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.auth.util;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -50,9 +52,9 @@ public class LDAPBasicAuth implements BasicAuthImpl {
 			}
 		}
 		
-		StringBuffer b = new StringBuffer();
-		b.append("(").append(uidAttr).append("=").append(userName).append(")");
-		LDAPSearchResults res = myvd.search(AuthUtil.getChainRoot(act), 2, b.toString(), new ArrayList<String>());
+		
+		
+		LDAPSearchResults res = myvd.search(AuthUtil.getChainRoot(act), 2, equal(uidAttr,userName).toString(), new ArrayList<String>());
 		
 		if (res.hasMore()) {
 			LDAPEntry entry = res.next();

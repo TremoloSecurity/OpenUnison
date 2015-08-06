@@ -17,6 +17,8 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.service;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -61,7 +63,11 @@ public class ListOrgs extends HttpServlet {
 		try {
 			StringBuffer b = new StringBuffer();
 			b.append("(").append(uidAttr).append("=").append(userID).append(")");
-			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search("o=Tremolo", 2, b.toString(), new ArrayList<String>());
+			
+			
+			
+			
+			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search("o=Tremolo", 2, equal(uidAttr,userID).toString(), new ArrayList<String>());
 			if (! res.hasMore()) {
 				throw new ProvisioningException("Could not locate user '" + userID + "'");
 			}

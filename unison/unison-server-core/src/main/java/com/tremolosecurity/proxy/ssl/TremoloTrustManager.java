@@ -89,8 +89,10 @@ public class TremoloTrustManager implements X509TrustManager {
 	}
 	
 	public TremoloTrustManager(ConfigManager cfgMgr) {
-		this.cfgMgr = cfgMgr;
-		this.gks = cfgMgr.getKeyStore();
+		if (cfgMgr != null) {
+			this.cfgMgr = cfgMgr;
+			this.gks = cfgMgr.getKeyStore();
+		}
 	}
 	
 	

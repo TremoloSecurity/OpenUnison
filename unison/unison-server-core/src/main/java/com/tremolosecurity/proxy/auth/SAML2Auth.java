@@ -17,6 +17,8 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.auth;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -246,8 +248,8 @@ public class SAML2Auth implements AuthMechanism {
 				
 				try {
 					StringBuffer b = new StringBuffer();
-					b.append("(hostname=").append(hostName).append(")");
-					LDAPSearchResults res = cfgMgr.getMyVD().search(dn, 2, b.toString(), new ArrayList<String>());
+					
+					LDAPSearchResults res = cfgMgr.getMyVD().search(dn, 2, equal("hostname",hostName).toString(), new ArrayList<String>());
 					if (! res.hasMore()) {
 						throw new ServletException("No IdP found");
 					}
@@ -582,9 +584,12 @@ public class SAML2Auth implements AuthMechanism {
 				
 				try {
 					String dn = authParams.get("idpDir").getValues().get(0);
-					StringBuffer b = new StringBuffer();
-					b.append("(issuer=").append(samlResponse.getIssuer().getValue()).append(")");
-					LDAPSearchResults res = cfgMgr.getMyVD().search(dn, 2, b.toString() , new ArrayList<String>());
+					
+					
+					
+					
+					
+					LDAPSearchResults res = cfgMgr.getMyVD().search(dn, 2, equal("issuer",samlResponse.getIssuer().getValue()).toString() , new ArrayList<String>());
 					if (! res.hasMore()) {
 						throw new ServletException("No IdP found");
 					}

@@ -17,6 +17,8 @@ limitations under the License.
 
 package com.tremolosecurity.prelude.filters;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -76,13 +78,13 @@ public class Groups2Attribute implements HttpFilter {
 			
 			
 			
-			filter.append("(uniqueMember=").append(authInfo.getUserDN()).append(')');
+			
 			
 			
 			
 			ArrayList<String> attrs = new ArrayList<String>();
 			attrs.add("cn");
-			LDAPSearchResults res = this.cfg.getMyVD().search(this.base, 2, filter.toString(), attrs);
+			LDAPSearchResults res = this.cfg.getMyVD().search(this.base, 2, equal("uniqueMember",authInfo.getUserDN()).toString(), attrs);
 			
 			while (res.hasMore()) {
 				LDAPEntry entry = res.next();

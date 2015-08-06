@@ -139,7 +139,19 @@
   <version>3.0.2</version>
 </dependency>
   	
-
+  	<!-- 
+<dependency>
+    <groupId>org.apache.directory.api</groupId>
+    <artifactId>api-ldap-client-api</artifactId>
+    <version>1.0.0-M31</version>
+    <exclusions>
+    	<exclusion>
+    		<artifactId>api-ldap-schema-data</artifactId>
+    		<groupId>org.apache.directory.api</groupId>
+    	</exclusion>
+    </exclusions>
+</dependency>
+ -->
   </dependencies>
   <build>
   

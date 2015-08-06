@@ -17,6 +17,8 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.customTasks;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashSet;
@@ -73,8 +75,11 @@ public class LoadGroups implements CustomTask {
 	public boolean doTask(User user, Map<String, Object> request)
 			throws ProvisioningException {
 		
-		StringBuffer filter = new StringBuffer();
-		filter.append('(').append(this.nameAttr).append('=').append(user.getUserID()).append(')');
+		
+		
+		
+		String filter = equal(this.nameAttr,user.getUserID()).toString();
+		
 		ArrayList<String> params = new ArrayList<String>();
 		params.add("1.1");
 		
@@ -98,8 +103,9 @@ public class LoadGroups implements CustomTask {
 			String dn = entry.getDN();
 			while (res.hasMore()) res.next();
 			
-			filter.setLength(0);
-			filter.append("(uniqueMember=").append(dn).append(')');
+			
+			filter = equal("uniqueMember",dn).toString();
+			
 			params.clear();
 			params.add("cn");
 			

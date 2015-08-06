@@ -85,7 +85,7 @@ public class TaskConsumer implements MessageListener {
 			baout.flush();
 			baout.close();
 			StringBuffer b = new StringBuffer();
-			b.append("Could not send email\n").append(new String(baos.toByteArray()));
+			b.append("Could not execute task\n").append(new String(baos.toByteArray()));
 			throw new RuntimeException(b.toString(),t);
 		}
 		

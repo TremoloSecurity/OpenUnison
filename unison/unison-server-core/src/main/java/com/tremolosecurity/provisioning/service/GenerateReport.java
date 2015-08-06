@@ -73,20 +73,40 @@ public class GenerateReport extends HttpServlet {
 				ResultSet rs = null;
 				try {
 					db = GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getApprovalDBConn();
+					if (logger.isDebugEnabled()) {
+						logger.debug("Report SQL : '" + reportToRun.getSql() + "'");
+					}
 					ps = db.prepareStatement(reportToRun.getSql());
 					int i = 1;
 					for (String paramType : reportToRun.getParamater()) {
 						switch (paramType) {
-							case "currentUser" : ps.setString(i, req.getParameter("currentUser")); break;
-							case "userKey" : ps.setString(i, req.getParameter("userKey")); break;
+							case "currentUser" :
+								if (logger.isDebugEnabled()) {
+									logger.debug("Current User : '" + req.getParameter("currentUser") + "'");
+								}
+								ps.setString(i, req.getParameter("currentUser")); 
+								break;
+							case "userKey" : 
+								if (logger.isDebugEnabled()) {
+									logger.debug("User Key : '" + req.getParameter("userKey") + "'");
+								}
+								ps.setString(i, req.getParameter("userKey")); 
+								break;
 							case "beginDate" :
 								String beginDate = req.getParameter("beginDate");
+								if (logger.isDebugEnabled()) {
+									logger.debug("Begin Date : '" + beginDate + "'");
+								}
 								Date d = new Date(DateTime.parse(beginDate).getMillis());
 								ps.setDate(i, d);
 								break;
 								
 							case "endDate" :
+								
 								String endDate = req.getParameter("endDate");
+								if (logger.isDebugEnabled()) {
+									logger.debug("End Date : '" + endDate + "'");
+								}
 								Date de = new Date(DateTime.parse(endDate).getMillis());
 								ps.setDate(i, de);
 								break;
@@ -115,10 +135,19 @@ public class GenerateReport extends HttpServlet {
 						res.getGrouping().add(grouping);
 					}
 					
+					logger.debug("Running report");
+					
 					while (rs.next()) {
+						if (logger.isDebugEnabled()) {
+							logger.debug("New row");
+						}
+						
 						HashMap<String,String> row = new HashMap<String,String>();
 						
 						for (String dataField : reportToRun.getDataFields()) {
+							if (logger.isDebugEnabled()) {
+								logger.debug("Field - " + dataField + "='" + rs.getString(dataField) + "'");
+							}
 							row.put(dataField, rs.getString(dataField));
 						}
 						
@@ -145,7 +174,14 @@ public class GenerateReport extends HttpServlet {
 					ProvisioningResult pres = new ProvisioningResult();
 					pres.setSuccess(true);
 					pres.setReportResults(res);
-					resp.getOutputStream().print(gson.toJson(pres));
+					
+					String json = gson.toJson(pres);
+					
+					if (logger.isDebugEnabled()) {
+						logger.debug("JSON : " + json);
+					}
+					
+					resp.getOutputStream().print(json);
 				} finally {
 					if (rs != null) {
 						try {

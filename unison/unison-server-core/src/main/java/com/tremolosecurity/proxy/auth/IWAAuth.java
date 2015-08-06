@@ -17,6 +17,8 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.auth;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -144,7 +146,7 @@ MyVDConnection myvd = cfgMgr.getMyVD();
 			StringBuffer b = new StringBuffer();
 			b.append("(userPrincipalName=").append(principal.toString()).append(")");
 			
-			LDAPSearchResults res = myvd.search(AuthUtil.getChainRoot(act), 2, b.toString(), new ArrayList<String>());
+			LDAPSearchResults res = myvd.search(AuthUtil.getChainRoot(act), 2, equal("userPrincipalName",principal.toString()).toString(), new ArrayList<String>());
 			
 			if (res.hasMore()) {
 				logger.info("Loading user attributes");

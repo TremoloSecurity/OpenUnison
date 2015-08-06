@@ -49,11 +49,13 @@ public class AzUtils {
 
 	
 
-	public static void loadDNApprovers(int approvalId,String emailTemplate,ConfigManager cfg,Connection con, int id2, String constraint,boolean sendNotification) throws ProvisioningException {
+	public static boolean loadDNApprovers(int approvalId,String emailTemplate,ConfigManager cfg,Connection con, int id2, String constraint,boolean sendNotification) throws ProvisioningException {
 		ArrayList<String> attrs = new ArrayList<String>();
 		attrs.add(cfg.getProvisioningEngine().getUserIDAttribute());
 		LDAPSearchResults res = null;
 		LDAPEntry entry = null;
+		
+		boolean found = false;
 		
 		try {
 			res = cfg.getMyVD().search(constraint, 2, "(objectClass=inetOrgPerson)", attrs);
@@ -75,6 +77,8 @@ public class AzUtils {
 					continue;
 				}
 				
+				found = true;
+				
 				ps.setInt(1, approvalId);
 				ps.setInt(2, approverID);
 				ps.executeUpdate();
@@ -84,13 +88,16 @@ public class AzUtils {
 			throw new ProvisioningException("Could not find approvers",e);
 		}
 		
+		return found;
+		
 	}
 
-	public static void loadFilterApprovers(int approvalId,String emailTemplate,ConfigManager cfg,Connection con, int id, String constraint,boolean sendNotification) throws ProvisioningException {
+	public static boolean loadFilterApprovers(int approvalId,String emailTemplate,ConfigManager cfg,Connection con, int id, String constraint,boolean sendNotification) throws ProvisioningException {
 		ArrayList<String> attrs = new ArrayList<String>();
 		//attrs.add(cfg.getProvisioningEngine().getUserIDAttribute());
 		LDAPSearchResults res = null;
 		LDAPEntry entry = null;
+		boolean found = false;
 		
 		try {
 			res = cfg.getMyVD().search("o=Tremolo", 2, constraint, attrs);
@@ -127,6 +134,8 @@ public class AzUtils {
 					continue;
 				}
 				
+				found = true;
+				
 				ps.setInt(1, id);
 				ps.setInt(2, approverID);
 				ps.executeUpdate();
@@ -137,16 +146,18 @@ public class AzUtils {
 		}
 		
 		
-		
+		return found;
 	
 		
 	}
 
-	public static void loadStaticGroupApprovers(int approvalId,String emailTemplate,ConfigManager cfg,Connection con, int id, String constraint,boolean sendNotification) throws ProvisioningException {
+	public static boolean loadStaticGroupApprovers(int approvalId,String emailTemplate,ConfigManager cfg,Connection con, int id, String constraint,boolean sendNotification) throws ProvisioningException {
 		ArrayList<String> attrs = new ArrayList<String>();
 		attrs.add("uniqueMember");
 		LDAPSearchResults res = null;
 		LDAPEntry entry = null;
+		
+		boolean found = false;
 		
 		try {
 			
@@ -170,6 +181,7 @@ public class AzUtils {
 			PreparedStatement ps = con.prepareStatement("INSERT INTO allowedApprovers(approval,approver) VALUES (?,?)");
 			
 			for (String dn : dns) {
+				
 				int approverID = getApproverIDByDN(approvalId,emailTemplate,cfg,con,dn,sendNotification);
 				if (approverID == -1) {
 					continue;
@@ -178,12 +190,15 @@ public class AzUtils {
 				ps.setInt(1, id);
 				ps.setInt(2, approverID);
 				ps.executeUpdate();
+				found = true;
 			}
 			
 			ps.close();
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not load approvers",e);
 		}
+		
+		return found;
 		
 	}
 

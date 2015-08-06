@@ -17,6 +17,8 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.auth;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -133,7 +135,11 @@ public class FormLoginAuthMech implements AuthMechanism {
 			StringBuffer b = new StringBuffer();
 			String userParam = req.getParameter("user");
 			b.append('(').append(uidAttr).append('=').append(userParam).append(')');
-			filter = b.toString();//"(" + uidAttr + "=" + req.getParameter("user") + ")";
+			if (userParam == null) {
+				filter = "(!(objectClass=*))";
+			} else {
+				filter = equal(uidAttr,userParam).toString();
+			}
 		}
 		
 		

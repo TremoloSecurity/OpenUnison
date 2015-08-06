@@ -17,6 +17,8 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.auth;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -305,8 +307,13 @@ public class AzSys {
 		ArrayList<String> attribs = new ArrayList<String>();
 		attribs.add("1.1");
 		try {
-			StringBuffer filter = new StringBuffer().append("(uniqueMember=").append(authData.getUserDN()).append(')');
-			LDAPSearchResults res = con.search(rule.getConstraint(), 0, filter.toString(), attribs);
+			
+			
+			
+			
+			
+			
+			LDAPSearchResults res = con.search(rule.getConstraint(), 0, equal("uniqueMember",authData.getUserDN()).toString(), attribs);
 			
 			if (res.hasMore()) {
 				OK = true;
@@ -315,8 +322,7 @@ public class AzSys {
 			
 			
 		} catch (LDAPException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Could not parse",e);
 		}
 		
 		return OK;

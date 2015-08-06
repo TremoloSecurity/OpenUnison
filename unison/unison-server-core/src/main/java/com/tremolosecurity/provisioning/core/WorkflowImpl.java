@@ -17,6 +17,8 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.core;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -192,8 +194,11 @@ public class WorkflowImpl implements  Workflow {
 	
 	public static int getUserNum(User user, Connection con,ConfigManager cfgMgr) throws LDAPException, SQLException {
 		StringBuffer filter = new StringBuffer();
-		filter.append('(').append(cfgMgr.getProvisioningEngine().getUserIDAttribute()).append('=').append(user.getAttribs().get(cfgMgr.getProvisioningEngine().getUserIDAttribute()).getValues().get(0)).append(')');
-		LDAPSearchResults res = cfgMgr.getMyVD().search("o=Tremolo", 2, filter.toString(), new ArrayList<String>());
+		
+		
+		
+		
+		LDAPSearchResults res = cfgMgr.getMyVD().search("o=Tremolo", 2, equal(cfgMgr.getProvisioningEngine().getUserIDAttribute(),user.getAttribs().get(cfgMgr.getProvisioningEngine().getUserIDAttribute()).getValues().get(0)).toString(), new ArrayList<String>());
 		LDAPEntry fromLDAP = null;
 		if (res.hasMore()) {
 			fromLDAP = res.next();
@@ -333,7 +338,7 @@ public class WorkflowImpl implements  Workflow {
 					root = "o=Tremolo";
 				}
 				
-				LDAPSearchResults res = this.cfgMgr.getMyVD().search(root, 2, b.toString(), new ArrayList<String>());
+				LDAPSearchResults res = this.cfgMgr.getMyVD().search(root, 2, equal(uidAttr,user.getUserID()).toString(), new ArrayList<String>());
 				
 				if (res.hasMore()) {
 					

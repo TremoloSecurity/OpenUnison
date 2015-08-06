@@ -17,6 +17,8 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.myvd;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
 import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
@@ -47,9 +49,9 @@ public class MyVDFilter implements HttpFilter {
 		ArrayList<String> attribs = new ArrayList<String>();
 		attribs.add("uid");
 		
-		StringBuffer b = new StringBuffer();
-		b.append("(uid=").append(uid).append(")");
-		LDAPSearchResults res = con.search("o=Tremolo", 2, b.toString(), attribs);
+		
+		
+		LDAPSearchResults res = con.search("o=Tremolo", 2, equal("uid",uid).toString(), attribs);
 		res.hasMore();
 		LDAPEntry entry = res.next();
 		
