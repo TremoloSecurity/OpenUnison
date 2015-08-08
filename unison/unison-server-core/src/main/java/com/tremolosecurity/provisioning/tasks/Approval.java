@@ -98,13 +98,14 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 	String failureEmailMsg;
 	
 	
-
+	boolean failOnNoAZ;
 
 
 	int id;
 	
 	transient ConfigManager cfg;
 	private ArrayList<AzRule> failureAzRules; 
+	boolean failed;
 	
 	public Approval() {
 		
@@ -116,6 +117,8 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 		
 		this.approvers = new ArrayList<Approver>();
 		this.azRules = new ArrayList<AzRule>();
+		
+		this.failed = false;
 		
 		ApprovalType att = (ApprovalType) taskConfig;
 		for (AzRuleType azr : att.getApprovers().getRule()) {
@@ -148,9 +151,10 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 		this.escalationRules = new ArrayList<EscalationRule>();
 		
 		if (att.getEscalationPolicy() != null) {
+			DateTime now = new DateTime();
 			for (EscalationType ert : att.getEscalationPolicy().getEscalation()) {
 				EscalationRule erule = new EsclationRuleImpl();
-				DateTime now = new DateTime();
+				
 				DateTime when;
 				
 				if (ert.getExecuteAfterUnits().equalsIgnoreCase("sec")) {
@@ -169,6 +173,8 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				
 				erule.setCompleted(false);
 				erule.setExecuteTS(when.getMillis());
+				
+				
 				
 				if (ert.getValidateEscalationClass() != null && ! ert.getValidateEscalationClass().isEmpty() ) {
 					try {
@@ -204,15 +210,17 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				}
 				
 				this.escalationRules.add(erule);
-				
+				now = when;
 			}
 			
 			
 			switch (att.getEscalationPolicy().getEscalationFailure().getAction()) {
 				case "leave" :
 					this.failureAzRules = null;
+					this.failOnNoAZ = false;
 					break;
 				case "assign" : 
+					this.failOnNoAZ = true;
 					this.failureAzRules = new ArrayList<AzRule>();
 					for (AzRuleType azr : att.getEscalationPolicy().getEscalationFailure().getAzRules().getRule()) {
 						Approver approver = new Approver();
@@ -293,8 +301,10 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				
 				
 				Gson gson = new Gson();
-				
-				String json = JsonWriter.objectToJson(this.getWorkflow());
+				String json = "";
+				synchronized (this.getWorkflow()) {
+					json = JsonWriter.objectToJson(this.getWorkflow());
+				}
 				
 				
 				Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -405,9 +415,10 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 	
 	public boolean updateAllowedApprovals(Connection con,ConfigManager cfg) throws ProvisioningException, SQLException {
 		boolean updateObj = false;
+		boolean localFail = false;
 		
 		
-		if (this.escalationRules != null && ! this.escalationRules.isEmpty()) {
+		if (! this.failed && this.escalationRules != null && ! this.escalationRules.isEmpty()) {
 			boolean continueLooking = true;
 			for (EscalationRule rule : this.escalationRules) {
 				if (! rule.isCompleted() && continueLooking) {
@@ -441,34 +452,39 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 								this.approvers.add(approver);
 							}
 							
+							if (this.approvers.size() == 0 && this.failOnNoAZ) {
+								this.azRules = this.failureAzRules;
+								this.approvers = new ArrayList<Approver>();
+								
+								for (AzRule azr : this.azRules) {
+									Approver approver = new Approver();
+									
+									if (azr.getScope() == ScopeType.Filter) {
+										approver.type = ApproverType.Filter;
+									} else if (azr.getScope() == ScopeType.Group) {
+										approver.type = ApproverType.StaticGroup;
+									} else if (azr.getScope() == ScopeType.DN) {
+										approver.type = ApproverType.DN;
+									} else if (azr.getScope() == ScopeType.DynamicGroup) {
+										approver.type = ApproverType.DynamicGroup;
+									} 
+									
+									approver.constraint = azr.getConstraint();
+									this.approvers.add(approver);
+								}
+								
+								
+							}
+							
 							updateObj = true;
 							
 							rule.setCompleted(true);
 							break;
 						case stopEscalating : 
 							continueLooking = false;
-							if (this.failureAzRules != null) {
-								this.azRules = this.failureAzRules;
-							}
+							localFail = true;
 							
-							this.approvers = new ArrayList<Approver>();
 							
-							for (AzRule azr : this.azRules) {
-								Approver approver = new Approver();
-								
-								if (azr.getScope() == ScopeType.Filter) {
-									approver.type = ApproverType.Filter;
-								} else if (azr.getScope() == ScopeType.Group) {
-									approver.type = ApproverType.StaticGroup;
-								} else if (azr.getScope() == ScopeType.DN) {
-									approver.type = ApproverType.DN;
-								} else if (azr.getScope() == ScopeType.DynamicGroup) {
-									approver.type = ApproverType.DynamicGroup;
-								} 
-								
-								approver.constraint = azr.getConstraint();
-								this.approvers.add(approver);
-							}
 							
 							updateObj = true;
 							
@@ -482,12 +498,48 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 
 		}
 		
+		boolean foundApprovers = false;
+		
 		for (Approver approver : this.approvers) {
 			switch (approver.type) {
-				case StaticGroup : AzUtils.loadStaticGroupApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false); break;
-				case Filter : AzUtils.loadFilterApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false); break;
-				case DN : AzUtils.loadDNApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false);break;
+				case StaticGroup : foundApprovers |= AzUtils.loadStaticGroupApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false); break;
+				case Filter : foundApprovers |= AzUtils.loadFilterApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false); break;
+				case DN : foundApprovers |= AzUtils.loadDNApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false);break;
 			}
+		}
+		
+		if (! this.failed && (! foundApprovers || localFail)) {
+			if (this.failOnNoAZ) {
+				this.azRules = this.failureAzRules;
+				this.approvers = new ArrayList<Approver>();
+				
+				for (AzRule azr : this.azRules) {
+					Approver approver = new Approver();
+					
+					if (azr.getScope() == ScopeType.Filter) {
+						approver.type = ApproverType.Filter;
+					} else if (azr.getScope() == ScopeType.Group) {
+						approver.type = ApproverType.StaticGroup;
+					} else if (azr.getScope() == ScopeType.DN) {
+						approver.type = ApproverType.DN;
+					} else if (azr.getScope() == ScopeType.DynamicGroup) {
+						approver.type = ApproverType.DynamicGroup;
+					} 
+					
+					approver.constraint = azr.getConstraint();
+					this.approvers.add(approver);
+				}
+			}
+			
+			for (Approver approver : this.approvers) {
+				switch (approver.type) {
+					case StaticGroup : AzUtils.loadStaticGroupApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false); break;
+					case Filter : AzUtils.loadFilterApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false); break;
+					case DN : AzUtils.loadDNApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false);break;
+				}
+			}
+			
+			this.failed = true;
 		}
 		
 		return updateObj;
@@ -555,6 +607,14 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 	
 	public void setFailureAzRules(ArrayList<AzRule> failureAzRules) {
 		this.failureAzRules = failureAzRules;
+	}
+
+	public boolean isFailed() {
+		return failed;
+	}
+
+	public void setFailed(boolean failed) {
+		this.failed = failed;
 	}
 	
 	
