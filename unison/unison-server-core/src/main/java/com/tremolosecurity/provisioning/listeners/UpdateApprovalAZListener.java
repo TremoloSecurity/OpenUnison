@@ -25,8 +25,12 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -38,21 +42,30 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.ObjectMessage;
 
+import org.apache.log4j.Logger;
+
 import com.cedarsoftware.util.io.JsonReader;
 import com.cedarsoftware.util.io.JsonWriter;
 import com.google.gson.Gson;
+import com.novell.ldap.LDAPAttribute;
+import com.novell.ldap.LDAPAttributeSet;
+import com.novell.ldap.LDAPEntry;
+import com.novell.ldap.LDAPException;
+import com.novell.ldap.LDAPReferralException;
+import com.novell.ldap.LDAPSearchResults;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.json.Token;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.UnisonMessageListener;
+import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.tasks.Approval;
 import com.tremolosecurity.saml.Attribute;
 
-
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
 public class UpdateApprovalAZListener extends UnisonMessageListener {
-
+	static Logger logger = Logger.getLogger(UpdateApprovalAZListener.class.getName());
 	@Override
 	public void onMessage(ConfigManager cfg, Object payload,Message msg)
 			throws ProvisioningException {
@@ -80,6 +93,8 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 					con.rollback();
 				}
 			} catch (Exception e) {}
+			
+			throw new ProvisioningException("Could not update approvers",t);
 		} finally {
 			if (con != null) {
 				try {
@@ -124,6 +139,15 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 			throw new ProvisioningException("Could not locate approval step");
 		}
 		
+		Set<Integer> currentApprovers = new HashSet<Integer>();
+		PreparedStatement findApprovers = con.prepareStatement("SELECT approvers.id,approvers.userKey from allowedApprovers inner join approvers on allowedApprovers.approver=approvers.id WHERE approval=?");
+		findApprovers.setInt(1, approvalID);
+		ResultSet rsApprovers = findApprovers.executeQuery();
+		while (rsApprovers.next()) {
+			currentApprovers.add(rsApprovers.getInt("id"));
+		}
+		rsApprovers.close();
+		
 		con.setAutoCommit(false);
 		PreparedStatement delAllowedApprovers = con.prepareStatement("DELETE FROM allowedApprovers WHERE approval=?");
 		delAllowedApprovers.setInt(1, approvalID);
@@ -157,5 +181,82 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 		
 		con.commit();
 		
+		
+		findApprovers.setInt(1, approvalID);
+		rsApprovers = findApprovers.executeQuery();
+		
+		while (rsApprovers.next()) {
+			int id = rsApprovers.getInt("id");
+			if (! currentApprovers.contains(id)) {
+				
+				
+				this.sendNotification(approval.getEmailTemplate(), cfg, con, rsApprovers.getString("userKey"));
+			}
+		}
+		rsApprovers.close();
+		
+		
+	}
+	
+	private void sendNotification(String emailTemplate,ConfigManager cfg,Connection con, String userKey) throws ProvisioningException {
+		
+		
+		try {
+			ArrayList<String> attrs = new ArrayList<String>();
+			//attrs.add("mail");
+			//attrs.add(cfg.getProvisioningEngine().getUserIDAttribute());
+			
+			LDAPSearchResults res = cfg.getMyVD().search("o=Tremolo", 2, equal(cfg.getProvisioningEngine().getUserIDAttribute(),userKey).toString(), attrs);
+			
+			if (! res.hasMore()) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Can not find '" + userKey + "'");
+				}
+				return;
+			}
+			
+			LDAPEntry entry = res.next();
+			
+			if (logger.isDebugEnabled()) {
+				logger.debug("Approver DN - " + entry.getDN());
+				LDAPAttributeSet attrsx = entry.getAttributeSet();
+				for (Object o : attrsx) {
+					LDAPAttribute attrx = (LDAPAttribute) o;
+					for (String val : attrx.getStringValueArray()) {
+						logger.debug("Approver Attribute '" + attrx.getName() + "'='" + val + "'");
+					}
+				}
+			}
+			
+			String userID = entry.getAttribute(cfg.getProvisioningEngine().getUserIDAttribute()).getStringValue();
+			
+			if (entry.getAttribute("mail") == null) {
+				StringBuffer b = new StringBuffer();
+				b.append("No email address for ").append(userKey);
+				logger.warn(b.toString());
+			} else {
+				String mail = entry.getAttribute("mail").getStringValue();
+				logger.debug("Sedning notification to '" + mail + "'");
+				cfg.getProvisioningEngine().sendNotification(mail, emailTemplate,new User(entry));
+			}
+			
+		} catch (LDAPReferralException le) {
+			
+			StringBuffer b = new StringBuffer();
+			b.append("User : '").append(userKey).append("' not found");
+			logger.warn(b.toString());
+			
+		
+		} catch (LDAPException le) {
+			if (le.getResultCode() == 32) {
+				StringBuffer b = new StringBuffer();
+				b.append("User : '").append(userKey).append("' not found");
+				logger.warn(b.toString());
+			} else {
+				throw new ProvisioningException("could not create approver",le);
+			}
+		}   catch (Exception e) {
+			throw new ProvisioningException("Could not create approver",e);
+		}
 	}
 }
