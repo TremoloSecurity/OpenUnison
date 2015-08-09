@@ -479,6 +479,13 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 							updateObj = true;
 							
 							rule.setCompleted(true);
+							
+							PreparedStatement psAddEscalation = con.prepareStatement("INSERT INTO escalation (approval,whenTS) VALUES (?,?)");
+							psAddEscalation.setInt(1, this.id);
+							psAddEscalation.setTimestamp(2, new Timestamp(new DateTime().getMillis()));
+							psAddEscalation.executeUpdate();
+							psAddEscalation.close();
+							
 							break;
 						case stopEscalating : 
 							continueLooking = false;
