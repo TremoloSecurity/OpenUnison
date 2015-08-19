@@ -21,13 +21,18 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.UUID;
 
+import org.apache.log4j.Logger;
+
+import com.cedarsoftware.util.io.JsonReader;
+import com.cedarsoftware.util.io.JsonWriter;
+import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.provisioning.core.ProvisioningException;
+import com.tremolosecurity.provisioning.core.Workflow;
 
 
-public class AzRule implements Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -6133851789320540298L;
+
+public class AzRule  {
+	static Logger logger = Logger.getLogger(AzRule.class.getName());
 	private static HashSet<UUID> usedGUIDS = new HashSet<UUID>();
 	
 	public enum ScopeType {
@@ -42,8 +47,9 @@ public class AzRule implements Serializable {
 	private String constraint;
 	private UUID guid;
 	private String className;
+	private CustomAuthorization customAz;
 	
-	public AzRule(String scopeType,String constraint, String className) {
+	public AzRule(String scopeType,String constraint, String className,ConfigManager cfgMgr,Workflow wf) throws ProvisioningException {
 		if (scopeType.equalsIgnoreCase("group")) {
 			scope = ScopeType.Group;
 		} else if (scopeType.equalsIgnoreCase("dynamicGroup")) {
@@ -52,6 +58,20 @@ public class AzRule implements Serializable {
 			scope = ScopeType.DN;
 		} else if (scopeType.equalsIgnoreCase("custom")) {
 		 	scope = ScopeType.Custom;
+		 	
+			CustomAuthorization caz = cfgMgr.getCustomAuthorizations().get(constraint);
+			
+			if (caz == null) {
+				logger.warn("Could not find custom authorization rule : '" + className + "'");
+			}
+			
+			String json = JsonWriter.objectToJson(caz);
+			this.customAz = (CustomAuthorization) JsonReader.jsonToJava(json);
+			try {
+				this.customAz.setWorkflow(wf);
+			} catch (AzException e) {
+				throw new ProvisioningException("Can not set workflow",e);
+			}
 		} else if (scopeType.equalsIgnoreCase("filter")) {
 			scope = ScopeType.Filter;
 		}
@@ -63,6 +83,11 @@ public class AzRule implements Serializable {
 		while (usedGUIDS.contains(guid)) {
 			this.guid = UUID.randomUUID();
 		}
+		
+		
+		
+
+		
 	}
 
 	public ScopeType getScope() {
@@ -81,6 +106,8 @@ public class AzRule implements Serializable {
 		return className;
 	}
 	
-	
+	public CustomAuthorization getCustomAuthorization() {
+		return this.customAz;
+	}
 	
 }

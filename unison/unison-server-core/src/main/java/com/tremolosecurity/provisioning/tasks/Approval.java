@@ -66,6 +66,7 @@ import com.tremolosecurity.provisioning.util.AzUtils;
 import com.tremolosecurity.provisioning.util.EscalationRule;
 import com.tremolosecurity.provisioning.util.EscalationRule.RunOptions;
 import com.tremolosecurity.proxy.az.AzRule;
+import com.tremolosecurity.proxy.az.CustomAuthorization;
 import com.tremolosecurity.proxy.az.VerifyEscalation;
 import com.tremolosecurity.proxy.az.AzRule.ScopeType;
 
@@ -84,7 +85,8 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 		StaticGroup,
 		DynamicGroup,
 		Filter,
-		DN
+		DN,
+		Custom
 	};
 	
 	String emailTemplate;
@@ -92,6 +94,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 	ArrayList<Approver> approvers;
 	List<AzRule> azRules;
 	List<EscalationRule> escalationRules;
+	
 	
 	String mailAttr;
 	String failureEmailSubject;
@@ -121,6 +124,9 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 		this.failed = false;
 		
 		ApprovalType att = (ApprovalType) taskConfig;
+		
+		
+		
 		for (AzRuleType azr : att.getApprovers().getRule()) {
 			Approver approver = new Approver();
 			
@@ -132,12 +138,20 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				approver.type = ApproverType.DN;
 			} else if (azr.getScope().equalsIgnoreCase("dynamicGroup")) {
 				approver.type = ApproverType.DynamicGroup;
-			} 
+			} else if (azr.getScope().equalsIgnoreCase("custom")) {
+				approver.type = ApproverType.Custom;
+			}
 			
 			approver.constraint = azr.getConstraint();
 			
 			this.approvers.add(approver);
-			this.azRules.add(new AzRule(azr.getScope(),azr.getConstraint(),azr.getClassName()));
+			
+			AzRule rule = new AzRule(azr.getScope(),azr.getConstraint(),azr.getClassName(),cfg,wf);
+			
+			this.azRules.add(rule);
+			approver.customAz = rule.getCustomAuthorization();
+			
+			
 			
 			
 		}
@@ -199,12 +213,21 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 						approver.type = ApproverType.DN;
 					} else if (azr.getScope().equalsIgnoreCase("dynamicGroup")) {
 						approver.type = ApproverType.DynamicGroup;
+					} else if (azr.getScope().equalsIgnoreCase("custom")) {
+						approver.type = ApproverType.Custom;
 					} 
+					
+					
+					
 					
 					approver.constraint = azr.getConstraint();
 					
+					//this.approvers.add(approver);
 					
-					erule.getAzRules().add(new AzRule(azr.getScope(),azr.getConstraint(),azr.getClassName()));
+					AzRule rule = new AzRule(azr.getScope(),azr.getConstraint(),azr.getClassName(),cfg,wf);
+					
+					erule.getAzRules().add(rule);
+					approver.customAz = rule.getCustomAuthorization();
 					
 					
 				}
@@ -233,13 +256,19 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 							approver.type = ApproverType.DN;
 						} else if (azr.getScope().equalsIgnoreCase("dynamicGroup")) {
 							approver.type = ApproverType.DynamicGroup;
+						} else if (azr.getScope().equalsIgnoreCase("custom")) {
+							approver.type = ApproverType.Custom;
 						} 
+						
 						
 						approver.constraint = azr.getConstraint();
 						
+						//this.approvers.add(approver);
 						
-						this.failureAzRules.add(new AzRule(azr.getScope(),azr.getConstraint(),azr.getClassName()));
+						AzRule rule = new AzRule(azr.getScope(),azr.getConstraint(),azr.getClassName(),cfg,wf);
 						
+						this.failureAzRules.add(rule);
+						approver.customAz = rule.getCustomAuthorization();
 						
 					}
 					break;
@@ -335,6 +364,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 						case StaticGroup : AzUtils.loadStaticGroupApprovers(this.id,this.emailTemplate,this.getConfigManager(),con,id,approver.constraint,sendNotification); break;
 						case Filter : AzUtils.loadFilterApprovers(this.id,this.emailTemplate,this.getConfigManager(),con,id,approver.constraint,sendNotification); break;
 						case DN : AzUtils.loadDNApprovers(this.id,this.emailTemplate,this.getConfigManager(),con,id,approver.constraint,sendNotification);break;
+						case Custom : AzUtils.loadCustomApprovers(this.id,this.emailTemplate,this.getConfigManager(),con,id,approver.constraint,sendNotification,approver.customAz);break;
 					}
 				}
 				
@@ -446,6 +476,9 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 									approver.type = ApproverType.DN;
 								} else if (azr.getScope() == ScopeType.DynamicGroup) {
 									approver.type = ApproverType.DynamicGroup;
+								} else if (azr.getScope() == ScopeType.Custom) {
+									approver.type = ApproverType.Custom;
+									approver.customAz = azr.getCustomAuthorization();
 								} 
 								
 								approver.constraint = azr.getConstraint();
@@ -467,6 +500,9 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 										approver.type = ApproverType.DN;
 									} else if (azr.getScope() == ScopeType.DynamicGroup) {
 										approver.type = ApproverType.DynamicGroup;
+									} else if (azr.getScope() == ScopeType.Custom) {
+										approver.type = ApproverType.Custom;
+										approver.customAz = azr.getCustomAuthorization();
 									} 
 									
 									approver.constraint = azr.getConstraint();
@@ -512,6 +548,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				case StaticGroup : foundApprovers |= AzUtils.loadStaticGroupApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false); break;
 				case Filter : foundApprovers |= AzUtils.loadFilterApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false); break;
 				case DN : foundApprovers |= AzUtils.loadDNApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false);break;
+				case Custom : foundApprovers |= AzUtils.loadCustomApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false,approver.customAz);break;
 			}
 		}
 		
@@ -531,6 +568,9 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 						approver.type = ApproverType.DN;
 					} else if (azr.getScope() == ScopeType.DynamicGroup) {
 						approver.type = ApproverType.DynamicGroup;
+					} else if (azr.getScope() == ScopeType.Custom) {
+						approver.type = ApproverType.Custom;
+						approver.customAz = azr.getCustomAuthorization();
 					} 
 					
 					approver.constraint = azr.getConstraint();
@@ -543,6 +583,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 					case StaticGroup : AzUtils.loadStaticGroupApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false); break;
 					case Filter : AzUtils.loadFilterApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false); break;
 					case DN : AzUtils.loadDNApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false);break;
+					case Custom : AzUtils.loadCustomApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false,approver.customAz);break;
 				}
 			}
 			
@@ -629,11 +670,9 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 	
 }
 
-class Approver implements Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4721972479742465278L;
+class Approver  {
+
 	ApproverType type;
 	String constraint;
+	CustomAuthorization customAz;
 }

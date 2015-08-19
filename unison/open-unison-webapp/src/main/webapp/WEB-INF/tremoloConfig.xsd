@@ -168,8 +168,10 @@ limitations under the License.
     		<element name="myvdConfig" type="string" maxOccurs="1"
     			minOccurs="1">
     			<annotation>
-					<documentation>Path to myvd.conf, should start with "WEB-INF/"</documentation>
-				</annotation>
+    				<documentation>
+    					Path to myvd.conf, should start with "WEB-INF/"
+    				</documentation>
+    			</annotation>
     		</element>
     		<element name="authMechs" type="tns:authMechTypes"
     			maxOccurs="1" minOccurs="1">
@@ -177,20 +179,26 @@ limitations under the License.
     		<element name="authChains" type="tns:authChainsType"
     			maxOccurs="1" minOccurs="1">
     		</element>
-    		<element name="resultGroups" type="tns:resultGroupsType"
+            <element name="customAzRules" type="tns:customAzRulesType" minOccurs="0" maxOccurs="1"></element>
+            <element name="resultGroups" type="tns:resultGroupsType"
     			maxOccurs="1" minOccurs="1">
     		</element>
     		<element name="keyStorePath" type="string" maxOccurs="1"
     			minOccurs="1">
     			<annotation>
-					<documentation>Path to the keystore, should start with "WEB-INF/"</documentation>
-				</annotation>
+    				<documentation>
+    					Path to the keystore, should start with
+    					"WEB-INF/"
+    				</documentation>
+    			</annotation>
     		</element>
     		<element name="keyStorePassword" type="string" maxOccurs="1"
     			minOccurs="1">
     			<annotation>
-					<documentation>Password for the keystore and all keys</documentation>
-				</annotation>
+    				<documentation>
+    					Password for the keystore and all keys
+    				</documentation>
+    			</annotation>
     		</element>
     		<element name="provisioning" type="tns:provisioningType"
     			maxOccurs="1" minOccurs="0">
@@ -1775,5 +1783,19 @@ limitations under the License.
     			</restriction>
     		</simpleType>
     	</attribute>
+    </complexType>
+
+    <complexType name="customAzRuleType">
+    	<sequence>
+    		<element name="params" type="tns:paramType" minOccurs="0" maxOccurs="unbounded"></element>
+    	</sequence>
+    	<attribute name="name" type="string"></attribute>
+    	<attribute name="className" type="string"></attribute>
+    </complexType>
+
+    <complexType name="customAzRulesType">
+    	<sequence>
+    		<element name="azRule" type="tns:customAzRuleType" minOccurs="0" maxOccurs="unbounded"></element>
+    	</sequence>
     </complexType>
 </schema>

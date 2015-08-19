@@ -133,11 +133,7 @@
   		<version>2.2</version>
   	</dependency>
   	
-  	<dependency>
-  <groupId>com.cedarsoftware</groupId>
-  <artifactId>json-io</artifactId>
-  <version>3.0.2</version>
-</dependency>
+
   	
   	<!-- 
 <dependency>

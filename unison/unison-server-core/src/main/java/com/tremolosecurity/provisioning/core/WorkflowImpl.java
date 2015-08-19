@@ -331,11 +331,15 @@ public class WorkflowImpl implements  Workflow {
 				String root = null;
 				AuthChainType act = this.cfgMgr.getAuthChains().get(authInfo.getAuthChain()); 
 				
-				if (act != null) {
-					root = act.getRoot();
-				}
+				root = (String) params.get(ProvisioningParams.UNISON_RESYNC_ROOT);
+				
 				if (root == null) {
-					root = "o=Tremolo";
+					if (act != null) {
+						root = act.getRoot();
+					}
+					if (root == null) {
+						root = "o=Tremolo";
+					}
 				}
 				
 				LDAPSearchResults res = this.cfgMgr.getMyVD().search(root, 2, equal(uidAttr,user.getUserID()).toString(), new ArrayList<String>());

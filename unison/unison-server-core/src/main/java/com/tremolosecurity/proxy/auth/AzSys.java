@@ -57,7 +57,9 @@ import com.tremolosecurity.log.AccessLog;
 import com.tremolosecurity.log.AccessLog.AccessEvent;
 import com.tremolosecurity.proxy.ProxyResponse;
 import com.tremolosecurity.proxy.TremoloHttpSession;
+import com.tremolosecurity.proxy.az.AzException;
 import com.tremolosecurity.proxy.az.AzRule;
+import com.tremolosecurity.proxy.az.CustomAuthorization;
 import com.tremolosecurity.proxy.myvd.MyVDConnection;
 import com.tremolosecurity.proxy.results.CustomResult;
 import com.tremolosecurity.proxy.util.NextSys;
@@ -293,7 +295,30 @@ public class AzSys {
 				break;
 				
 			case Custom :
-				//not implemented
+				
+				
+				
+				CustomAuthorization customAz = rule.getCustomAuthorization();
+				if (customAz == null) {
+					cfgMgr.getCustomAuthorizations().get(rule.getConstraint());
+				}
+				
+				
+				if (customAz == null) {
+					logger.warn("Rule '" + rule.getConstraint() + "' does not exist, failing");
+					OK = false;
+				} else {
+					try {
+						if (customAz.isAuthorized(authData)) {
+							OK = true;
+							if (azCache != null) {
+								azCache.put(rule.getGuid(), new DateTime().plus(at.getAzTimeoutMillis()));
+							}
+						}
+					} catch (AzException e) {
+						logger.warn("Could not run authorization",e);
+					}
+				}
 				break;
 					
 		}

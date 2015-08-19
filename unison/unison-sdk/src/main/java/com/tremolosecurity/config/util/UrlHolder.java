@@ -132,7 +132,7 @@ public class UrlHolder {
 		this.azRules = new ArrayList<AzRule>();
 		if (url.getAzRules() != null) { 
 			for (AzRuleType art : url.getAzRules().getRule()) {
-				azRules.add(new AzRule(art.getScope(),art.getConstraint(),art.getClassName()));
+				azRules.add(new AzRule(art.getScope(),art.getConstraint(),art.getClassName(),config,null));
 			}
 		}
 		

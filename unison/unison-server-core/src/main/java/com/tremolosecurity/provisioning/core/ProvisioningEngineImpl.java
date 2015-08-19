@@ -127,6 +127,7 @@ import com.tremolosecurity.provisioning.util.PooledMessageProducerFactory;
 import com.tremolosecurity.provisioning.util.TaskHolder;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.AzSys;
+import com.tremolosecurity.proxy.az.AzRule;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.StopableThread;
 
@@ -733,6 +734,12 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			AzSys az = new AzSys();
 			
+			for (AzRule rule : approval.getAzRules()) {
+				if (rule.getCustomAuthorization() != null) {
+					rule.getCustomAuthorization().loadConfigManager(cfgMgr);
+					rule.getCustomAuthorization().setWorkflow(wf);
+				}
+			}
 			
 			if (! az.checkRules(auinfo, this.cfgMgr, approval.getAzRules())) {
 				throw new ProvisioningException("Az of approval failed");

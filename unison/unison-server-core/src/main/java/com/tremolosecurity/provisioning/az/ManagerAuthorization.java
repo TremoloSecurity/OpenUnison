@@ -15,13 +15,21 @@
  *******************************************************************************/
 package com.tremolosecurity.provisioning.az;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 
+import com.novell.ldap.LDAPEntry;
+import com.novell.ldap.LDAPSearchResults;
+import com.novell.ldap.util.DN;
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.provisioning.core.User;
+import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.az.AzException;
 import com.tremolosecurity.proxy.az.CustomAuthorization;
@@ -29,146 +37,168 @@ import com.tremolosecurity.saml.Attribute;
 
 public class ManagerAuthorization implements CustomAuthorization {
 
+	private static final String DISTINGUISHED_NAME = "distinguishedName";
+
 	static Logger logger = Logger.getLogger(ManagerAuthorization.class.getName());
+
+	String uidAttributeName;
 	
-	String subjectAttributeName;
-	ConfigManager cfgMgr;
+	Workflow wf;
 	
-	long createdDateMillis;
-	DateTime createdDate;
+	int numLevels;
 	
-	int numberOfEscalations;
-	
-	long timeBetweenEscalationsInMillis;
-	
-	boolean ifNoManagerFailAz;
-	
-	boolean ifMaxEscalationsFailAz;
-	
-	String autoFailSubjectName;
-	
-	boolean isManagerDN;
+	boolean allowLowerManagers;
 	
 	String managerID;
 	
-	String subject;
+	boolean managerIDDN;
+
+	private transient ConfigManager configManager;
+	
+	
 	
 	@Override
-	public void init(String subjectAttributeName, Map<String, Attribute> config)
-			throws AzException {
-		throw new AzException("Rule not supported in this use case");
-
+	public void init(Map<String, Attribute> config) throws AzException {
+		this.uidAttributeName = this.getConfigOption("uidAttributeName", config);
+		this.numLevels = Integer.parseInt(this.getConfigOption("numLevels", config));
+		this.managerID = this.getConfigOption("managerID", config);
+		this.managerIDDN = this.getConfigOption("managerIDIsDN", config).equalsIgnoreCase("true");
+		this.allowLowerManagers = this.getConfigOption("allowLowerManagers", config).equalsIgnoreCase("true");
+		
 	}
-
-	@Override
-	public void init(String subjectAttributeName, String subjectAttributeValue,
-			Map<String, Attribute> config) throws AzException {
-		logger.debug("Initializing Manager Authorization");
-		
-		this.subjectAttributeName = subjectAttributeName;
-		this.setCreatedDateMillis(System.currentTimeMillis());
-
-		
+	
+	private String getConfigOption(String name,Map<String,Attribute> config) {
+		Attribute attr = config.get(name);
+		if (attr == null) {
+			logger.warn(name + " not present");
+			return null;
+		} else {
+			logger.info(name + "='" + attr.getValues().get(0) + "'");
+			return attr.getValues().get(0);
+		}
 	}
 
 	@Override
 	public void loadConfigManager(ConfigManager cfg) throws AzException {
-		this.cfgMgr = cfg;
+		this.configManager = cfg;
+		
+	}
 
+	@Override
+	public void setWorkflow(Workflow wf) throws AzException {
+		this.wf = wf; 
+		
 	}
 
 	@Override
 	public boolean isAuthorized(AuthInfo subject) throws AzException {
-		// TODO Auto-generated method stub
+		DN subjectDN = new DN(subject.getUserDN());
+		
+		List<User> managers;
+		
+		try {
+			managers = this.findManager(this.numLevels, this.allowLowerManagers);
+		} catch (Exception e) {
+			throw new AzException("Could not load managers",e);
+		}
+		
+		for (User manager : managers) {
+			DN managerDN = new DN(manager.getAttribs().get(DISTINGUISHED_NAME).getValues().get(0));
+			if (managerDN.equals(subjectDN)) {
+				return true;
+			}
+		}
+		
+		//nothing found
 		return false;
 	}
 
 	@Override
-	public List<String> listPossibleApprovers() {
-		// TODO Auto-generated method stub
-		return null;
+	public List<String> listPossibleApprovers() throws AzException {
+		List<String> managers = new ArrayList<String>();
+		
+		List<User> managerUser = null;
+		try {
+			managerUser = this.findManager(this.numLevels, this.allowLowerManagers);
+		} catch (Exception e) {
+			throw new AzException("Could not load managers",e);
+		}
+		for (User user : managerUser) {
+			managers.add(user.getAttribs().get(DISTINGUISHED_NAME).getValues().get(0));
+		}
+		
+		return managers;
+	}
+	
+	private List<User> findManager(int step,boolean keepAllManagers) throws Exception {
+		User me = this.wf.getUser();
+		
+		List<User> managers = new ArrayList<User>();
+		User manager = null;
+		
+		for (int i=0;i<step;i++) {
+			manager = findMyManager(me);
+			
+			if (manager == null) {
+				break;
+			}
+			
+			if (keepAllManagers) {
+				managers.add(manager);
+			}
+			me = manager;
+		}
+		
+		if (! keepAllManagers && manager != null) {
+			managers.add(manager);
+		}
+		
+		return managers;
 	}
 
-	public String getSubjectAttributeName() {
-		return subjectAttributeName;
-	}
-
-	public void setSubjectAttributeName(String subjectAttributeName) {
-		this.subjectAttributeName = subjectAttributeName;
-	}
-
-	public long getCreatedDateMillis() {
-		return createdDateMillis;
-	}
-
-	public void setCreatedDateMillis(long createdDateMillis) {
-		this.createdDateMillis = createdDateMillis;
-		this.createdDate = new DateTime(this.createdDateMillis);
-	}
-
-	public int getNumberOfEscalations() {
-		return numberOfEscalations;
-	}
-
-	public void setNumberOfEscalations(int numberOfEscalations) {
-		this.numberOfEscalations = numberOfEscalations;
-	}
-
-	public long getTimeBetweenEscalationsInMillis() {
-		return timeBetweenEscalationsInMillis;
-	}
-
-	public void setTimeBetweenEscalationsInMillis(
-			long timeBetweenEscalationsInMillis) {
-		this.timeBetweenEscalationsInMillis = timeBetweenEscalationsInMillis;
-	}
-
-	public boolean isIfNoManagerFailAz() {
-		return ifNoManagerFailAz;
-	}
-
-	public void setIfNoManagerFailAz(boolean ifNoManagerFailAz) {
-		this.ifNoManagerFailAz = ifNoManagerFailAz;
-	}
-
-	public boolean isIfMaxEscalationsFailAz() {
-		return ifMaxEscalationsFailAz;
-	}
-
-	public void setIfMaxEscalationsFailAz(boolean ifMaxEscalationsFailAz) {
-		this.ifMaxEscalationsFailAz = ifMaxEscalationsFailAz;
-	}
-
-	public String getAutoFailSubjectName() {
-		return autoFailSubjectName;
-	}
-
-	public void setAutoFailSubjectName(String autoFailSubjectName) {
-		this.autoFailSubjectName = autoFailSubjectName;
-	}
-
-	public boolean isManagerDN() {
-		return isManagerDN;
-	}
-
-	public void setManagerDN(boolean isManagerDN) {
-		this.isManagerDN = isManagerDN;
-	}
-
-	public String getManagerID() {
-		return managerID;
-	}
-
-	public void setManagerID(String managerID) {
-		this.managerID = managerID;
-	}
-
-	public String getSubject() {
-		return subject;
-	}
-
-	public void setSubject(String subject) {
-		this.subject = subject;
+	private User findMyManager(User me) throws Exception {
+		Attribute mgrAttr = me.getAttribs().get(this.managerID);
+		if (mgrAttr == null) {
+			return null;
+		} else {
+			if (this.managerIDDN) {
+				ArrayList<String> attrs = new ArrayList<String>();
+				attrs.addAll(me.getAttribs().keySet());
+				if (! attrs.isEmpty() && ! attrs.contains("*")) {
+					attrs.add(this.uidAttributeName);
+				}
+				LDAPSearchResults res = this.configManager.getMyVD().search(mgrAttr.getValues().get(0), 0, "(objectClass=*)", attrs);
+				if (! res.hasMore()) {
+					return null;
+				} else {
+					LDAPEntry entry = res.next();
+					User manager = new  User(entry);
+					manager.setUserID(manager.getAttribs().get(this.uidAttributeName).getValues().get(0));
+					manager.getAttribs().put(DISTINGUISHED_NAME, new Attribute(DISTINGUISHED_NAME,entry.getDN()));
+					return manager;
+				}
+			} else {
+				
+				String filter = equal(this.uidAttributeName,mgrAttr.getValues().get(0)).toString();
+				
+				
+				ArrayList<String> attrs = new ArrayList<String>();
+				attrs.addAll(me.getAttribs().keySet());
+				if (! attrs.isEmpty() && ! attrs.contains("*")) {
+					attrs.add(this.uidAttributeName);
+				}
+				LDAPSearchResults res = this.configManager.getMyVD().search("o=Tremolo", 2, filter, attrs);
+				if (! res.hasMore()) {
+					return null;
+				} else {
+					LDAPEntry entry = res.next();
+					User manager = new  User(entry);
+					manager.setUserID(manager.getAttribs().get(this.uidAttributeName).getValues().get(0));
+					manager.getAttribs().put(DISTINGUISHED_NAME, new Attribute(DISTINGUISHED_NAME,entry.getDN()));
+					return manager;
+				}
+			}
+		}
 	}
 	
 	

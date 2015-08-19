@@ -34,6 +34,7 @@ import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPSearchResults;
+import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.AzRuleType;
 import com.tremolosecurity.config.xml.OrgType;
 import com.tremolosecurity.config.xml.PortalUrlType;
@@ -61,11 +62,13 @@ public class ListPortalURLs extends HttpServlet {
 		String userID = req.getParameter("uid");
 		String uidAttr = req.getParameter("uidAttr");
 		
+		ConfigManager cfgMgr = GlobalEntries.getGlobalEntries().getConfigManager();
+		
 		try {
 			StringBuffer b = new StringBuffer();
 			
 			
-			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search("o=Tremolo", 2, equal(uidAttr,userID).toString(), new ArrayList<String>());
+			LDAPSearchResults res = cfgMgr.getMyVD().search("o=Tremolo", 2, equal(uidAttr,userID).toString(), new ArrayList<String>());
 			if (! res.hasMore()) {
 				throw new ProvisioningException("Could not locate user '" + userID + "'");
 			}
@@ -100,7 +103,7 @@ public class ListPortalURLs extends HttpServlet {
 					ArrayList<AzRule> rules = new ArrayList<AzRule>();
 					
 					for (AzRuleType art : url.getAzRules().getRule()) {
-						rules.add(new AzRule(art.getScope(),art.getConstraint(),art.getClassName()));
+						rules.add(new AzRule(art.getScope(),art.getConstraint(),art.getClassName(),cfgMgr,null));
 					}
 					
 					

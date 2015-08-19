@@ -23,6 +23,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -35,6 +36,7 @@ import com.novell.ldap.LDAPSearchResults;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
+import com.tremolosecurity.proxy.az.CustomAuthorization;
 
 public class AzUtils {
 	static Logger logger = Logger.getLogger(AzUtils.class);
@@ -309,5 +311,39 @@ public class AzUtils {
 		con.commit();
 		
 		return approverID;
+	}
+
+	public static boolean loadCustomApprovers(int approvalId, String emailTemplate,
+			ConfigManager cfg, Connection con, int userID,
+			String constraint, boolean sendNotification,CustomAuthorization caz) throws ProvisioningException {
+		boolean found = false;
+		try {
+			caz.loadConfigManager(cfg);
+			PreparedStatement ps = con.prepareStatement("INSERT INTO allowedApprovers(approval,approver) VALUES (?,?)");
+			
+			List<String> approvalDNs = caz.listPossibleApprovers();
+			for (String approverDN : approvalDNs) {
+				
+				int approverID = getApproverIDByDN(approvalId,emailTemplate,cfg,con,approverDN,sendNotification);
+				if (approverID == -1) {
+					continue;
+				}
+				
+				ps.setInt(1, approvalId);
+				ps.setInt(2, approverID);
+				ps.executeUpdate();
+				found = true;
+			}
+			
+			ps.close();
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not load approvers",e);
+		}
+		
+		
+		return found;
+			
+		
+		
 	}
 }

@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.crypto.SecretKey;
@@ -84,6 +85,7 @@ import com.tremolosecurity.config.ssl.TremoloX509KeyManager;
 import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.AuthMechType;
+import com.tremolosecurity.config.xml.CustomAzRuleType;
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.config.xml.MechanismType;
@@ -96,6 +98,7 @@ import com.tremolosecurity.proxy.auth.AnonAuth;
 import com.tremolosecurity.proxy.auth.AuthMechanism;
 import com.tremolosecurity.proxy.auth.sys.AuthManager;
 import com.tremolosecurity.proxy.auth.sys.AuthManagerImpl;
+import com.tremolosecurity.proxy.az.CustomAuthorization;
 import com.tremolosecurity.proxy.myvd.MyVDConnection;
 import com.tremolosecurity.proxy.ssl.TremoloTrustManager;
 import com.tremolosecurity.saml.Attribute;
@@ -164,6 +167,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 
 	private String name;
 	
+	private HashMap<String,CustomAuthorization> customAzRules;
 
 	
 	/* (non-Javadoc)
@@ -404,6 +408,29 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		while (itApp.hasNext()) {
 			ApplicationType app = itApp.next();
 			this.apps.put(app.getName(), app);
+		}
+		
+		
+		this.customAzRules = new HashMap<String,CustomAuthorization>();
+		if (this.cfg.getCustomAzRules() != null) {
+			for (CustomAzRuleType azrule : this.cfg.getCustomAzRules().getAzRule()) {
+				HashMap<String,Attribute> azCfg = new HashMap<String,Attribute>();
+				for (ParamType pt : azrule.getParams()) {
+					Attribute attr = azCfg.get(pt.getName());
+					if (attr == null) {
+						attr = new Attribute(pt.getName());
+						azCfg.put(pt.getName(), attr);
+					}
+					
+					attr.getValues().add(pt.getValue());
+					
+				}
+				
+				CustomAuthorization cuz = (CustomAuthorization) Class.forName(azrule.getClassName()).newInstance();
+				cuz.init(azCfg);
+				
+				this.customAzRules.put(azrule.getName(), cuz);
+			}
 		}
 		
 		
@@ -1072,5 +1099,13 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	}
 
 	public abstract void loadMyVD(String path, String myVdPath) throws Exception;
+
+	@Override
+	public Map<String, CustomAuthorization> getCustomAuthorizations() {
+		return this.customAzRules;
+	}
+	
+	
+	
 	
 }

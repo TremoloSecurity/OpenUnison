@@ -28,6 +28,7 @@ import java.security.PrivateKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.crypto.SecretKey;
 import javax.net.ssl.KeyManagerFactory;
@@ -53,6 +54,7 @@ import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.proxy.auth.AuthMechanism;
 import com.tremolosecurity.proxy.auth.sys.AuthManager;
+import com.tremolosecurity.proxy.az.CustomAuthorization;
 import com.tremolosecurity.proxy.myvd.MyVDConnection;
 import com.tremolosecurity.server.StopableThread;
 
@@ -344,5 +346,12 @@ public interface ConfigManager {
 	public abstract ServletContext getContext();
 	
 	public abstract AuthManager getAuthManager();
+	
+	
+	/**
+	 * Returns a map of custom authorization implementations and names
+	 * @return
+	 */
+	public abstract Map<String,CustomAuthorization> getCustomAuthorizations();
 
 }

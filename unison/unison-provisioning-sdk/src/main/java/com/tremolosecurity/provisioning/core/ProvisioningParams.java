@@ -21,4 +21,6 @@ public class ProvisioningParams {
 	public static final String UNISON_EXEC_TYPE = "UNISON.EXEC.TYPE";
 	public static final String UNISON_EXEC_SYNC = "UNISON.EXEC.SYNC";
 	public static final String UNISON_EXEC_ASYNC = "UNISON.EXEC.ASYNC";
+	
+	public static final String UNISON_RESYNC_ROOT = "UNISON.RESYNC.ROOT";
 }

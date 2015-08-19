@@ -36,6 +36,7 @@ import com.novell.ldap.LDAPAttributeSet;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
+import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.AzRuleType;
 import com.tremolosecurity.config.xml.OrgType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
@@ -121,15 +122,17 @@ public class ListOrgs extends HttpServlet {
 	
 	private void copyOrg(Organization org,OrgType ot, AzSys az, AuthInfo auinfo) throws MalformedURLException, ProvisioningException {
 		
+		ConfigManager cfgMgr = GlobalEntries.getGlobalEntries().getConfigManager();
+		
 		if (ot.getAzRules() != null && ot.getAzRules().getRule().size() > 0) {
 			ArrayList<AzRule> rules = new ArrayList<AzRule>();
 			
 			for (AzRuleType art : ot.getAzRules().getRule()) {
-				rules.add(new AzRule(art.getScope(),art.getConstraint(),art.getClassName()));
+				rules.add(new AzRule(art.getScope(),art.getConstraint(),art.getClassName(),cfgMgr,null));
 			}
 			
 			
-			if (! az.checkRules(auinfo, GlobalEntries.getGlobalEntries().getConfigManager(), rules)) {
+			if (! az.checkRules(auinfo,cfgMgr , rules)) {
 				return;
 			}
 		}
