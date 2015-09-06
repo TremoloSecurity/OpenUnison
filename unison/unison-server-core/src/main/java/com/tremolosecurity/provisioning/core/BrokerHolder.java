@@ -60,8 +60,9 @@ public class BrokerHolder {
 			logger.info("Broker already initialized");
 			return holder.broker;
 		} else {
-			String xml = cfgMgr.getConfigXmlPath();
-			String path = xml.substring(0,xml.lastIndexOf(File.separator));
+			
+			String path = System.getenv("TREMOLO_ACTIVEMQ");
+			
 			File f = new File(path + File.separator + "unison-mq-" + name);
 			if (! f.exists()) {
 				f.mkdir();
