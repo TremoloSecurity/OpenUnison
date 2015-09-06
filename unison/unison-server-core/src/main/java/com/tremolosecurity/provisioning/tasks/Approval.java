@@ -236,48 +236,49 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				now = when;
 			}
 			
-			
-			switch (att.getEscalationPolicy().getEscalationFailure().getAction()) {
-				case "leave" :
-					this.failureAzRules = null;
-					this.failOnNoAZ = false;
-					break;
-				case "assign" : 
-					this.failOnNoAZ = true;
-					this.failureAzRules = new ArrayList<AzRule>();
-					for (AzRuleType azr : att.getEscalationPolicy().getEscalationFailure().getAzRules().getRule()) {
-						Approver approver = new Approver();
+			if (att.getEscalationPolicy().getEscalationFailure().getAction() != null) {
+				switch (att.getEscalationPolicy().getEscalationFailure().getAction()) {
+					case "leave" :
+						this.failureAzRules = null;
+						this.failOnNoAZ = false;
+						break;
+					case "assign" : 
+						this.failOnNoAZ = true;
+						this.failureAzRules = new ArrayList<AzRule>();
+						for (AzRuleType azr : att.getEscalationPolicy().getEscalationFailure().getAzRules().getRule()) {
+							Approver approver = new Approver();
+							
+							if (azr.getScope().equalsIgnoreCase("filter")) {
+								approver.type = ApproverType.Filter;
+							} else if (azr.getScope().equalsIgnoreCase("group")) {
+								approver.type = ApproverType.StaticGroup;
+							} else if (azr.getScope().equalsIgnoreCase("dn")) {
+								approver.type = ApproverType.DN;
+							} else if (azr.getScope().equalsIgnoreCase("dynamicGroup")) {
+								approver.type = ApproverType.DynamicGroup;
+							} else if (azr.getScope().equalsIgnoreCase("custom")) {
+								approver.type = ApproverType.Custom;
+							} 
+							
+							
+							approver.constraint = azr.getConstraint();
+							
+							//this.approvers.add(approver);
+							
+							AzRule rule = new AzRule(azr.getScope(),azr.getConstraint(),azr.getClassName(),cfg,wf);
+							
+							this.failureAzRules.add(rule);
+							approver.customAz = rule.getCustomAuthorization();
+							
+						}
+						break;
 						
-						if (azr.getScope().equalsIgnoreCase("filter")) {
-							approver.type = ApproverType.Filter;
-						} else if (azr.getScope().equalsIgnoreCase("group")) {
-							approver.type = ApproverType.StaticGroup;
-						} else if (azr.getScope().equalsIgnoreCase("dn")) {
-							approver.type = ApproverType.DN;
-						} else if (azr.getScope().equalsIgnoreCase("dynamicGroup")) {
-							approver.type = ApproverType.DynamicGroup;
-						} else if (azr.getScope().equalsIgnoreCase("custom")) {
-							approver.type = ApproverType.Custom;
-						} 
-						
-						
-						approver.constraint = azr.getConstraint();
-						
-						//this.approvers.add(approver);
-						
-						AzRule rule = new AzRule(azr.getScope(),azr.getConstraint(),azr.getClassName(),cfg,wf);
-						
-						this.failureAzRules.add(rule);
-						approver.customAz = rule.getCustomAuthorization();
-						
-					}
-					break;
-					
-				default : throw new ProvisioningException("Unknown escalation failure action : " + att.getEscalationPolicy().getEscalationFailure().getAction());
+					default : throw new ProvisioningException("Unknown escalation failure action : " + att.getEscalationPolicy().getEscalationFailure().getAction());
+				}
+				
+				
+				
 			}
-			
-			
-			
 		}
 		
 	}
