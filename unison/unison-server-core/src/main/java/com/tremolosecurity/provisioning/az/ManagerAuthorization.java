@@ -41,7 +41,7 @@ public class ManagerAuthorization implements CustomAuthorization {
 
 	static Logger logger = Logger.getLogger(ManagerAuthorization.class.getName());
 
-	String uidAttributeName;
+	
 	
 	Workflow wf;
 	
@@ -59,7 +59,7 @@ public class ManagerAuthorization implements CustomAuthorization {
 	
 	@Override
 	public void init(Map<String, Attribute> config) throws AzException {
-		this.uidAttributeName = this.getConfigOption("uidAttributeName", config);
+		
 		this.numLevels = Integer.parseInt(this.getConfigOption("numLevels", config));
 		this.managerID = this.getConfigOption("managerID", config);
 		this.managerIDDN = this.getConfigOption("managerIDIsDN", config).equalsIgnoreCase("true");
@@ -165,7 +165,7 @@ public class ManagerAuthorization implements CustomAuthorization {
 				ArrayList<String> attrs = new ArrayList<String>();
 				attrs.addAll(me.getAttribs().keySet());
 				if (! attrs.isEmpty() && ! attrs.contains("*")) {
-					attrs.add(this.uidAttributeName);
+					attrs.add(this.configManager.getCfg().getProvisioning().getApprovalDB().getUserIdAttribute());
 				}
 				LDAPSearchResults res = this.configManager.getMyVD().search(mgrAttr.getValues().get(0), 0, "(objectClass=*)", attrs);
 				if (! res.hasMore()) {
@@ -173,19 +173,19 @@ public class ManagerAuthorization implements CustomAuthorization {
 				} else {
 					LDAPEntry entry = res.next();
 					User manager = new  User(entry);
-					manager.setUserID(manager.getAttribs().get(this.uidAttributeName).getValues().get(0));
+					manager.setUserID(manager.getAttribs().get(this.configManager.getCfg().getProvisioning().getApprovalDB().getUserIdAttribute()).getValues().get(0));
 					manager.getAttribs().put(DISTINGUISHED_NAME, new Attribute(DISTINGUISHED_NAME,entry.getDN()));
 					return manager;
 				}
 			} else {
 				
-				String filter = equal(this.uidAttributeName,mgrAttr.getValues().get(0)).toString();
+				String filter = equal(this.configManager.getCfg().getProvisioning().getApprovalDB().getUserIdAttribute(),mgrAttr.getValues().get(0)).toString();
 				
 				
 				ArrayList<String> attrs = new ArrayList<String>();
 				attrs.addAll(me.getAttribs().keySet());
 				if (! attrs.isEmpty() && ! attrs.contains("*")) {
-					attrs.add(this.uidAttributeName);
+					attrs.add(this.configManager.getCfg().getProvisioning().getApprovalDB().getUserIdAttribute());
 				}
 				LDAPSearchResults res = this.configManager.getMyVD().search("o=Tremolo", 2, filter, attrs);
 				if (! res.hasMore()) {
@@ -193,7 +193,7 @@ public class ManagerAuthorization implements CustomAuthorization {
 				} else {
 					LDAPEntry entry = res.next();
 					User manager = new  User(entry);
-					manager.setUserID(manager.getAttribs().get(this.uidAttributeName).getValues().get(0));
+					manager.setUserID(manager.getAttribs().get(this.configManager.getCfg().getProvisioning().getApprovalDB().getUserIdAttribute()).getValues().get(0));
 					manager.getAttribs().put(DISTINGUISHED_NAME, new Attribute(DISTINGUISHED_NAME,entry.getDN()));
 					return manager;
 				}
