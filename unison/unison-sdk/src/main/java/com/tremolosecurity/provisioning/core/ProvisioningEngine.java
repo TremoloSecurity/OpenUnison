@@ -121,6 +121,7 @@ public interface ProvisioningEngine {
 	
 	public abstract void initListeners() throws ProvisioningException;
 	
+	public void clearDLQ() throws ProvisioningException;
 	
 
 }

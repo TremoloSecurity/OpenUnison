@@ -1058,17 +1058,19 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	}
 	
 
-	
+	public void clearDLQ() throws ProvisioningException {
+		try {
+			BrokerHolder.doClearDLQ();
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not process deal letter queue",e);
+		}
+	}
 	
 	
 	private void initLocalBroker() throws ProvisioningException {
 		if (this.isInternalQueue()) {
 			this.broker = BrokerHolder.getInstance( cfgMgr, "local",this);
-			try {
-				BrokerHolder.doClearDLQ();
-			} catch (Exception e) {
-				throw new ProvisioningException("Could not process deal letter queue",e);
-			}
+			
 		} else {
 			this.mpPool = new GenericObjectPool<MessageProducerHolder>(new PooledMessageProducerFactory(this.cfgMgr,this));
 			this.mpPool.setMaxTotal(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getMaxProducers());

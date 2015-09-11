@@ -157,7 +157,9 @@ public class BrokerHolder {
 	}
 	
 	public static void doClearDLQ() throws Exception {
-		holder.clearDLQ();
+		if (holder != null) {
+			holder.clearDLQ();
+		}
 	}
 	
 	private synchronized  void clearDLQ() throws Exception {

@@ -440,7 +440,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		this.provEnvgine.initMessageConsumers();
 		this.provEnvgine.initScheduler();
 		this.provEnvgine.initListeners();
-		
+		this.provEnvgine.clearDLQ();
 		
 		
 		
