@@ -15,7 +15,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
  -->
 <%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+    pageEncoding="UTF-8" import="java.util.*,com.tremolosecurity.proxy.auth.*,com.tremolosecurity.proxy.util.*,com.tremolosecurity.config.util.*"%>
+<%
+RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
+String targetURL = "";
+String auth = "/auth/forms/";
+if (reqHolder != null) {
+	ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
+	targetURL =  cfg.getAuthManager().getGetRedirectURL(reqHolder).toString();
+	auth = cfg.getAuthFormsPath();
+}
+%>
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -27,14 +38,14 @@ limitations under the License.
     <meta name="author" content="" />
 <title></title>
 <!-- Bootstrap core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="<%= auth %>css/bootstrap.min.css" rel="stylesheet" />
 
     <!-- Custom styles for this template -->
-    <link href="jumbotron-narrow.css" rel="stylesheet" />
+    <link href="<%= auth %>jumbotron-narrow.css" rel="stylesheet" />
 
 
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="assets/js/ie10-viewport-bug-workaround.js"></script>
+    <script src="<%= auth %>assets/js/ie10-viewport-bug-workaround.js"></script>
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -49,7 +60,7 @@ limitations under the License.
 			<h3>Invalid Login</h3>	
 		</div>
 		<div class="jumbotron">
-			<img src="images/ts_logo.png" />
+			<img src="<%= auth %>images/ts_logo.png" />
 			<br />
 			<div class="alert alert-danger" role="alert">
 			<h2>Not Authorized</h2>

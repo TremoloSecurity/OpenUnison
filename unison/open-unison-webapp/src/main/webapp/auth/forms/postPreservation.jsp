@@ -20,11 +20,11 @@ limitations under the License.
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>AutoIDM Post Preservation Page</title>
+<title>Unison Post Preservation Page</title>
 </head>
 <body onload="document.autoForm.submit();">
 <%
-	System.out.println("session : " + session);
+	
 	RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
 
 	Iterator<String> paramNames = reqHolder.getParams().keySet().iterator();

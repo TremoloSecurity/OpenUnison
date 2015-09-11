@@ -18,6 +18,17 @@ limitations under the License.
     pageEncoding="UTF-8" import="com.tremolosecurity.proxy.auth.*,com.tremolosecurity.proxy.util.*,com.tremolosecurity.config.util.*" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
+<%
+	RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
+	String targetURL = "";
+	String authURL = "/auth/forms/";
+	
+	if (reqHolder != null) {
+		ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
+		targetURL =  cfg.getAuthManager().getGetRedirectURL(reqHolder).toString();
+		authURL = cfg.getAuthFormsPath();
+	}
+%>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
@@ -27,10 +38,10 @@ limitations under the License.
     <meta name="author" content="" />
 <title></title>
 <!-- Bootstrap core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="<%= authURL %>css/bootstrap.min.css" rel="stylesheet" />
 
     <!-- Custom styles for this template -->
-    <link href="jumbotron-narrow.css" rel="stylesheet" />
+    <link href="<%= authURL %>jumbotron-narrow.css" rel="stylesheet" />
 
 
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
@@ -43,15 +54,7 @@ limitations under the License.
     <![endif]-->
 </head>
 <body>
-<%
-	RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
-	String targetURL = "";
-	
-	if (reqHolder != null) {
-		ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
-		targetURL =  cfg.getAuthManager().getGetRedirectURL(reqHolder).toString();
-	}
-%>
+
 
 <div class="container">
 		
@@ -59,7 +62,7 @@ limitations under the License.
 			<h3>Login</h3>	
 		</div>
 		<div class="jumbotron">
-			<img src="images/ts_logo.png" />
+			<img src="<%= authURL %>images/ts_logo.png" />
 			<br />
 			<form  role="form" action="<%= session.getAttribute("TREMOLO_AUTH_URI") %>" method="post">
 				<input type="text" class="form-control" placeholder="Key from Text Message"  type="text" id="key" name="key" required autofocus />

@@ -15,9 +15,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
  -->
 <%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+    pageEncoding="UTF-8" import="com.tremolosecurity.proxy.auth.*,com.tremolosecurity.proxy.util.*,com.tremolosecurity.config.util.*"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
+		<% 
+		
+		RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
+		String authURL = "/auth/forms/";
+		
+		if (reqHolder != null) {
+			ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
+			
+			authURL = cfg.getAuthFormsPath();
+		}	
+			%>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
@@ -27,10 +38,10 @@ limitations under the License.
     <meta name="author" content="" />
 <title></title>
 <!-- Bootstrap core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="<%= authURL %>css/bootstrap.min.css" rel="stylesheet" />
 
     <!-- Custom styles for this template -->
-    <link href="jumbotron-narrow.css" rel="stylesheet" />
+    <link href="<%= authURL %>jumbotron-narrow.css" rel="stylesheet" />
 
 
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
@@ -49,7 +60,7 @@ limitations under the License.
 			<h3>Password Reset Sent</h3>	
 		</div>
 		<div class="jumbotron">
-			<img src="images/ts_logo.png" />
+			<img src="<%= authURL %>images/ts_logo.png" />
 			<br />
 			<div class="alert alert-success" role="alert">
 			<h2>Password Reset Sent</h2>

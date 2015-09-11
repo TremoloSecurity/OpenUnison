@@ -21,12 +21,12 @@ limitations under the License.
 		<% 
 		
 		RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
-		String authURL = "";
+		String authURL = "/auth/forms/";
 		
 		if (reqHolder != null) {
 			ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
 			
-			authURL = cfg.getAuthPath() + "forms/";
+			authURL = cfg.getAuthFormsPath();
 		}	
 			%>
 <head>

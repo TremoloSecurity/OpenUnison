@@ -18,34 +18,10 @@ limitations under the License.
     pageEncoding="UTF-8" import="com.tremolosecurity.proxy.auth.*,com.tremolosecurity.idp.providers.*,com.tremolosecurity.proxy.util.*,com.tremolosecurity.config.util.*"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-<title></title>
-<!-- Bootstrap core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet" />
-
-    <!-- Custom styles for this template -->
-    <link href="jumbotron-narrow.css" rel="stylesheet" />
-
-
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <!-- <script src="assets/js/ie10-viewport-bug-workaround.js"></script>  -->
-
-    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-</head>
-<body>
 <%
 	RequestHolder reqHolder = (RequestHolder) session.getAttribute(LoginService.ORIG_REQ_HOLDER);
 	String targetURL = "";
+	String authURL = "/auth/forms/";
 
 	if (request.getSession().getAttribute(Saml2Idp.SAML2_AUTHN_REQ_URL) != null) {
 		targetURL = session.getAttribute(Saml2Idp.SAML2_AUTHN_REQ_URL).toString();	
@@ -58,9 +34,36 @@ limitations under the License.
 	AuthController au = (AuthController) session.getAttribute(ProxyConstants.AUTH_CTL);
 	au.setHolder(reqHolder);
 	targetURL =  cfg.getAuthManager().getGetRedirectURL(reqHolder).toString();
+	authURL = cfg.getAuthFormsPath();
 		}
 	}
 %>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+<title></title>
+<!-- Bootstrap core CSS -->
+    <link href="<%= authURL %>css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Custom styles for this template -->
+    <link href="<%= authURL %>jumbotron-narrow.css" rel="stylesheet" />
+
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <!-- <script src="assets/js/ie10-viewport-bug-workaround.js"></script>  -->
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+
 
 <div class="container">
 		
@@ -68,7 +71,7 @@ limitations under the License.
 			<h3>Login</h3>	
 		</div>
 		<div class="jumbotron">
-			<img src="images/ts_logo.png" />
+			<img src="<%= authURL %>images/ts_logo.png" />
 			<br />
 			<div class="alert alert-danger" role="alert">
 			<h2>Login Choice Reset</h2>
