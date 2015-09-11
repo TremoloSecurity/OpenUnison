@@ -71,7 +71,7 @@ limitations under the License.
 			<form  role="form" action="<%= session.getAttribute("TREMOLO_AUTH_URI") %>" method="post">
 			<% int i = 0; %>
 			<% for (SecretQuestion sq : questions) { %>
-				<input type="text" class="form-control" placeholder="<%= questionList.get(sq.getQuestion()) %>"  type="text" id="answer<%= i %>" name="answer<%= i %>" required autofocus />
+				<input type="text" class="form-control" placeholder="<%= questionList.get(sq.getQuestion()) %>"  type="text" id="answer<%= i %>" name="answer<%= i %>"  />
 			<% 		i++;
 			} %>
 			

@@ -68,7 +68,7 @@ limitations under the License.
 Could not find you based on your email address, please try again
 </div>
 			<form  role="form" action="<%= session.getAttribute("TREMOLO_AUTH_URI") %>" method="post">
-				<input type="text" class="form-control" placeholder="Email Address"  type="text" id="email" name="email" required autofocus />
+				<input type="text" class="form-control" placeholder="Email Address"   id="email" name="email"  />
 <br/>
         
         <button class="btn btn-lg btn-danger btn-block" type="submit" name="submit" id="submit">Sign in</button>

@@ -77,13 +77,7 @@ limitations under the License.
 			<h2>Login Choice Reset</h2>
 Once a choice is made this form can not be re-submitted.  For security reasons, your login must be cleared and re-attempted.  Click <a id="rerunlink" href="<%= targetURL %>">here</a> restart the login process.
 </div>
-			<form  role="form" action="<%= session.getAttribute("TREMOLO_AUTH_URI") %>" method="post">
-				<input type="text" class="form-control" placeholder="Key"  type="text" id="key" name="key" required autofocus />
-<br/>
-        
-        <button class="btn btn-lg btn-danger btn-block" type="submit" name="submit" id="submit">Sign in</button>
-        <input type="hidden" name="target" id="target" value="<%= targetURL %>" />
-      </form>
+			
 		</div>
 	</div>
 

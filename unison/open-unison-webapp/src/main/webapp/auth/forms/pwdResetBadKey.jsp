@@ -69,7 +69,7 @@ limitations under the License.
 Could not find the key, please try again
 </div>
 			<form  role="form" action="<%= session.getAttribute("TREMOLO_AUTH_URI") %>" method="post">
-				<input type="text" class="form-control" placeholder="Key"  type="text" id="key" name="key" required autofocus />
+				<input type="text" class="form-control" placeholder="Key" id="key" name="key"  />
 <br/>
         
         <button class="btn btn-lg btn-danger btn-block" type="submit" name="submit" id="submit">Sign in</button>

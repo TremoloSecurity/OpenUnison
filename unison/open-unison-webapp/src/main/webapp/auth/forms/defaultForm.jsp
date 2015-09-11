@@ -68,9 +68,9 @@ limitations under the License.
 			<img src="<%= auth %>images/ts_logo.png" />
 			<br />
 			<form  role="form" action="<%= session.getAttribute("TREMOLO_AUTH_URI") %>" method="post">
-				<input type="text" class="form-control" placeholder="User Name"  type="text" id="user" name="user" required autofocus />
+				<input class="form-control" placeholder="User Name"  type="text" id="user" name="user"  />
 <br/>
-        <input type="password" class="form-control" placeholder="Password" required type="password" id="pwd" name="pwd" />
+        <input  class="form-control" placeholder="Password"  type="password" id="pwd" name="pwd" />
 <br/>
         <button class="btn btn-lg btn-danger btn-block" type="submit" name="submit" id="submit">Sign in</button>
         <input type="hidden" name="target" id="target" value="<%= targetURL %>" />
