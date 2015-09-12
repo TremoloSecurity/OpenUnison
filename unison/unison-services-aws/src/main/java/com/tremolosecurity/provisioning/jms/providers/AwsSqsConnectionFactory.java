@@ -22,21 +22,40 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 
-import org.skyscreamer.nevado.jms.NevadoConnectionFactory;
-import org.skyscreamer.nevado.jms.connector.amazonaws.AmazonAwsSQSConnectorFactory;
+import com.amazon.sqs.javamessaging.SQSConnectionFactory;
+import com.amazon.sqs.javamessaging.SQSConnectionFactory.Builder;
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.internal.StaticCredentialsProvider;
+
+
 
 public class AwsSqsConnectionFactory implements ConnectionFactory {
 
-	private NevadoConnectionFactory factory;
+	private SQSConnectionFactory factory;
 	
+	
+	String secretKey;
+	String accessKey;
+	String regionName;
+	
+	ClientConfiguration clientConfig;
 	
 	public AwsSqsConnectionFactory() {
-		this.factory = new NevadoConnectionFactory();
-		this.factory.setSqsConnectorFactory(new AmazonAwsSQSConnectorFactory());
+		
+		
 	}
 	
 	@Override
 	public Connection createConnection() throws JMSException {
+		Builder builder = SQSConnectionFactory.builder().withAWSCredentialsProvider(new StaticCredentialsProvider(new BasicAWSCredentials(this.accessKey,this.secretKey)));
+		
+		if (this.regionName != null && ! this.regionName.isEmpty()) {
+			builder = builder.withRegionName(regionName);
+		}
+		
+		this.factory = builder.build();
+		
 		return factory.createConnection();
 	}
 
@@ -48,45 +67,43 @@ public class AwsSqsConnectionFactory implements ConnectionFactory {
 
 	@Override
 	public JMSContext createContext() {
-		return this.createContext();
+		return this.factory.createContext();
 	}
 
 	@Override
 	public JMSContext createContext(int arg0) {
-		return this.createContext(arg0);
+		return this.factory.createContext(arg0);
 	}
 
 	@Override
 	public JMSContext createContext(String arg0, String arg1) {
 		
-		return this.createContext(arg0, arg1);
+		return this.factory.createContext(arg0, arg1);
 	}
 
 	@Override
 	public JMSContext createContext(String arg0, String arg1, int arg2) {
 		
-		return this.createContext(arg0, arg1, arg2);
+		return this.factory.createContext(arg0, arg1, arg2);
 	}
 
-	public void setUseAsync(String val) {
-		((AmazonAwsSQSConnectorFactory) this.factory.getSqsConnectorFactory()).setUseAsyncSend(Boolean.getBoolean(val));
-	}
+
 	
-	public void setUseSecure(String val) {
-		((AmazonAwsSQSConnectorFactory) this.factory.getSqsConnectorFactory()).setSecure(Boolean.getBoolean(val));
-	}
+	
 	
 	public void setAwsAccessKey(String val) {
-		factory.setAwsAccessKey(val);
+		this.accessKey = val;
 		
 	}
 	
 	public void setAwsSecretKey(String val) {
-		factory.setAwsSecretKey(val);
+		this.secretKey = val;
 	}
 	
-	public void setEndPoint(String val) {
-		this.factory.setAwsSQSEndpoint(val);
+
+	public void setRegion(String val) {
+		this.regionName = val;
 	}
+	
 	
 }
