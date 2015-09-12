@@ -45,10 +45,10 @@ public class CertData {
 	String st = "";
 	String c = "";
 
-	int size = 1024;
+	int size = 2048;
 	boolean rsa = true;
 
-	String sigAlg = "SHA1withRSA";
+	String sigAlg = "SHA256withRSA";
 	Date notBefore = new Date(System.currentTimeMillis());
 	Date notAfter = new Date(System.currentTimeMillis() + 315360000000L);
 	
