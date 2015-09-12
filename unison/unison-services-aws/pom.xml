@@ -33,16 +33,12 @@ limitations under the License.
 	  		<artifactId>unison-sdk</artifactId>
 	  		<version>1.0.6</version>
   		</dependency>
-		<dependency>
-		    <groupId>com.googlecode.json-simple</groupId>
-		    <artifactId>json-simple</artifactId>
-		    <version>1.1.1</version>
-		</dependency>
-		<dependency>
-  <groupId>org.skyscreamer</groupId>
-  <artifactId>nevado-jms</artifactId>
-  <version>1.3.2</version>
-
+<dependency>
+  <groupId>com.amazonaws</groupId>
+  <artifactId>amazon-sqs-java-messaging-lib</artifactId>
+  <version>1.0.0</version>
+  <type>jar</type>
 </dependency>
+
   </dependencies>
 </project>
