@@ -224,7 +224,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 		
 		
-		
+		this.initLocalBroker();
 		
 		
 		
@@ -239,7 +239,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		generateWorkflows();
 		
 		if (cfgMgr.getCfg().getProvisioning() != null && cfgMgr.getCfg().getProvisioning().getApprovalDB() != null ) {
-			this.initLocalBroker();
+			
 			
 			ApprovalDBType adbt = cfgMgr.getCfg().getProvisioning().getApprovalDB();
 			this.smtpHost = adbt.getSmtpHost();
@@ -1097,6 +1097,11 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	public javax.jms.Connection getQueueConnection() throws ProvisioningException, JMSException {
 		if (this.isInternalQueue()) {
 			if (this.qcon == null) {
+				
+				if (this.broker == null) {
+					this.initLocalBroker();
+				}
+				
 				ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("vm://localhost/localhost");
 				this.qcon = cf.createConnection();
 				this.qcon.start();
