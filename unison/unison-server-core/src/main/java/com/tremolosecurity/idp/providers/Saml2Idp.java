@@ -91,6 +91,25 @@ import com.tremolosecurity.saml.Saml2Assertion;
 
 public class Saml2Idp implements IdentityProvider {
 
+	private static HashMap<String, String> xmlDigSigAlgs;
+
+	private static HashMap<String, String> javaDigSigAlgs;
+
+	static {
+		xmlDigSigAlgs = new HashMap<String,String>();
+		xmlDigSigAlgs.put("http://www.w3.org/2000/09/xmldsig#rsa-sha1","RSA-SHA1");
+		xmlDigSigAlgs.put("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256","RSA-SHA256");
+		xmlDigSigAlgs.put("http://www.w3.org/2001/04/xmldsig-more#rsa-sha384","RSA-SHA384");
+		xmlDigSigAlgs.put("http://www.w3.org/2001/04/xmldsig-more#rsa-sha512", "RSA-SHA512" );
+		
+		javaDigSigAlgs = new HashMap<String,String>();
+		javaDigSigAlgs.put("http://www.w3.org/2000/09/xmldsig#rsa-sha1", "SHA1withRSA");
+		javaDigSigAlgs.put("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256", "SHA256withRSA");
+		javaDigSigAlgs.put("http://www.w3.org/2001/04/xmldsig-more#rsa-sha384", "SHA384withRSA");
+		javaDigSigAlgs.put("http://www.w3.org/2001/04/xmldsig-more#rsa-sha512", "SHA512withRSA");
+		
+	}
+	
 	public static final String SAML2_AUTHN_REQ_URL = "SAML2_AUTHN_REQ_URL";
 
 	static Logger logger = Logger.getLogger(Saml2Idp.class.getName());
@@ -363,15 +382,15 @@ public class Saml2Idp implements IdentityProvider {
 			UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
 			java.security.cert.X509Certificate cert = holder.getConfig().getCertificate(validationCert);
 			
-			if (! sigAlg.equalsIgnoreCase("http://www.w3.org/2000/09/xmldsig#rsa-sha1")) {
-				throw new Exception("Invalid signature algorithm");
+			if (Saml2Idp.xmlDigSigAlgs.containsKey(sigAlg)  ) {
+				throw new Exception("Invalid signature algorithm : " + sigAlg);
 			}
 			
 			if (! authn.getDestination().equals(request.getRequestURL().toString())) {
 				throw new Exception("Invalid destination");
 			}
 			
-			Signature sigv = Signature.getInstance("SHA1withRSA");
+			Signature sigv = Signature.getInstance(Saml2Idp.javaDigSigAlgs.get(sigAlg));
 			
 			
 			
