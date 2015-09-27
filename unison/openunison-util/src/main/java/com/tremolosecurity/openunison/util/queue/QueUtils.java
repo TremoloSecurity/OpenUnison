@@ -39,6 +39,10 @@ public class QueUtils {
 	
 	public static void emptyDLQ(TremoloType config,String dlqName) throws Exception {
 		
+		if (config.getProvisioning().getQueueConfig().isIsUseInternalQueue()) {
+			throw new Exception("This feature is not available for interal queues");
+		}
+		
 		String dlqSessionID = UUID.randomUUID().toString();
 		
 		logger.info("DLQ Run : " + dlqSessionID);

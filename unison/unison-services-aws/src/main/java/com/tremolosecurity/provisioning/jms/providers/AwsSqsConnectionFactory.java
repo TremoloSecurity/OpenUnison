@@ -62,29 +62,29 @@ public class AwsSqsConnectionFactory implements ConnectionFactory {
 	@Override
 	public Connection createConnection(String arg0, String arg1)
 			throws JMSException {
-		return factory.createConnection(arg0, arg1);
+		return null;
 	}
 
 	@Override
 	public JMSContext createContext() {
-		return this.factory.createContext();
+		return null;
 	}
 
 	@Override
 	public JMSContext createContext(int arg0) {
-		return this.factory.createContext(arg0);
+		return null;
 	}
 
 	@Override
 	public JMSContext createContext(String arg0, String arg1) {
 		
-		return this.factory.createContext(arg0, arg1);
+		return null;
 	}
 
 	@Override
 	public JMSContext createContext(String arg0, String arg1, int arg2) {
 		
-		return this.factory.createContext(arg0, arg1, arg2);
+		return null;
 	}
 
 
