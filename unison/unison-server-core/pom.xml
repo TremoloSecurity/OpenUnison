@@ -13,7 +13,11 @@
   </properties>
   
   <dependencies>
-
+		<dependency>
+			<groupId>org.opensaml</groupId>
+			<artifactId>opensaml</artifactId>
+			<version>2.6.4</version>
+		</dependency>
 <dependency>
     <groupId>javax.mail</groupId>
     <artifactId>javax.mail-api</artifactId>
@@ -21,7 +25,11 @@
 </dependency>
 
 
-
+<dependency>
+    <groupId>org.bouncycastle</groupId>
+    <artifactId>bcpkix-jdk15on</artifactId>
+    <version>1.52</version>
+</dependency>
 
 
 
@@ -47,16 +55,7 @@
                                <version>2.10.0</version>
                                <type>jar</type>
                        </dependency>
-<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
-			<version>1.50</version>
-		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-ext-jdk15on</artifactId>
-			<version>1.50</version>
-		</dependency>
+
 		<dependency>
     <groupId>log4j</groupId>
     <artifactId>apache-log4j-extras</artifactId>
@@ -66,11 +65,7 @@
   		 
 
   	
-<dependency>
-    <groupId>org.opensaml</groupId>
-    <artifactId>opensaml</artifactId>
-    <version>2.6.1</version>
-</dependency>
+
   	  	  	<dependency>
   		<groupId>com.tremolosecurity.unison</groupId>
   		<artifactId>unison-sdk</artifactId>

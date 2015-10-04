@@ -19,11 +19,13 @@ package com.tremolosecurity.proxy.auth.ssl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Vector;
@@ -31,15 +33,22 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.ocsp.OCSPObjectIdentifiers;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.Extensions;
 import org.bouncycastle.asn1.x509.X509Extension;
 import org.bouncycastle.asn1.x509.X509Extensions;
-import org.bouncycastle.ocsp.BasicOCSPResp;
-import org.bouncycastle.ocsp.CertificateID;
-import org.bouncycastle.ocsp.OCSPException;
-import org.bouncycastle.ocsp.OCSPReq;
-import org.bouncycastle.ocsp.OCSPReqGenerator;
-import org.bouncycastle.ocsp.OCSPResp;
-import org.bouncycastle.ocsp.SingleResp;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.bc.BcX509ExtensionUtils;
+import org.bouncycastle.cert.ocsp.BasicOCSPResp;
+import org.bouncycastle.cert.ocsp.CertificateID;
+import org.bouncycastle.cert.ocsp.OCSPException;
+import org.bouncycastle.cert.ocsp.OCSPReq;
+import org.bouncycastle.cert.ocsp.OCSPReqBuilder;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.cert.ocsp.SingleResp;
+import org.bouncycastle.operator.DigestCalculator;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.bc.BcDigestCalculatorProvider;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.saml.Attribute;
@@ -90,7 +99,7 @@ public class OCSP implements CRLManager {
 			
 			//System.err.println(resp.getResponses()[0].getCertStatus());
 			
-			return resp.getResponses()[0].getCertStatus() == null || (! (resp.getResponses()[0].getCertStatus() instanceof org.bouncycastle.ocsp.RevokedStatus));
+			return resp.getResponses()[0].getCertStatus() == null || (! (resp.getResponses()[0].getCertStatus() instanceof org.bouncycastle.cert.ocsp.RevokedStatus));
 			
 		} catch (Exception e) {
 			logger.error("Error validating certificate",e);
@@ -105,27 +114,22 @@ public class OCSP implements CRLManager {
 	}
 	
 	private OCSPReq generateOcspRequest(X509Certificate issuerCert,
-			BigInteger serialNumber) throws OCSPException {
+			BigInteger serialNumber) throws OCSPException, CertificateEncodingException, OperatorCreationException, IOException {
 
+		BcDigestCalculatorProvider util = new BcDigestCalculatorProvider();
+		
 		// Generate the id for the certificate we are looking for
-		CertificateID id = new CertificateID(CertificateID.HASH_SHA1,
-				issuerCert, serialNumber);
-		// Load a new generator for the request
-		OCSPReqGenerator ocspRequestGenerator = new OCSPReqGenerator();
-		// Add the certificate ID to the generator
-		ocspRequestGenerator.addRequest(id);
+		CertificateID id = new CertificateID(util.get(  CertificateID.HASH_SHA1),
+				new X509CertificateHolder(issuerCert.getEncoded()), serialNumber);
+		OCSPReqBuilder ocspGen = new OCSPReqBuilder();
+        
+        ocspGen.addRequest(id);
 
 		BigInteger nonce = BigInteger.valueOf(System.currentTimeMillis());
-		Vector oids = new Vector();
-		Vector values = new Vector();
+		Extension ext = new Extension(OCSPObjectIdentifiers.id_pkix_ocsp_nonce, true, new DEROctetString(nonce.toByteArray()));
+        ocspGen.setRequestExtensions(new Extensions(new Extension[] { ext }));
 
-		oids.add(OCSPObjectIdentifiers.id_pkix_ocsp_nonce);
-		values.add(new X509Extension(false, new DEROctetString(nonce
-				.toByteArray())));
-
-		ocspRequestGenerator.setRequestExtensions(new X509Extensions(oids,
-				values));
-		return ocspRequestGenerator.generate();
+        return ocspGen.build();
 	}
 
 }
