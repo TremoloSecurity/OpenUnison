@@ -153,7 +153,15 @@ public class GenerateReport extends HttpServlet {
 						
 						
 						if (reportToRun.isGroupings()) {
-							if (groupingVal == null || ! groupingVal.equals(row.get(reportToRun.getGroupBy()))) {
+							String rowID = rs.getString(reportToRun.getGroupBy()); 
+							if (logger.isDebugEnabled()) {
+								logger.debug("Grouping Val : '" + groupingVal + "'");
+								logger.debug("Group By : '" + reportToRun.getGroupBy() + "'");
+								logger.debug("Value of Group By in row : '" + rowID + "'");
+								
+							}
+							
+							if (groupingVal == null || ! groupingVal.equals(rowID)) {
 								grouping = new ReportGrouping();
 								grouping.setData(new ArrayList<Map<String,String>>());
 								grouping.setHeader(new HashMap<String,String>());
@@ -163,7 +171,7 @@ public class GenerateReport extends HttpServlet {
 									grouping.getHeader().put(headerField, rs.getString(headerField));
 								}
 								
-								groupingVal = row.get(reportToRun.getGroupBy());
+								groupingVal = rowID;
 							}
 						}
 						
