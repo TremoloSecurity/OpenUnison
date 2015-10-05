@@ -25,6 +25,7 @@ limitations under the License.
     	<sequence>
     		<element name="results" type="tns:resultRefType"
     			maxOccurs="1" minOccurs="0">
+    			
     		</element>
     		<element name="urls" type="tns:urlsType"></element>
     		<element name="cookieConfig" type="tns:cookieConfigType"
@@ -127,10 +128,13 @@ limitations under the License.
     </complexType>
 
     <complexType name="filterConfigType">
+    	<annotation><documentation>Provides configuration for a filter configured on a URL.  Any param with the same name but multiple values will be a multi value attribute inside of OpenUnison</documentation></annotation>
     	<sequence>
     		<element name="param" type="tns:paramType" maxOccurs="unbounded" minOccurs="0"></element>
     	</sequence>
-    	<attribute name="class" type="string"></attribute>
+    	<attribute name="class" type="string">
+    		<annotation><documentation>The class name of the filter, must implement com.tremolosecurity.proxy.filter.HttpFilter</documentation></annotation>
+    	</attribute>
     </complexType>
 
     <complexType name="filterChainType">
@@ -232,6 +236,7 @@ limitations under the License.
 
 
     <complexType name="configType">
+    	<annotation><documentation>Provides a common configuration type</documentation></annotation>
     	<sequence>
     		<element name="param" type="tns:paramType" maxOccurs="unbounded" minOccurs="0"></element>
     	</sequence>
@@ -259,7 +264,7 @@ limitations under the License.
     	</sequence>
     	<attribute name="name" type="string">
     		<annotation>
-				<documentation>Name of the mecahnism</documentation>
+				<documentation>Name of the mechanism</documentation>
 			</annotation>
     	</attribute>
     </complexType>
@@ -1707,9 +1712,11 @@ limitations under the License.
     </complexType>
     
     <complexType name="reportType">
+    	<annotation><documentation>Defines a set of reports that are available to run</documentation></annotation>
     	<sequence>
     		<element name="paramater" minOccurs="0"
     			maxOccurs="unbounded">
+    			<annotation><documentation>List of possible parameters that can be provided to the SQL statement.  Each parameter must be named in the order they appear in the SQL.</documentation></annotation>
     			<simpleType>
     				<restriction base="string">
     					<enumeration value="currentUser"></enumeration>
@@ -1721,32 +1728,53 @@ limitations under the License.
     		</element>
     		<element name="sql" type="string" minOccurs="1"
     			maxOccurs="1">
+    			<annotation><documentation>A SQL statement that drives the report</documentation></annotation>
     		</element>
     		<element name="headerFields" type="string" minOccurs="0"
     			maxOccurs="unbounded">
+    			<annotation><documentation>List of fields from the SQL statement that will be lsited before the data set</documentation></annotation>
     		</element>
     		<element name="dataFields" type="string" minOccurs="0"
     			maxOccurs="unbounded">
+    			<annotation><documentation>List of fields from the SQL statement that will be included in the dataset</documentation></annotation>
     		</element>
     	</sequence>
-    	<attribute name="orgID" type="string"></attribute>
-    	<attribute name="name" type="string"></attribute>
-    	<attribute name="description" type="string"></attribute>
-    	<attribute name="groupBy" type="string"></attribute>
-    	<attribute name="groupings" type="boolean"></attribute>
+    	<attribute name="orgID" type="string">
+    		<annotation><documentation>The id of the organization to place this report in</documentation></annotation>
+    	</attribute>
+    	<attribute name="name" type="string">
+    		<annotation><documentation>The name of this report</documentation></annotation>
+    	</attribute>
+    	<attribute name="description" type="string">
+    		<annotation><documentation>Descriptive text about the report</documentation></annotation>
+    	</attribute>
+    	<attribute name="groupBy" type="string">
+    		<annotation><documentation>The name of the column to break up the dataset by, only used if groupings is true</documentation></annotation>
+    	</attribute>
+    	<attribute name="groupings" type="boolean">
+    		<annotation><documentation>Set to true if a report should be breoken up into multiple data sets based on a grouping</documentation></annotation>
+    	</attribute>
     </complexType>
 
-    <element name="reports" type="tns:reportsType"></element>
+    <element name="reports" type="tns:reportsType">
+    	<annotation><documentation>List of reports, optional</documentation></annotation>
+    </element>
 
     <complexType name="escalationType">
+    	<annotation><documentation>If an approval is not acted on in a certain amount of time, an escalation can be used to re-assign the approval</documentation></annotation>
     	<sequence>
     		<element name="azRules" type="tns:azRulesType" minOccurs="1"
     			maxOccurs="1">
     		</element>
     	</sequence>
-    	<attribute name="executeAfterTime" type="int"></attribute>
-    	<attribute name="validateEscalationClass" type="string"></attribute>
+    	<attribute name="executeAfterTime" type="int">
+    		<annotation><documentation>The ammount of time since the approval or previous escalation was executed until this escalation rule should be enabled.</documentation></annotation>
+    	</attribute>
+    	<attribute name="validateEscalationClass" type="string">
+    		<annotation><documentation>Implementation of com.tremolosecurity.proxy.az.VerifyEscalation, used to determine if an escalation that should execute because of time should execute based on additional logic.</documentation></annotation>
+    	</attribute>
     	<attribute name="executeAfterUnits">
+    		<annotation><documentation>Determine the number of units executeAftertime is in</documentation></annotation>
     		<simpleType>
     			<restriction base="string">
     				<enumeration value="sec"></enumeration>
@@ -1760,6 +1788,7 @@ limitations under the License.
     </complexType>
     
     <complexType name="escalationPolicyType">
+    	<annotation><documentation>Provides an optional escalation policy for an approval</documentation></annotation>
     	<sequence>
             <element name="escalationFailure" type="tns:escalationFailureType" maxOccurs="1" minOccurs="1"></element>
             <element name="escalation" type="tns:escalationType"
@@ -1769,10 +1798,12 @@ limitations under the License.
     </complexType>
 
     <complexType name="escalationFailureType">
+    	<annotation><documentation>Determines what should happen when an approval has no approvers</documentation></annotation>
     	<sequence>
     		<element name="azRules" type="tns:azRulesType"></element>
     	</sequence>
     	<attribute name="action">
+    		<annotation><documentation>Determines what should happen when no approvers are available.  If "assign" then the approval is assigned to the azRules section.  If "leave" then the approval is left alone.</documentation></annotation>
     		<simpleType>
     			<restriction base="string">
     				<enumeration value="assign"></enumeration>
@@ -1783,14 +1814,20 @@ limitations under the License.
     </complexType>
 
     <complexType name="customAzRuleType">
+    	<annotation><documentation>Defines a custom authorization that can provide approvers to an approval or determine if a subject has access to a requested resource</documentation></annotation>
     	<sequence>
     		<element name="params" type="tns:paramType" minOccurs="0" maxOccurs="unbounded"></element>
     	</sequence>
-    	<attribute name="name" type="string"></attribute>
-    	<attribute name="className" type="string"></attribute>
+    	<attribute name="name" type="string">
+    		<annotation><documentation>A label for the authorization rule</documentation></annotation>
+    	</attribute>
+    	<attribute name="className" type="string">
+    		<annotation><documentation>Class name of the class that implements com.tremolosecurity.proxy.az.CustomAuthorization</documentation></annotation>
+    	</attribute>
     </complexType>
 
     <complexType name="customAzRulesType">
+    	<annotation><documentation>List of custom authorization implementations</documentation></annotation>
     	<sequence>
     		<element name="azRule" type="tns:customAzRuleType" minOccurs="0" maxOccurs="unbounded"></element>
     	</sequence>
