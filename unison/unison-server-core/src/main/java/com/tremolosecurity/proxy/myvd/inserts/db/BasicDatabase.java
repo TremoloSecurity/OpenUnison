@@ -124,7 +124,7 @@ public class BasicDatabase extends MultiNameSpaceInsert implements JdbcPool {
 		
 		SQL = SQL.substring(0,SQL.lastIndexOf(','));
 		
-		SQL += " FROM " + groupTable + " INNER JOIN " + manyToManyTable + " ON " + groupTable + "." + groupPrimaryKey + "=" + manyToManyTable + "." + manyToManyGroup + " INNER JOIN " + userTable + " ON " + manyToManyTable + "." + manyToManyUser + "=" + userTable + "." + userPrimaryKey;
+		SQL += " FROM " + groupTable + " LEFT OUTER JOIN " + manyToManyTable + " ON " + groupTable + "." + groupPrimaryKey + "=" + manyToManyTable + "." + manyToManyGroup + " LEFT OUTER JOIN " + userTable + " ON " + manyToManyTable + "." + manyToManyUser + "=" + userTable + "." + userPrimaryKey;
 		
 		return SQL;
 	}
