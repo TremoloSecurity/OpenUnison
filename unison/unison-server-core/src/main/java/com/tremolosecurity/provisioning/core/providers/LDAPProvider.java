@@ -66,6 +66,8 @@ public class LDAPProvider implements UserStoreProvider {
 	String name;
 	private long idleTimeout;
 	
+	private boolean allowExternalUsers;
+	
 	@Override
 	public void createUser(User user,Set<String> attributes,Map<String,Object> request) throws ProvisioningException {
 		LdapConnection con;
@@ -213,16 +215,33 @@ public class LDAPProvider implements UserStoreProvider {
 		
 		Workflow workflow = (Workflow) request.get("WORKFLOW");
 		
+		boolean isExternal = false;
+		
 		LDAPSearchResults res = con.search(searchBase, 2, filter.toString(), this.toStringArray(attributes), false);
 		if (! res.hasMore()) {
-			this.createUser(user,attributes,request);
-		} else {
 			
+			if (this.allowExternalUsers) {
+				res = this.searchExternalUser(user.getUserID());
+				if (! res.hasMore()) {
+					this.createUser(user,attributes,request);
+					return;
+				} else {
+					isExternal = true;
+				}
+			} else {
+				this.createUser(user,attributes,request);
+				return;
+			}
+		}  
+		
+		Set<String> done = new HashSet<String>();
+		LDAPEntry ldapUser = res.next();
+		
+		while (res.hasMore()) res.next();
+		
+		if (! isExternal) {
 			ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
-			Set<String> done = new HashSet<String>();
-			LDAPEntry ldapUser = res.next();
 			
-			while (res.hasMore()) res.next();
 			
 			LDAPAttributeSet attrs = ldapUser.getAttributeSet();
 			Iterator<LDAPAttribute> it = attrs.iterator();
@@ -322,51 +341,55 @@ public class LDAPProvider implements UserStoreProvider {
 					this.cfgMgr.getProvisioningEngine().logAction(this.name,false, at, approvalID, workflow, mod.getAttribute().getBaseName(), val);
 				}
 			}
-			
-			StringBuffer b = new StringBuffer();
-			b.append("(uniqueMember=").append(ldapUser.getDN()).append(")");
-			res = con.search(searchBase, 2, b.toString(), new String[] {"cn"}, false);
-			done.clear();
-			while (res.hasMore()) {
-				LDAPEntry groupEntry = res.next();
-				
-				if (! user.getGroups().contains(groupEntry.getAttribute("cn").getStringValue())) {
-					if (! fromUserOnly) {
-						con.modify(groupEntry.getDN(), new LDAPModification(LDAPModification.DELETE,new LDAPAttribute("uniqueMember",ldapUser.getDN())));
-						cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Delete, approvalID, workflow, "group", groupEntry.getAttribute("cn").getStringValue());
-					}
-				}
-				
-				done.add(groupEntry.getAttribute("cn").getStringValue());
-			}
-			
-			Iterator<String> itgroups = user.getGroups().iterator();
-			while (itgroups.hasNext()) {
-				String groupName = itgroups.next();
-				
-				if (done.contains(groupName)) {
-					continue;
-				}
-				
-				b.setLength(0);
-				b.append("(cn=").append(groupName).append(")");
-				res = con.search(searchBase, 2,b.toString() , new String[] {"1.1"}, false);
-				
-				if (! res.hasMore()) {
-					b.setLength(0);
-					b.append("Group ").append(groupName).append(" does not exist");
-					logger.warn(b.toString());
-					continue;
-				}
-				
-				String groupDN = res.next().getDN();
-				while (res.hasMore()) res.next();
-				
-				con.modify(groupDN, new LDAPModification(LDAPModification.ADD,new LDAPAttribute("uniqueMember",ldapUser.getDN())));
-				cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add, approvalID, workflow, "group", groupName);
-			}
-			
 		}
+		
+		
+		//Groups
+		
+		StringBuffer b = new StringBuffer();
+		b.append("(uniqueMember=").append(ldapUser.getDN()).append(")");
+		res = con.search(searchBase, 2, b.toString(), new String[] {"cn"}, false);
+		done.clear();
+		while (res.hasMore()) {
+			LDAPEntry groupEntry = res.next();
+			
+			if (! user.getGroups().contains(groupEntry.getAttribute("cn").getStringValue())) {
+				if (! fromUserOnly) {
+					con.modify(groupEntry.getDN(), new LDAPModification(LDAPModification.DELETE,new LDAPAttribute("uniqueMember",ldapUser.getDN())));
+					cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Delete, approvalID, workflow, "group", groupEntry.getAttribute("cn").getStringValue());
+				}
+			}
+			
+			done.add(groupEntry.getAttribute("cn").getStringValue());
+		}
+		
+		Iterator<String> itgroups = user.getGroups().iterator();
+		while (itgroups.hasNext()) {
+			String groupName = itgroups.next();
+			
+			if (done.contains(groupName)) {
+				continue;
+			}
+			
+			b.setLength(0);
+			b.append("(cn=").append(groupName).append(")");
+			res = con.search(searchBase, 2,b.toString() , new String[] {"1.1"}, false);
+			
+			if (! res.hasMore()) {
+				b.setLength(0);
+				b.append("Group ").append(groupName).append(" does not exist");
+				logger.warn(b.toString());
+				continue;
+			}
+			
+			String groupDN = res.next().getDN();
+			while (res.hasMore()) res.next();
+			
+			con.modify(groupDN, new LDAPModification(LDAPModification.ADD,new LDAPAttribute("uniqueMember",ldapUser.getDN())));
+			cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add, approvalID, workflow, "group", groupName);
+		}
+			
+		
 	}
 
 	@Override
@@ -441,12 +464,22 @@ public class LDAPProvider implements UserStoreProvider {
 
 	private User doFindUser(String userID, Set<String> attributes,
 			StringBuffer filter, LDAPConnection con) throws LDAPException {
-		LDAPSearchResults res = con.search(searchBase, 2, filter.toString(), this.toStringArray(attributes), false);
-		if (! res.hasMore()) {
-			return null;
-		}
 		
 		LDAPEntry ldapUser = null;
+		
+		LDAPSearchResults res = con.search(searchBase, 2, filter.toString(), this.toStringArray(attributes), false);
+		if (! res.hasMore()) {
+			if (this.allowExternalUsers) {
+				res = searchExternalUser(userID);
+				if (! res.hasMore()) {
+					return null;
+				}
+			} else {
+				return null;
+			}
+		}
+		
+		
 		
 		try {
 			ldapUser = res.next();
@@ -456,7 +489,10 @@ public class LDAPProvider implements UserStoreProvider {
 		}
 		
 		if (ldapUser == null) {
+			
 			return null;
+			
+			
 		}
 		
 		User user = new User(userID);
@@ -486,6 +522,31 @@ public class LDAPProvider implements UserStoreProvider {
 		
 		
 		return user;
+	}
+
+	private LDAPEntry loadExternalUser(String userID, LDAPEntry ldapUser)
+			throws LDAPException {
+		LDAPSearchResults res = searchExternalUser(userID);
+		if (! res.hasMore()) {
+			return null;
+		} else {
+			ldapUser = res.next();
+			while (res.hasMore()) res.next();
+		}
+		
+		if (ldapUser == null) {
+			return null;
+		}
+		return ldapUser;
+	}
+
+	private LDAPSearchResults searchExternalUser(String userID)
+			throws LDAPException {
+		LDAPSearchResults res;
+		ArrayList<String> attrs = new ArrayList<String>();
+		attrs.add("1.1");
+		res = this.cfgMgr.getMyVD().search("o=Tremolo", 2, "(" + this.userIDAttribute + "=" + userID + ")", attrs);
+		return res;
 	}
 
 	@Override
@@ -524,6 +585,14 @@ public class LDAPProvider implements UserStoreProvider {
 			}
 			
 			this.ldapPool = new LdapPool(cfgMgr,host,port,this.userDN,this.passwd,this.isSSL,0,maxCons,this.idleTimeout);
+			
+			if (cfg.get("allowExternalUsers") != null) {
+				this.allowExternalUsers = cfg.get("allowExternalUsers").getValues().get(0).equalsIgnoreCase("true");
+			} else {
+				this.allowExternalUsers = false;
+			}
+			
+			logger.info("Allow External User : '"  + this.allowExternalUsers + "'");
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not initialize",e);
 		}
