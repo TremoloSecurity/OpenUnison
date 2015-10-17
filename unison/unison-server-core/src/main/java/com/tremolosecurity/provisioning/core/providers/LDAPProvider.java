@@ -545,7 +545,9 @@ public class LDAPProvider implements UserStoreProvider {
 		LDAPSearchResults res;
 		ArrayList<String> attrs = new ArrayList<String>();
 		attrs.add("1.1");
-		res = this.cfgMgr.getMyVD().search("o=Tremolo", 2, "(" + this.userIDAttribute + "=" + userID + ")", attrs);
+		StringBuffer filter = new StringBuffer();
+		filter.append("(").append(this.userIDAttribute).append("=").append(userID).append(")");
+		res = this.cfgMgr.getMyVD().search("o=Tremolo", 2, filter.toString(), attrs);
 		return res;
 	}
 
