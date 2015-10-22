@@ -96,7 +96,7 @@ public class HttpFilterRequestImpl implements HttpFilterRequest  {
 			String name = (String) enumer.nextElement();
 			Enumeration enumerVals = request.getHeaders(name);
 			Attribute attrib = new Attribute(name);
-			this.headers.put(attrib.getName(), attrib);
+			this.headers.put(attrib.getName().toLowerCase(), attrib);
 			while (enumerVals.hasMoreElements()) {
 				attrib.getValues().add((String) enumerVals.nextElement());
 			}
@@ -183,7 +183,14 @@ public class HttpFilterRequestImpl implements HttpFilterRequest  {
 	 */
 	@Override
 	public Iterator<String> getHeaderNames() {
-		return this.headers.keySet().iterator();
+		
+		ArrayList<String> headerNamesWithCase = new ArrayList<String>();
+		
+		for (String name : this.headers.keySet()) {
+			headerNamesWithCase.add(this.headers.get(name).getName());
+		}
+		
+		return headerNamesWithCase.iterator();
 	}
 	
 	/* (non-Javadoc)

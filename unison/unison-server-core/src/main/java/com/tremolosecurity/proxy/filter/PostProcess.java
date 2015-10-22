@@ -390,7 +390,7 @@ public abstract class PostProcess {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Header Added - '" + name + "'='" + val + "'");
 					}
-					method.addHeader(new BasicHeader(name,val));
+					method.addHeader(new BasicHeader(attrib.getName(),val));
 				}
 			}
 		}
