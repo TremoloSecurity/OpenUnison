@@ -26,6 +26,9 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.apache.commons.codec.binary.Hex;
+import org.apache.log4j.Logger;
+
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
@@ -57,6 +60,8 @@ import net.sourceforge.myvd.types.Results;
 
 public class UUIDtoText implements Insert {
 
+	static Logger logger = Logger.getLogger(UUIDtoText.class.getName());
+	
 	String name;
 	HashMap<String,String> txt2bin;
 	HashMap<String,String> bin2txt;
@@ -172,8 +177,11 @@ public class UUIDtoText implements Insert {
 			if (strUUID == null) {
 				byte[] uuid = attr.getByteValue();
 				
-				BigInteger bi = new BigInteger(uuid);
-				strUUID = bi.toString(16);
+				//BigInteger bi = new BigInteger(uuid);
+				//strUUID = bi.toString(16);
+				
+				strUUID = this.convertToDashedString(uuid);
+				
 				this.bin2txt.put(entry.getEntry().getDN(), strUUID);
 				
 			} 
@@ -209,11 +217,27 @@ public class UUIDtoText implements Insert {
 				
 				String binVal = this.txt2bin.get(val);
 				if (binVal == null) {
-					StringBuffer b = new StringBuffer();
+					/*StringBuffer b = new StringBuffer();
 					for (int i=0;i<node.getValue().length();i+=2) {
 						b.append('\\').append(val.charAt(i)).append(val.charAt(i+1));
 					}
 					binVal = b.toString();
+					*/
+					UUID uuid = UUID.fromString(val);
+					
+					ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+					bb.putLong(uuid.getMostSignificantBits());
+					bb.putLong(uuid.getLeastSignificantBits());
+					
+					
+					
+					binVal = this.convertToByteString(bb.array());
+					
+					
+					logger.info("From Filter='" + val + "' / binary string='" + binVal + "'");
+					this.txt2bin.put(val, binVal);
+					
+					
 				}
 				
 			
@@ -242,6 +266,74 @@ public class UUIDtoText implements Insert {
 	public void shutdown() {
 		// TODO Auto-generated method stub
 
+	}
+	
+	
+	public  String convertToDashedString(byte[] objectGUID) {
+	    StringBuilder displayStr = new StringBuilder();
+	 
+	    displayStr.append(prefixZeros((int) objectGUID[3] & 0xFF));
+	    displayStr.append(prefixZeros((int) objectGUID[2] & 0xFF));
+	    displayStr.append(prefixZeros((int) objectGUID[1] & 0xFF));
+	    displayStr.append(prefixZeros((int) objectGUID[0] & 0xFF));
+	    displayStr.append("-");
+	    displayStr.append(prefixZeros((int) objectGUID[5] & 0xFF));
+	    displayStr.append(prefixZeros((int) objectGUID[4] & 0xFF));
+	    displayStr.append("-");
+	    displayStr.append(prefixZeros((int) objectGUID[7] & 0xFF));
+	    displayStr.append(prefixZeros((int) objectGUID[6] & 0xFF));
+	    displayStr.append("-");
+	    displayStr.append(prefixZeros((int) objectGUID[8] & 0xFF));
+	    displayStr.append(prefixZeros((int) objectGUID[9] & 0xFF));
+	    displayStr.append("-");
+	    displayStr.append(prefixZeros((int) objectGUID[10] & 0xFF));
+	    displayStr.append(prefixZeros((int) objectGUID[11] & 0xFF));
+	    displayStr.append(prefixZeros((int) objectGUID[12] & 0xFF));
+	    displayStr.append(prefixZeros((int) objectGUID[13] & 0xFF));
+	    displayStr.append(prefixZeros((int) objectGUID[14] & 0xFF));
+	    displayStr.append(prefixZeros((int) objectGUID[15] & 0xFF));
+	 
+	    return displayStr.toString();
+	}
+	 
+	private  String prefixZeros(int value) {
+	    if (value <= 0xF) {
+	        StringBuilder sb = new StringBuilder("0");
+	        sb.append(Integer.toHexString(value));
+	 
+	        return sb.toString();
+	 
+	    } else {
+	        return Integer.toHexString(value);
+	    }
+	}
+	
+	public  String convertToByteString(byte[] objectGUID) {
+	    StringBuilder displayStr = new StringBuilder();
+	 
+	    displayStr.append('\\').append(prefixZeros((int) objectGUID[3] & 0xFF));
+	    displayStr.append('\\').append(prefixZeros((int) objectGUID[2] & 0xFF));
+	    displayStr.append('\\').append(prefixZeros((int) objectGUID[1] & 0xFF));
+	    displayStr.append('\\').append(prefixZeros((int) objectGUID[0] & 0xFF));
+	    displayStr.append('\\').append(prefixZeros((int) objectGUID[5] & 0xFF));
+	    displayStr.append('\\').append(prefixZeros((int) objectGUID[4] & 0xFF));
+	    displayStr.append('\\').append(prefixZeros((int) objectGUID[7] & 0xFF));
+	    displayStr.append('\\').append(prefixZeros((int) objectGUID[6] & 0xFF));
+	    displayStr.append('\\').append(prefixZeros((int) objectGUID[8] & 0xFF));
+	    displayStr.append('\\').append(prefixZeros((int) objectGUID[9] & 0xFF));
+	    displayStr.append('\\').append(prefixZeros((int) objectGUID[10] & 0xFF));
+	    displayStr.append('\\').append(prefixZeros((int) objectGUID[11] & 0xFF));
+	    displayStr.append('\\').append(prefixZeros((int) objectGUID[12] & 0xFF));
+	    displayStr.append('\\').append(prefixZeros((int) objectGUID[13] & 0xFF));
+	    displayStr.append('\\').append(prefixZeros((int) objectGUID[14] & 0xFF));
+	    displayStr.append('\\').append(prefixZeros((int) objectGUID[15] & 0xFF));
+	 
+	    return displayStr.toString();
+	}
+
+	private String byte2hex(byte objectGUID) {
+		String transformed = prefixZeros((int) objectGUID & 0xFF);
+		return transformed;
 	}
 
 }
