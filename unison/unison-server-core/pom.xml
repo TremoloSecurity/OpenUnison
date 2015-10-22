@@ -72,6 +72,12 @@
   		<version>1.0.6</version>
   	</dependency>
   	
+  	  	  	  	<dependency>
+  		<groupId>com.tremolosecurity.unison</groupId>
+  		<artifactId>unison-myvd</artifactId>
+  		<version>1.0.6</version>
+  	</dependency>
+  	
   		  	  	  	<dependency>
   		<groupId>com.tremolosecurity.unison</groupId>
   		<artifactId>unison-lastmile-servlet-3.x</artifactId>

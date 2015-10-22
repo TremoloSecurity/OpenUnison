@@ -35,5 +35,6 @@ public class ProxyConstants {
 	public static final String TREMOLO_SESSION_MANAGER = "TREMOLO_SESSION_MANAGER";
 	public static final String CONFIG_MANAGER = "TREMOLO_CONFIG_MANAGER";
 	public static final String FORCE_TO_SSL = "TREMOLO_FORCE_TO_SSL";
+	public static final String TREMOLO_FILTER_CHAIN = "TREMOLO_FILTER_CHAIN";
 
 }

@@ -72,6 +72,8 @@
 		<module>open-unison-classes</module>
 		<module>openunison-util</module>
 		<module>openunsion-manual</module>
+		<module>unison-myvd</module>
+		<module>open-unison-webapp-webservices</module>
 	</modules>
 	<build>
 		<plugins>
