@@ -30,6 +30,7 @@ import com.tremolosecurity.filter.UnisonServletFilter;
 import com.tremolosecurity.proxy.SessionManager;
 import com.tremolosecurity.proxy.SessionManagerImpl;
 import com.tremolosecurity.proxy.util.ProxyConstants;
+import com.tremolosecurity.server.GlobalEntries;
 
 
 public class OpenUnisonServletFilter extends UnisonServletFilter {
@@ -51,6 +52,9 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 		logger.info("Unison Configuration File : '" + configPath  + "'");
 		
 		this.cfgMgr =  new OpenUnisonConfigManager(configPath,filterCfg.getServletContext(),registryName,filterCfg);
+		
+		GlobalEntries.getGlobalEntries().set(ProxyConstants.CONFIG_MANAGER,cfgMgr);
+		
 		return this.cfgMgr;
 	}
 

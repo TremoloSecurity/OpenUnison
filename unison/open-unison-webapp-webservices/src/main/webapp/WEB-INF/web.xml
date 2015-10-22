@@ -59,8 +59,7 @@ limitations under the License.
 		<servlet-class>com.tremolosecurity.idp.server.IDP</servlet-class>
 	</servlet>
 	
-	<!-- Uncomment these servlets if you want to support web services -->
-	<!-- 
+
 	<servlet>
 		<servlet-name>WF-Executed</servlet-name>
 		<servlet-class>com.tremolosecurity.provisioning.service.ExecutedWorkflows</servlet-class>
@@ -105,7 +104,7 @@ limitations under the License.
 		<servlet-class>com.tremolosecurity.provisioning.service.ListPortalURLs</servlet-class>
 	</servlet>
 
- -->
+
 
 	<filter-mapping>
 		<filter-name>openunison</filter-name>
@@ -118,7 +117,7 @@ limitations under the License.
 	</servlet-mapping>
 
 <!-- Uncomment these mappings to support web services -->
-<!-- 
+
 	<servlet-mapping>
 		<servlet-name>WF-Search</servlet-name>
 		<url-pattern>/services/wf/search</url-pattern>
@@ -164,6 +163,6 @@ limitations under the License.
 		<servlet-name>List Portal URLs</servlet-name>
 		<url-pattern>/services/portal/urls</url-pattern>
 	</servlet-mapping>
- -->
+
  
 </web-app>
