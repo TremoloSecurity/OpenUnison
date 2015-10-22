@@ -37,6 +37,7 @@ import com.tremolosecurity.proxy.filter.HttpFilterRequest;
 import com.tremolosecurity.proxy.filter.HttpFilterResponse;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.proxy.util.ProxyTools;
+import com.tremolosecurity.saml.Attribute;
 
 
 
@@ -60,13 +61,20 @@ public class HideCookie implements HttpFilter {
 		Iterator<String> names;
 		StringBuffer proxyToURL = ProxyTools.getInstance().getGETUrl(request, holder, uriParams);
 		
+		
+		
 		if (! holder.isOverrideHost()) {
 			String surl = proxyToURL.toString();
 			String proto = surl.substring(0,surl.indexOf("://") + 3);
 			String url = surl.substring(surl.indexOf('/', 9));
 			proxyToURL.setLength(0);
 			proxyToURL.append(proto);
-			proxyToURL.append(request.getHeader("Host").getValues().get(0));
+			
+			Attribute host = request.getHeader("Host");
+			if (host == null) {
+				host = request.getHeader("host");
+			}
+			proxyToURL.append(host.getValues().get(0));
 			proxyToURL.append(url);
 		}
 		

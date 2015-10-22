@@ -112,6 +112,8 @@ public class EmbPostProc extends PostProcess {
 		this.chain = chain;
 	}
 	
+	
+	
 	protected HashMap<String,Attribute>  setHeadersCookiesEmb(HttpFilterRequest req) throws Exception {
 		Iterator<String> names;
 		

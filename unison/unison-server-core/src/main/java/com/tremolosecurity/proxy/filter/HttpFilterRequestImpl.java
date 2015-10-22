@@ -191,7 +191,7 @@ public class HttpFilterRequestImpl implements HttpFilterRequest  {
 	 */
 	@Override
 	public Attribute getHeader(String name) {
-		return this.headers.get(name);
+		return this.headers.get(name.toLowerCase());
 	}
 	
 	/* (non-Javadoc)
@@ -199,11 +199,11 @@ public class HttpFilterRequestImpl implements HttpFilterRequest  {
 	 */
 	@Override
 	public void addHeader(Attribute header) {
-		Attribute curHeader = this.headers.get(header.getName());
+		Attribute curHeader = this.headers.get(header.getName().toLowerCase());
 		if (curHeader != null) {
 			curHeader.getValues().addAll(header.getValues());
 		} else {
-			this.headers.put(header.getName(), header);
+			this.headers.put(header.getName().toLowerCase(), header);
 		}
 	}
 	
@@ -212,7 +212,7 @@ public class HttpFilterRequestImpl implements HttpFilterRequest  {
 	 */
 	@Override
 	public void removeHeader(String name) {
-		this.headers.remove(name);
+		this.headers.remove(name.toLowerCase());
 	}
 	
 

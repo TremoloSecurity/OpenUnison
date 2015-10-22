@@ -97,6 +97,7 @@ static Logger logger = Logger.getLogger(UnisonServletFilter.class);
 		
 		
 		try {
+			req.setAttribute(ProxyConstants.TREMOLO_FILTER_CHAIN, chain);
 			NextEmbSys embSys = new NextEmbSys(this.cfg.getServletContext(),chain,passOn);
 			 
 			

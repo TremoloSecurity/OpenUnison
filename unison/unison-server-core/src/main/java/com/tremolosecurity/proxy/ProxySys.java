@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.StringTokenizer;
 
+import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 
 import com.tremolosecurity.config.util.UrlHolder;
+import com.tremolosecurity.embedd.EmbPostProc;
 import com.tremolosecurity.proxy.filter.HttpFilterChain;
 import com.tremolosecurity.proxy.filter.HttpFilterChainImpl;
 import com.tremolosecurity.proxy.filter.HttpFilterRequest;
@@ -75,7 +77,18 @@ public class ProxySys {
 		HttpFilterRequest filterReq = new HttpFilterRequestImpl(req, null);
 		HttpFilterResponse filterResp = new HttpFilterResponseImpl(resp);
 
-		PostProcess postProc = new UriRequestProcess(); 
+		PostProcess postProc = null;
+		
+		if (holder.getUrl().getProxyTo() == null || holder.getUrl().getProxyTo().isEmpty()) {
+			FilterChain filterChain = (FilterChain) req.getAttribute(ProxyConstants.TREMOLO_FILTER_CHAIN);
+			if (filterChain == null) {
+				logger.warn("Could not find filter chain");
+			}
+			postProc = new EmbPostProc(filterChain);
+		} else {
+			postProc = new UriRequestProcess(); 
+		}
+		
 		
 		HttpFilterChain chain = new HttpFilterChainImpl(holder,
 				postProc);
@@ -145,7 +158,21 @@ public class ProxySys {
 			}
 		}
 		
-		PostProcess postProc = new PushRequestProcess(); 
+		
+		PostProcess postProc = null;
+		
+		if (holder.getUrl().getProxyTo() == null || holder.getUrl().getProxyTo().isEmpty()) {
+			FilterChain filterChain = (FilterChain) req.getAttribute(ProxyConstants.TREMOLO_FILTER_CHAIN);
+			if (filterChain == null) {
+				logger.warn("Could not find filter chain");
+			}
+			postProc = new EmbPostProc(filterChain);
+		} else {
+			postProc = new PushRequestProcess();;
+		}
+		
+		
+		 
 
 		HttpFilterChain chain = new HttpFilterChainImpl(holder,
 				postProc);

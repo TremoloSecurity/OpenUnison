@@ -18,6 +18,7 @@ limitations under the License.
 package com.tremolosecurity.provisioning.core.providers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -67,6 +68,11 @@ public class LDAPProvider implements UserStoreProvider {
 	private long idleTimeout;
 	
 	private boolean allowExternalUsers;
+	private String lcUnisonBase;
+	private String unisonBase;
+	private String lcLDAPBase;
+	private String ldapBase;
+	private HashMap<String,String> unison2ldap;
 	
 	@Override
 	public void createUser(User user,Set<String> attributes,Map<String,Object> request) throws ProvisioningException {
@@ -346,8 +352,13 @@ public class LDAPProvider implements UserStoreProvider {
 		
 		//Groups
 		
+		String userDN = ldapUser.getDN();
+		if (isExternal) {
+			userDN = this.mapUnison2Dir(userDN);
+		}
+		
 		StringBuffer b = new StringBuffer();
-		b.append("(uniqueMember=").append(ldapUser.getDN()).append(")");
+		b.append("(uniqueMember=").append(userDN).append(")");
 		res = con.search(searchBase, 2, b.toString(), new String[] {"cn"}, false);
 		done.clear();
 		while (res.hasMore()) {
@@ -355,7 +366,10 @@ public class LDAPProvider implements UserStoreProvider {
 			
 			if (! user.getGroups().contains(groupEntry.getAttribute("cn").getStringValue())) {
 				if (! fromUserOnly) {
-					con.modify(groupEntry.getDN(), new LDAPModification(LDAPModification.DELETE,new LDAPAttribute("uniqueMember",ldapUser.getDN())));
+					
+					
+					
+					con.modify(groupEntry.getDN(), new LDAPModification(LDAPModification.DELETE,new LDAPAttribute("uniqueMember",userDN)));
 					cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Delete, approvalID, workflow, "group", groupEntry.getAttribute("cn").getStringValue());
 				}
 			}
@@ -385,7 +399,9 @@ public class LDAPProvider implements UserStoreProvider {
 			String groupDN = res.next().getDN();
 			while (res.hasMore()) res.next();
 			
-			con.modify(groupDN, new LDAPModification(LDAPModification.ADD,new LDAPAttribute("uniqueMember",ldapUser.getDN())));
+			
+			
+			con.modify(groupDN, new LDAPModification(LDAPModification.ADD,new LDAPAttribute("uniqueMember",userDN)));
 			cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add, approvalID, workflow, "group", groupName);
 		}
 			
@@ -466,7 +482,7 @@ public class LDAPProvider implements UserStoreProvider {
 			StringBuffer filter, LDAPConnection con) throws LDAPException {
 		
 		LDAPEntry ldapUser = null;
-		
+		boolean isExternal = false;
 		LDAPSearchResults res = con.search(searchBase, 2, filter.toString(), this.toStringArray(attributes), false);
 		if (! res.hasMore()) {
 			if (this.allowExternalUsers) {
@@ -474,6 +490,7 @@ public class LDAPProvider implements UserStoreProvider {
 				if (! res.hasMore()) {
 					return null;
 				}
+				isExternal = true;
 			} else {
 				return null;
 			}
@@ -514,7 +531,14 @@ public class LDAPProvider implements UserStoreProvider {
 		
 		
 		//b.append("(uniqueMember=").append(ldapUser.getDN()).append(")");
-		res = con.search(searchBase, 2, equal("uniqueMember",ldapUser.getDN()).toString(), new String[] {"cn"}, false);
+		
+		String userDN = ldapUser.getDN();
+		if (isExternal) {
+			userDN = this.mapUnison2Dir(userDN);
+		}
+		
+		
+		res = con.search(searchBase, 2, equal("uniqueMember",userDN).toString(), new String[] {"cn"}, false);
 		while (res.hasMore()) {
 			LDAPEntry group = res.next();
 			user.getGroups().add(group.getAttribute("cn").getStringValue());
@@ -595,6 +619,17 @@ public class LDAPProvider implements UserStoreProvider {
 			}
 			
 			logger.info("Allow External User : '"  + this.allowExternalUsers + "'");
+			
+			if (this.allowExternalUsers) {
+				this.unison2ldap = new HashMap<String,String>();
+				if (cfg.get("externalUserMapInUnison") != null && ! cfg.get("externalUserMapInUnison").getValues().get(0).isEmpty()) {
+					this.unisonBase = cfg.get("externalUserMapInUnison").getValues().get(0);
+					this.lcUnisonBase = unisonBase.toLowerCase();
+					this.ldapBase = cfg.get("externalUserMapInDir").getValues().get(0);
+					this.lcLDAPBase = ldapBase.toLowerCase();
+				}
+			}
+			
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not initialize",e);
 		}
@@ -701,6 +736,27 @@ public class LDAPProvider implements UserStoreProvider {
 			throw new ProvisioningException("Could not set user's password",e);
 		}
 		
+	}
+	
+	private String mapUnison2Dir(String unison) {
+		if (this.unisonBase == null) {
+			return unison;
+		} else {
+			String dir = this.unison2ldap.get(unison);
+			if (dir != null) {
+				return dir;
+			} else {
+				if (unison.toLowerCase().endsWith(this.unisonBase.toLowerCase())) {
+					StringBuffer newDN = new StringBuffer();
+					newDN.append(unison.substring(0,unison.length() - this.unisonBase.length())).append(this.ldapBase);
+					dir = newDN.toString();
+				} else {
+					dir = unison;
+				}
+				this.unison2ldap.put(unison, dir);
+				return dir;
+			}
+		}
 	}
 }
 
