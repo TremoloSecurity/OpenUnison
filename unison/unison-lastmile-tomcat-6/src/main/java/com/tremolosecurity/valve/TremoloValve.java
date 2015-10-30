@@ -18,6 +18,7 @@ limitations under the License.
 package com.tremolosecurity.valve;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,9 +44,7 @@ import org.apache.catalina.valves.ValveBase;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-
 import com.tremolosecurity.filter.AutoIDMPrincipal;
-
 import com.tremolosecurity.lastmile.LastMile;
 import com.tremolosecurity.lastmile.custom.CustomLastMile;
 import com.tremolosecurity.saml.Attribute;
@@ -312,8 +311,15 @@ public class TremoloValve extends ValveBase {
 				KeyStore ks;
 				try {
 					
-					String fullPath =  ctx.getRealPath("/" + pathToKeyStore);
-					System.out.println("Full Path to KeyStore : '" + fullPath);
+					String fullPath =  null;
+					
+					if (pathToKeyStore.startsWith("WEB-INF")) {
+						fullPath = ctx.getRealPath("/" + pathToKeyStore);
+					} else {
+						fullPath = pathToKeyStore;
+					}
+					
+					System.out.println("Full Path to KeyStore : '" + fullPath + "'");
 					
 					File f = new File(fullPath);
 					if (! f.exists()) {
@@ -322,7 +328,7 @@ public class TremoloValve extends ValveBase {
 					
 					ks = KeyStore.getInstance("JCEKS");
 					//ks.load(new FileInputStream(pathToKeyStore), password.toCharArray());
-					ks.load(ctx.getResourceAsStream("/" + pathToKeyStore), keyPass.toCharArray());
+					ks.load(new FileInputStream(f), keyPass.toCharArray());
 					this.encryptionKey = (SecretKey) ks.getKey(this.encryptionKeyName, keyPass.toCharArray());
 					
 					if (this.encryptionKey == null) {
