@@ -22,6 +22,8 @@ import java.io.InputStream;
 import java.security.KeyStore;
 import java.util.Properties;
 
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.net.ssl.KeyManagerFactory;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
@@ -55,19 +57,41 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 		
 		this.configXML = configXML;
 		
-		this.forceToSSL = Boolean.parseBoolean(this.loadConfigParam(OpenUnisonConstants.UNISON_CONFIG_FORCE_TO_SSL, "false", filterCfg));
-		this.openPort = Integer.parseInt(this.loadConfigParam(OpenUnisonConstants.UNISON_CONFIG_OPEN_PORT, "8080", filterCfg));
-		this.securePort = Integer.parseInt(this.loadConfigParam(OpenUnisonConstants.UNISON_CONFIG_SECURE_PORT, "8443", filterCfg));
-		this.externalOpenPort = Integer.parseInt(this.loadConfigParam(OpenUnisonConstants.UNISON_CONFIG_EXTERNAL_OPEN_PORT, "80", filterCfg));
-		this.externalSecurePort = Integer.parseInt(this.loadConfigParam(OpenUnisonConstants.UNISON_CONFIG_EXTERNAL_SECURE_PORT, "443", filterCfg));
+		String configPath = null;
+		
+		try {
+			configPath = InitialContext.doLookup("java:comp/env/unisonServiceConfigPath");
+		} catch (NamingException ne) {
+			configPath = InitialContext.doLookup("java:/env/unisonServiceConfigPath");
+		}
+		
+		 
+		if (configPath == null) {
+			configPath = "WEB-INF/unisonService.props";
+		}
+		
+		
+		Properties service = new Properties();
+		
+		if (configPath.startsWith("WEB-INF")) {
+			service.load(filterCfg.getServletContext().getResourceAsStream(configPath));
+		} else {
+			service.load(new FileInputStream(configPath));
+		}
+		
+		this.forceToSSL = Boolean.parseBoolean(this.loadConfigParam(OpenUnisonConstants.UNISON_CONFIG_FORCE_TO_SSL, "false", service));
+		this.openPort = Integer.parseInt(this.loadConfigParam(OpenUnisonConstants.UNISON_CONFIG_OPEN_PORT, "8080", service));
+		this.securePort = Integer.parseInt(this.loadConfigParam(OpenUnisonConstants.UNISON_CONFIG_SECURE_PORT, "8443", service));
+		this.externalOpenPort = Integer.parseInt(this.loadConfigParam(OpenUnisonConstants.UNISON_CONFIG_EXTERNAL_OPEN_PORT, "80", service));
+		this.externalSecurePort = Integer.parseInt(this.loadConfigParam(OpenUnisonConstants.UNISON_CONFIG_EXTERNAL_SECURE_PORT, "443", service));
 		
 		
 		
 		
 	}
 	
-	private String loadConfigParam(String name,String defaultValue,FilterConfig filterCfg) {
-		String tmp = filterCfg.getInitParameter(name);
+	private String loadConfigParam(String name,String defaultValue,Properties props) {
+		String tmp = props.getProperty(name);
 		if (tmp == null) {
 			tmp = defaultValue;
 		}
@@ -82,8 +106,8 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 	public JAXBElement<TremoloType> loadUnisonConfiguration(
 			Unmarshaller unmarshaller) throws Exception {
 		InputStream in;
-		if (configXML.startsWith("/WEB-INF")) {
-			in = ctx.getResourceAsStream(configXML);
+		if (configXML.startsWith("WEB-INF")) {
+			in = ctx.getResourceAsStream("/" + configXML);
 		} else {
 			in = new FileInputStream(configXML);
 		}

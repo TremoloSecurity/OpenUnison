@@ -19,10 +19,10 @@ package com.tremolosecurity.openunison;
 
 public class OpenUnisonConstants {
 
-	public static String UNISON_CONFIG_PATH = "configPath";
-	public static String UNISON_CONFIG_FORCE_TO_SSL = "forceToSSL";
-	public static String UNISON_CONFIG_OPEN_PORT = "openPort";
-	public static String UNISON_CONFIG_SECURE_PORT = "securePort";
-	public static String UNISON_CONFIG_EXTERNAL_OPEN_PORT = "externalOpenPort";
-	public static String UNISON_CONFIG_EXTERNAL_SECURE_PORT = "externalSecurePort";
+	public static String UNISON_CONFIG_PATH = "com.tremolosecurity.openunison.configPath";
+	public static String UNISON_CONFIG_FORCE_TO_SSL = "com.tremolosecurity.openunison.forceToSSL";
+	public static String UNISON_CONFIG_OPEN_PORT = "com.tremolosecurity.openunison.openPort";
+	public static String UNISON_CONFIG_SECURE_PORT = "com.tremolosecurity.openunison.securePort";
+	public static String UNISON_CONFIG_EXTERNAL_OPEN_PORT = "com.tremolosecurity.openunison.externalOpenPort";
+	public static String UNISON_CONFIG_EXTERNAL_SECURE_PORT = "com.tremolosecurity.openunison.externalSecurePort";
 }

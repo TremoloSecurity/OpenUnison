@@ -19,6 +19,8 @@ package com.tremolosecurity.openunison;
 
 import java.util.Properties;
 
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 
@@ -44,7 +46,16 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 	@Override
 	public ConfigManager loadConfiguration(FilterConfig filterCfg,
 			String registryName) throws Exception {
-		String configPath = filterCfg.getInitParameter(OpenUnisonConstants.UNISON_CONFIG_PATH);
+		
+		String configPath = null;
+		
+		try {
+			configPath = InitialContext.doLookup("java:comp/env/unisonConfigPath");
+		} catch (NamingException ne) {
+			configPath = InitialContext.doLookup("java:/env/unisonConfigPath");
+		}
+		
+		 
 		if (configPath == null) {
 			configPath = "/WEB-INF/unison.xml";
 		}
@@ -70,7 +81,45 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 	
 	@Override
 	public void init(FilterConfig filterCfg) throws ServletException {
-		org.apache.log4j.xml.DOMConfigurator.configure(filterCfg.getServletContext().getRealPath("/WEB-INF/log4j.xml"));
+		
+		
+		String logPath = null;
+		
+		try {
+			logPath = InitialContext.doLookup("java:comp/env/unisonLog4jPath");
+		} catch (NamingException ne) {
+			try {
+				logPath = InitialContext.doLookup("java:/env/unisonLog4jPath");
+			} catch (NamingException e) {
+				throw new ServletException("Could not load unisonLog4jPath",e);
+			}
+		}
+		if (logPath == null) {
+			Properties props = new Properties();
+			props.put("log4j.rootLogger", "info,console");
+			
+			//props.put("log4j.appender.console","org.apache.log4j.RollingFileAppender");
+			//props.put("log4j.appender.console.File","/home/mlb/myvd.log");
+			props.put("log4j.appender.console","org.apache.log4j.ConsoleAppender");
+			props.put("log4j.appender.console.layout","org.apache.log4j.PatternLayout");
+			props.put("log4j.appender.console.layout.ConversionPattern","[%d][%t] %-5p %c{1} - %m%n");
+			
+			
+			
+			PropertyConfigurator.configure(props);
+		} else {
+			
+			if (logPath.startsWith("WEB-INF/")) {
+				org.apache.log4j.xml.DOMConfigurator.configure(filterCfg.getServletContext().getRealPath(logPath));
+			} else {
+				org.apache.log4j.xml.DOMConfigurator.configure(logPath);
+			}
+			
+			
+		}
+		
+		
+		
 		
 		super.init(filterCfg);
 		

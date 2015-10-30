@@ -199,54 +199,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		
 		globalHttpClientConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES).setRedirectsEnabled(false).setAuthenticationEnabled(false).build();
 		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		/*params = new BasicHttpParams();
-		// Increase max total connection to 200
-		ConnManagerParams.setMaxTotalConnections(params, 200);
-		// Increase default max connection per route to 20
-		ConnPerRouteBean connPerRoute = new ConnPerRouteBean(20);
-		// Increase max connections for localhost:80 to 50
-		HttpHost localhost = new HttpHost("locahost", 80);
-		//connPerRoute.setMaxForRoute(new HttpRoute(localhost), 50);
-		ConnManagerParams.setMaxConnectionsPerRoute(params, connPerRoute);
 
-		SchemeRegistry schemeRegistry = new SchemeRegistry();
-		schemeRegistry.register(
-		        new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-		schemeRegistry.register(
-		        new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
-
-		cm = new ThreadSafeClientConnManager(schemeRegistry);
-		cm.setMaxTotal(2000);
-		cm.setDefaultMaxPerRoute(100);
-		
-		try {
-			
-			SSLContext sc = SSLContext.getInstance("TLS");
-			//sc.init(this.getKeyManagerFactory().getKeyManagers(),new TrustManager[] { new TremoloTrustManager(this)}, null);
-			TremoloX509KeyManager tkm = new TremoloX509KeyManager((X509ExtendedKeyManager) this.getKeyManagerFactory().getKeyManagers()[0],this.ks); 
-			sc.init(new KeyManager[] {tkm},new TrustManager[] { new TremoloTrustManager(this)}, null);
-			
-			sslf = new SSLSocketFactory(sc);
-			sslf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-		} catch (Exception e) {
-			logger.error("Could not initialize SSL for proxy",e);
-		}*/
 	}
 	
 	/* (non-Javadoc)
