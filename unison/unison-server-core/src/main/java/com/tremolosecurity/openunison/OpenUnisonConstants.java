@@ -25,4 +25,6 @@ public class OpenUnisonConstants {
 	public static String UNISON_CONFIG_SECURE_PORT = "com.tremolosecurity.openunison.securePort";
 	public static String UNISON_CONFIG_EXTERNAL_OPEN_PORT = "com.tremolosecurity.openunison.externalOpenPort";
 	public static String UNISON_CONFIG_EXTERNAL_SECURE_PORT = "com.tremolosecurity.openunison.externalSecurePort";
+	public static String UNISON_CONFIG_ACTIVEMQDIR = "com.tremolosecurity.openunison.activemqdir";
+	public static String UNISON_CONFIG_QUARTZDIR = "com.tremolosecurity.openunison.quartzdir";
 }

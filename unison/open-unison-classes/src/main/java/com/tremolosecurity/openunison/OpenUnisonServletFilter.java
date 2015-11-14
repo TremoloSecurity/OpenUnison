@@ -43,6 +43,8 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 
 	private SessionManager sessionManager;
 	
+	public static final String version = "1.0.6-2015110101";
+	
 	@Override
 	public ConfigManager loadConfiguration(FilterConfig filterCfg,
 			String registryName) throws Exception {
@@ -59,6 +61,8 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 		if (configPath == null) {
 			configPath = "/WEB-INF/unison.xml";
 		}
+		
+		logger.info("Initializing OpenUnison " + version);
 		
 		logger.info("Unison Configuration File : '" + configPath  + "'");
 		

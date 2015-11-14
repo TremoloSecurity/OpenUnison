@@ -35,6 +35,7 @@ import org.apache.activemq.store.kahadb.KahaDBPersistenceAdapter;
 import org.apache.log4j.Logger;
 
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.openunison.OpenUnisonConstants;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.server.StopableThread;
 
@@ -61,7 +62,7 @@ public class BrokerHolder {
 			return holder.broker;
 		} else {
 			
-			String path = System.getenv("TREMOLO_ACTIVEMQ");
+			String path =  System.getProperty(OpenUnisonConstants.UNISON_CONFIG_ACTIVEMQDIR);
 			
 			File f = new File(path + File.separator + "unison-mq-" + name);
 			if (! f.exists()) {

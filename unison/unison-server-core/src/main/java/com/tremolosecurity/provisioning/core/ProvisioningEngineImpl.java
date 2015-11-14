@@ -117,6 +117,7 @@ import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.config.xml.WorkflowTaskType;
 import com.tremolosecurity.config.xml.WorkflowType;
 import com.tremolosecurity.json.Token;
+import com.tremolosecurity.openunison.OpenUnisonConstants;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
 import com.tremolosecurity.provisioning.scheduler.StopScheduler;
@@ -1383,7 +1384,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			}*/
 			
 			
-			PrintStream out = new PrintStream(new FileOutputStream(System.getenv("TREMOLO_QUARTZ_DIR") + "/quartz.properties"));
+			PrintStream out = new PrintStream(new FileOutputStream(System.getProperty(OpenUnisonConstants.UNISON_CONFIG_QUARTZDIR) + "/quartz.properties"));
 			scheduleProps.store(out, "Unison internal scheduler properties");
 			out.flush();
 			out.close();
