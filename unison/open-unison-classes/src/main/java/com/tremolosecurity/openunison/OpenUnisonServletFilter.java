@@ -43,7 +43,7 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 
 	private SessionManager sessionManager;
 	
-	public static final String version = "1.0.6-2015110101";
+	public static final String version = "1.0.6-2015121204";
 	
 	@Override
 	public ConfigManager loadConfiguration(FilterConfig filterCfg,
@@ -114,7 +114,7 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 		} else {
 			
 			if (logPath.startsWith("WEB-INF/")) {
-				org.apache.log4j.xml.DOMConfigurator.configure(filterCfg.getServletContext().getRealPath(logPath));
+				org.apache.log4j.xml.DOMConfigurator.configure("/" + filterCfg.getServletContext().getRealPath("/" + logPath));
 			} else {
 				org.apache.log4j.xml.DOMConfigurator.configure(logPath);
 			}

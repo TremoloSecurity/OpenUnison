@@ -74,7 +74,7 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 		Properties service = new Properties();
 		
 		if (configPath.startsWith("WEB-INF")) {
-			service.load(filterCfg.getServletContext().getResourceAsStream(configPath));
+			service.load(filterCfg.getServletContext().getResourceAsStream("/" + configPath));
 		} else {
 			service.load(new FileInputStream(configPath));
 		}
@@ -133,8 +133,8 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 			
 			InputStream in;
 			
-			if (ksPath.startsWith("/WEB-INF")) {
-				in = ctx.getResourceAsStream(ksPath);
+			if (ksPath.startsWith("WEB-INF")) {
+				in = ctx.getResourceAsStream("/" + ksPath);
 			} else {
 				in = new FileInputStream(ksPath);
 			}
@@ -183,8 +183,8 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 			Properties props = new Properties();
 			
 			InputStream in;
-			if (myvdConfigPath.startsWith("/WEB-INF")) {
-				in = ctx.getResourceAsStream(myvdConfigPath);
+			if (myvdConfigPath.startsWith("WEB-INF")) {
+				in = ctx.getResourceAsStream("/" + myvdConfigPath);
 			} else {
 				in = new FileInputStream(myvdConfigPath);
 			}
