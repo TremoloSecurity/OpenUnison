@@ -54,7 +54,7 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 	
 	static Logger logger = Logger.getLogger(ProxyRequest.class);
 
-	HttpServletRequest request;
+	
 	HttpSession session;
 	
 	ArrayList<NVP> queryString;
@@ -76,7 +76,7 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 
 	public ProxyRequest(HttpServletRequest req,HttpSession session) throws Exception {
 		super(req);
-		this.request = req;
+		
 		
 		
 		this.session = session;
@@ -92,6 +92,8 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 		
 		this.reqParams = new HashMap<String,ArrayList<String>>();
 		this.queryString = new ArrayList<NVP>();
+		
+		HttpServletRequest request = (HttpServletRequest) super.getRequest();
 		
 		if (request.getQueryString() != null && ! request.getQueryString().isEmpty()) {
 			StringTokenizer toker = new StringTokenizer(request.getQueryString(),"&");
@@ -223,115 +225,11 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 		this(req,null);
 	}
 
+	
 	public void setSession(HttpSession session) {
 		this.session = session;
 	}
 	
-	@Override
-	public String getLocalAddr() {
-		return request.getLocalAddr();
-	}
-
-	@Override
-	public String getLocalName() {
-		return request.getLocalName();
-	}
-
-	@Override
-	public int getLocalPort() {
-		return request.getLocalPort();
-	}
-
-	@Override
-	public int getRemotePort() {
-		return request.getRemotePort();
-	}
-	@Override
-	public String getAuthType() {
-		return request.getAuthType();
-	}
-
-	@Override
-	public String getContextPath() {
-		return request.getContextPath();
-	}
-
-	@Override
-	public Cookie[] getCookies() {
-		return request.getCookies();
-	}
-
-	@Override
-	public long getDateHeader(String name) {
-		return request.getDateHeader(name);
-	}
-
-	@Override
-	public String getHeader(String name) {
-		return request.getHeader(name);
-	}
-
-	@Override
-	public Enumeration getHeaderNames() {
-		return request.getHeaderNames();
-	}
-
-	@Override
-	public Enumeration getHeaders(String name) {
-		return request.getHeaders(name);
-	}
-
-	@Override
-	public int getIntHeader(String name) {
-		return request.getIntHeader(name);
-	}
-
-	@Override
-	public String getMethod() {
-		return request.getMethod();
-	}
-
-	@Override
-	public String getPathInfo() {
-		return request.getPathInfo();
-	}
-
-	@Override
-	public String getPathTranslated() {
-		return request.getPathTranslated();
-	}
-
-	@Override
-	public String getQueryString() {
-		return request.getQueryString();
-	}
-
-	@Override
-	public String getRemoteUser() {
-		return request.getRemoteUser();
-	}
-
-	@Override
-	public String getRequestURI() {
-		return request.getRequestURI();
-	}
-
-	@Override
-	public StringBuffer getRequestURL() {
-		return request.getRequestURL();
-	}
-
-	@Override
-	public String getRequestedSessionId() {
-		return request.getRequestedSessionId();
-		
-	}
-
-	@Override
-	public String getServletPath() {
-		return request.getServletPath();
-	}
-
 	@Override
 	public HttpSession getSession() {
 		return this.session;
@@ -340,77 +238,6 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 	@Override
 	public HttpSession getSession(boolean arg0) {
 		return this.session;
-	}
-
-	@Override
-	public Principal getUserPrincipal() {
-		return request.getUserPrincipal();
-	}
-
-	@Override
-	public boolean isRequestedSessionIdFromCookie() {
-		return request.isRequestedSessionIdFromCookie();
-	}
-
-	@Override
-	public boolean isRequestedSessionIdFromURL() {
-		return request.isRequestedSessionIdFromURL();
-	}
-
-	@Override
-	public boolean isRequestedSessionIdFromUrl() {
-		return request.isRequestedSessionIdFromUrl();
-	}
-
-	@Override
-	public boolean isRequestedSessionIdValid() {
-		return request.isRequestedSessionIdValid();
-	}
-
-	@Override
-	public boolean isUserInRole(String role) {
-		return request.isUserInRole(role);
-	}
-
-	@Override
-	public Object getAttribute(String arg0) {
-		return request.getAttribute(arg0);
-	}
-
-	@Override
-	public Enumeration getAttributeNames() {
-		return request.getAttributeNames();
-	}
-
-	@Override
-	public String getCharacterEncoding() {
-		return request.getCharacterEncoding();
-	}
-
-	@Override
-	public int getContentLength() {
-		return request.getContentLength();
-	}
-
-	@Override
-	public String getContentType() {
-		return request.getContentType();
-	}
-	
-
-	@Override
-	public ServletInputStream getInputStream() throws IOException {
-		return request.getInputStream();
-	}
-
-	@Override
-	public Locale getLocale() {
-		return request.getLocale();
-	}
-
-	@Override
-	public Enumeration getLocales() {
-		return request.getLocales();
 	}
 
 	@Override
@@ -490,81 +317,14 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 		
 	}
 
-	@Override
-	public String getProtocol() {
-		return request.getProtocol();
-	}
-
-	@Override
-	public BufferedReader getReader() throws IOException {
-		return request.getReader();
-	}
-
-	@Override
-	public String getRealPath(String arg0) {
-		return request.getRealPath(arg0);
-	}
-
-	@Override
-	public String getRemoteAddr() {
-		return request.getRemoteAddr();
-	}
-
-	@Override
-	public String getRemoteHost() {
-		return request.getRemoteHost();
-	}
-
-	@Override
-	public RequestDispatcher getRequestDispatcher(String arg0) {
-		return request.getRequestDispatcher(arg0);
-	}
-
-	@Override
-	public String getScheme() {
-		return request.getScheme();
-	}
-
-	@Override
-	public String getServerName() {
-		return request.getServerName();
-	}
-
-	@Override
-	public int getServerPort() {
-		return request.getServerPort();
-	}
-
-	@Override
-	public boolean isSecure() {
-		return request.isSecure();
-	}
-
-	@Override
-	public void removeAttribute(String arg0) {
-		request.removeAttribute(arg0);
-
-	}
-
-	@Override
-	public void setAttribute(String arg0, Object arg1) {
-		request.setAttribute(arg0, arg1);
-
-	}
-
-	@Override
-	public void setCharacterEncoding(String arg0)
-			throws UnsupportedEncodingException {
-		request.setCharacterEncoding(arg0);
-
-	}
+	
 	
 	public HashMap<String,ArrayList<FileItem>> getFiles() {
 		return this.reqFiles;
 	}
 
 	public HttpServletRequest getServletRequest() {
-		return this.request;
+		return (HttpServletRequest) super.getRequest();
 	}
 
 	public boolean isPush() {

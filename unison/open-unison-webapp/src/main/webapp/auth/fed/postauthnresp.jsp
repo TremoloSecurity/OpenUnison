@@ -27,6 +27,9 @@ limitations under the License.
 <input name="SAMLResponse" value="<%= request.getAttribute("postdata") %>" type="hidden"/>
 <input name="RelayState" value="<%= request.getAttribute("relaystate") %>" type="hidden"/>
 </form>
+
+
+
 <center>
 	<img src="/auth/forms/images/ts_logo.png" /><br />
 	<h2>Completing Federation...</h2>
