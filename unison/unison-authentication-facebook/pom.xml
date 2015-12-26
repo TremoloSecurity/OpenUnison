@@ -11,7 +11,7 @@
   <dependency>
     <groupId>com.restfb</groupId>
     <artifactId>restfb</artifactId>
-    <version>1.6.9</version>
+    <version>1.18.0</version>
 </dependency>
   	  	<dependency>
   		<groupId>com.tremolosecurity.unison</groupId>

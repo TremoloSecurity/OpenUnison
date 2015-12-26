@@ -98,10 +98,10 @@ public class FacebookLogin implements AuthMechanism {
 		String applicationSecret = authParams.get(FB_APP_SECRET).getValues().get(0);
 		String redirectURL = URLEncoder.encode(authParams.get(FB_REDIR_URL).getValues().get(0));
 		String faceBookDN = authParams.get(FB_DN_PATTERN).getValues().get(0);
-	
+		String scope = authParams.get("scope").getValues().get(0);
 		
 		if (session.getAttribute("AUTOIDM_FB_GETCODE") == null) {
-			StringBuffer url = new StringBuffer("https://graph.facebook.com/oauth/authorize?client_id=").append(applicationID).append("&redirect_uri=").append(redirectURL);
+			StringBuffer url = new StringBuffer("https://graph.facebook.com/oauth/authorize?client_id=").append(URLEncoder.encode(applicationID,"UTF-8")).append("&redirect_uri=").append(redirectURL).append("&scope=").append(URLEncoder.encode(scope,"UTF-8"));
 			session.setAttribute("AUTOIDM_FB_GETCODE","");
 			
 			
