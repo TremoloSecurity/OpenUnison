@@ -382,7 +382,7 @@ public class Saml2Idp implements IdentityProvider {
 			UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
 			java.security.cert.X509Certificate cert = holder.getConfig().getCertificate(validationCert);
 			
-			if (Saml2Idp.xmlDigSigAlgs.containsKey(sigAlg)  ) {
+			if (! Saml2Idp.xmlDigSigAlgs.containsKey(sigAlg)  ) {
 				throw new Exception("Invalid signature algorithm : " + sigAlg);
 			}
 			
@@ -748,7 +748,12 @@ public class Saml2Idp implements IdentityProvider {
 		StringBuffer s = new StringBuffer();
 		s.append(cfg.getAuthPath()).append("fed/postauthnresp.jsp");
 		
-		request.getRequestDispatcher(s.toString()).forward(request, response);
+		//response.sendRedirect(s.toString());
+		
+		request.getServletContext().getRequestDispatcher(s.toString()).forward(request, response);
+		
+		
+		
 	}
 }
 
