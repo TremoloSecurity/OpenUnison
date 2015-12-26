@@ -24,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.security.Certificate;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -34,6 +35,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -182,11 +184,30 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		return this.configXML;
 	}
 
-	private void initSSL() throws KeyManagementException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
+	private void initSSL() throws KeyManagementException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, FileNotFoundException, IOException {
 		if (this.getKeyManagerFactory() == null) {
 			return;
 		}
 		
+		KeyStore cacerts = KeyStore.getInstance(KeyStore.getDefaultType());
+		
+
+		
+		
+		
+		String cacertsPath = System.getProperty("javax.net.ssl.trustStore");
+		if (cacertsPath == null) {
+			cacertsPath = System.getProperty("java.home") + "/lib/security/cacerts";
+		}
+		
+		cacerts.load(new FileInputStream(cacertsPath), null);
+		
+		Enumeration<String> enumer = cacerts.aliases();
+		while (enumer.hasMoreElements()) {
+			String alias = enumer.nextElement();
+			java.security.cert.Certificate cert = cacerts.getCertificate(alias);
+			this.ks.setCertificateEntry(alias, cert);
+		}
 		
 		SSLContext sslctx = SSLContexts.custom().loadTrustMaterial(this.ks).loadKeyMaterial(this.ks,this.cfg.getKeyStorePassword().toCharArray()).build();
 		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslctx,SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
