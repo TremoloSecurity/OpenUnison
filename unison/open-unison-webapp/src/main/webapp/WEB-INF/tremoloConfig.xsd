@@ -1161,146 +1161,189 @@ limitations under the License.
     <annotation>
 			<documentation>Defines the database used to track requests and approvals</documentation>
 			</annotation>
-    	<sequence>
-    		<element name="driver" type="string" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>JDBC Driver</documentation>
-			</annotation>
-    		</element>
-    		<element name="url" type="string" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>JDBC URL</documentation>
-			</annotation>
-    		</element>
-    		<element name="user" type="string" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>User for connecting to the database</documentation>
-			</annotation>
-    		</element>
-    		<element name="password" type="string" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>Password for connecting to the database</documentation>
-			</annotation>
-    		</element>
-    		<element name="maxConns" type="int" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>Maximum number of connections</documentation>
-			</annotation>
-    		</element>
-    		<element name="maxIdleConns" type="int" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>Maximum idle connections</documentation>
-			</annotation>
-    		</element>
-    		<element name="userIdAttribute" type="string" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>User attribute that identifies the user (ie uid)</documentation>
-			</annotation>
-    		</element>
-    		<element name="approverAttributes" type="tns:listType"
-    			maxOccurs="1" minOccurs="1">
-    			<annotation>
-			<documentation>List of approver attributes to be tracked in the database.  A field for each attribute should be added to the approvers table.</documentation>
-			</annotation>
-    		</element>
-    		<element name="userAttributes" type="tns:listType"
-    			maxOccurs="1" minOccurs="1">
-    			<annotation>
-			<documentation>List of user attributes to be tracked in the database.  A field for each attribute should be added to the users table.</documentation>
-			</annotation>
-    		</element>
-    		<element name="enabled" type="boolean" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>If true, the approval database will be used to log all provisioning transactions</documentation>
-			</annotation>
-    		</element>
-    		<element name="smtpHost" type="string" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>SMTP host for sending emails</documentation>
-			</annotation>
-    		</element>
-    		<element name="smtpPort" type="int" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>SMTP Port for sending emails</documentation>
-			</annotation>
-    		</element>
-    		<element name="smtpUser" type="string" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>User for the SMTP server</documentation>
-			</annotation>
-    		</element>
-    		<element name="smtpPassword" type="string" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>Password for connecting to the SMTP server
-			</documentation>
-			</annotation>
-    		</element>
-    		<element name="smtpSubject" type="string" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>Subject for notifications</documentation>
-			</annotation>
-    		</element>
-    		<element name="smtpFrom" type="string" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>Address to use in the From field</documentation>
-			</annotation>
-    		</element>
-    		<element name="smtpTLS" type="boolean" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>Use TLS for connecting to the SMTP server</documentation>
-			</annotation>
-    		</element>
-    		<element name="encryptionKey" type="string" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>Name of the key in the keystore for encrypting workflows in the database</documentation>
-			</annotation>
-    		</element>
-    		<element name="smtpUseSOCKSProxy" type="boolean"
-    			maxOccurs="1" minOccurs="1">
-    			<annotation>
-			<documentation>If set to true, Unison will use a SOCKS proxy</documentation>
-			</annotation>
-    		</element>
-    		<element name="smtpSOCKSProxyHost" type="string"
-    			maxOccurs="1" minOccurs="1">
-    			<annotation>
-			<documentation>If using a SOCKS proxy, the host</documentation>
-			</annotation>
-    		</element>
-    		<element name="smtpSOCKSProxyPort" type="int" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>If using a SOCKS proxy, the port</documentation>
-			</annotation>
-    		</element>
-    		<element name="smtpLocalhost" type="string" maxOccurs="1"
-    			minOccurs="1">
-    			<annotation>
-			<documentation>If using a SOCKS proxy, the localhost name to send</documentation>
-			</annotation>
-    		</element>
-    		<element name="maskAttribute" type="string" maxOccurs="unbounded" minOccurs="0">
+    <sequence>
+    	<element name="driver" type="string" maxOccurs="1"
+    		minOccurs="1">
     		<annotation>
-			<documentation>List of attributes whos values are NOT to be recorderd in the database</documentation>
-			</annotation>
-    		</element>
-    	</sequence>
+    			<documentation>JDBC Driver</documentation>
+    		</annotation>
+    	</element>
+    	<element name="url" type="string" maxOccurs="1" minOccurs="1">
+    		<annotation>
+    			<documentation>JDBC URL</documentation>
+    		</annotation>
+    	</element>
+    	<element name="user" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				User for connecting to the database
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="password" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				Password for connecting to the database
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="maxConns" type="int" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				Maximum number of connections
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="maxIdleConns" type="int" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>Maximum idle connections</documentation>
+    		</annotation>
+    	</element>
+    	<element name="userIdAttribute" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				User attribute that identifies the user (ie uid)
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="approverAttributes" type="tns:listType"
+    		maxOccurs="1" minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				List of approver attributes to be tracked in the
+    				database. A field for each attribute should be added
+    				to the approvers table.
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="userAttributes" type="tns:listType" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				List of user attributes to be tracked in the
+    				database. A field for each attribute should be added
+    				to the users table.
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="enabled" type="boolean" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				If true, the approval database will be used to log
+    				all provisioning transactions
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpHost" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				SMTP host for sending emails
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpPort" type="int" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				SMTP Port for sending emails
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpUser" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>User for the SMTP server</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpPassword" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				Password for connecting to the SMTP server
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpSubject" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>Subject for notifications</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpFrom" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				Address to use in the From field
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpTLS" type="boolean" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				Use TLS for connecting to the SMTP server
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="encryptionKey" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				Name of the key in the keystore for encrypting
+    				workflows in the database
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpUseSOCKSProxy" type="boolean" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				If set to true, Unison will use a SOCKS proxy
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpSOCKSProxyHost" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				If using a SOCKS proxy, the host
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpSOCKSProxyPort" type="int" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				If using a SOCKS proxy, the port
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpLocalhost" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				If using a SOCKS proxy, the localhost name to send
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="maskAttribute" type="string"
+    		maxOccurs="unbounded" minOccurs="0">
+    		<annotation>
+    			<documentation>
+    				List of attributes whos values are NOT to be
+    				recorderd in the database
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="validationQuery" type="string" minOccurs="0" maxOccurs="1"></element>
+    </sequence>
     </complexType>
 
     <complexType name="listType">

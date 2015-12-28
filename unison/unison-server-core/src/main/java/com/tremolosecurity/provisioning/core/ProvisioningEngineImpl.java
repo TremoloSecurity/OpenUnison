@@ -305,10 +305,22 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			pool.setMaxActive(maxCons);
 			pool.setMaxIdle(maxIdleCons);
 			
+			
 			SharedPoolDataSource tds = new SharedPoolDataSource();
 	        tds.setConnectionPoolDataSource(pool);
 	        tds.setMaxActive(maxCons);
 	        tds.setMaxWait(50);
+	        
+	        if (adbt.getValidationQuery() == null) {
+	        	tds.setValidationQuery("SELECT 1");
+	        } else {
+	        	tds.setValidationQuery(adbt.getValidationQuery());
+	        }
+	        
+	        logger.info("Validation Query : '" + tds.getValidationQuery() + "'");
+	        
+	        
+	        tds.setTestOnBorrow(true);
 	        
 	        this.approvalConPool = tds;
 	        
