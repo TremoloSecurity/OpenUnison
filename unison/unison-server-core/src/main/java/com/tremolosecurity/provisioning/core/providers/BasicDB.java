@@ -77,6 +77,8 @@ public class BasicDB implements BasicDBInterface {
 	String beginEscape;
 	String endEscape;
 	
+	String validationQuery;
+	
 	CustomDB customDBProvider;
 	
 	enum GroupManagementMode {
@@ -933,7 +935,18 @@ public class BasicDB implements BasicDBInterface {
         tds.setConnectionPoolDataSource(pool);
         tds.setMaxActive(maxCons);
         tds.setMaxWait(50);
-        tds.setValidationQuery("SELECT 1");
+        
+        
+        if (cfg.get("validationQuery") == null) {
+        	this.validationQuery = "SELECT 1";
+        } else {
+        	this.validationQuery = cfg.get("validationQuery").getValues().get(0);
+        }
+        
+        logger.info("validationQuery : " + this.validationQuery);
+        
+        tds.setValidationQuery(this.validationQuery);
+        
         tds.setTestOnBorrow(true);
         this.ds = tds;
         if (cfg.get("userTable") != null && ! cfg.get("userTable").getValues().get(0).isEmpty()) {
