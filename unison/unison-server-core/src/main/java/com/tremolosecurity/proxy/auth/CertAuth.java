@@ -81,6 +81,7 @@ public class CertAuth implements AuthMechanism {
 
 	static final String[] SAN_NAMES = new String[] {"otherName","email","dNSName","x400Address","directoryName","ediPartyName","uniformResourceIdentifier","iPAddress","registeredID"};
 
+	private ArrayList<CertificateExtractSubjectAttribute> extracts;
     
 
 	
@@ -159,7 +160,9 @@ public class CertAuth implements AuthMechanism {
 			throw new ServletException("Could not parse certificate",e1);
 		}
 		
-		
+		for (CertificateExtractSubjectAttribute cesa : this.extracts) {
+			cesa.addSubjects(subject, certs);
+		}
 		
 		MyVDConnection myvd = cfgMgr.getMyVD();
 		//HttpSession session = (HttpSession) req.getAttribute(ConfigFilter.AUTOIDM_SESSION);//((HttpServletRequest) req).getSession(); //SharedSession.getSharedSession().getSession(req.getSession().getId());
@@ -368,6 +371,18 @@ public class CertAuth implements AuthMechanism {
 			this.cfgMgr.addThread(crlChecker);
 			t.start();
 			
+		}
+		
+		this.extracts = new ArrayList<CertificateExtractSubjectAttribute>();
+		if (init.get("extracts") != null) {
+			Attribute attr = init.get("extracts");
+			for (String className : attr.getValues()) {
+				try {
+					this.extracts.add((CertificateExtractSubjectAttribute) Class.forName(className).newInstance());
+				} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+					logger.warn("Could not load : '" + className + "'",e);
+				}
+			}
 		}
 	}
 
