@@ -148,7 +148,6 @@ public class CertAuth implements AuthMechanism {
                 while (iter.hasNext()) {
                     java.util.List item = (java.util.List)iter.next();
                     Integer type = (Integer)item.get(0);
-                    
                     subject.put(SAN_NAMES[type.intValue()], item.get(1).toString());
                     
                     
