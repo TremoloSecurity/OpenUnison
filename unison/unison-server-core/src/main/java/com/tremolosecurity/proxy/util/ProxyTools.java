@@ -58,18 +58,18 @@ public class ProxyTools {
 			return null;//request.getServerName();
 		}
 		
-		if (cfg.getScope().equals(negone)) {
+		//if (cfg.getScope().equals(negone)) {
 			
 			if (cfg.getDomain().equalsIgnoreCase("*") || cfg.getDomain().equalsIgnoreCase(request.getServerName())) {
 				return null;//request.getServerName();
 			} else {
 				return cfg.getDomain();
 			}
-		}
+		//}
 		
 		//TODO add cookie scope work
 		
-		return "";
+		//return "";
 	}
 	
 	public String getFqdnUrl(String url,HttpServletRequest req) {
