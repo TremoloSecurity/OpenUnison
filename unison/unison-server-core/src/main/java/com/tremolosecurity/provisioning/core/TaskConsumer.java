@@ -62,7 +62,12 @@ public class TaskConsumer implements MessageListener {
 			
 			th.setPosition(th.getPosition() + 1);
 			
-			if (task.doTask(wfHolder.getUser(), wfHolder.getRequest())) {
+			User user = th.getCurrentUser();
+			if (user == null) {
+				user = wfHolder.getUser();
+			}
+			
+			if (task.doTask(user, wfHolder.getRequest())) {
 				if (isDone(wfHolder)) {
 					wfHolder.getWorkflow().completeWorkflow();
 				} else {

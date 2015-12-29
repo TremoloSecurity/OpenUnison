@@ -138,6 +138,7 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 			TaskHolder th = new TaskHolder();
 			th.setPosition(0);
 			th.setParent(children);
+			th.setCurrentUser(user);
 			holder.getWfStack().push(th);
 			((ProvisioningEngineImpl) this.cfgMgr.getProvisioningEngine()).enqueue(holder);
 			return false;

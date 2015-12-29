@@ -29,6 +29,7 @@ import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.WorkflowTaskImpl;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
+import com.tremolosecurity.saml.Attribute;
 
 public class Mapping extends WorkflowTaskImpl {
 	static Logger logger = Logger.getLogger(Mapping.class.getName());

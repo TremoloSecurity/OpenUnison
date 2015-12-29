@@ -21,6 +21,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Stack;
 
+import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.WorkflowTask;
 
@@ -31,6 +32,7 @@ public class TaskHolder implements Serializable {
 	List<WorkflowTask> parent;
 	int position;
 	Workflow workflow;
+	User currentUser;
 	
 	
 
@@ -51,6 +53,12 @@ public class TaskHolder implements Serializable {
 	}
 	public void setWorkflow(Workflow workflow) {
 		this.workflow = workflow;
+	}
+	public User getCurrentUser() {
+		return currentUser;
+	}
+	public void setCurrentUser(User currentUser) {
+		this.currentUser = currentUser;
 	}
 	
 	
