@@ -161,7 +161,7 @@ public class SearchService extends HttpServlet {
 			
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 			//System.out.println(gson.toJson(user));
-			resp.getOutputStream().print(gson.toJson(resObj));
+			resp.getWriter().print(gson.toJson(resObj));
 			
 		} catch (ProvisioningException pe) {
 			if (pe.isPrintStackTrace()) {

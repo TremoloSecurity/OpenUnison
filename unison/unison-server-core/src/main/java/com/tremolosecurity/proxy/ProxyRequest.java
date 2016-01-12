@@ -307,11 +307,21 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 				vals.toArray(svals);
 				return svals;
 			} else {
-				String val = this.getQSParameter(name);
-				if (val != null) {
-					return new String[] {val};
-				} else {
+				
+				vals = new ArrayList<String>();
+				
+				for (NVP nvp : this.queryString) {
+					if (nvp.getName().equals(name)) {
+						vals.add(nvp.getValue());
+					}
+				}
+				
+				if (vals.size() == 0) {
 					return null;
+				} else {
+					String[] svals = new String[vals.size()];
+					vals.toArray(svals);
+					return svals;
 				}
 			}
 		

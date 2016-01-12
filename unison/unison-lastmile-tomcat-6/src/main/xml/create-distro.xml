@@ -30,7 +30,7 @@ limitations under the License.
 			<useTransitiveFiltering>true</useTransitiveFiltering>
 			<excludes>
 				<exclude>org.apache.tomcat:catalina</exclude>
-				<exclude>jetty:servlet-api</exclude>
+				<exclude>javax.servlet:javax.servlet-api</exclude>
 			</excludes>
 		</dependencySet>
 	</dependencySets>

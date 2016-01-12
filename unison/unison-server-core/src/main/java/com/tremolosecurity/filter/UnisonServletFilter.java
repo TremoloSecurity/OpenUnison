@@ -73,7 +73,9 @@ static Logger logger = Logger.getLogger(UnisonServletFilter.class);
 	
 	@Override
 	public void destroy() {
-		// TODO Auto-generated method stub
+		if (GlobalEntries.getGlobalEntries().getConfigManager() != null) {
+			GlobalEntries.getGlobalEntries().getConfigManager().clearThreads();
+		}
 
 	}
 

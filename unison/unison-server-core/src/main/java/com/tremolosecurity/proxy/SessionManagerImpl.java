@@ -414,6 +414,7 @@ public class SessionManagerImpl implements SessionManager {
 		sessionCookie.setSecure(false);
 		sessionCookie.setMaxAge(-1);
 		sessionCookie.setSecure(app.getCookieConfig().isSecure());
+		sessionCookie.setHttpOnly(false);
 		resp.addCookie(sessionCookie);
 
 		// delete the opensession if it exists

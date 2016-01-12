@@ -54,4 +54,8 @@ public class GlobalEntries {
 	public ConfigManager getConfigManager() {
 		return (ConfigManager) this.get(ProxyConstants.CONFIG_MANAGER);
 	}
+	
+	public static void reset() {
+		ge = new GlobalEntries();
+	}
 }

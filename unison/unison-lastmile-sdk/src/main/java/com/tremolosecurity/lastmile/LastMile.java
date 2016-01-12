@@ -139,7 +139,18 @@ public class LastMile {
 	public void loadLastMielToken(String header,SecretKey decrKey) throws Exception {
 		String tokenHeader = new String(org.bouncycastle.util.encoders.Base64.decode(header));
 		Gson gson = new Gson();
-		this.token = gson.fromJson(tokenHeader, Token.class);
+		
+		try {
+			this.token = gson.fromJson(tokenHeader, Token.class);
+		} catch ( Exception e) {
+			//If the "equals" is lost, try again
+			StringBuffer b = new StringBuffer();
+			tokenHeader =  b.append(new String(org.bouncycastle.util.encoders.Base64.decode(header))).append('=').toString();
+			this.token = gson.fromJson(tokenHeader, Token.class);
+		}
+		
+		
+		
 		byte[] iv = org.bouncycastle.util.encoders.Base64.decode(this.token.getIv());
 		
 		
