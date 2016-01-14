@@ -38,6 +38,16 @@ body {
     max-width: 530px;
   }
 }
+
+.container-wide {
+    max-width: 75%;
+    text-align: center;
+    border-bottom: 1px solid #e5e5e5;
+	background-color:rgb(255,255,255);
+	box-sizing:border-box;
+	align:center;
+	margin: 120px auto 0;
+  }
 .container-narrow > hr {
   margin: 30px 0;
 }

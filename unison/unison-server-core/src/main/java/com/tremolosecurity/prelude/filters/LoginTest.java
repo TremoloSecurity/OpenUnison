@@ -44,63 +44,15 @@ import com.tremolosecurity.saml.Attribute;
 public class LoginTest implements HttpFilter {
 
 	String logoutURI;
+	String jspURI;
 	
 	@Override
 	public void doFilter(HttpFilterRequest request,
 			HttpFilterResponse response, HttpFilterChain chain)
 			throws Exception {
 		
-		AuthController auth = (AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL);
-		
-		chain.setNoProxy(true);
-		
-		response.setContentType("text/html");
-		PrintWriter out = response.getWriter();
-		
-		StringBuffer b = new StringBuffer();
-		
-		
-		b.append("<html><head><title>Tremolo Security ").append("Unison").append(" Login Test</title></head><body><h1>Tremolo Security ").append("Unison").append(" Login Test</h1><table border=\"1\">\n");
-		b.append("<tr><td colspan=\"2\"><b>Authentication Data</b></td></tr>\n");
-		b.append("<tr><td>Authenticated User DN : </td><td>").append(auth.getAuthInfo().getUserDN()).append("</td></tr>\n");
-		b.append("<tr><td>Authentication Level : </td><td>").append(auth.getAuthInfo().getAuthLevel()).append("</td></tr>\n");
-		b.append("<tr><td>Authentication Chain : </td><td>").append(auth.getAuthInfo().getAuthMethod()).append("</td></tr>\n");
-		b.append("<tr><td colspan=\"2\"><b>Attributes</b></td></tr>\n");
-		
-		for (String attrName : auth.getAuthInfo().getAttribs().keySet()) {
-			Attribute attr = auth.getAuthInfo().getAttribs().get(attrName);
-			for (String val : attr.getValues()) {
-				b.append("<tr><td>").append(attrName).append("</td><td>").append(val).append("</td></tr>\n");
-			}
-		}
-		
-		b.append("<tr><td colspan=\"2\"><b>Headers</b></td></tr>\n");
-		
-		Iterator<String> it = request.getHeaderNames();
-		while (it.hasNext()) {
-			String headerName = it.next();
-			Attribute header = request.getHeader(headerName);
-			for (String val : header.getValues()) {
-				b.append("<tr><td>").append(headerName).append("</td><td>").append(val).append("</td></tr>\n");
-			}
-		}
-		
-		b.append("<tr><td colspan=\"2\"><b>Cookies</b></td></tr>\n");
-		for (String cookieName : request.getCookieNames()) {
-			for (Cookie val : request.getCookies(cookieName)) {
-				b.append("<tr><td>").append(cookieName).append("</td><td>").append(val.getValue()).append("</td></tr>\n");
-			}
-		}
-		
-		b.append("</table>\n");
-		
-		if (this.logoutURI != null) {
-			b.append("Click <a href=\"").append(this.logoutURI).append("\">HERE</a> to logout<br />\n");
-		}
-		
-		b.append("</body></html>\n");
-		
-		out.print(b.toString());
+		request.setAttribute("UNISON_LOGINTEST_LOGOUTURI", this.logoutURI);
+		request.getRequestDispatcher(this.jspURI).forward(request.getServletRequest(), response.getServletResponse());
 
 	}
 
@@ -124,6 +76,12 @@ public class LoginTest implements HttpFilter {
 	public void initFilter(HttpFilterConfig config) throws Exception {
 		if (config.getAttribute("logoutURI") != null) {
 			this.logoutURI = config.getAttribute("logoutURI").getValues().get(0);
+		}
+		
+		if (config.getAttribute("jspURI") != null) {
+			this.jspURI = config.getAttribute("jspURI").getValues().get(0);
+		} else {
+			this.jspURI = "/auth/forms/loginTest.jsp";
 		}
 
 	}
