@@ -325,6 +325,10 @@ public class ConfigSys  {
 				} finally {
 					if (pd != null && pd.getHttpRequestBase() != null) {
 						pd.getHttpRequestBase().releaseConnection();
+						if (! resp.isCommitted()) {
+							resp.getOutputStream().flush();
+							resp.getOutputStream().close();
+						}
 					}
  				}
 				
