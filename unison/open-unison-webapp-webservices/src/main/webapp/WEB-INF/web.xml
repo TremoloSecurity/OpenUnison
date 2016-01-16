@@ -1,0 +1,168 @@
+<?xml version="1.0"?>
+<!-- 
+Copyright 2015 Tremolo Security, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+ -->
+<web-app  metadata-complete="true" >
+
+
+	<filter>
+		<filter-name>openunison</filter-name>
+		<filter-class>com.tremolosecurity.openunison.OpenUnisonServletFilter</filter-class>
+		<init-param>
+			<param-name>mode</param-name>
+			<param-value>appliance</param-value>
+		</init-param>
+		<init-param>
+			<param-name>registryName</param-name>
+			<param-value>proxy</param-value>
+		</init-param>
+		<init-param>
+			<param-name>configPath</param-name>
+			<param-value>/WEB-INF/unison.xml</param-value>
+		</init-param>
+		<init-param>
+			<param-name>forceToSSL</param-name>
+			<param-value>false</param-value>
+		</init-param>
+		<init-param>
+			<param-name>openPort</param-name>
+			<param-value>8080</param-value>
+		</init-param>
+		<init-param>
+			<param-name>securePort</param-name>
+			<param-value>8443</param-value>
+		</init-param>
+		<init-param>
+			<param-name>externalOpenPort</param-name>
+			<param-value>8080</param-value>
+		</init-param>
+		<init-param>
+			<param-name>externalSecurePort</param-name>
+			<param-value>8443</param-value>
+		</init-param>
+	</filter>
+
+	<servlet>
+		<servlet-name>identityProvider</servlet-name>
+		<servlet-class>com.tremolosecurity.idp.server.IDP</servlet-class>
+	</servlet>
+	
+
+	<servlet>
+		<servlet-name>WF-Executed</servlet-name>
+		<servlet-class>com.tremolosecurity.provisioning.service.ExecutedWorkflows</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>WF-Search</servlet-name>
+		<servlet-class>com.tremolosecurity.provisioning.service.SearchService</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>WF-Exec</servlet-name>
+		<servlet-class>com.tremolosecurity.provisioning.service.ExecuteWorkflow</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>WF-List</servlet-name>
+		<servlet-class>com.tremolosecurity.provisioning.service.ListWorkflows</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>Approvals-List</servlet-name>
+		<servlet-class>com.tremolosecurity.provisioning.service.ListApprovals</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>Approvals-Exec</servlet-name>
+		<servlet-class>com.tremolosecurity.provisioning.service.ExecuteApproval</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>Login</servlet-name>
+		<servlet-class>com.tremolosecurity.provisioning.service.Login</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>List Organizations</servlet-name>
+		<servlet-class>com.tremolosecurity.provisioning.service.ListOrgs</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>List Portal URLs</servlet-name>
+		<servlet-class>com.tremolosecurity.provisioning.service.ListPortalURLs</servlet-class>
+	</servlet>
+
+
+
+	<filter-mapping>
+		<filter-name>openunison</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<servlet-mapping>
+		<servlet-name>identityProvider</servlet-name>
+		<url-pattern>/auth/idp/*</url-pattern>
+	</servlet-mapping>
+
+<!-- Uncomment these mappings to support web services -->
+
+	<servlet-mapping>
+		<servlet-name>WF-Search</servlet-name>
+		<url-pattern>/services/wf/search</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>WF-Exec</servlet-name>
+		<url-pattern>/services/wf/execute</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet-mapping>
+		<servlet-name>WF-Executed</servlet-name>
+		<url-pattern>/services/wf/executed</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>WF-List</servlet-name>
+		<url-pattern>/services/wf/list</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>Approvals-List</servlet-name>
+		<url-pattern>/services/approvals/list</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>Approvals-Exec</servlet-name>
+		<url-pattern>/services/approvals/execute</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>Login</servlet-name>
+		<url-pattern>/services/wf/login</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>List Organizations</servlet-name>
+		<url-pattern>/services/wf/orgs</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>List Portal URLs</servlet-name>
+		<url-pattern>/services/portal/urls</url-pattern>
+	</servlet-mapping>
+
+ 
+</web-app>

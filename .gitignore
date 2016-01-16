@@ -1,3 +1,4 @@
+
 *target*
 *.jar
 *.war
@@ -5,6 +6,53 @@
 *.class
 
 # eclipse specific git ignore
+=======
+# Directories #
+/build/
+/bin/
+target/
+
+# OS Files #
+.DS_Store
+
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+*.db
+
+######################
+# Windows
+######################
+
+# Windows image file caches
+Thumbs.db
+
+# Folder config file
+Desktop.ini
+
+######################
+# OSX
+######################
+
+.DS_Store
+.svn
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+
+######################
+# Eclipse
+######################
+
+>>>>>>> origin/1.0.6-Dev
 *.pydevproject
 .project
 .metadata
@@ -20,8 +68,22 @@ local.properties
 .settings/
 .loadpath
 
+
 # External tool builders
 .externalToolBuilders/
 
 # Locally stored "Eclipse launch configurations"
 *.launch
+=======
+/src/main/resources/rebel.xml
+# External tool builders
+.externalToolBuilders/
+
+# Locally stored "Eclipse launch configurations"
+*.launch
+
+# CDT-specific
+.cproject
+
+# PDT-specific
+.buildpath

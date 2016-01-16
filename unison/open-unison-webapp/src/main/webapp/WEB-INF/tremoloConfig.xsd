@@ -1,0 +1,1878 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+Copyright 2015 Tremolo Security, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+ -->
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tremolosecurity.com/tremoloConfig" xmlns:tns="http://www.tremolosecurity.com/tremoloConfig" elementFormDefault="qualified">
+
+
+    <include schemaLocation=""></include>
+    <complexType name="applicationType">
+    	<annotation>
+			<documentation>A combination of URLs grouped into a single application</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="results" type="tns:resultRefType"
+    			maxOccurs="1" minOccurs="0">
+    			
+    		</element>
+    		<element name="urls" type="tns:urlsType"></element>
+    		<element name="cookieConfig" type="tns:cookieConfigType"
+    			maxOccurs="1" minOccurs="0">
+    		</element>
+    	</sequence>
+    	<attribute name="name" type="string">
+    		<annotation>
+				<documentation>The name of the application</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="isApp" type="boolean" default="true">
+    		<annotation>
+				<documentation>If true, this application will proxy to a remote application.  If false, this application will be treated as an identity provider</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="azTimeoutMillis" type="long" default="30000">
+    		<annotation>
+				<documentation>The number of milliseconds an authorization rule is valid before it needs to be re-evaluated</documentation>
+			</annotation>
+    	</attribute>
+    </complexType>
+
+    <complexType name="urlType">
+    	<annotation>
+			<documentation>Defines a URL that combines filters, policies, authentication and results based on an HTTP URL</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="host" type="tns:hostType"
+    			maxOccurs="unbounded" minOccurs="1">
+    		</element>
+    		<element name="filterChain" type="tns:filterChainType"></element>
+    		<element name="uri" type="tns:uriType" maxOccurs="1"
+    			minOccurs="1">
+    		</element>
+    		<element name="proxyTo" type="tns:proxyToType" maxOccurs="1"
+    			minOccurs="0">
+    		</element>
+    		<element name="results" type="tns:resultRefType"
+    			maxOccurs="1" minOccurs="0">
+    		</element>
+    		<element name="azRules" type="tns:azRulesType" maxOccurs="1"
+    			minOccurs="0">
+    		</element>
+    		<element name="idp" type="tns:idpType" maxOccurs="1"
+    			minOccurs="0">
+    		</element>
+    	</sequence>
+    	<attribute name="regex" type="boolean">
+    		<annotation>
+				<documentation>If true, the url for this URL is interpreted as a regular expression</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="authChain" type="string">
+    		<annotation>
+				<documentation>The name of the authentication chain to associate with this URL</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="overrideHost" type="boolean" default="true">
+    		<annotation>
+				<documentation>If set to true, the request sent to the application will have its HOST header replaced with the host of the down stream application</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="overrideReferer" type="boolean" default="true">
+    		<annotation>
+				<documentation>If set to true, then the Referer header will have its host replaced with the host of the down stream application</documentation>
+			</annotation>
+    	</attribute>
+    </complexType>
+
+
+    <simpleType name="hostType">
+    	<annotation>
+			<documentation>A domain name or IP</documentation>
+		</annotation>
+    	<restriction base="string"></restriction>
+    </simpleType>
+
+    <simpleType name="uriType">
+    	<annotation>
+			<documentation>The path of the URL to match this URL configuration to</documentation>
+		</annotation>
+    	<restriction base="string"></restriction>
+    </simpleType>
+
+    <complexType name="paramType">
+    	<annotation>
+			<documentation>Name/Value pair</documentation>
+		</annotation>
+    	<attribute name="name" type="string">
+    		<annotation>
+				<documentation>Name of the parameter</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="value" type="string">
+    		<annotation>
+				<documentation>Value of the parameter</documentation>
+			</annotation>
+    	</attribute>
+    </complexType>
+
+    <complexType name="filterConfigType">
+    	<annotation><documentation>Provides configuration for a filter configured on a URL.  Any param with the same name but multiple values will be a multi value attribute inside of OpenUnison</documentation></annotation>
+    	<sequence>
+    		<element name="param" type="tns:paramType" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    	<attribute name="class" type="string">
+    		<annotation><documentation>The class name of the filter, must implement com.tremolosecurity.proxy.filter.HttpFilter</documentation></annotation>
+    	</attribute>
+    </complexType>
+
+    <complexType name="filterChainType">
+    	<annotation>
+			<documentation>Configure a list of HttpFilter objects that will be executed on this URL on each request</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="filter" type="tns:filterConfigType" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+    <simpleType name="proxyToType">
+    	<annotation>
+			<documentation>The full URL of the down stream application.  MUST contain at least one parameter in a ${} with the default parameter being fullURI.  As an example: http://host:port${fullURI}</documentation>
+		</annotation>
+    	<restriction base="string"></restriction>
+    </simpleType>
+
+    <complexType name="urlsType">
+    	<annotation>
+			<documentation>List of URLs that make an application</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="url" type="tns:urlType" maxOccurs="unbounded" minOccurs="1"></element>
+    	</sequence>
+    </complexType>
+
+
+    <complexType name="tremoloType">
+    	<annotation>
+			<documentation>The base configuration type for Unison</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="applications" type="tns:applicationsType"></element>
+    		<element name="myvdConfig" type="string" maxOccurs="1"
+    			minOccurs="1">
+    			<annotation>
+    				<documentation>
+    					Path to myvd.conf, should start with "WEB-INF/"
+    				</documentation>
+    			</annotation>
+    		</element>
+    		<element name="authMechs" type="tns:authMechTypes"
+    			maxOccurs="1" minOccurs="1">
+    		</element>
+    		<element name="authChains" type="tns:authChainsType"
+    			maxOccurs="1" minOccurs="1">
+    		</element>
+            <element name="customAzRules" type="tns:customAzRulesType" minOccurs="0" maxOccurs="1"></element>
+            <element name="resultGroups" type="tns:resultGroupsType"
+    			maxOccurs="1" minOccurs="1">
+    		</element>
+    		<element name="keyStorePath" type="string" maxOccurs="1"
+    			minOccurs="1">
+    			<annotation>
+    				<documentation>
+    					Path to the keystore, should start with
+    					"WEB-INF/"
+    				</documentation>
+    			</annotation>
+    		</element>
+    		<element name="keyStorePassword" type="string" maxOccurs="1"
+    			minOccurs="1">
+    			<annotation>
+    				<documentation>
+    					Password for the keystore and all keys
+    				</documentation>
+    			</annotation>
+    		</element>
+    		<element name="provisioning" type="tns:provisioningType"
+    			maxOccurs="1" minOccurs="0">
+    		</element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="applicationsType">
+    	<annotation>
+			<documentation>List of all applications configured on this Unison instance</documentation>
+		</annotation>
+    	<sequence maxOccurs="1" minOccurs="1">
+    		<element name="application" type="tns:applicationType"
+    			maxOccurs="unbounded" minOccurs="0">
+    		</element>
+    	</sequence>
+    	<attribute name="openSessionCookieName" type="string" default="unisonOpenSession">
+    		<annotation>
+				<documentation>Name of the cookie for open sessions</documentation>
+			</annotation>
+    		
+    	</attribute>
+    	<attribute name="openSessionTimeout" type="int" default="900">
+    		<annotation>
+				<documentation>Number of seconds open sessions should be allowed until it times out</documentation>
+			</annotation>
+    	</attribute>
+    </complexType>
+
+    <element name="tremoloConfig" type="tns:tremoloType"></element>
+
+
+    <complexType name="configType">
+    	<annotation><documentation>Provides a common configuration type</documentation></annotation>
+    	<sequence>
+    		<element name="param" type="tns:paramType" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="mechanismType">
+    	<sequence>
+    		<element name="uri" type="string" maxOccurs="1"
+    			minOccurs="1">
+    			<annotation>
+					<documentation>The URI on Unison that will host the mechanism. Must start with "/auth/"</documentation>
+				</annotation>
+    		</element>
+    		<element name="className" type="string" maxOccurs="1" minOccurs="1">
+    			<annotation>
+					<documentation>Implementation of com.tremolosecurity.proxy.auth.AuthMecahnism</documentation>
+				</annotation>
+    		</element>
+    		<element name="init" type="tns:configType" maxOccurs="1"
+    			minOccurs="1">
+    		</element>
+    		<element name="params" type="tns:paramListType"
+    			maxOccurs="1" minOccurs="1">
+    		</element>
+    	</sequence>
+    	<attribute name="name" type="string">
+    		<annotation>
+				<documentation>Name of the mechanism</documentation>
+			</annotation>
+    	</attribute>
+    </complexType>
+
+    <complexType name="paramListType">
+    	<annotation>
+			<documentation>Deprecated, do not use</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="param" type="string" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="authMechTypes">
+    	<annotation>
+			<documentation>List of authentication mechanisms for this chain</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="mechanism" type="tns:mechanismType" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="authMechType">
+    	<annotation>
+			<documentation>Implementation of an authentication mechanism for this chain</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="name" type="string" maxOccurs="1"
+    			minOccurs="1">
+    			<annotation>
+					<documentation>The name of the authentication mechanism being implemented</documentation>
+				</annotation>
+    		</element>
+    		<element name="required" maxOccurs="1" minOccurs="1">
+    			<annotation>
+					<documentation>Determines if the mechanism is required or simply sufficient.  Sufficient mechanisms are skipped if the required mechanisms are successfully completed.</documentation>
+				</annotation>
+    			<simpleType>
+    				<restriction base="string">
+    					<enumeration value="sufficient"></enumeration>
+    					<enumeration value="required"></enumeration>
+    				</restriction>
+    			</simpleType>
+    		</element>
+    		<element name="params" type="tns:authMechParamType"
+    			maxOccurs="1" minOccurs="1">
+    		</element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="authMechParamType">
+    	<annotation>
+			<documentation>List of name value pairs for the authentication mechanism.  The same parameter may be listed multiple times to provide multiple values</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="param" type="tns:paramType" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="authChainType">
+    	<annotation>
+			<documentation>Configuration of a chain of authentication mechanisms</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="authMech" type="tns:authMechType"
+    			maxOccurs="unbounded" minOccurs="1">
+    		</element>
+    	</sequence>
+    	<attribute name="name" type="string">
+    		<annotation>
+				<documentation>The name of the authentication chain</documentation>
+			</annotation>
+    		
+    	</attribute>
+    	
+    	<attribute name="level" type="int">
+    		<annotation>
+				<documentation>The level this authentication chain will be required to have.  If a user has a lower level, this will trigger Unison to re-authenticate the user</documentation>
+			</annotation>
+    		
+    	</attribute>
+    	<attribute name="finishOnRequiredSucess" type="boolean"
+    		default="false">
+    		<annotation>
+				<documentation>If set to true, stop processing if all required mechanisms are completed</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="root" type="string">
+    		<annotation>
+				<documentation>The directory root in the internal virtual directory to look up users.  Should end in o=Tremolo</documentation>
+			</annotation>
+    	</attribute>
+    </complexType>
+
+    <complexType name="authChainsType">
+    	<annotation>
+			<documentation>List of authentication chains</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="chain" type="tns:authChainType" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="resultType">
+    	<annotation>
+			<documentation>A result to an event</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="type" maxOccurs="1" minOccurs="1">
+    			<annotation>
+					<documentation>Form the result will take</documentation>
+				</annotation>
+    			<simpleType>
+    				<restriction base="string">
+    					<enumeration value="header">
+    						<annotation>
+								<documentation>Adds a header to the request, only available on authorization events</documentation>
+							</annotation>
+    					</enumeration>
+    					
+    					<enumeration value="cookie">
+    						<annotation>
+								<documentation>Sends a cookie to the user's browser based on the cookie configuration for the application this result is defined on</documentation>
+							</annotation>
+    					
+    					</enumeration>
+    					<enumeration value="redirect">
+    						<annotation>
+								<documentation>Sends a 302 redirect to the user's browser</documentation>
+							</annotation>
+    					</enumeration>
+    					<enumeration value="assertion"></enumeration>
+    				</restriction>
+    			</simpleType>
+    		</element>
+    		<element name="source" maxOccurs="1" minOccurs="1">
+    			<annotation>
+					<documentation>Where the data for the result will come from</documentation>
+				</annotation>	
+    			<simpleType>
+    				<restriction base="string">
+    					<enumeration value="static">
+    						<annotation>
+								<documentation>A hard coded value</documentation>
+							</annotation>
+    					
+    					</enumeration>
+    					<enumeration value="user">
+    						<annotation>
+								<documentation>An attribute from the user object</documentation>
+							</annotation>
+    					</enumeration>
+    					<enumeration value="custom">
+    						<annotation>
+								<documentation>Implementation of the com.tremolosecurity.proxy.rusults.CustomResult</documentation>
+							</annotation>
+    					
+    					</enumeration>
+    				</restriction>
+    			</simpleType>
+    		</element>
+    		<element name="value" type="string" maxOccurs="1" minOccurs="1">
+    			<annotation>
+					<documentation>The data for the result, based on the source</documentation>
+				</annotation>
+    		</element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="resultGroupType">
+    	<annotation>
+			<documentation>List of results that are executed in response to an event</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="result" type="tns:resultType" maxOccurs="unbounded" minOccurs="1"></element>
+    	</sequence>
+    	<attribute name="name" type="string">
+    		<annotation>
+				<documentation>Name of the result group</documentation>
+			</annotation>
+    	</attribute>
+    </complexType>
+
+    <complexType name="resultRefType">
+    	<annotation>
+			<documentation>List of events and associated results</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="auSuccess" type="string" maxOccurs="1"
+    			minOccurs="0">
+    			<annotation>
+					<documentation>The result to execute when a user successfully authenticates</documentation>
+				</annotation>
+    		</element>
+    		<element name="auFail" type="string" maxOccurs="1"
+    			minOccurs="0">
+    			<annotation>
+					<documentation>The result to execute when a user fails their authentication</documentation>
+				</annotation>
+    		</element>
+    		<element name="azSuccess" type="string" maxOccurs="1"
+    			minOccurs="0">
+    			<annotation>
+					<documentation>The result to execute when a user is successfully authorized</documentation>
+				</annotation>
+    		</element>
+    		<element name="azFail" type="string" maxOccurs="1" minOccurs="0">
+    			<annotation>
+					<documentation>The result to execute when the user is not authorized</documentation>
+				</annotation>
+    		</element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="resultGroupsType">
+    <annotation>
+			<documentation>List of result groups</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="resultGroup" type="tns:resultGroupType" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="azRuleType">
+    	<annotation>
+			<documentation>Defines an authorization rule</documentation>
+		</annotation>
+    	<attribute name="scope">
+    		<annotation>
+			<documentation>Defines what will be considered for authorization</documentation>
+			</annotation>
+    		<simpleType>
+    			<restriction base="string">
+    				<enumeration value="filter">
+    					<annotation>
+			<documentation>An LDAP filter that is evaluated on the current user</documentation>
+			</annotation>
+    				</enumeration>
+    				<enumeration value="group">
+    				<annotation>
+			<documentation>An LDAP static group (groupOfUniqueNames) that a user must be a member of</documentation>
+			</annotation>
+    					
+    				</enumeration>
+    				<enumeration value="dn">
+    					<annotation>
+			<documentation>A root DN that the user must be a child object of in the virtual directory.  For instance o=Tremolo would authenticate all users</documentation>
+						</annotation>
+    				</enumeration>
+    				<enumeration value="dynamicGroup">
+    				<annotation>
+			<documentation>The DN of an LDAP dynamic group (groupOfURLs)</documentation>
+			</annotation>
+    				</enumeration>
+    				<enumeration value="custom">
+    				<annotation>
+			<documentation>Not yet implemented</documentation>
+			</annotation>
+    				</enumeration>
+    			</restriction>
+    		</simpleType>
+    	</attribute>
+    	<attribute name="constraint" type="string">
+    		<annotation>
+			<documentation>The value of the rule, for instance the DN of the group or the LDAP filter</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="className" type="string">
+    		<annotation>
+			<documentation>Not yet implemented</documentation>
+			</annotation>
+    	
+    	</attribute>
+    </complexType>
+
+    <complexType name="azRulesType">
+    	<annotation>
+			<documentation>List of the authorization rules</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="rule" type="tns:azRuleType" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="cookieConfigType">
+    	<annotation>
+			<documentation>Configuration for an application's cookies</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="sessionCookieName" type="string"
+    			maxOccurs="1" minOccurs="1">
+    			<annotation>
+			<documentation>Name of the cookie</documentation>
+			</annotation>
+    		</element>
+    		<element name="domain" type="string" maxOccurs="1"
+    			minOccurs="1">
+    			<annotation>
+			<documentation>Domain of the cookie</documentation>
+			</annotation>
+    		</element>
+    		<element name="scope" type="integer" maxOccurs="1"
+    			minOccurs="1">
+    			<annotation>
+			<documentation>Not implemented</documentation>
+			</annotation>
+    		</element>
+    		<element name="logoutURI" type="string" maxOccurs="1"
+    			minOccurs="1">
+    			<annotation>
+			<documentation>The URL path to interpret as a logout and to clear the user's session</documentation>
+			</annotation>
+    		</element>
+    		<element name="keyAlias" type="string" maxOccurs="1"
+    			minOccurs="1">
+    			<annotation>
+			<documentation>The name of the SecretKey in your keystore used to encrypt the session</documentation>
+			</annotation>
+    		</element>
+    		<element name="keyPassword" type="string" maxOccurs="1"
+    			minOccurs="1">
+    			<annotation>
+			<documentation>Not implemented</documentation>
+			</annotation>
+    		</element>
+    		<element name="secure" type="boolean" maxOccurs="1"
+    			minOccurs="1">
+    			<annotation>
+			<documentation>If true, the cookie will have the HttpsOnly flag set</documentation>
+			</annotation>
+    		</element>
+    		<element name="timeout" type="int" maxOccurs="1" minOccurs="1">
+    			<annotation>
+			<documentation>Lenth, in seconds, until the session will timeout from inactivity</documentation>
+			</annotation>
+    		
+    		</element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="targetType">
+    <annotation>
+			<documentation>A provisioning target is a resource that can be used to write user data from a workflow</documentation>
+			</annotation>
+    	<sequence>
+    		<element name="params" type="tns:targetConfigType"
+    			maxOccurs="1" minOccurs="0">
+    		</element>
+    		<element name="targetAttribute"
+    			type="tns:targetAttributeType" maxOccurs="unbounded"
+    			minOccurs="1">
+    		</element>
+
+    	</sequence>
+    	<attribute name="name" type="string">
+    		<annotation>
+			<documentation>Name of the target</documentation>
+			</annotation>
+    	
+    	</attribute>
+    	<attribute name="className" type="string">
+    	<annotation>
+			<documentation>Implementation of com.tremolosecurity.provisioning.core.ProvisioningTarget</documentation>
+			</annotation>
+    	
+    	</attribute>
+    </complexType>
+
+    <complexType name="targetAttributeType">
+    	<annotation>
+			<documentation>Mapping from Unison to the provisioning target</documentation>
+		</annotation>
+    	<attribute name="name" type="string">
+    	<annotation>
+			<documentation>Name of the attribute in the target system
+			</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="source" type="string">
+    	<annotation>
+			<documentation>The value of the attribute, based on the sourceType</documentation>
+			</annotation>
+    	
+    	</attribute>
+    	<attribute name="sourceType">
+    		<annotation>
+			<documentation>Defines how the attribute value is set</documentation>
+			</annotation>
+    		<simpleType>
+    			<restriction base="string">
+    				<enumeration value="static">
+    				<annotation>
+			<documentation>A simple string of text</documentation>
+    				</annotation>
+    				</enumeration>
+    				<enumeration value="user">
+    					<annotation>
+			<documentation>The attribute will come from a user attribute</documentation>
+			</annotation>
+    				
+    				</enumeration>
+    				<enumeration value="custom">
+    					<annotation>
+			<documentation>Implementation of com.tremolosecurity.provisioning.mapping.CustomMapping</documentation>
+			</annotation>
+    				
+    				</enumeration>
+    			</restriction>
+    		</simpleType>
+    	</attribute>
+    </complexType>
+
+    <complexType name="targetsType">
+    	<annotation>
+			<documentation>List of provisioning targets</documentation>
+			</annotation>
+    	<sequence>
+    		<element name="target" type="tns:targetType" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="provisioningType">
+    <annotation>
+			<documentation>Top level provisioning configuration</documentation>
+			</annotation>
+    <sequence>
+    	<element name="targets" type="tns:targetsType"></element>
+    	<element name="workflows" type="tns:workflowsType"></element>
+    	<element name="approvalDB" type="tns:approvalDBType"
+    		maxOccurs="1" minOccurs="0">
+    	</element>
+    	<element name="org" type="tns:orgType"></element>
+    	<element name="queueConfig" type="tns:queueConfigType"
+    		maxOccurs="1" minOccurs="0">
+    	</element>
+    	<element name="portal" type="tns:portalUrlsType" minOccurs="0"
+    		maxOccurs="1">
+    	</element>
+    	<element name="scheduler" type="tns:schedulingType"
+    		minOccurs="0" maxOccurs="1">
+    	</element>
+    	<element name="listeners" type="tns:messageListenersType"
+    		minOccurs="0" maxOccurs="1">
+    	</element>
+    	<element name="reports" type="tns:reportsType" minOccurs="0" maxOccurs="1"></element>
+    </sequence>
+    </complexType>
+
+
+    <complexType name="workflowTaskType" abstract="true">
+    	<annotation>
+			<documentation>Individual workflow task</documentation>
+			</annotation>
+    	<group ref="tns:workflowTasksGroup" maxOccurs="unbounded" minOccurs="0"></group>
+    	
+    	
+    </complexType>
+
+    <complexType name="provisionType">
+    	<annotation>
+			<documentation>Workflow task for provisioning an account to a target type, may not have children</documentation>
+			</annotation>
+    	<complexContent>
+    		<extension base="tns:workflowTaskType">
+    			<sequence></sequence>
+    			<attribute name="sync" type="boolean">
+    				<annotation>
+			<documentation>If set to true, then the target object will be made to exactly match the Unison user object including deleting non existent attributes.  If false then only new values are sent.</documentation>
+			</annotation>
+    			</attribute>
+    			<attribute name="target" type="string">
+    				<annotation>
+			<documentation>The name of the provisioning target to execute against</documentation>
+			</annotation>
+    			
+    			</attribute>
+    			<attribute name="setPassword" type="boolean" default="false">
+    				<annotation>
+			<documentation>If set to true, the task will attempt to set the object's password on the remote target</documentation>
+			</annotation>
+    			
+    			</attribute>
+    		</extension>
+    	</complexContent>
+    </complexType>
+
+    <complexType name="workflowType">
+		<annotation>
+			<documentation>A workflow is a series of tasks and decisions to update downstream identity stores</documentation>
+			</annotation>
+
+    	<group ref="tns:workflowTasksGroup" maxOccurs="unbounded"
+    		minOccurs="0">
+    	</group>
+
+    	<attribute name="name" type="string">
+    		<annotation>
+			<documentation>Name of the workflow</documentation>
+			</annotation>
+    	
+    	</attribute>
+    	<attribute name="label" type="string">
+    		<annotation>
+			<documentation>A human readable name</documentation>
+			</annotation>
+    	
+    	</attribute>
+    	<attribute name="description" type="string">
+    		<annotation>
+			<documentation>A description of the workflow</documentation>
+			</annotation>
+    	
+    	</attribute>
+    	<attribute name="inList" type="boolean">
+    		<annotation>
+			<documentation>If set to true, then this workflow will be listed by the provisioning web services</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="orgid" type="string">
+    		<annotation>
+			<documentation>The UUID of the organization this workflow must be listed under</documentation>
+			</annotation>
+    	</attribute>
+    </complexType>
+
+    <complexType name="workflowsType">
+    	<annotation>
+			<documentation>List of workflows</documentation>
+		</annotation>
+    	<sequence>
+    		<element name="workflow" type="tns:workflowType" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+
+
+
+    <group name="workflowTasksGroup">
+
+    	<choice>
+    		<element name="provision" type="tns:provisionType"></element>
+    		<element name="ifNotUserExists"
+    			type="tns:ifNotUserExistsType">
+    		</element>
+    		<element name="addGroup" type="tns:addGroupType"></element>
+    		<element name="resync" type="tns:resyncType"></element>
+    		<element name="ifAttrHasValue"
+    			type="tns:ifAttrHasValueType">
+    		</element>
+    		<element name="ifAttrExists" type="tns:ifAttrExistsType"></element>
+    		<element name="addAttribute" type="tns:addAttributeType"></element>
+    		<element name="mapping" type="tns:mappingType"></element>
+    		<element name="approval" type="tns:approvalType"></element>
+    		<element name="callWorkflow" type="tns:callWorkflowType"></element>
+    		<element name="notifyUser" type="tns:notifyUserType"></element>
+    		<element name="customTask" type="tns:customTaskType"></element>
+    		<element name="delete" type="tns:deleteType"></element>
+    	</choice>
+
+    </group>
+    
+
+    <complexType name="ifNotUserExistsType">
+    <annotation>
+			<documentation>Task to determine if a user exists in a given target, may have children</documentation>
+			</annotation>
+    	<complexContent>
+    		<extension base="tns:workflowTaskType">
+    			<attribute name="target" type="string">
+    				<annotation>
+			<documentation>The name of the provisioning target to check</documentation>
+			</annotation>
+    			
+    			</attribute>
+    			<attribute name="uidAttribute" type="string">
+    				<annotation>
+			<documentation>The name of the attribute to identify the user</documentation>
+			</annotation>
+    			</attribute>
+    		</extension>
+    	</complexContent>
+    </complexType>
+    <attributeGroup name="NewAttributeGroup"></attributeGroup>
+
+    <complexType name="provisionMappingType">
+    <annotation>
+			<documentation>Provides a mapping of the Unison user object.  This task creates a copy of the object for all children of this task</documentation>
+			</annotation>
+    	<sequence></sequence>
+    	<attribute name="targetAttributeName" type="string">
+    		<annotation>
+			<documentation>Name of the attribute to map to</documentation>
+			</annotation>
+    	
+    	</attribute>
+    	<attribute name="targetAttributeSource" type="string">
+    		<annotation>
+			<documentation>The source of the attribute, based on the sourceType</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="sourceType">
+    		<annotation>
+			<documentation>Defines how the mapping will occur</documentation>
+			</annotation>
+    		<simpleType>
+    			<restriction base="string">
+    				<enumeration value="static">
+    					<annotation>
+			<documentation>Set the attribute to a static string</documentation>
+			</annotation>
+    				</enumeration>
+    				<enumeration value="user">
+    					<annotation>
+			<documentation>Set the attribute from an attribute on the user</documentation>
+			</annotation>
+    				</enumeration>
+    				<enumeration value="custom">
+    				<annotation>
+			<documentation>Implementation of com.tremolosecurity.provisioning.mapping.CustomMapping</documentation></annotation>
+    				</enumeration>
+    				<enumeration value="composite">
+    				<annotation>
+			<documentation>A string combined with user attributes enclosed in ${}.  For instance to combine a givenName and sn use "${givenName} ${sn}"</documentation>
+			</annotation>
+    				
+    				</enumeration>
+    			</restriction>
+    		</simpleType>
+    	</attribute>
+    </complexType>
+
+    <complexType name="provisionMappingsType">
+    <annotation>
+			<documentation>Collection of mappings</documentation></annotation>
+    	<sequence>
+    		<element name="mapping" type="tns:provisionMappingType" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="addGroupType">
+    <annotation>
+			<documentation>Adds a group to the user object</documentation>
+			</annotation>
+    	<complexContent>
+    		<extension base="tns:workflowTaskType">
+    			<attribute name="name" type="string">
+    			<annotation>
+			<documentation>The name of the group to add</documentation>
+			</annotation>
+    			</attribute>
+    		</extension>
+    	</complexContent>
+    </complexType>
+
+    <complexType name="resyncType">
+    <annotation>
+			<documentation>Determines if the workflow should reload the Unison user object after the workflow is executed.  This is useful for Unison policies that rely on the 
+			outcome of the workflow</documentation>
+			</annotation>
+    	<complexContent>
+    		<extension base="tns:workflowTaskType">
+    			<attribute name="keepExternalAttrs" type="boolean">
+    			<annotation>
+			<documentation>If set to true, any attributes from an external source (such as an assertion) will be maintained even if they are not present on the user's object in the 
+			virtual directory</documentation>
+			</annotation>
+    			</attribute>
+    		</extension>
+    	</complexContent>
+    </complexType>
+
+    <complexType name="ifAttrHasValueType">
+    <annotation>
+			<documentation>This task will execute subtasks if the named attribute has the specified value</documentation>
+			</annotation>
+    	<complexContent>
+    		<extension base="tns:workflowTaskType">
+    			<attribute name="name" type="string">
+    				<annotation>
+			<documentation>Name of the attribute to check</documentation>
+			</annotation>
+    			
+    			</attribute>
+    			<attribute name="value" type="string">
+    			<annotation>
+			<documentation>The value to check for</documentation>
+			</annotation>
+    			
+    			</attribute>
+    		</extension>
+    	</complexContent>
+    </complexType>
+
+
+    <complexType name="ifAttrExistsType">
+    	<annotation>
+			<documentation>This task will run subtasks if the named attribute exists on the user</documentation>
+			</annotation>
+    	<complexContent>
+    		<extension base="tns:workflowTaskType">
+    			<attribute name="name" type="string">
+    				<annotation>
+			<documentation>Name of the attribute to look for</documentation>
+			</annotation>
+    			</attribute>
+    		</extension>
+    	</complexContent>
+    </complexType>
+
+    <complexType name="addAttributeType">
+    <annotation>
+			<documentation>Adds an attribute to the user's object</documentation>
+			</annotation>
+    	<complexContent>
+    		<extension base="tns:workflowTaskType">
+    			<attribute name="name" type="string">
+    				<annotation>
+			<documentation>Name of the attribute to add</documentation>
+			</annotation>
+    			
+    			</attribute>
+    			<attribute name="value" type="string">
+    			<annotation>
+			<documentation>Value of the attribute</documentation>
+			</annotation>
+    			</attribute>
+    		</extension>
+    	</complexContent>
+    </complexType>
+
+    <complexType name="targetConfigType">
+    <annotation>
+			<documentation>List of target configuration options</documentation>
+			</annotation>
+    	<sequence>
+    		<element name="param" type="tns:paramType" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="mappingType">
+    	<annotation>
+			<documentation>Provides a mapping of the user based on the map element</documentation>
+			</annotation>
+    	<complexContent>
+    		<extension base="tns:workflowTaskType">
+    			<sequence>
+    				<element name="map"
+    					type="tns:provisionMappingsType">
+    				</element>
+    			</sequence>
+    			<attribute name="strict" type="boolean">
+    				<annotation>
+			<documentation>If set to true, only attributes excplicitly named in this mapping will be available to subtasks</documentation>
+			</annotation>
+    			
+    			</attribute>
+    		</extension>
+    	</complexContent>
+    </complexType>
+
+    <complexType name="idpType">
+    <annotation>
+			<documentation>Defines an identity provider for a URL</documentation>
+			</annotation>
+    	<sequence>
+    		<element name="params" type="tns:paramType"
+    			maxOccurs="unbounded" minOccurs="0">
+    		</element>
+    		<element name="mappings" type="tns:idpMappingType"
+    			maxOccurs="1" minOccurs="1">
+    		</element>
+    		<element name="trusts" type="tns:trustsType" maxOccurs="1" minOccurs="1"></element>
+    	</sequence>
+    	<attribute name="className" type="string">
+    		<annotation>
+			<documentation>Implementation of com.tremolosecurity.idp.server.IdentityProvider</documentation>
+			</annotation>
+    	</attribute>
+    </complexType>
+
+    <complexType name="idpsType">
+    	<annotation>
+			<documentation>List of identity providers on this URL</documentation>
+			</annotation>
+    	<sequence>
+    		<element name="idp" type="tns:idpType" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="trustType">
+    <annotation>
+			<documentation>Defines a trust relationship between the identity provider and relying party</documentation>
+			</annotation>
+    	<sequence>
+    		<element name="param" type="tns:paramType" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    	<attribute name="name" type="string">
+    		<annotation>
+			<documentation>Name of the trust</documentation>
+			</annotation>
+    	
+    	</attribute>
+    </complexType>
+
+    <complexType name="trustsType">
+    <annotation>
+			<documentation>Define a list of trusts</documentation>
+			</annotation>
+    	<sequence>
+    		<element name="trust" type="tns:trustType" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="idpMappingType">
+    <annotation>
+			<documentation>Define a mapping from the user's object into an assertion</documentation>
+			</annotation>
+    	<sequence>
+    		<element name="mapping" type="tns:provisionMappingType" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    	<attribute name="strict" type="boolean">
+    	<annotation>
+			<documentation>If true, only map attributes explicitly defined into the assertion</documentation>
+			</annotation>
+    	</attribute>
+    </complexType>
+
+    <complexType name="approvalType">
+    	<annotation>
+			<documentation>Defines an approval step that must be completed before executing sub tasks</documentation>
+			</annotation>
+    
+    	<complexContent>
+    		<extension base="tns:workflowTaskType">
+    			<sequence>
+    				<element name="emailTemplate" type="string"
+    					maxOccurs="1" minOccurs="1">
+
+    					<annotation>
+    						<documentation>
+    							A template for emails to be sent to
+    							approvers. Attributes from the approver
+    							may be added using ${}, ie to add the
+    							givenName ${givenName}
+    						</documentation>
+    					</annotation>
+    				</element>
+    				<element name="approvers" type="tns:azRulesType"
+    					maxOccurs="1" minOccurs="1">
+    				</element>
+    				<element name="mailAttr" type="string" maxOccurs="1"
+    					minOccurs="1">
+    					<annotation>
+    						<documentation>
+    							The attribute on the user to find their
+    							email address
+    						</documentation>
+    					</annotation>
+    				</element>
+    				<element name="failureEmailSubject" type="string"
+    					maxOccurs="1" minOccurs="1">
+    					<annotation>
+    						<documentation>
+    							Subject of the email to be sent to the
+    							requestor if the approval request is
+    							rejected
+    						</documentation>
+    					</annotation>
+    				</element>
+    				<element name="failureEmailMsg" type="string"
+    					maxOccurs="1" minOccurs="1">
+    					<annotation>
+    						<documentation>
+    							A template for emails to be sent to
+    							users after a failure. Attributes from
+    							the approver may be added using ${}, ie
+    							to add the givenName ${givenName}
+    						</documentation>
+    					</annotation>
+
+    				</element>
+    				<element name="escalationPolicy" type="tns:escalationPolicyType" minOccurs="0" maxOccurs="1"></element>
+    			</sequence>
+    			<attribute name="label" type="string">
+    			<annotation>
+			<documentation>Label for this approval in reports</documentation>
+			</annotation>
+    			</attribute>
+    		</extension>
+    	</complexContent>
+    </complexType>
+
+    <complexType name="approvalDBType">
+    <annotation>
+			<documentation>Defines the database used to track requests and approvals</documentation>
+			</annotation>
+    <sequence>
+    	<element name="driver" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>JDBC Driver</documentation>
+    		</annotation>
+    	</element>
+    	<element name="url" type="string" maxOccurs="1" minOccurs="1">
+    		<annotation>
+    			<documentation>JDBC URL</documentation>
+    		</annotation>
+    	</element>
+    	<element name="user" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				User for connecting to the database
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="password" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				Password for connecting to the database
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="maxConns" type="int" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				Maximum number of connections
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="maxIdleConns" type="int" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>Maximum idle connections</documentation>
+    		</annotation>
+    	</element>
+    	<element name="userIdAttribute" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				User attribute that identifies the user (ie uid)
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="approverAttributes" type="tns:listType"
+    		maxOccurs="1" minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				List of approver attributes to be tracked in the
+    				database. A field for each attribute should be added
+    				to the approvers table.
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="userAttributes" type="tns:listType" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				List of user attributes to be tracked in the
+    				database. A field for each attribute should be added
+    				to the users table.
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="enabled" type="boolean" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				If true, the approval database will be used to log
+    				all provisioning transactions
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpHost" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				SMTP host for sending emails
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpPort" type="int" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				SMTP Port for sending emails
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpUser" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>User for the SMTP server</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpPassword" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				Password for connecting to the SMTP server
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpSubject" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>Subject for notifications</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpFrom" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				Address to use in the From field
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpTLS" type="boolean" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				Use TLS for connecting to the SMTP server
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="encryptionKey" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				Name of the key in the keystore for encrypting
+    				workflows in the database
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpUseSOCKSProxy" type="boolean" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				If set to true, Unison will use a SOCKS proxy
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpSOCKSProxyHost" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				If using a SOCKS proxy, the host
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpSOCKSProxyPort" type="int" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				If using a SOCKS proxy, the port
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="smtpLocalhost" type="string" maxOccurs="1"
+    		minOccurs="1">
+    		<annotation>
+    			<documentation>
+    				If using a SOCKS proxy, the localhost name to send
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="maskAttribute" type="string"
+    		maxOccurs="unbounded" minOccurs="0">
+    		<annotation>
+    			<documentation>
+    				List of attributes whos values are NOT to be
+    				recorderd in the database
+    			</documentation>
+    		</annotation>
+    	</element>
+    	<element name="validationQuery" type="string" minOccurs="0" maxOccurs="1"></element>
+    </sequence>
+    </complexType>
+
+    <complexType name="listType">
+    	<sequence>
+    		<element name="value" type="string" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="callWorkflowType">
+    <annotation>
+			<documentation>Task to call an existing workflow</documentation>
+			</annotation>
+    	<complexContent>
+    		<extension base="tns:workflowTaskType">
+    			<attribute name="name" type="string">
+    			
+    			<annotation>
+			<documentation>Name of the workflow being called</documentation>
+			</annotation>
+    			</attribute>
+    		</extension>
+    	</complexContent>
+    </complexType>
+
+    <complexType name="notifyUserType">
+    	<annotation>
+			<documentation>Notify the subject of a workflow</documentation></annotation>
+    	<complexContent>
+    		<extension base="tns:workflowTaskType">
+    			<sequence>
+    				<element name="msg" type="string" maxOccurs="1" minOccurs="1">
+    				<annotation>
+			<documentation>Message to be sent, include user's attributes by enclosing them in ${}.  For instance to include givenName, ${givenName}</documentation>
+			</annotation>
+    				</element>
+    			</sequence>
+    			<attribute name="subject" type="string">
+    			<annotation>
+			<documentation>The subject line of the email</documentation>
+			</annotation>
+    			
+    			</attribute>
+    			<attribute name="mailAttrib" type="string">
+    			<annotation>
+			<documentation>The attribute containing the user's email address
+			</documentation></annotation>
+    			</attribute>
+    		</extension>
+    	</complexContent>
+    </complexType>
+
+    <complexType name="customTaskType">
+    <annotation>
+			<documentation>Call a custom workflow task</documentation>
+			</annotation>
+    	<complexContent>
+    		<extension base="tns:workflowTaskType">
+    			<sequence>
+    				<element name="param" type="tns:paramType" maxOccurs="unbounded" minOccurs="0"></element>
+    			</sequence>
+    			<attribute name="className" type="string"><annotation>
+			<documentation>Implementation of com.tremolosecurity.provisioning.util.CustomTask</documentation></annotation>
+			
+			</attribute>
+    		</extension>
+    	</complexContent>
+    </complexType>
+
+    <complexType name="deleteType">
+    	<annotation>
+			<documentation>Delete the user from the target</documentation>
+			</annotation>
+    	<complexContent>
+    		<extension base="tns:workflowTaskType">
+    			<attribute name="target" type="string">
+    				<annotation>
+			<documentation>The name of the provisioning target to delete the user from</documentation>
+			</annotation>
+    			</attribute>
+    		</extension>
+    	</complexContent>
+    </complexType>
+
+    <element name="application" type="tns:applicationType">
+    	<annotation>
+			<documentation>Top level element for an application</documentation></annotation>
+    </element>
+
+    <element name="workflow" type="tns:workflowType">
+    	<annotation>
+			<documentation>Top level element for a workflow</documentation>
+			</annotation>
+    </element>
+
+    <complexType name="orgType">
+    	<annotation>
+			<documentation>An organization can be used to organize workflows and portal links</documentation>
+			</annotation>
+    	<sequence>
+    		<element name="orgs" type="tns:orgType"
+    			maxOccurs="unbounded" minOccurs="0">
+    			<annotation>
+			<documentation>Child organizations</documentation>
+			</annotation>
+    		</element>
+    		<element name="azRules" type="tns:azRulesType">
+    		<annotation>
+			<documentation>List of optional authorization rules associated with this orgnaization</documentation>
+			</annotation>
+    		</element>
+    	</sequence>
+    	<attribute name="name" type="string">
+    	<annotation>
+			<documentation>Name of the organization</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="description" type="string">
+    	<annotation>
+			<documentation>Description of the orgnaization</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="uuid" type="string">
+    	<annotation>
+			<documentation>A unique UUID used to identify this orgnaization</documentation>
+			</annotation>
+    	</attribute>
+    </complexType>
+
+
+    <complexType name="queueConfigType">
+    <annotation>
+			<documentation>Configuration of how Unison will utilize a JMS Queue</documentation>
+			</annotation>
+    	<sequence>
+    		<element name="param" type="tns:paramType"
+    			maxOccurs="unbounded" minOccurs="0">
+    		</element>
+    	</sequence>
+    	<attribute name="isUseInternalQueue" type="boolean"
+    		default="true">
+    		<annotation>
+			<documentation>If true, Unison will use an embedded verison of ActiveMQ</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="maxProducers" type="int" default="1">
+    		<annotation>
+			<documentation>Number of producer threads</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="connectionFactory" type="string">
+    		<annotation>
+			<documentation>Class name for the JMS connection factory</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="maxConsumers" type="int" default="1">
+    		<annotation>
+			<documentation>Maximum number of consumer threads</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="taskQueueName" type="string"
+    		default="TremoloUnisonTaskQueue">
+    		<annotation>
+			<documentation>Name of the queue for storing Unison tasks</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="smtpQueueName" type="string"
+    		default="TremoloUnisonSMTPQueue">
+    		<annotation>
+			<documentation>Name of the queue to store emails in</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="encryptionKeyName" type="string">
+    	<annotation>
+			<documentation>Name of the encryption key for encrypting messages send to the queue</documentation>
+			</annotation>
+    	
+    	</attribute>
+    </complexType>
+
+    <complexType name="portalUrlType">
+    	<annotation>
+			<documentation>A portal URL can be to any resource</documentation>
+			</annotation>
+    	<sequence>
+    		<element name="azRules" type="tns:azRulesType">
+    		<annotation>
+			<documentation>Authorization rule for if a user should be shown a link</documentation>
+			</annotation>
+    		
+    		</element>
+    	</sequence>
+    	<attribute name="label" type="string">
+    	<annotation>
+			<documentation>Label for the URL</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="url" type="string">
+    		<annotation>
+			<documentation>The URL for the remote resource</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="name" type="string">
+    	<annotation>
+			<documentation>Name of the URL
+			</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="org" type="string">
+    		<annotation>
+			<documentation>The UUID of the organization to place this URL in</documentation>
+    		</annotation>
+    	</attribute>
+    	<attribute name="icon" type="string">
+    	<annotation>
+			<documentation>Base64 encoded PNG file that will be displayed to the user</documentation>
+			</annotation>
+    	</attribute>
+    </complexType>
+    
+    <complexType name="portalUrlsType">
+    	<annotation>
+			<documentation>A list of URLs that can be displayed to a user in Scale or other identity portal</documentation>
+			</annotation>
+    	<sequence>
+    		<element name="urls" type="tns:portalUrlType" minOccurs="0" maxOccurs="unbounded"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="schedulingType">
+    	<annotation>
+			<documentation>Unison uses an internal scheduler to be able to perform jobs at specific times</documentation></annotation>
+    	<sequence>
+    		<element name="scheduleDB" type="tns:scheduleDBType"
+    			minOccurs="0" maxOccurs="1">
+    		</element>
+    		<element name="job" type="tns:jobType" minOccurs="0" maxOccurs="unbounded"></element>
+    	</sequence>
+    	<attribute name="useDB" type="boolean" default="false">
+    	<annotation>
+			<documentation>If set to true, Unison will use the Quartz database provider.  This will make sure that in a cluster, a job is only executed once</documentation>
+			</annotation>
+    	
+    	</attribute>
+    	<attribute name="threadCount" type="int">
+    		<annotation>
+			<documentation>Number of threads the scheduler should use, minimum of 3</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="instanceLabel" type="string">
+    	<annotation>
+			<documentation>Label for this cluster</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="instanceIPMask" type="string">
+    	<annotation>
+			<documentation>The start of the IP to use to identify this server in the cluster</documentation>
+			</annotation>
+    	
+    	</attribute>
+    </complexType>
+
+    <complexType name="scheduleDBType">
+    <annotation>
+			<documentation>Database configuration for connecting to the scheduler database</documentation>
+			</annotation>
+    	<attribute name="delegateClassName" type="string">
+    		<annotation>
+			<documentation>Delegate Class name from Quartz</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="driver" type="string">
+    		<annotation>
+			<documentation>JDBC Driver</documentation></annotation>
+    	</attribute>
+    	<attribute name="url" type="string">
+    	<annotation>
+			<documentation>JDBC URL</documentation></annotation>
+    	</attribute>
+    	<attribute name="user" type="string">
+    		<annotation>
+			<documentation>Database user</documentation></annotation>
+    	
+    	</attribute>
+    	<attribute name="password" type="string">
+    	<annotation>
+			<documentation>Database password</documentation></annotation>
+    	
+    	</attribute>
+    	<attribute name="maxConnections" type="int">
+    	
+    	<annotation>
+			<documentation>Maximum connections to the database</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="validationQuery" type="string">
+    		<annotation>
+			<documentation>Query to validate connections are still active</documentation></annotation>
+    	
+    	</attribute>
+    </complexType>
+
+    <complexType name="jobType">
+    	<annotation>
+			<documentation>Configuration for a scheduled job</documentation>
+			</annotation>
+    	<sequence>
+    		<element name="cronSchedule" type="tns:cronScheduleType" minOccurs="0" maxOccurs="1"></element>
+    		<element name="param" type="tns:paramType" minOccurs="0" maxOccurs="unbounded" />
+    	</sequence>
+    	<attribute name="className" type="string">
+    	<annotation>
+			<documentation>Implementation of of the abstract class com.tremolosecurity.provisioning.scheduler.UnisonJob</documentation></annotation>
+    	
+    	</attribute>
+    	<attribute name="name" type="string">
+    	<annotation>
+			<documentation>Name of the job</documentation>
+		</annotation>
+    	
+    	</attribute>
+    	<attribute name="group" type="string">
+    		<annotation>
+			<documentation>Group name for the job</documentation>
+			</annotation>
+    	</attribute>
+    </complexType>
+
+    <complexType name="cronScheduleType">
+    <annotation>
+			<documentation>Jobs are scheduled using Cron syntax</documentation>
+			</annotation>
+    	<attribute name="seconds" type="string">
+    		<annotation>
+			<documentation>Which seconds to run on</documentation>
+			</annotation>
+    	
+    	</attribute>
+    	<attribute name="minutes" type="string">
+    	<annotation>
+			<documentation>Which minutes to run on</documentation>
+			</annotation>
+    	</attribute>
+    	<attribute name="hours" type="string">
+    	<annotation>
+			<documentation>Which hours to run on</documentation>
+			</annotation>
+    	
+    	</attribute>
+    	<attribute name="dayOfMonth" type="string">
+    	<annotation>
+			<documentation>Which days of the month to run on</documentation>
+			</annotation>
+    	
+    	</attribute>
+    	<attribute name="month" type="string">
+    	<annotation>
+			<documentation>Which months to run on</documentation>
+			</annotation>
+    	
+    	</attribute>
+    	<attribute name="dayOfWeek" type="string">
+    	
+    	<annotation>
+			<documentation>Which days of the week to run on</documentation>
+			</annotation>
+    	
+    	</attribute>
+    	<attribute name="year" type="string">
+    		<annotation>
+			<documentation>Which years to run on</documentation>
+			</annotation>
+    	
+    	</attribute>
+    </complexType>
+
+    <complexType name="messageListenersType">
+    <annotation>
+			<documentation>List of message listeners</documentation>
+			</annotation>
+    	<sequence>
+    		<element name="listener" type="tns:messageListenerType" minOccurs="0" maxOccurs="unbounded"></element>
+    	</sequence>
+    </complexType>
+    
+    <complexType name="messageListenerType">
+    	<annotation>
+			<documentation>Listens on the queu for messages</documentation>
+			</annotation>
+    	<sequence>
+    		<element name="params" type="tns:paramType" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    	<attribute name="className" type="string">
+    		<annotation>
+			<documentation>Implements com.tremolosecurity.provisioning.core.UnisonMesageListener abstract class</documentation>
+			</annotation>
+    	
+    	</attribute>
+    	<attribute name="queueName" type="string">
+    		<annotation>
+			<documentation>The name of the queue to listen on</documentation>
+			</annotation>
+    	</attribute>
+    </complexType>
+
+    <complexType name="reportsType">
+    	<sequence>
+    		<element name="report" type="tns:reportType" minOccurs="0" maxOccurs="unbounded"></element>
+    	</sequence>
+    </complexType>
+    
+    <complexType name="reportType">
+    	<annotation><documentation>Defines a set of reports that are available to run</documentation></annotation>
+    	<sequence>
+    		<element name="paramater" minOccurs="0"
+    			maxOccurs="unbounded">
+    			<annotation><documentation>List of possible parameters that can be provided to the SQL statement.  Each parameter must be named in the order they appear in the SQL.</documentation></annotation>
+    			<simpleType>
+    				<restriction base="string">
+    					<enumeration value="currentUser"></enumeration>
+    					<enumeration value="userKey"></enumeration>
+    					<enumeration value="beginDate"></enumeration>
+    					<enumeration value="endDate"></enumeration>
+    				</restriction>
+    			</simpleType>
+    		</element>
+    		<element name="sql" type="string" minOccurs="1"
+    			maxOccurs="1">
+    			<annotation><documentation>A SQL statement that drives the report</documentation></annotation>
+    		</element>
+    		<element name="headerFields" type="string" minOccurs="0"
+    			maxOccurs="unbounded">
+    			<annotation><documentation>List of fields from the SQL statement that will be lsited before the data set</documentation></annotation>
+    		</element>
+    		<element name="dataFields" type="string" minOccurs="0"
+    			maxOccurs="unbounded">
+    			<annotation><documentation>List of fields from the SQL statement that will be included in the dataset</documentation></annotation>
+    		</element>
+    	</sequence>
+    	<attribute name="orgID" type="string">
+    		<annotation><documentation>The id of the organization to place this report in</documentation></annotation>
+    	</attribute>
+    	<attribute name="name" type="string">
+    		<annotation><documentation>The name of this report</documentation></annotation>
+    	</attribute>
+    	<attribute name="description" type="string">
+    		<annotation><documentation>Descriptive text about the report</documentation></annotation>
+    	</attribute>
+    	<attribute name="groupBy" type="string">
+    		<annotation><documentation>The name of the column to break up the dataset by, only used if groupings is true</documentation></annotation>
+    	</attribute>
+    	<attribute name="groupings" type="boolean">
+    		<annotation><documentation>Set to true if a report should be breoken up into multiple data sets based on a grouping</documentation></annotation>
+    	</attribute>
+    </complexType>
+
+    <element name="reports" type="tns:reportsType">
+    	<annotation><documentation>List of reports, optional</documentation></annotation>
+    </element>
+
+    <complexType name="escalationType">
+    	<annotation><documentation>If an approval is not acted on in a certain amount of time, an escalation can be used to re-assign the approval</documentation></annotation>
+    	<sequence>
+    		<element name="azRules" type="tns:azRulesType" minOccurs="1"
+    			maxOccurs="1">
+    		</element>
+    	</sequence>
+    	<attribute name="executeAfterTime" type="int">
+    		<annotation><documentation>The ammount of time since the approval or previous escalation was executed until this escalation rule should be enabled.</documentation></annotation>
+    	</attribute>
+    	<attribute name="validateEscalationClass" type="string">
+    		<annotation><documentation>Implementation of com.tremolosecurity.proxy.az.VerifyEscalation, used to determine if an escalation that should execute because of time should execute based on additional logic.</documentation></annotation>
+    	</attribute>
+    	<attribute name="executeAfterUnits">
+    		<annotation><documentation>Determine the number of units executeAftertime is in</documentation></annotation>
+    		<simpleType>
+    			<restriction base="string">
+    				<enumeration value="sec"></enumeration>
+    				<enumeration value="min"></enumeration>
+    				<enumeration value="hr"></enumeration>
+    				<enumeration value="wk"></enumeration>
+    				<enumeration value="day"></enumeration>
+    			</restriction>
+    		</simpleType>
+    	</attribute>
+    </complexType>
+    
+    <complexType name="escalationPolicyType">
+    	<annotation><documentation>Provides an optional escalation policy for an approval</documentation></annotation>
+    	<sequence>
+            <element name="escalationFailure" type="tns:escalationFailureType" maxOccurs="1" minOccurs="1"></element>
+            <element name="escalation" type="tns:escalationType"
+    			minOccurs="0" maxOccurs="unbounded">
+    		</element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="escalationFailureType">
+    	<annotation><documentation>Determines what should happen when an approval has no approvers</documentation></annotation>
+    	<sequence>
+    		<element name="azRules" type="tns:azRulesType"></element>
+    	</sequence>
+    	<attribute name="action">
+    		<annotation><documentation>Determines what should happen when no approvers are available.  If "assign" then the approval is assigned to the azRules section.  If "leave" then the approval is left alone.</documentation></annotation>
+    		<simpleType>
+    			<restriction base="string">
+    				<enumeration value="assign"></enumeration>
+    				<enumeration value="leave"></enumeration>
+    			</restriction>
+    		</simpleType>
+    	</attribute>
+    </complexType>
+
+    <complexType name="customAzRuleType">
+    	<annotation><documentation>Defines a custom authorization that can provide approvers to an approval or determine if a subject has access to a requested resource</documentation></annotation>
+    	<sequence>
+    		<element name="params" type="tns:paramType" minOccurs="0" maxOccurs="unbounded"></element>
+    	</sequence>
+    	<attribute name="name" type="string">
+    		<annotation><documentation>A label for the authorization rule</documentation></annotation>
+    	</attribute>
+    	<attribute name="className" type="string">
+    		<annotation><documentation>Class name of the class that implements com.tremolosecurity.proxy.az.CustomAuthorization</documentation></annotation>
+    	</attribute>
+    </complexType>
+
+    <complexType name="customAzRulesType">
+    	<annotation><documentation>List of custom authorization implementations</documentation></annotation>
+    	<sequence>
+    		<element name="azRule" type="tns:customAzRuleType" minOccurs="0" maxOccurs="unbounded"></element>
+    	</sequence>
+    </complexType>
+</schema>
