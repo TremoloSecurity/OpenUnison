@@ -132,7 +132,7 @@ public class LastMile implements HttpFilter {
 		
 		
 		String encKeyAlias = config.getAttribute("encKeyAlias").getValues().get(0);
-		String encKeyPass  = config.getAttribute("encKeyPass").getValues().get(0);
+		
 		
 		
 		this.encKey = cfgMgr.getSecretKey(encKeyAlias);
