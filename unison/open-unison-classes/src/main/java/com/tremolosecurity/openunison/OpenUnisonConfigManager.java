@@ -245,6 +245,9 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 			String envVarName = cfg.substring(begin + 2,end);
 			String value = System.getenv(envVarName);
 			
+			if (value == null) {
+				value = System.getProperty(envVarName);
+			}
 			
 			if (logger.isDebugEnabled()) {
 				logger.debug("Environment Variable '" + envVarName + "'='" + value + "'");
