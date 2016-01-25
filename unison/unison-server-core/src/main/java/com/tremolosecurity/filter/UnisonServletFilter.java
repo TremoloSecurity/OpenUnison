@@ -222,46 +222,48 @@ static Logger logger = Logger.getLogger(UnisonServletFilter.class);
 						if (finalURL != null) {
 						
 							holder = cfg.findURL(finalURL);
-							String urlChain = holder.getUrl().getAuthChain();
-							AuthChainType act = holder.getConfig().getAuthChains().get(urlChain);
 							
-							HashMap<String,Attribute> params = new HashMap<String,Attribute>();
-							ProxyUtil.loadParams(req, params);
-							
-							if (req instanceof ProxyRequest) {
-								reqHolder = new RequestHolder(HTTPMethod.GET,params,finalURL,true,act.getName(),((ProxyRequest) req).getQueryStringParams());
-							} else {
-								reqHolder = new RequestHolder(HTTPMethod.GET,params,finalURL,true,act.getName(),((com.tremolosecurity.embedd.LocalSessionRequest) req).getQueryStringParams());
+							if (holder != null) {
+								String urlChain = holder.getUrl().getAuthChain();
+								AuthChainType act = holder.getConfig().getAuthChains().get(urlChain);
+								
+								HashMap<String,Attribute> params = new HashMap<String,Attribute>();
+								ProxyUtil.loadParams(req, params);
+								
+								if (req instanceof ProxyRequest) {
+									reqHolder = new RequestHolder(HTTPMethod.GET,params,finalURL,true,act.getName(),((ProxyRequest) req).getQueryStringParams());
+								} else {
+									reqHolder = new RequestHolder(HTTPMethod.GET,params,finalURL,true,act.getName(),((com.tremolosecurity.embedd.LocalSessionRequest) req).getQueryStringParams());
+								}
+								
+								
+								isForcedAuth = true;
+								
+								sharedSession = sessionMgr.getSession(holder,((HttpServletRequest) req),((HttpServletResponse) resp),this.ctx);
+								if (sharedSession != null) {
+									pr.setSession(sharedSession);
+								}
+								
+								Cookie lsessionCookieName = new Cookie("autoIdmSessionCookieName",holder.getApp().getCookieConfig().getSessionCookieName());
+								String domain = ProxyTools.getInstance().getCookieDomain(holder.getApp().getCookieConfig(), req);
+								if (domain != null) {
+									lsessionCookieName.setDomain(domain);
+								}
+								lsessionCookieName.setPath("/");
+								lsessionCookieName.setMaxAge(-1);
+								lsessionCookieName.setSecure(false);
+								resp.addCookie(lsessionCookieName);
+								
+								Cookie appCookieName = new Cookie("autoIdmAppName",URLEncoder.encode(holder.getApp().getName(),"UTF-8"));
+								if (domain != null) {
+									appCookieName.setDomain(domain);
+								}
+								appCookieName.setPath("/");
+								appCookieName.setMaxAge(-1);
+								appCookieName.setSecure(false);
+								
+								resp.addCookie(appCookieName);
 							}
-							
-							
-							isForcedAuth = true;
-							
-							sharedSession = sessionMgr.getSession(holder,((HttpServletRequest) req),((HttpServletResponse) resp),this.ctx);
-							if (sharedSession != null) {
-								pr.setSession(sharedSession);
-							}
-							
-							Cookie lsessionCookieName = new Cookie("autoIdmSessionCookieName",holder.getApp().getCookieConfig().getSessionCookieName());
-							String domain = ProxyTools.getInstance().getCookieDomain(holder.getApp().getCookieConfig(), req);
-							if (domain != null) {
-								lsessionCookieName.setDomain(domain);
-							}
-							lsessionCookieName.setPath("/");
-							lsessionCookieName.setMaxAge(-1);
-							lsessionCookieName.setSecure(false);
-							resp.addCookie(lsessionCookieName);
-							
-							Cookie appCookieName = new Cookie("autoIdmAppName",URLEncoder.encode(holder.getApp().getName(),"UTF-8"));
-							if (domain != null) {
-								appCookieName.setDomain(domain);
-							}
-							appCookieName.setPath("/");
-							appCookieName.setMaxAge(-1);
-							appCookieName.setSecure(false);
-							
-							resp.addCookie(appCookieName);
-							
 						}
 					}
 					
@@ -270,8 +272,9 @@ static Logger logger = Logger.getLogger(UnisonServletFilter.class);
 			req.setAttribute(ProxyConstants.AUTOIDM_CFG, holder);
 			req.setAttribute(ProxyConstants.TREMOLO_IS_FORCED_AUTH, isForcedAuth);
 			req.setAttribute(ProxyConstants.TREMOLO_REQ_HOLDER, reqHolder);
-			
-			embSys.nextSys(pr, (HttpServletResponse)resp);
+			if  (! resp.isCommitted()) {
+				embSys.nextSys(pr, (HttpServletResponse)resp);
+			}
 		
 		} catch (Exception e) {
 			req.setAttribute("TREMOLO_ERROR_REQUEST_URL", req.getRequestURL().toString());
