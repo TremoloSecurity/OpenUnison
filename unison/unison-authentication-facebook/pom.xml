@@ -22,6 +22,31 @@
   </parent>
   <artifactId>unison-authentication-facebook</artifactId>
   <name>unison-authentication-facebook</name>
+  
+  <build>
+		<plugins>
+			<plugin>
+
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptors>
+						<descriptor>${project.basedir}/src/main/xml/create-distro.xml</descriptor>
+					</descriptors>
+					
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+  
   <dependencies>
   <dependency>
     <groupId>com.restfb</groupId>
@@ -32,6 +57,7 @@
   		<groupId>com.tremolosecurity.unison</groupId>
   		<artifactId>unison-sdk</artifactId>
   		<version>1.0.6</version>
+  		<scope>provided</scope>
   	</dependency>
   </dependencies>
 </project>
