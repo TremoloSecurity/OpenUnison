@@ -56,6 +56,14 @@ limitations under the License.
 					<artifactId>xmlsec</artifactId>
 					<groupId>org.apache.santuario</groupId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.apache.myfaces.core</groupId>
+					<artifactId>myfaces-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.myfaces.core</groupId>
+					<artifactId>myfaces-impl</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 <dependency>
