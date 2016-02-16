@@ -1,77 +1,158 @@
 
-<!-- 
-Copyright 2015 Tremolo Security, Inc.
+<!-- Copyright 2015 Tremolo Security, Inc. Licensed under the Apache License, 
+	Version 2.0 (the "License"); you may not use this file except in compliance 
+	with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
+	Unless required by applicable law or agreed to in writing, software distributed 
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
+	the specific language governing permissions and limitations under the License. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.tremolosecurity.unison</groupId>
+		<artifactId>unison</artifactId>
+		<version>1.0.6</version>
+	</parent>
+	<artifactId>open-unison-webapp</artifactId>
+	<packaging>war</packaging>
+	<name>open-unison-webapp</name>
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+	<url>http://openunison.io</url>
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	<!-- <scm> <connection>scm:git:git@github.com:andriusvelykis/reflow-maven-skin.git</connection> 
+		<developerConnection>scm:git:git@github.com:andriusvelykis/reflow-maven-skin.git</developerConnection> 
+		<url>http://github.com/andriusvelykis/reflow-maven-skin/tree/master</url> 
+		<tag>HEAD</tag> </scm> -->
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
- -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>com.tremolosecurity.unison</groupId>
-    <artifactId>unison</artifactId>
-    <version>1.0.6</version>
-  </parent>
-  <artifactId>open-unison-webapp</artifactId>
-  <packaging>war</packaging>
-  <name>open-unison-webapp</name>
-  
-   <url>http://openunison.io</url>
+	<!-- <issueManagement> <system>GitHub</system> <url>http://github.com/tremolosecurity/openunison/issues</url> 
+		</issueManagement> -->
 
-<!-- 
-  <scm>
-    <connection>scm:git:git@github.com:andriusvelykis/reflow-maven-skin.git</connection>
-    <developerConnection>scm:git:git@github.com:andriusvelykis/reflow-maven-skin.git</developerConnection>
-    <url>http://github.com/andriusvelykis/reflow-maven-skin/tree/master</url>
-    <tag>HEAD</tag>
-  </scm>
-  
-   -->
-   
- <!--  <issueManagement>
-    <system>GitHub</system>
-    <url>http://github.com/tremolosecurity/openunison/issues</url>
-  </issueManagement>  -->
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
-  <licenses>
-    <license>
-      <name>The Apache Software License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-
-  <organization>
-    <name>Tremolo Security, Inc.</name>
-    <url>https://www.tremolosecurity.com</url>
-  </organization>
-  
-  
-  
-  <dependencies>
-  	<dependency>
-  		<groupId>com.tremolosecurity.unison</groupId>
-  		<artifactId>open-unison-classes</artifactId>
-  		<version>1.0.6</version>
-  	</dependency>
-  	<dependency>
-    <groupId>commons-collections</groupId>
-    <artifactId>commons-collections</artifactId>
-    <version>3.2.2</version>
-</dependency>
-  </dependencies>
+	<organization>
+		<name>Tremolo Security, Inc.</name>
+		<url>https://www.tremolosecurity.com</url>
+	</organization>
 
 
 
- 
+	<dependencies>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>open-unison-classes</artifactId>
+			<version>1.0.6</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>3.2.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-alfresco-4.x</artifactId>
+			<version>1.0.6</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>commons-collections</artifactId>
+					<groupId>commons-collections</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-codec</artifactId>
+					<groupId>commons-codec</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-io</artifactId>
+					<groupId>commons-io</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>spring-asm</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>spring-core</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>xmlsec</artifactId>
+					<groupId>org.apache.santuario</groupId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.servlet</groupId>
+					<artifactId>servlet-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.servlet</groupId>
+					<artifactId>jstl</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-el</groupId>
+					<artifactId>commons-el</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-sugarcrm-6.x</artifactId>
+			<version>1.0.6</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-wordpress</artifactId>
+			<version>1.0.6</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-sharepoint2007</artifactId>
+			<version>1.0.6</version>
+		</dependency>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-authentication-facebook</artifactId>
+			<version>1.0.6</version>
+		</dependency>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-authentication-2fasms-twilio</artifactId>
+			<version>1.0.6</version>
+		</dependency>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-services-aws</artifactId>
+			<version>1.0.6</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>commons-codec</artifactId>
+					<groupId>commons-codec</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-sharepoint2007</artifactId>
+			<version>1.0.6</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-drupal</artifactId>
+			<version>1.0.6</version>
+		</dependency>
+	</dependencies>
+
+
+
+
 
 </project>

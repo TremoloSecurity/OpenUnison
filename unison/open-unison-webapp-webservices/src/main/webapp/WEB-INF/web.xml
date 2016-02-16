@@ -104,7 +104,15 @@ limitations under the License.
 		<servlet-class>com.tremolosecurity.provisioning.service.ListPortalURLs</servlet-class>
 	</servlet>
 
-
+  <servlet>
+  	<servlet-name>List Reports</servlet-name>
+  	<servlet-class>com.tremolosecurity.provisioning.service.ListReports</servlet-class>
+  </servlet>
+  
+    <servlet>
+  	<servlet-name>Generate Report</servlet-name>
+  	<servlet-class>com.tremolosecurity.provisioning.service.GenerateReport</servlet-class>
+  </servlet>
 
 	<filter-mapping>
 		<filter-name>openunison</filter-name>
@@ -163,6 +171,14 @@ limitations under the License.
 		<servlet-name>List Portal URLs</servlet-name>
 		<url-pattern>/services/portal/urls</url-pattern>
 	</servlet-mapping>
-
+  <servlet-mapping>
+  	<servlet-name>List Reports</servlet-name>
+  	<url-pattern>/services/reports/list</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+  	<servlet-name>Generate Report</servlet-name>
+  	<url-pattern>/services/reports/run</url-pattern>
+  </servlet-mapping>
  
 </web-app>
