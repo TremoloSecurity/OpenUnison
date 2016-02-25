@@ -340,6 +340,28 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		
 		this.loadMyVD(path, myVdPath);
 		
+		this.customAzRules = new HashMap<String,CustomAuthorization>();
+		if (this.cfg.getCustomAzRules() != null) {
+			for (CustomAzRuleType azrule : this.cfg.getCustomAzRules().getAzRule()) {
+				HashMap<String,Attribute> azCfg = new HashMap<String,Attribute>();
+				for (ParamType pt : azrule.getParams()) {
+					Attribute attr = azCfg.get(pt.getName());
+					if (attr == null) {
+						attr = new Attribute(pt.getName());
+						azCfg.put(pt.getName(), attr);
+					}
+					
+					attr.getValues().add(pt.getValue());
+					
+				}
+				
+				CustomAuthorization cuz = (CustomAuthorization) Class.forName(azrule.getClassName()).newInstance();
+				cuz.init(azCfg);
+				
+				this.customAzRules.put(azrule.getName(), cuz);
+			}
+		}
+		
 		
 		loadApplicationObjects();
 		
@@ -385,27 +407,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		}
 		
 		
-		this.customAzRules = new HashMap<String,CustomAuthorization>();
-		if (this.cfg.getCustomAzRules() != null) {
-			for (CustomAzRuleType azrule : this.cfg.getCustomAzRules().getAzRule()) {
-				HashMap<String,Attribute> azCfg = new HashMap<String,Attribute>();
-				for (ParamType pt : azrule.getParams()) {
-					Attribute attr = azCfg.get(pt.getName());
-					if (attr == null) {
-						attr = new Attribute(pt.getName());
-						azCfg.put(pt.getName(), attr);
-					}
-					
-					attr.getValues().add(pt.getValue());
-					
-				}
-				
-				CustomAuthorization cuz = (CustomAuthorization) Class.forName(azrule.getClassName()).newInstance();
-				cuz.init(azCfg);
-				
-				this.customAzRules.put(azrule.getName(), cuz);
-			}
-		}
+		
 		
 		
 		
