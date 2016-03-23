@@ -80,7 +80,7 @@
   	<dependency>
   <groupId>com.cedarsoftware</groupId>
   <artifactId>json-io</artifactId>
-  <version>3.0.2</version>
+  <version>4.4.0</version>
 </dependency>
 <dependency>
     <groupId>commons-collections</groupId>
