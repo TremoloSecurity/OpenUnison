@@ -18,7 +18,7 @@ limitations under the License.
   <parent>
     <groupId>com.tremolosecurity.unison</groupId>
     <artifactId>unison</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
   </parent>
   <artifactId>unison-lastmile-undertow-1.x</artifactId>
   <name>unison-lastmile-undertow-1.x</name>
@@ -27,7 +27,7 @@ limitations under the License.
   	<dependency>
   		<groupId>com.tremolosecurity.unison</groupId>
   		<artifactId>unison-lastmile-jboss71</artifactId>
-  		<version>1.0.6</version>
+  		<version>${openunison.version}</version>
   		<exclusions>
   			<exclusion>
   				<artifactId>servlet-api</artifactId>
@@ -38,19 +38,19 @@ limitations under the License.
 <dependency>
     <groupId>io.undertow</groupId>
     <artifactId>undertow-core</artifactId>
-    <version>1.0.0.Final</version>
+    <version>${undertow-1x.version}</version>
 </dependency>
 
 <dependency>
     <groupId>io.undertow</groupId>
     <artifactId>undertow-servlet</artifactId>
-    <version>1.0.0.Final</version>
+    <version>${undertow-1x.version}</version>
 </dependency>
 
 <dependency>
     <groupId>io.undertow</groupId>
     <artifactId>undertow-websockets-jsr</artifactId>
-    <version>1.0.0.Final</version>
+    <version>${undertow-1x.version}</version>
 </dependency>
 
   	</dependencies>

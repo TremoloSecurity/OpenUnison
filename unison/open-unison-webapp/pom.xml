@@ -12,7 +12,7 @@
 	<parent>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison</artifactId>
-		<version>1.0.6</version>
+		<version>1.0.7</version>
 	</parent>
 	<artifactId>open-unison-webapp</artifactId>
 	<packaging>war</packaging>
@@ -47,18 +47,18 @@
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>open-unison-classes</artifactId>
-			<version>1.0.6</version>
+			<version>${openunison.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-collections</groupId>
 			<artifactId>commons-collections</artifactId>
-			<version>3.2.2</version>
+			<version>${commons-collections.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-applications-alfresco-4.x</artifactId>
-			<version>1.0.6</version>
+			<version>${openunison.version}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-collections</artifactId>
@@ -103,35 +103,35 @@
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-applications-sugarcrm-6.x</artifactId>
-			<version>1.0.6</version>
+			<version>${openunison.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-applications-wordpress</artifactId>
-			<version>1.0.6</version>
+			<version>${openunison.version}</version>
 		</dependency>
 
 
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-applications-sharepoint2007</artifactId>
-			<version>1.0.6</version>
+			<version>${openunison.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-authentication-facebook</artifactId>
-			<version>1.0.6</version>
+			<version>${openunison.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-authentication-2fasms-twilio</artifactId>
-			<version>1.0.6</version>
+			<version>${openunison.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-services-aws</artifactId>
-			<version>1.0.6</version>
+			<version>${openunison.version}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-codec</artifactId>
@@ -143,13 +143,13 @@
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-applications-sharepoint2007</artifactId>
-			<version>1.0.6</version>
+			<version>${openunison.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-applications-drupal</artifactId>
-			<version>1.0.6</version>
+			<version>${openunison.version}</version>
 		</dependency>
 	</dependencies>
 

@@ -18,7 +18,7 @@
   <parent>
     <groupId>com.tremolosecurity.unison</groupId>
     <artifactId>unison</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
   </parent>
   <artifactId>unison-lastmile-jboss71</artifactId>
   <name>unison-lastmile-jboss71</name>
@@ -49,7 +49,7 @@
   	<dependency>
   		<groupId>com.tremolosecurity.unison</groupId>
   		<artifactId>unison-lastmile-sdk</artifactId>
-  		<version>1.0.6</version>
+  		<version>${openunison.version}</version>
   		<exclusions>
   			<exclusion>
   				<artifactId>servlet-api</artifactId>
@@ -60,25 +60,25 @@
 <dependency>
   <groupId>org.picketbox</groupId>
   <artifactId>jbosssx-bare</artifactId>
-  <version>4.0.20.Final</version>
+  <version>${jbosssx-bare.version}</version>
   
 </dependency>
 <dependency>
   <groupId>org.picketbox</groupId>
   <artifactId>jbosssx-client</artifactId>
-  <version>4.0.20.Final</version>
+  <version>${jbosssx-client.version}</version>
   
 </dependency>
 <dependency>
   <groupId>org.jboss.as</groupId>
   <artifactId>jboss-as-logging</artifactId>
-  <version>7.2.0.Final</version>
+  <version>${jboss-as-logging.version}</version>
   
 </dependency>
 <dependency>
   <groupId>org.jboss.as</groupId>
   <artifactId>jboss-as-web</artifactId>
-  <version>7.2.0.Final</version>
+  <version>${jboss-as-web.version}</version>
   
 </dependency>
   </dependencies>

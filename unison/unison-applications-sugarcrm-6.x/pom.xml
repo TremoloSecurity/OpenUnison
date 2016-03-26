@@ -18,7 +18,7 @@
   <parent>
     <groupId>com.tremolosecurity.unison</groupId>
     <artifactId>unison</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
   </parent>
   <artifactId>unison-applications-sugarcrm-6.x</artifactId>
   <name>unison-applications-sugarcrm-6.x</name>
@@ -26,12 +26,12 @@
   	<dependency>
   		<groupId>com.tremolosecurity.unison</groupId>
   		<artifactId>unison-sdk</artifactId>
-  		<version>1.0.6</version>
+  		<version>${openunison.version}</version>
   	</dependency>
   	<dependency>
     <groupId>com.googlecode.json-simple</groupId>
     <artifactId>json-simple</artifactId>
-    <version>1.1.1</version>
+    <version>${json-simple.version}</version>
 </dependency>
   </dependencies>
 </project>

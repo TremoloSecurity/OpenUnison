@@ -18,7 +18,8 @@ limitations under the License.
   <parent>
     <groupId>com.tremolosecurity.unison</groupId>
     <artifactId>unison</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
+    
   </parent>
   <artifactId>unison-services-aws</artifactId>
   <name>unison-services-aws</name>
@@ -26,17 +27,17 @@ limitations under the License.
 	    <dependency>
 		    <groupId>com.amazonaws</groupId>
 		    <artifactId>aws-java-sdk</artifactId>
-		    <version>1.10.43</version>
+		    <version>${aws-java-sdk.version}</version>
 		</dependency>
   		<dependency>
 	  		<groupId>com.tremolosecurity.unison</groupId>
 	  		<artifactId>unison-sdk</artifactId>
-	  		<version>1.0.6</version>
+	  		<version>${openunison.version}</version>
   		</dependency>
 <dependency>
   <groupId>com.amazonaws</groupId>
   <artifactId>amazon-sqs-java-messaging-lib</artifactId>
-  <version>1.0.0</version>
+  <version>${amazon-sqs-java-messaging-lib.version}</version>
   <type>jar</type>
 </dependency>
 

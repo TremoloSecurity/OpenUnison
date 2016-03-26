@@ -18,7 +18,7 @@
   <parent>
     <groupId>com.tremolosecurity.unison</groupId>
     <artifactId>unison</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
   </parent>
   <artifactId>open-unison-webapp-webservices</artifactId>
   <packaging>war</packaging>
@@ -34,7 +34,7 @@
  <dependency>
   <groupId>com.tremolosecurity.unison</groupId>
   <artifactId>open-unison-webapp</artifactId>
-  <version>1.0.6</version>
+  <version>${openunison.version}</version>
   <type>war</type>
   <scope>runtime</scope>
 
@@ -42,7 +42,7 @@
  <dependency>
   <groupId>com.tremolosecurity.unison</groupId>
   <artifactId>open-unison-webapp</artifactId>
-  <version>1.0.6</version>
+  <version>${openunison.version}</version>
   <type>pom</type>
  </dependency>
 </dependencies>

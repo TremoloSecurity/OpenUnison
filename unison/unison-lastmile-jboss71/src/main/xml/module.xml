@@ -17,14 +17,14 @@ limitations under the License.
  -->
 <module xmlns="urn:jboss:module:1.1" name="com.tremolosecurity.lastmile.jboss71">
   <resources>
-    <resource-root path="unison-lastmile-jboss71-1.0.6.jar"/>
+    <resource-root path="unison-lastmile-jboss71-1.0.7.jar"/>
     <resource-root path="bcprov-ext-jdk15on-1.50.jar"/>
     <resource-root path="bcprov-jdk15on-1.50.jar"/>
     <resource-root path="gson-2.2.4.jar"/>
     <resource-root path="joda-time-2.2.jar"/>
     <resource-root path="log4j-1.2.17.jar"/>
-    <resource-root path="unison-lastmile-sdk-1.0.6.jar"/>
-    <resource-root path="unison-sdk-types-1.0.6.jar"/>
+    <resource-root path="unison-lastmile-sdk-1.0.7.jar"/>
+    <resource-root path="unison-sdk-types-1.0.7.jar"/>
   </resources>
 
   <dependencies>
