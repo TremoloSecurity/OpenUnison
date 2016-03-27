@@ -58,9 +58,12 @@ public class IfAttrHasValue extends WorkflowTaskImpl {
 
 	@Override
 	public boolean doTask(User user,Map<String,Object> request) throws ProvisioningException {
-		Attribute attr = user.getAttribs().get(this.name);
+		String localName = this.renderTemplate(name, request);
+		
+		Attribute attr = user.getAttribs().get(localName);
 		if (attr != null) {
-			if (attr.getValues().contains(this.value)) {
+			String localValue = this.renderTemplate(value, request);
+			if (attr.getValues().contains(localValue)) {
 				return super.runChildren(user,request);
 			}
 		}

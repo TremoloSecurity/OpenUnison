@@ -361,11 +361,12 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				}
 				
 				for (Approver approver : this.approvers) {
+					String constraintRendered = this.renderTemplate(approver.constraint, request);
 					switch (approver.type) {
-						case StaticGroup : AzUtils.loadStaticGroupApprovers(this.id,this.emailTemplate,this.getConfigManager(),con,id,approver.constraint,sendNotification); break;
-						case Filter : AzUtils.loadFilterApprovers(this.id,this.emailTemplate,this.getConfigManager(),con,id,approver.constraint,sendNotification); break;
-						case DN : AzUtils.loadDNApprovers(this.id,this.emailTemplate,this.getConfigManager(),con,id,approver.constraint,sendNotification);break;
-						case Custom : AzUtils.loadCustomApprovers(this.id,this.emailTemplate,this.getConfigManager(),con,id,approver.constraint,sendNotification,approver.customAz);break;
+						case StaticGroup : AzUtils.loadStaticGroupApprovers(this.id,this.emailTemplate,this.getConfigManager(),con,id,constraintRendered,sendNotification); break;
+						case Filter : AzUtils.loadFilterApprovers(this.id,this.emailTemplate,this.getConfigManager(),con,id,constraintRendered,sendNotification); break;
+						case DN : AzUtils.loadDNApprovers(this.id,this.emailTemplate,this.getConfigManager(),con,id,constraintRendered,sendNotification);break;
+						case Custom : AzUtils.loadCustomApprovers(this.id,this.emailTemplate,this.getConfigManager(),con,id,constraintRendered,sendNotification,approver.customAz);break;
 					}
 				}
 				
@@ -444,7 +445,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 		return b.toString();
 	}
 	
-	public boolean updateAllowedApprovals(Connection con,ConfigManager cfg) throws ProvisioningException, SQLException {
+	public boolean updateAllowedApprovals(Connection con,ConfigManager cfg, Map<String, Object> request) throws ProvisioningException, SQLException {
 		boolean updateObj = false;
 		boolean localFail = false;
 		
@@ -483,6 +484,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 								} 
 								
 								approver.constraint = azr.getConstraint();
+								
 								this.approvers.add(approver);
 							}
 							
@@ -545,11 +547,12 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 		boolean foundApprovers = false;
 		
 		for (Approver approver : this.approvers) {
+			String constraintRendered = this.renderTemplate(approver.constraint, request);
 			switch (approver.type) {
-				case StaticGroup : foundApprovers |= AzUtils.loadStaticGroupApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false); break;
-				case Filter : foundApprovers |= AzUtils.loadFilterApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false); break;
-				case DN : foundApprovers |= AzUtils.loadDNApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false);break;
-				case Custom : foundApprovers |= AzUtils.loadCustomApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false,approver.customAz);break;
+				case StaticGroup : foundApprovers |= AzUtils.loadStaticGroupApprovers(this.id,this.emailTemplate,cfg,con,id,constraintRendered,false); break;
+				case Filter : foundApprovers |= AzUtils.loadFilterApprovers(this.id,this.emailTemplate,cfg,con,id,constraintRendered,false); break;
+				case DN : foundApprovers |= AzUtils.loadDNApprovers(this.id,this.emailTemplate,cfg,con,id,constraintRendered,false);break;
+				case Custom : foundApprovers |= AzUtils.loadCustomApprovers(this.id,this.emailTemplate,cfg,con,id,constraintRendered,false,approver.customAz);break;
 			}
 		}
 		
@@ -580,11 +583,12 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 			}
 			
 			for (Approver approver : this.approvers) {
+				String constraintRendered = this.renderTemplate(approver.constraint, request);
 				switch (approver.type) {
-					case StaticGroup : AzUtils.loadStaticGroupApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false); break;
-					case Filter : AzUtils.loadFilterApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false); break;
-					case DN : AzUtils.loadDNApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false);break;
-					case Custom : AzUtils.loadCustomApprovers(this.id,this.emailTemplate,cfg,con,id,approver.constraint,false,approver.customAz);break;
+					case StaticGroup : AzUtils.loadStaticGroupApprovers(this.id,this.emailTemplate,cfg,con,id,constraintRendered,false); break;
+					case Filter : AzUtils.loadFilterApprovers(this.id,this.emailTemplate,cfg,con,id,constraintRendered,false); break;
+					case DN : AzUtils.loadDNApprovers(this.id,this.emailTemplate,cfg,con,id,constraintRendered,false);break;
+					case Custom : AzUtils.loadCustomApprovers(this.id,this.emailTemplate,cfg,con,id,constraintRendered,false,approver.customAz);break;
 				}
 			}
 			

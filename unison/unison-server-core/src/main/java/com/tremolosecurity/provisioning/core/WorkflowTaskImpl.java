@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.stringtemplate.v4.ST;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UnisonConfigManagerImpl;
@@ -276,5 +277,14 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 		return children;
 	}
 	
+	
+	public String renderTemplate(String val,Map<String,Object> request) {
+		ST st = new ST(val,'$','$');
+		for (String key : request.keySet()) {
+			st.add(key.replaceAll("[.]", "_"), request.get(key));
+		}
+		
+		return st.render();
+	}
 	
 }

@@ -154,7 +154,7 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 		delAllowedApprovers.executeUpdate();
 		delAllowedApprovers.close();
 		
-		approval.updateAllowedApprovals(con,cfg);
+		approval.updateAllowedApprovals(con,cfg,wf.getRequest());
 		
 		//need to write the approval back to the db
 		json = JsonWriter.objectToJson(wf);

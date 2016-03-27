@@ -58,8 +58,9 @@ public class AddAttribute extends WorkflowTaskImpl {
 
 	@Override
 	public boolean doTask(User user,Map<String,Object> request) throws ProvisioningException {
-		Attribute attr = new Attribute(name,value);
-		user.getAttribs().put(this.name, attr);
+		String localName = this.renderTemplate(name, request);
+		Attribute attr = new Attribute(localName,this.renderTemplate(value, request));
+		user.getAttribs().put(localName, attr);
 		return true;
 	}
 

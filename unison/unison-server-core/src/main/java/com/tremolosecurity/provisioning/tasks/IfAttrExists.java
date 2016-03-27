@@ -58,7 +58,9 @@ public class IfAttrExists extends WorkflowTaskImpl {
 	@Override
 	public boolean doTask(User user,Map<String,Object> request) throws ProvisioningException {
 		
-		if (user.getAttribs().containsKey(this.name)) {
+		String localName = this.renderTemplate(name, request);
+		
+		if (user.getAttribs().containsKey(localName)) {
 			return super.runChildren(user,request);
 		} else {
 			return true;

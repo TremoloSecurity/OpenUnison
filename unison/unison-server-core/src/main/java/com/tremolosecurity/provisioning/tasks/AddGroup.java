@@ -20,6 +20,8 @@ package com.tremolosecurity.provisioning.tasks;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.stringtemplate.v4.ST;
+
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.AddGroupType;
 import com.tremolosecurity.config.xml.WorkflowTaskType;
@@ -55,7 +57,8 @@ public class AddGroup extends WorkflowTaskImpl {
 
 	@Override
 	public boolean doTask(User user,Map<String,Object> request) throws ProvisioningException {
-		user.getGroups().add(this.name);
+		
+		user.getGroups().add(this.renderTemplate(name, request));
 		return true;
 	}
 
