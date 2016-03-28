@@ -311,7 +311,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				con = this.getConfigManager().getProvisioningEngine().getApprovalDBConn();
 				con.setAutoCommit(false);
 				PreparedStatement ps = con.prepareStatement("INSERT INTO approvals (label,workflow,createTS) VALUES (?,?,?)",Statement.RETURN_GENERATED_KEYS);
-				ps.setString(1, this.label);
+				ps.setString(1, this.renderTemplate(this.label, request));
 				ps.setLong(2, this.getWorkflow().getId());
 				DateTime now = new DateTime();
 				ps.setTimestamp(3, new Timestamp(now.getMillis()));
@@ -360,13 +360,15 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 					sendNotification = false;
 				}
 				
+				String localTemplate = this.renderTemplate(this.emailTemplate, request);
+				
 				for (Approver approver : this.approvers) {
 					String constraintRendered = this.renderTemplate(approver.constraint, request);
 					switch (approver.type) {
-						case StaticGroup : AzUtils.loadStaticGroupApprovers(this.id,this.emailTemplate,this.getConfigManager(),con,id,constraintRendered,sendNotification); break;
-						case Filter : AzUtils.loadFilterApprovers(this.id,this.emailTemplate,this.getConfigManager(),con,id,constraintRendered,sendNotification); break;
-						case DN : AzUtils.loadDNApprovers(this.id,this.emailTemplate,this.getConfigManager(),con,id,constraintRendered,sendNotification);break;
-						case Custom : AzUtils.loadCustomApprovers(this.id,this.emailTemplate,this.getConfigManager(),con,id,constraintRendered,sendNotification,approver.customAz);break;
+						case StaticGroup : AzUtils.loadStaticGroupApprovers(this.id,localTemplate,this.getConfigManager(),con,id,constraintRendered,sendNotification); break;
+						case Filter : AzUtils.loadFilterApprovers(this.id,localTemplate,this.getConfigManager(),con,id,constraintRendered,sendNotification); break;
+						case DN : AzUtils.loadDNApprovers(this.id,localTemplate,this.getConfigManager(),con,id,constraintRendered,sendNotification);break;
+						case Custom : AzUtils.loadCustomApprovers(this.id,localTemplate,this.getConfigManager(),con,id,constraintRendered,sendNotification,approver.customAz);break;
 					}
 				}
 				

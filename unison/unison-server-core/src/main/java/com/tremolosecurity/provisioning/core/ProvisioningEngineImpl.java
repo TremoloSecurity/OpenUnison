@@ -754,7 +754,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				}
 			}
 			
-			if (! az.checkRules(auinfo, this.cfgMgr, approval.getAzRules())) {
+			if (! az.checkRules(auinfo, this.cfgMgr, approval.getAzRules(),wf.getRequest())) {
 				throw new ProvisioningException("Az of approval failed");
 			}
 			

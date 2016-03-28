@@ -23,8 +23,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
+
 
 import com.tremolosecurity.config.xml.IdpMappingType;
 import com.tremolosecurity.config.xml.ProvisionMappingType;
@@ -34,6 +36,7 @@ import com.tremolosecurity.config.xml.TargetType;
 import com.tremolosecurity.config.xml.TargetsType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
+import com.tremolosecurity.provisioning.core.WorkflowTask;
 import com.tremolosecurity.provisioning.mapping.MapIdentity.MappingType;
 import com.tremolosecurity.saml.Attribute;
 
@@ -226,6 +229,10 @@ public class MapIdentity implements Serializable {
 	}
 	
 	public User mapUser(User userObj,boolean strict) throws ProvisioningException {
+		return this.mapUser(userObj,strict,null,null);
+	}
+	
+	public User mapUser(User userObj,boolean strict,Map<String,Object> request,WorkflowTask task) throws ProvisioningException {
 		User newUser = new User(userObj.getUserID());
 		newUser.setPassword(userObj.getPassword());
 		newUser.getGroups().addAll(userObj.getGroups());
@@ -235,8 +242,16 @@ public class MapIdentity implements Serializable {
 		Iterator<String> names = this.map.keySet().iterator();
 		while (names.hasNext()) {
 			String name = names.next();
+			String origName = name;
+			if (request != null) {
+				name = task.renderTemplate(name, request);
+			}
 			
-			MappingEntry mapping = this.map.get(name);
+			
+			
+			MappingEntry mapping = this.map.get(origName);
+			
+			
 			
 			Attribute newAttrib;
 			
@@ -246,7 +261,11 @@ public class MapIdentity implements Serializable {
 									   newUser.setUserID(mapping.staticValue);
 								   } else {
 									   newAttrib = new Attribute(name);
-									   newAttrib.getValues().add(mapping.staticValue);
+									   if (request != null) {
+										   newAttrib.getValues().add(task.renderTemplate(mapping.staticValue,request));
+									   } else {
+										   newAttrib.getValues().add(mapping.staticValue);
+									   }
 									   newUser.getAttribs().put(name, newAttrib);
 								   }
 								   
@@ -254,6 +273,10 @@ public class MapIdentity implements Serializable {
 								   
 				case userAttr : newAttrib = new Attribute(name);
 								String attrName = mapping.userAttr;
+								
+								if (request != null) {
+									attrName = task.renderTemplate(attrName, request);
+								}
 								
 								if (logger.isDebugEnabled()) {
 									logger.debug("Attribute Name : '" + attrName + "' + '" + userObj.getAttribs().containsKey(attrName) + "'");
@@ -296,11 +319,16 @@ public class MapIdentity implements Serializable {
 									 }
 								 }
 								
+								 String newVal = b.toString();
+								 if (request != null) {
+									 newVal = task.renderTemplate(newVal, request);
+								 }
+								 
 								 if (name.equalsIgnoreCase("TREMOLO_USER_ID")) {
-									 newUser.setUserID(b.toString());
+									 newUser.setUserID(newVal);
 								 } else {
 									 newAttrib = new Attribute(name);
-									 newAttrib.getValues().add(b.toString());
+									 newAttrib.getValues().add(newVal);
 									 newUser.getAttribs().put(name, newAttrib);
 								 }
 								 

@@ -53,7 +53,7 @@ public class AzFilter implements HttpFilter {
 		UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
 		
 		List<AzRuleType> rules = holder.getUrl().getAzRules().getRule();
-		boolean OK = az.checkRules(authData, holder.getConfig(), holder.getAzRules());
+		boolean OK = az.checkRules(authData, holder.getConfig(), holder.getAzRules(),null);
 		
 		if (OK) {
 			String respGroup = az.getResponseSuccessGroup(holder);

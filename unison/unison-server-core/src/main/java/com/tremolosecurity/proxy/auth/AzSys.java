@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.servlet.FilterChain;
@@ -39,6 +40,7 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.stringtemplate.v4.ST;
 
 import net.sourceforge.myvd.types.FilterNode;
 
@@ -107,7 +109,7 @@ public class AzSys {
 		
 		List<AzRuleType> rules = holder.getUrl().getAzRules().getRule();
 		AuthInfo authData = ((AuthController) ((HttpServletRequest) request).getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
-		boolean OK = checkRules(authData, holder.getConfig(), holder.getAzRules(),((HttpServletRequest) request).getSession(),holder.getApp());
+		boolean OK = checkRules(authData, holder.getConfig(), holder.getAzRules(),((HttpServletRequest) request).getSession(),holder.getApp(),null);
 		
 		if (OK) {
 			
@@ -167,12 +169,12 @@ public class AzSys {
 	
 
 	public boolean checkRules(AuthInfo authData,ConfigManager cfgMgr,
-			List<AzRule> rules) throws MalformedURLException {
-		return checkRules(authData,cfgMgr,rules,null,null);
+			List<AzRule> rules,Map<String,Object> request) throws MalformedURLException {
+		return checkRules(authData,cfgMgr,rules,null,null,request);
 	}
 	
 	public boolean checkRules(AuthInfo authData,ConfigManager cfgMgr,
-			List<AzRule> rules,HttpSession session,ApplicationType at) throws MalformedURLException {
+			List<AzRule> rules,HttpSession session,ApplicationType at,Map<String,Object> request) throws MalformedURLException {
 		boolean OK=false;
 		
 		HashMap<UUID,DateTime> azCache = null;
@@ -194,7 +196,7 @@ public class AzSys {
 				OK = true;
 			} else {
 			
-				OK = checkRule(authData, cfgMgr, at, OK, azCache, rule);
+				OK = checkRule(authData, cfgMgr, at, OK, azCache, rule,request);
 			
 			}
 			
@@ -209,10 +211,21 @@ public class AzSys {
 
 	private boolean checkRule(AuthInfo authData, ConfigManager cfgMgr,
 			ApplicationType at, boolean OK, HashMap<UUID, DateTime> azCache,
-			AzRule rule) throws MalformedURLException {
+			AzRule rule,Map<String,Object> request) throws MalformedURLException {
+		
+		String localConstraint = rule.getConstraint();
+		if (request != null) {
+			ST st = new ST(localConstraint,'$','$');
+			for (String key : request.keySet()) {
+				st.add(key.replaceAll("[.]", "_"), request.get(key));
+			}
+			
+			localConstraint = st.render();
+		}
+		
 		switch (rule.getScope()) {
 			case DN :
-				if (authData.getUserDN().endsWith(rule.getConstraint())) {
+				if (authData.getUserDN().endsWith(localConstraint)) {
 					OK = true;
 					if (azCache != null) {
 						azCache.put(rule.getGuid(), new DateTime().plus(at.getAzTimeoutMillis()));
@@ -221,7 +234,7 @@ public class AzSys {
 				break;
 				
 			case Group :
-				if (isUserInGroup(authData, cfgMgr, rule)) {
+				if (isUserInGroup(authData, cfgMgr, rule,localConstraint)) {
 					OK = true;
 					if (azCache != null) {
 						azCache.put(rule.getGuid(), new DateTime().plus(at.getAzTimeoutMillis()));
@@ -229,7 +242,7 @@ public class AzSys {
 				}
 				break;
 			case DynamicGroup:
-				if (isUserInGroup(authData, cfgMgr, rule)) {
+				if (isUserInGroup(authData, cfgMgr, rule,localConstraint)) {
 					OK = true;
 					if (azCache != null) {
 						azCache.put(rule.getGuid(), new DateTime().plus(at.getAzTimeoutMillis()));
@@ -239,7 +252,7 @@ public class AzSys {
 					attribs.add("memberURL");
 					
 					try {
-						LDAPSearchResults rs = cfgMgr.getMyVD().search(rule.getConstraint(), 0, "(objectClass=*)", attribs);
+						LDAPSearchResults rs = cfgMgr.getMyVD().search(localConstraint, 0, "(objectClass=*)", attribs);
 						rs.hasMore();
 						LDAPEntry entry = rs.next();
 						String[] urls = entry.getAttribute("memberURL").getStringValueArray();
@@ -279,7 +292,7 @@ public class AzSys {
 				break;
 			case Filter:
 				try {
-					net.sourceforge.myvd.types.Filter filter = new net.sourceforge.myvd.types.Filter(rule.getConstraint());
+					net.sourceforge.myvd.types.Filter filter = new net.sourceforge.myvd.types.Filter(localConstraint);
 					if (this.checkEntry(filter.getRoot(), authData)) {
 						OK = true;
 						if (azCache != null) {
@@ -300,12 +313,12 @@ public class AzSys {
 				
 				CustomAuthorization customAz = rule.getCustomAuthorization();
 				if (customAz == null) {
-					cfgMgr.getCustomAuthorizations().get(rule.getConstraint());
+					cfgMgr.getCustomAuthorizations().get(localConstraint);
 				}
 				
 				
 				if (customAz == null) {
-					logger.warn("Rule '" + rule.getConstraint() + "' does not exist, failing");
+					logger.warn("Rule '" + localConstraint + "' does not exist, failing");
 					OK = false;
 				} else {
 					try {
@@ -326,7 +339,7 @@ public class AzSys {
 	}
 
 	private boolean isUserInGroup(AuthInfo authData, ConfigManager cfgMgr,
-			AzRule rule) {
+			AzRule rule,String localConstraint) {
 		boolean OK = false;
 		MyVDConnection con = cfgMgr.getMyVD();
 		ArrayList<String> attribs = new ArrayList<String>();
@@ -338,7 +351,7 @@ public class AzSys {
 			
 			
 			
-			LDAPSearchResults res = con.search(rule.getConstraint(), 0, equal("uniqueMember",authData.getUserDN()).toString(), attribs);
+			LDAPSearchResults res = con.search(localConstraint, 0, equal("uniqueMember",authData.getUserDN()).toString(), attribs);
 			
 			if (res.hasMore()) {
 				OK = true;

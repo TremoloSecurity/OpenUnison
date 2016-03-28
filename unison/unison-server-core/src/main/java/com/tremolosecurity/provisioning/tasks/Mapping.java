@@ -62,7 +62,7 @@ public class Mapping extends WorkflowTaskImpl {
 	public boolean doTask(User user,Map<String,Object> request) throws ProvisioningException {
 		
 		
-		User mappedUser = this.mapper.mapUser(user,strict);
+		User mappedUser = this.mapper.mapUser(user,strict,request,this);
 		
 		boolean doContinue = this.runChildren(mappedUser,request);
 		user.setResync(mappedUser.isResync());

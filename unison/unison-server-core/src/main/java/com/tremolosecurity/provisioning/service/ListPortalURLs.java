@@ -107,7 +107,7 @@ public class ListPortalURLs extends HttpServlet {
 					}
 					
 					
-					if (! az.checkRules(auinfo, GlobalEntries.getGlobalEntries().getConfigManager(), rules)) {
+					if (! az.checkRules(auinfo, GlobalEntries.getGlobalEntries().getConfigManager(), rules,null)) {
 						continue;
 					}
 				}

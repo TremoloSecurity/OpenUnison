@@ -65,6 +65,8 @@ public interface WorkflowTask {
 	
 	public abstract String getLabel();
 
+	public abstract String renderTemplate(String val, Map<String, Object> request);
+
 	
 
 

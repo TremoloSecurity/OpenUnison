@@ -165,7 +165,7 @@ public class ListReports extends HttpServlet {
 			}
 			
 			
-			if (! az.checkRules(auinfo, cfgMgr, rules)) {
+			if (! az.checkRules(auinfo, cfgMgr, rules,null)) {
 				return;
 			}
 		}
