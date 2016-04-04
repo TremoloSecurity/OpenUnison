@@ -63,6 +63,8 @@
 		<commons-pool2.version>2.4.2</commons-pool2.version>
 		<aws-java-sdk.version>1.10.64</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>1.0.0</amazon-sqs-java-messaging-lib.version>
+		<stringtemplate.version>4.0.2</stringtemplate.version>
+		
 	</properties>
 
 	<repositories>

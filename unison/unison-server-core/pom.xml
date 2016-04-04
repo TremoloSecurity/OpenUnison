@@ -158,8 +158,9 @@
 		<dependency>
 			<groupId>org.antlr</groupId>
 			<artifactId>stringtemplate</artifactId>
-			<version>4.0.2</version>
+			<version>${stringtemplate.version}</version>
 		</dependency>
+
 
 	</dependencies>
 	<build>
