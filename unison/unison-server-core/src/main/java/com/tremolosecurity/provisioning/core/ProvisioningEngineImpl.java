@@ -83,6 +83,15 @@ import org.apache.commons.dbcp.cpdsadapter.DriverAdapterCPDS;
 import org.apache.commons.dbcp.datasources.SharedPoolDataSource;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.log4j.Logger;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.cfgxml.spi.LoadedConfig;
+import org.hibernate.boot.jaxb.cfg.spi.JaxbCfgHibernateConfiguration;
+import org.hibernate.boot.jaxb.cfg.spi.JaxbCfgMappingReferenceType;
+import org.hibernate.boot.jaxb.cfg.spi.JaxbCfgHibernateConfiguration.JaxbCfgSessionFactory;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Configuration;
 import org.joda.time.DateTime;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.CronTrigger;
@@ -120,6 +129,18 @@ import com.tremolosecurity.json.Token;
 import com.tremolosecurity.openunison.OpenUnisonConstants;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
+import com.tremolosecurity.provisioning.objects.AllowedApprovers;
+import com.tremolosecurity.provisioning.objects.Approvals;
+import com.tremolosecurity.provisioning.objects.ApproverAttributes;
+import com.tremolosecurity.provisioning.objects.Approvers;
+import com.tremolosecurity.provisioning.objects.AuditLogType;
+import com.tremolosecurity.provisioning.objects.AuditLogs;
+import com.tremolosecurity.provisioning.objects.Escalation;
+import com.tremolosecurity.provisioning.objects.Targets;
+import com.tremolosecurity.provisioning.objects.UserAttributes;
+import com.tremolosecurity.provisioning.objects.Users;
+import com.tremolosecurity.provisioning.objects.WorkflowParameters;
+import com.tremolosecurity.provisioning.objects.Workflows;
 import com.tremolosecurity.provisioning.scheduler.StopScheduler;
 import com.tremolosecurity.provisioning.tasks.Approval;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
@@ -148,7 +169,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 
 	HashMap<String,ProvisioningTargetImpl> userStores;
 	HashMap<String,WorkflowImpl> workflows;
-	HashMap<String,Integer> targetIDs;
+	HashMap<String,Targets> targetIDs;
+	
+	HashMap<String,AuditLogType> auditLogTypes;
 	
 	String userIDAttributeName;
 	
@@ -213,6 +236,151 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	private Scheduler scheduler;
 	
 	static Logger logger = Logger.getLogger(ProvisioningEngineImpl.class.getName());
+
+
+
+	private SessionFactory sessionFactory;
+	
+	
+	private void initializeHibernate(ApprovalDBType adbt) {
+		StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder();
+		
+		
+		Configuration config = new Configuration();
+		config.setProperty("hibernate.connection.driver_class", adbt.getDriver());
+		config.setProperty("hibernate.connection.password", adbt.getPassword());
+		config.setProperty("hibernate.connection.url", adbt.getUrl());
+		config.setProperty("hibernate.connection.username", adbt.getUser());
+		config.setProperty("hibernate.dialect", adbt.getHibernateDialect());
+		config.setProperty("hibernate.hbm2ddl.auto", "update");
+		config.setProperty("show_sql", "true");
+		config.setProperty("hibernate.current_session_context_class", "thread");
+
+		
+		JaxbCfgHibernateConfiguration jaxbCfg = new JaxbCfgHibernateConfiguration();
+		jaxbCfg.setSessionFactory(new JaxbCfgSessionFactory());
+		
+		JaxbCfgMappingReferenceType mrt = new JaxbCfgMappingReferenceType();
+		mrt.setClazz(AllowedApprovers.class.getName());
+		jaxbCfg.getSessionFactory().getMapping().add(mrt);
+		
+		mrt = new JaxbCfgMappingReferenceType();
+		mrt.setClazz(Approvals.class.getName());
+		jaxbCfg.getSessionFactory().getMapping().add(mrt);
+		
+		mrt = new JaxbCfgMappingReferenceType();
+		mrt.setClazz(ApproverAttributes.class.getName());
+		jaxbCfg.getSessionFactory().getMapping().add(mrt);
+		
+		mrt = new JaxbCfgMappingReferenceType();
+		mrt.setClazz(Approvers.class.getName());
+		jaxbCfg.getSessionFactory().getMapping().add(mrt);
+		
+		mrt = new JaxbCfgMappingReferenceType();
+		mrt.setClazz(AuditLogs.class.getName());
+		jaxbCfg.getSessionFactory().getMapping().add(mrt);
+		
+		mrt = new JaxbCfgMappingReferenceType();
+		mrt.setClazz(AuditLogType.class.getName());
+		jaxbCfg.getSessionFactory().getMapping().add(mrt);
+		
+		mrt = new JaxbCfgMappingReferenceType();
+		mrt.setClazz(Escalation.class.getName());
+		jaxbCfg.getSessionFactory().getMapping().add(mrt);
+		
+		mrt = new JaxbCfgMappingReferenceType();
+		mrt.setClazz(Targets.class.getName());
+		jaxbCfg.getSessionFactory().getMapping().add(mrt);
+		
+		mrt = new JaxbCfgMappingReferenceType();
+		mrt.setClazz(UserAttributes.class.getName());
+		jaxbCfg.getSessionFactory().getMapping().add(mrt);
+		
+		mrt = new JaxbCfgMappingReferenceType();
+		mrt.setClazz(Users.class.getName());
+		jaxbCfg.getSessionFactory().getMapping().add(mrt);
+		
+		mrt = new JaxbCfgMappingReferenceType();
+		mrt.setClazz(WorkflowParameters.class.getName());
+		jaxbCfg.getSessionFactory().getMapping().add(mrt);
+		
+		mrt = new JaxbCfgMappingReferenceType();
+		mrt.setClazz(Workflows.class.getName());
+		jaxbCfg.getSessionFactory().getMapping().add(mrt);
+		
+		LoadedConfig lc = LoadedConfig.consume(jaxbCfg);
+		
+		
+		
+		StandardServiceRegistry registry = builder.configure(lc).applySettings(config.getProperties()).build();
+		try {
+			sessionFactory = new MetadataSources( registry ).buildMetadata().buildSessionFactory();
+			
+			this.cfgMgr.addThread(new StopableThread() {
+
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					
+				}
+
+				@Override
+				public void stop() {
+					logger.info("Stopping hibernate");
+					sessionFactory.close();
+					
+				}
+				
+			});
+			
+			org.hibernate.Session session = sessionFactory.openSession();
+			
+			
+			
+			this.auditLogTypes = new HashMap<String,AuditLogType>();
+			
+			
+			List<AuditLogType> alts = session.createCriteria(AuditLogType.class).list();
+			if ( alts.size() == 0 ) {
+				session.beginTransaction();
+				AuditLogType alt = new AuditLogType();
+				alt.setName("Add");
+				session.save(alt);
+				
+				this.auditLogTypes.put("add", alt);
+				
+				alt = new AuditLogType();
+				alt.setName("Delete");
+				session.save(alt);
+				
+				this.auditLogTypes.put("delete", alt);
+				
+				alt = new AuditLogType();
+				alt.setName("Replace");
+				session.save(alt);
+				
+				this.auditLogTypes.put("replace", alt);
+				
+				session.getTransaction().commit();
+			} else {
+				for (AuditLogType alt : alts) {
+					this.auditLogTypes.put(alt.getName().toLowerCase(), alt);
+				}
+			}
+			
+			
+			
+			session.close();
+			
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			// The registry would be destroyed by the SessionFactory, but we had trouble building the SessionFactory
+			// so destroy it manually.
+			StandardServiceRegistryBuilder.destroy( registry );
+		}
+	}
+	
 	
 	/**
 	 * Default constructor
@@ -243,6 +411,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			
 			ApprovalDBType adbt = cfgMgr.getCfg().getProvisioning().getApprovalDB();
+			
+			this.initializeHibernate(adbt);
+			
 			this.smtpHost = adbt.getSmtpHost();
 	        this.smtpPort = adbt.getSmtpPort();
 	        this.smtpUser = adbt.getSmtpUser();
@@ -328,30 +499,27 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	        this.userAttrbiutes = new ArrayList<String>();
 	        this.userAttrbiutes.addAll(cfgMgr.getCfg().getProvisioning().getApprovalDB().getUserAttributes().getValue());
 	        
-	        for (TargetType targetCfg : cfgMgr.getCfg().getProvisioning().getTargets().getTarget()) {
-	        	try {
-					Connection con = this.approvalConPool.getConnection();
-					PreparedStatement ps = con.prepareStatement("SELECT id FROM targets WHERE name=?");
-					ps.setString(1, targetCfg.getName());
-					ResultSet rs = ps.executeQuery();
-					if (rs.next()) {
-						this.targetIDs.put(targetCfg.getName(), rs.getInt("id"));
-					} else {
-						PreparedStatement ps1 = con.prepareStatement("INSERT INTO targets (name) VALUES (?)",Statement.RETURN_GENERATED_KEYS);
-						ps1.setString(1, targetCfg.getName());
-						ps1.executeUpdate();
-						ResultSet keys = ps1.getGeneratedKeys();
-						keys.next();
-						this.targetIDs.put(targetCfg.getName(), keys.getInt(1));
-						ps1.close();
-						keys.close();
+	        org.hibernate.Session session = sessionFactory.openSession();
+	        
+	        try {
+		        List<Targets> targets = session.createCriteria(Targets.class).list();
+		        for (Targets target : targets) {
+		        	this.targetIDs.put(target.getName(), target);
+		        }
+		        
+		        
+		        
+		        
+		        for (TargetType targetCfg : cfgMgr.getCfg().getProvisioning().getTargets().getTarget()) {
+		        	if (! this.targetIDs.containsKey(targetCfg.getName())) {
+						Targets target = new Targets();
+						target.setName(targetCfg.getName());
+						session.save(target);
+						this.targetIDs.put(target.getName(), target);
 					}
-					rs.close();
-					ps.close();
-					con.close();
-				} catch (SQLException e) {
-					throw new ProvisioningException("Could not generate target id list",e);
-				}
+		        }
+	        } finally {
+	        	session.close();
 	        }
 	        
 	        
@@ -469,7 +637,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			return;
 		}
 		
-		this.targetIDs = new HashMap<String,Integer>();
+		this.targetIDs = new HashMap<String,Targets>();
 		
 		Iterator<TargetType> it = cfgMgr.getCfg().getProvisioning().getTargets().getTarget().iterator();
 		
@@ -666,6 +834,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			while (res.hasMore()) res.next();
 			
 			con = this.approvalConPool.getConnection();
+			
+			
+			
 			
 			PreparedStatement ps = con.prepareStatement("SELECT id FROM approvers WHERE userKey=?");
 			ps.setString(1, userID);
@@ -881,7 +1052,40 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			line.append(" user=").append(wf.getUser().getUserID()).append(" workflow=").append(wf.getName()).append(" approval=").append(approval).append(" ").append(attribute).append("='").append(val).append("'");
 			logger.info(line);
 		} else {
+			
+			org.hibernate.Session session = sessionFactory.openSession();
+			
 			try {
+				
+				
+				AuditLogs auditLog = new AuditLogs();
+				
+				if (isEntry) {
+					auditLog.setIsEntry(1);
+				} else {
+					auditLog.setIsEntry(0);
+				}
+				
+				switch (actionType) {
+					case Add : auditLog.setAuditLogType(this.auditLogTypes.get("add")); break;
+					case Delete : auditLog.setAuditLogType(this.auditLogTypes.get("delete")); break;
+					case Replace : auditLog.setAuditLogType(this.auditLogTypes.get("replace")); break;
+				}
+				
+				auditLog.setUser(session.load(Users.class,wf.getUserNum()));
+				if (approval >= 0) {
+					auditLog.setApprovals(session.load(Approvals.class, approval));
+				}
+				
+				auditLog.setAttribute(attribute);
+				auditLog.setVal(val);
+				
+				auditLog.setWorkflows(session.load(Workflows.class, wf.getId()));
+				auditLog.setTargets(this.targetIDs.get(target));
+				
+				session.save(auditLog);
+				
+				/*
 				con = this.getApprovalDBConn();
 				PreparedStatement ps = con.prepareStatement("INSERT INTO auditLogs (isEntry,actionType,userid,approval,attribute,val,workflow,target) VALUES (?,?,?,?,?,?,?,?)");
 				if (isEntry) {
@@ -905,23 +1109,11 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				
 				ps.executeUpdate();
 				ps.close();
-				
+				*/
 			} catch (Exception e) {
 				logger.error("Could not create audit record",e);
 			} finally {
-				if (con != null) {
-					try {
-						con.rollback();
-					} catch (SQLException e) {
-
-					}
-					
-					try {
-						con.close();
-					} catch (SQLException e) {
-						
-					}
-				}
+				session.close();
 			}
 			
 		}

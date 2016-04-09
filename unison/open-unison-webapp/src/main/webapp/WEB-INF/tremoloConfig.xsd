@@ -1342,7 +1342,10 @@ limitations under the License.
     			</documentation>
     		</annotation>
     	</element>
-    	<element name="validationQuery" type="string" minOccurs="0" maxOccurs="1"></element>
+    	<element name="validationQuery" type="string" minOccurs="0"
+    		maxOccurs="1">
+    	</element>
+    	<element name="hibernateDialect" type="string" minOccurs="1" maxOccurs="1"></element>
     </sequence>
     </complexType>
 

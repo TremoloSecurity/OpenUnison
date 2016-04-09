@@ -36,29 +36,29 @@ public class AuditLogs implements java.io.Serializable {
 	private Targets targets;
 	private Workflows workflows;
 	private int isEntry;
-	private int userid;
+	private Users user;
 	private String attribute;
 	private String val;
 
 	public AuditLogs() {
 	}
 
-	public AuditLogs(int id, AuditLogType auditLogType, int isEntry, int userid) {
+	public AuditLogs(int id, AuditLogType auditLogType, int isEntry, Users user) {
 		this.id = id;
 		this.auditLogType = auditLogType;
 		this.isEntry = isEntry;
-		this.userid = userid;
+		this.user = user;
 	}
 
 	public AuditLogs(int id, Approvals approvals, AuditLogType auditLogType, Targets targets, Workflows workflows,
-			int isEntry, int userid, String attribute, String val) {
+			int isEntry, Users user, String attribute, String val) {
 		this.id = id;
 		this.approvals = approvals;
 		this.auditLogType = auditLogType;
 		this.targets = targets;
 		this.workflows = workflows;
 		this.isEntry = isEntry;
-		this.userid = userid;
+		this.user = user;
 		this.attribute = attribute;
 		this.val = val;
 	}
@@ -123,13 +123,14 @@ public class AuditLogs implements java.io.Serializable {
 		this.isEntry = isEntry;
 	}
 
-	@Column(name = "userid", nullable = false)
-	public int getUserid() {
-		return this.userid;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "userid")
+	public Users getUser() {
+		return this.user;
 	}
 
-	public void setUserid(int userid) {
-		this.userid = userid;
+	public void setUser(Users user) {
+		this.user = user;
 	}
 
 	@Column(name = "attribute")
