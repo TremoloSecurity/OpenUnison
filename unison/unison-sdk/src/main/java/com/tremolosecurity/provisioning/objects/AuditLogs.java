@@ -14,8 +14,10 @@ package com.tremolosecurity.provisioning.objects;
 // Generated Apr 7, 2016 3:31:46 PM by Hibernate Tools 4.3.1.Final
 
 import javax.persistence.Column;
+import javax.persistence.ConstraintMode;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -74,8 +76,8 @@ public class AuditLogs implements java.io.Serializable {
 		this.id = id;
 	}
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "approval")
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "approval" , nullable = true, foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
 	public Approvals getApprovals() {
 		return this.approvals;
 	}
@@ -95,7 +97,7 @@ public class AuditLogs implements java.io.Serializable {
 	}
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "target")
+	@JoinColumn(name = "target"  )
 	public Targets getTargets() {
 		return this.targets;
 	}

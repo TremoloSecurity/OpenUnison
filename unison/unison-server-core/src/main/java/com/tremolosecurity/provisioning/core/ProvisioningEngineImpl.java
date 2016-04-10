@@ -83,6 +83,7 @@ import org.apache.commons.dbcp.cpdsadapter.DriverAdapterCPDS;
 import org.apache.commons.dbcp.datasources.SharedPoolDataSource;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.log4j.Logger;
+import org.hibernate.Query;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.cfgxml.spi.LoadedConfig;
@@ -694,10 +695,10 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	 */
 	@Override
 	public Workflow getWorkFlow(String name,User user) throws ProvisioningException {
-		Connection con = null;
+		org.hibernate.Session session = sessionFactory.openSession();
 		try {
-			con = this.getApprovalDBConn();
-			int userid = WorkflowImpl.getUserNum(user, con, cfgMgr);
+			
+			int userid = WorkflowImpl.getUserNum(user, session, cfgMgr);
 			if (user.isJitAddToAuditDB()) {
 				return this.getWorkFlow(name);
 			} else {
@@ -706,12 +707,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not load workflow",e);
 		} finally {
-			try {
-				if (con != null) {
-					con.close();
-				}
-			} catch (SQLException e) {
-				
+			
+			if (session != null) {
+				session.close();
 			}
 			
 		}
@@ -739,40 +737,25 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		wf.reInit(this.cfgMgr);
 		
 		
-		if (this.approvalConPool != null) {
+		if (this.sessionFactory != null) {
 			Connection con = null;
+			org.hibernate.Session session = sessionFactory.openSession();
+			
 			try {
-				con = this.approvalConPool.getConnection();
-				PreparedStatement ps = con.prepareStatement("INSERT INTO workflows (name,startTS) VALUES (?,?)",Statement.RETURN_GENERATED_KEYS);
+				
 				DateTime now = new DateTime();
-				ps.setString(1, wf.name);
-				ps.setTimestamp(2, new Timestamp(now.getMillis()));
-				ps.executeUpdate();
+				Workflows workflow = new Workflows();
+				workflow.setName(wf.getName());
+				workflow.setStartTs(new Timestamp(now.getMillis()));
 				
-				ResultSet rs = ps.getGeneratedKeys();
-				rs.next();
-				int id = rs.getInt(1);
-				rs.close();
-				ps.close();
+				session.save(workflow);
 				
-				wf.setId(id);
 				
-			} catch (SQLException e) {
-				throw new ProvisioningException("Could not generate workflow",e);
-			} finally {
-				if (con != null) {
-					
-					try {
-						con.rollback();
-					} catch (SQLException e1) {
-						
-					}
-					
-					try {
-						con.close();
-					} catch (SQLException e) {
-						
-					}
+				wf.setId(workflow.getId());
+				
+			}  finally {
+				if (session != null) {
+					session.close();
 				}
 			}
 		}
@@ -799,7 +782,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	@Override
 	public void doApproval(int id,String userID,boolean approved,String reason) throws ProvisioningException {
 		
-		Connection con = null;
+		
+		org.hibernate.Session session = this.sessionFactory.openSession();
 		try {
 			
 			StringBuffer b = new StringBuffer();
@@ -833,14 +817,18 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			while (res.hasMore()) res.next();
 			
-			con = this.approvalConPool.getConnection();
 			
 			
 			
 			
-			PreparedStatement ps = con.prepareStatement("SELECT id FROM approvers WHERE userKey=?");
-			ps.setString(1, userID);
-			ResultSet rs = ps.executeQuery();
+			
+			Query query = session.createQuery("FROM approvers WHERE userKey = :user_key");
+			query.setParameter("user_key", userID);
+			List<Approvers> approvers = query.list();
+			Approvers approverObj = null;
+			
+			
+			
 			
 			if (logger.isDebugEnabled()) {
 				logger.debug("Approver UserID : " + userID);
@@ -849,49 +837,72 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			int approverID;
 			
-			if (! rs.next()) {
+			if (approvers.size() == 0) {
 				
-				PreparedStatement psi = con.prepareStatement("INSERT INTO approvers (userKey) VALUES (?)",Statement.RETURN_GENERATED_KEYS);
-				psi.setString(1, userID);
-				psi.executeUpdate();
-				ResultSet keys = psi.getGeneratedKeys();
-				keys.next();
-				approverID = keys.getInt(1);
-				keys.close();
-				psi.close();
+				approverObj = new Approvers();
+				approverObj.setUserKey(userID);
+				session.save(approverObj);
+				
+				
+				approverID = approverObj.getId();
 			} else {
 				
-				approverID = rs.getInt("id");
+				approverID = approverObj.getId();
 			}
 			
 			
 			
-			rs.close();
 			
-			con.setAutoCommit(false);
+			
+			session.beginTransaction();
+			
+			
+			boolean changed = false;
 			
 			for (String attrName : this.getApproverAttributes()) {
-				StringBuffer sb = new StringBuffer("UPDATE approvers SET ").append(attrName).append("=? WHERE id=?");
-				PreparedStatement psUpdate = con.prepareStatement(sb.toString());
-				psUpdate.setString(
-						1, approver.getAttribute(attrName).getStringValue());
-				psUpdate.setInt(2, approverID);
-				psUpdate.executeUpdate();
+				
+				boolean found = false;
+				
+				for (ApproverAttributes appAttr : approverObj.getApproverAttributeses()) {
+					if (attrName.equalsIgnoreCase(appAttr.getName())) {
+						found = true;
+						LDAPAttribute approverAttr = approver.getAttribute(attrName);
+						if (approverAttr != null) {
+							if (! approverAttr.getStringValue().equals(appAttr.getValue())) {
+								appAttr.setValue(approverAttr.getStringValue());
+								session.save(appAttr);
+							}
+						}
+						
+					}
+				}
+				
+				if (! found) {
+					ApproverAttributes attr = new ApproverAttributes();
+					attr.setName(attrName);
+					LDAPAttribute approverAttr = approver.getAttribute(attrName);
+					if (approverAttr != null) {
+						attr.setValue(approverAttr.getStringValue());
+					}
+					approverObj.getApproverAttributeses().add(attr);
+					session.save(attr);
+					changed = true;
+				}
+				
 			}
 			
-			con.commit();
+			session.getTransaction().commit();
+			
+			Approvals approvals = session.load(Approvals.class, id);
 			
 			
-			ps = con.prepareStatement("SELECT workflowObj FROM approvals WHERE id=?");
-			ps.setInt(1, id);
-			rs = ps.executeQuery();
 			
-			if (! rs.next()) {
+			if (approvals == null) {
 				throw new ProvisioningException("Approval not found");
 			}
 			
 			Gson gson = new Gson();
-			String json = rs.getString("workflowObj");
+			String json = approvals.getWorkflowObj();
 			Token token = gson.fromJson(json, Token.class);
 			
 			byte[] iv = org.bouncycastle.util.encoders.Base64.decode(token.getIv());
@@ -929,22 +940,20 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				throw new ProvisioningException("Az of approval failed");
 			}
 			
-			rs.close();
-			ps.close();
+			
 			
 			DateTime now = new DateTime();
 			
-			ps = con.prepareStatement("UPDATE approvals SET workflowObj=NULL ,approvedTS=?, approver=?, approved=?,reason=? WHERE id=?");
-			ps.setTimestamp(1, new Timestamp(now.getMillis()));
-			ps.setInt(2, approverID);
-			ps.setInt(3, approved ? 1 : 0);
-			ps.setString(4, reason);
-			ps.setInt(5, id);
 			
-			ps.executeUpdate();
+			approvals.setWorkflowObj(null);
+			approvals.setApprovedTs(new Timestamp(now.getMillis()));
+			approvals.setApprovers(approverObj);
+			approvals.setApproved(approved ? 1 : 0);
+			approvals.setReason(reason);
 			
-			con.commit();
-			con.setAutoCommit(true);
+			session.save(approvals);
+			
+			
 			
 			if (approved) {
 				wf.reInit(cfgMgr);
@@ -986,19 +995,13 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not send notification",e);
 		} finally {
-			if (con != null) {
+			if (session != null) {
 				
-				try {
-					con.rollback();
-				} catch (SQLException e1) {
-					
+				if (session.getTransaction() != null) {
+					session.getTransaction().rollback();
 				}
 				
-				try {
-					con.close();
-				} catch (SQLException e) {
-					
-				}
+				session.close();
 			}
 		}
 	}
@@ -1038,7 +1041,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			val = "##########";
 		}
 		
-		if (this.approvalConPool == null) {
+		if (this.sessionFactory == null) {
 			StringBuffer line = new StringBuffer();
 			line.append("target=").append(target);
 			line.append(" entry=").append(isEntry);
@@ -1073,8 +1076,10 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				}
 				
 				auditLog.setUser(session.load(Users.class,wf.getUserNum()));
-				if (approval >= 0) {
+				if (approval > 0) {
 					auditLog.setApprovals(session.load(Approvals.class, approval));
+				} else {
+					auditLog.setApprovals(null);
 				}
 				
 				auditLog.setAttribute(attribute);
@@ -1084,32 +1089,6 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				auditLog.setTargets(this.targetIDs.get(target));
 				
 				session.save(auditLog);
-				
-				/*
-				con = this.getApprovalDBConn();
-				PreparedStatement ps = con.prepareStatement("INSERT INTO auditLogs (isEntry,actionType,userid,approval,attribute,val,workflow,target) VALUES (?,?,?,?,?,?,?,?)");
-				if (isEntry) {
-					ps.setInt(1, 1);
-				} else {
-					ps.setInt(1, 0);
-				}
-			
-				switch (actionType) {
-					case Add : ps.setInt(2, 1); break;
-					case Delete : ps.setInt(2, 2); break;
-					case Replace : ps.setInt(2, 3); break;
-				}
-				
-				ps.setInt(3, wf.getUserNum());
-				ps.setInt(4, approval);
-				ps.setString(5, attribute);
-				ps.setString(6, val);
-				ps.setInt(7, wf.getId());
-				ps.setInt(8, this.targetIDs.get(target));
-				
-				ps.executeUpdate();
-				ps.close();
-				*/
 			} catch (Exception e) {
 				logger.error("Could not create audit record",e);
 			} finally {
@@ -1754,6 +1733,12 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		} catch (Exception e) {
 			
 		}
+	}
+
+
+	@Override
+	public SessionFactory getHibernateSessionFactory() throws ProvisioningException {
+		return this.sessionFactory;
 	}
 	
 	

@@ -26,6 +26,8 @@ import java.util.Stack;
 import javax.jms.JMSException;
 import javax.jms.MessageProducer;
 
+import org.hibernate.SessionFactory;
+
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
 
@@ -122,6 +124,8 @@ public interface ProvisioningEngine {
 	public abstract void initListeners() throws ProvisioningException;
 	
 	public void clearDLQ() throws ProvisioningException;
+	
+	public abstract SessionFactory getHibernateSessionFactory() throws ProvisioningException;
 	
 
 }

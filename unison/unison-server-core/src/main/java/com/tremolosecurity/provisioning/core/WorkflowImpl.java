@@ -29,10 +29,14 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
 import org.apache.log4j.Logger;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.joda.time.DateTime;
 
 import com.novell.ldap.LDAPAttribute;
@@ -43,6 +47,11 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.WorkflowTaskType;
 import com.tremolosecurity.config.xml.WorkflowType;
+import com.tremolosecurity.provisioning.objects.ApproverAttributes;
+import com.tremolosecurity.provisioning.objects.Approvers;
+import com.tremolosecurity.provisioning.objects.UserAttributes;
+import com.tremolosecurity.provisioning.objects.Users;
+import com.tremolosecurity.provisioning.objects.Workflows;
 import com.tremolosecurity.provisioning.service.util.TremoloUser;
 import com.tremolosecurity.provisioning.service.util.WFCall;
 import com.tremolosecurity.provisioning.tasks.Approval;
@@ -129,19 +138,22 @@ public class WorkflowImpl implements  Workflow {
 		
 		this.user = user;
 		
-		Connection con = null;
+		
+		Session session = null;
 		try {
-			con = this.cfgMgr.getProvisioningEngine().getApprovalDBConn();
-			if (con != null) {
+			session = this.cfgMgr.getProvisioningEngine().getHibernateSessionFactory().openSession();
+			if (session != null) {
 				
-				this.userNum = this.getUserNum(user,con,this.cfgMgr);
+				this.userNum = getUserNum(user,session,this.cfgMgr);
 				
-				PreparedStatement ps = con.prepareStatement("UPDATE workflows SET userid = ?, requestReason=? WHERE id = ?");
-				ps.setInt(1, userNum);
-				ps.setString(2, user.getRequestReason());
-				ps.setLong(3, this.getId());
-				ps.executeUpdate();
-				ps.close();
+				session.beginTransaction();
+				Workflows workflow = session.load(Workflows.class, this.getId());
+				workflow.setUsers(session.load(Users.class, this.userNum));
+				workflow.setRequestReason(user.getRequestReason());
+				session.save(workflow);
+				session.getTransaction().commit();
+				
+				
 				
 			}
 		} catch (SQLException e) {
@@ -149,20 +161,13 @@ public class WorkflowImpl implements  Workflow {
 		} catch (LDAPException e) {
 			throw new ProvisioningException("Could not set workflow user key",e);
 		} finally {
-			if (con != null) {
+			if (session != null) {
 				
-				try {
-					con.rollback();
-				} catch (SQLException e1) {
-					
+				if (session.getTransaction() != null && session.getTransaction().getStatus() == TransactionStatus.ACTIVE) {
+					session.getTransaction().rollback();
 				}
 				
-				try {
-					con.close();
-				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					
-				}
+				session.close();
 			}
 		}
 		
@@ -192,7 +197,7 @@ public class WorkflowImpl implements  Workflow {
 	}
 
 	
-	public static int getUserNum(User user, Connection con,ConfigManager cfgMgr) throws LDAPException, SQLException {
+	public static int getUserNum(User user, Session session,ConfigManager cfgMgr) throws LDAPException, SQLException {
 		StringBuffer filter = new StringBuffer();
 		
 		
@@ -206,99 +211,135 @@ public class WorkflowImpl implements  Workflow {
 		
 		while (res.hasMore()) res.next();
 		
-		con.setAutoCommit(false);
 		
-		PreparedStatement ps = con.prepareStatement("SELECT id FROM users WHERE userKey=?");
-		ps.setString(1, user.getUserID());
-		ResultSet rs = ps.executeQuery();
+		
+		
+		Query query = session.createQuery("FROM Users WHERE userKey = :user_key");
+		query.setParameter("user_key", user.getUserID());
+		List<Users> users = query.list();
+		Users userObj = null;
+		
+		
+		
+		session.beginTransaction();
 		
 		int id = 0;
 		
-		if (rs.next()) {
-			id = rs.getInt("id");
+		if (users.size() > 0) {
+			userObj = users.get(0);
+			id = userObj.getId();
 			user.setJitAddToAuditDB(false);
-			rs.close();
+			
 		} else {
-			rs.close();
-			PreparedStatement psi = con.prepareStatement("INSERT INTO users (userKey) VALUES (?)",Statement.RETURN_GENERATED_KEYS);
-			psi.setString(1, user.getUserID());
-			psi.executeUpdate();
-			rs = psi.getGeneratedKeys();
-			rs.next();
-			id = rs.getInt(1);
-			rs.close();
-			psi.close();
+			
+			userObj = new Users();
+			userObj.setUserKey(user.getUserID());
+			
+			
+			
+			session.save(userObj);
+			
+			id = userObj.getId();
+			if (fromLDAP != null) {
+				for (String attr : cfgMgr.getProvisioningEngine().getUserAttrbiutes()) {
+					UserAttributes nattr = new UserAttributes();
+					nattr.setName(attr);
+					LDAPAttribute userAttrFromLDAP = fromLDAP.getAttribute(attr);
+					if (userAttrFromLDAP != null) {
+						nattr.setValue(userAttrFromLDAP.getStringValue());
+					}
+					nattr.setUsers(userObj);
+					
+					session.save(nattr);
+					
+				}
+			} else {
+				for (String attr : cfgMgr.getProvisioningEngine().getUserAttrbiutes()) {
+					UserAttributes nattr = new UserAttributes();
+					nattr.setName(attr);
+					Attribute fromObj = user.getAttribs().get(attr);
+					if (fromObj != null) {
+						nattr.setValue(fromObj.getValues().get(0));
+					}
+					nattr.setUsers(userObj);
+					
+					session.save(nattr);
+					
+				}
+			}
+			
 			user.setJitAddToAuditDB(true);
 		}
 		
-		ps.close();
+	
 		
 		
 		StringBuffer sb = new StringBuffer();
 		
 		
 		if (! user.isJitAddToAuditDB()) {
-			StringBuffer select = new StringBuffer("SELECT id FROM users WHERE userKey=? AND ");
-			ArrayList<String> vals = new ArrayList<String>(); 
+			
+			
+			
+			boolean changed = false;
+			
+			boolean found = false;
+			
 			for (String attr : cfgMgr.getProvisioningEngine().getUserAttrbiutes()) {
-				if (user.getAttribs().get(attr) != null) {
-					select.append(attr).append("=? AND ");
-					vals.add(user.getAttribs().get(attr).getValues().get(0));
+				for (UserAttributes userAttr : userObj.getUserAttributeses()) {
+					if (attr.equalsIgnoreCase(userAttr.getName())) {
+						found = true;
+						LDAPAttribute userAttrFromLDAP = fromLDAP.getAttribute(attr);
+						if (userAttrFromLDAP != null) {
+							if (! userAttrFromLDAP.getStringValue().equals(userAttr.getValue())) {
+								changed = true;
+								userAttr.setValue(userAttrFromLDAP.getStringValue());
+								
+								session.save(userAttr);
+							}
+						}
+						
+					}
 				}
+			
+				
+				if (! found) {
+					UserAttributes nattr = new UserAttributes();
+					nattr.setName(attr);
+					LDAPAttribute userAttrFromLDAP = fromLDAP.getAttribute(attr);
+					if (userAttrFromLDAP != null) {
+						nattr.setValue(userAttrFromLDAP.getStringValue());
+					}
+					nattr.setUsers(userObj);
+					
+					session.save(nattr);
+					changed = true;
+				}
+			
 			}
 			
-			String sql = select.toString();
-			sql = sql.substring(0,sql.lastIndexOf("AND"));
 			
 			
 			
-			ps = con.prepareStatement(sql);
 			
-			ps.setString(1, user.getUserID());
 			
-			int pNum = 2;
-			for (String val : vals) {
-				ps.setString(pNum, val);
-				pNum++;
-			}
 			
-			rs = ps.executeQuery();
-			if (rs.next()) {
+			
+			
+			
+			
+			
+			
+			if (! changed) {
 				user.setJitAddToAuditDB(false);
 			} else {
 				user.setJitAddToAuditDB(true);
 			}
 			
-			rs.close();
-			ps.close();
+			
 		}
 		
-		if (user.isJitAddToAuditDB()) {
-			for (String attr : cfgMgr.getProvisioningEngine().getUserAttrbiutes()) {
-				if (user.getAttribs().get(attr) != null) {
-					sb.setLength(0);
-					sb.append("UPDATE users SET ").append(attr).append("=? WHERE id=?");
-					PreparedStatement psu = con.prepareStatement(sb.toString());
-					psu.setString(1, user.getAttribs().get(attr).getValues().get(0));
-					psu.setInt(2, id);
-					psu.executeUpdate();
-					psu.close();
-				} else if (fromLDAP != null && fromLDAP.getAttribute(attr) != null) {
-					sb.setLength(0);
-					sb.append("UPDATE users SET ").append(attr).append("=? WHERE id=?");
-					PreparedStatement psu = con.prepareStatement(sb.toString());
-					psu.setString(1, fromLDAP.getAttribute(attr).getStringValue());
-					psu.setInt(2, id);
-					psu.executeUpdate();
-					psu.close();
-				} else {
-					logger.warn("Could not store attribute '" + attr + "' in audit database");
-				}
-			}
-		}
-		
-		con.commit();
-		con.setAutoCommit(true);
+		session.getTransaction().commit();
 		
 		return id;
 	}
@@ -482,33 +523,25 @@ public class WorkflowImpl implements  Workflow {
 	 */
 	@Override
 	public void completeWorkflow() throws ProvisioningException {
-		Connection con = null;
+		Session session = null;
 		try {
-			con = this.cfgMgr.getProvisioningEngine().getApprovalDBConn();
-			if (con != null) {
+			session = this.cfgMgr.getProvisioningEngine().getHibernateSessionFactory().openSession();
+			if (session != null) {
 				DateTime now = new DateTime();
-				PreparedStatement ps = con.prepareStatement("UPDATE workflows SET completeTS=? WHERE id=?");
-				ps.setTimestamp(1, new Timestamp(now.getMillis()));
-				ps.setLong(2, this.id);
-				ps.executeUpdate();
-				ps.close();
+				Workflows wf = session.load(Workflows.class, this.id);
+				wf.setCompleteTs(new Timestamp(now.getMillis()));
+				session.save(wf);
+				session.getTransaction().commit();
+				
 			}
-		} catch (SQLException e) {
-			throw new ProvisioningException("Could not complete workflow",e);
 		} finally {
-			if (con != null) {
+			if (session != null) {
 				
-				try {
-					con.rollback();
-				} catch (SQLException e1) {
-					
+				if (session.getTransaction() != null && session.getTransaction().getStatus() == TransactionStatus.ACTIVE) {
+					session.getTransaction().rollback();
 				}
 				
-				try {
-					con.close();
-				} catch (SQLException e) {
-					
-				}
+				session.close();
 			}
 		}
 		
