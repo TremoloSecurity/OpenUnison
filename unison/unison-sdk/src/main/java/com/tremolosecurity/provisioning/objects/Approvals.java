@@ -39,7 +39,7 @@ public class Approvals implements java.io.Serializable {
 	private int id;
 	private Approvers approvers;
 	private String label;
-	private int workflow;
+	private Workflows workflow;
 	private String workflowObj;
 	private Date createTs;
 	private Date approvedTs;
@@ -52,12 +52,12 @@ public class Approvals implements java.io.Serializable {
 	public Approvals() {
 	}
 
-	public Approvals(int id, int workflow) {
+	public Approvals(int id, Workflows workflow) {
 		this.id = id;
 		this.workflow = workflow;
 	}
 
-	public Approvals(int id, Approvers approvers, String label, int workflow, String workflowObj, Date createTs,
+	public Approvals(int id, Approvers approvers, String label, Workflows workflow, String workflowObj, Date createTs,
 			Date approvedTs, Integer approved, String reason, Set<AllowedApprovers> allowedApproverses,
 			Set<Escalation> escalations, Set<AuditLogs> auditLogses) {
 		this.id = id;
@@ -104,16 +104,17 @@ public class Approvals implements java.io.Serializable {
 		this.label = label;
 	}
 
-	@Column(name = "workflow", nullable = false)
-	public int getWorkflow() {
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "workflow", nullable = false)
+	public Workflows getWorkflow() {
 		return this.workflow;
 	}
 
-	public void setWorkflow(int workflow) {
+	public void setWorkflow(Workflows workflow) {
 		this.workflow = workflow;
 	}
 
-	@Column(name = "workflowObj")
+	@Column(name = "workflowObj", columnDefinition="TEXT")
 	public String getWorkflowObj() {
 		return this.workflowObj;
 	}

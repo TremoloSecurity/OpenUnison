@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Stack;
 
 import org.apache.log4j.Logger;
+import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
@@ -59,6 +60,7 @@ import com.tremolosecurity.provisioning.util.TaskHolder;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.AuthSys;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 
 public class WorkflowImpl implements  Workflow {
 	static Logger logger = Logger.getLogger(WorkflowImpl.class.getName());
@@ -72,6 +74,8 @@ public class WorkflowImpl implements  Workflow {
 	
 	private HashMap<String,Object> request;
 	private int userNum;
+	
+	private transient Workflows fromDB;
 	
 	/* (non-Javadoc)
 	 * @see com.tremolosecurity.provisioning.core.Workflow#getUserNum()
@@ -289,13 +293,15 @@ public class WorkflowImpl implements  Workflow {
 				for (UserAttributes userAttr : userObj.getUserAttributeses()) {
 					if (attr.equalsIgnoreCase(userAttr.getName())) {
 						found = true;
-						LDAPAttribute userAttrFromLDAP = fromLDAP.getAttribute(attr);
-						if (userAttrFromLDAP != null) {
-							if (! userAttrFromLDAP.getStringValue().equals(userAttr.getValue())) {
-								changed = true;
-								userAttr.setValue(userAttrFromLDAP.getStringValue());
-								
-								session.save(userAttr);
+						if (fromLDAP != null) {
+							LDAPAttribute userAttrFromLDAP = fromLDAP.getAttribute(attr);
+							if (userAttrFromLDAP != null) {
+								if (! userAttrFromLDAP.getStringValue().equals(userAttr.getValue())) {
+									changed = true;
+									userAttr.setValue(userAttrFromLDAP.getStringValue());
+									
+									session.save(userAttr);
+								}
 							}
 						}
 						
@@ -527,6 +533,7 @@ public class WorkflowImpl implements  Workflow {
 		try {
 			session = this.cfgMgr.getProvisioningEngine().getHibernateSessionFactory().openSession();
 			if (session != null) {
+				session.beginTransaction();
 				DateTime now = new DateTime();
 				Workflows wf = session.load(Workflows.class, this.id);
 				wf.setCompleteTs(new Timestamp(now.getMillis()));
@@ -616,5 +623,19 @@ public class WorkflowImpl implements  Workflow {
 				this.printWF(b, prefix + "   ", c);
 			}
 		}
+	}
+
+	@Override
+	public Workflows getFromDB(Session session) throws HibernateException, ProvisioningException {
+		if (fromDB == null) {
+			
+			this.fromDB = session.load(Workflows.class,this.id);
+		}
+		
+		return this.fromDB;
+	}
+	
+	public void setFromDB(Workflows fromDB) {
+		this.fromDB = fromDB;
 	}
 }

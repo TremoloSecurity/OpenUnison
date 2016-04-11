@@ -40,6 +40,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import org.apache.log4j.Logger;
+import org.hibernate.Session;
+import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.joda.time.DateTime;
 
 import com.cedarsoftware.util.io.JsonWriter;
@@ -60,6 +62,9 @@ import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.WorkflowTaskImpl;
+import com.tremolosecurity.provisioning.objects.Approvals;
+import com.tremolosecurity.provisioning.objects.Escalation;
+import com.tremolosecurity.provisioning.objects.Workflows;
 import com.tremolosecurity.provisioning.tasks.Approval.ApproverType;
 import com.tremolosecurity.provisioning.tasks.escalation.EsclationRuleImpl;
 import com.tremolosecurity.provisioning.util.AzUtils;
@@ -68,6 +73,7 @@ import com.tremolosecurity.provisioning.util.EscalationRule.RunOptions;
 import com.tremolosecurity.proxy.az.AzRule;
 import com.tremolosecurity.proxy.az.CustomAuthorization;
 import com.tremolosecurity.proxy.az.VerifyEscalation;
+import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.proxy.az.AzRule.ScopeType;
 
 public class Approval extends WorkflowTaskImpl implements Serializable {
@@ -306,25 +312,24 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 			
 			return this.runChildren(user,nrequest);
 		} else {
-			Connection con = null;
+			Session session = GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getHibernateSessionFactory().openSession();
 			try {
-				con = this.getConfigManager().getProvisioningEngine().getApprovalDBConn();
-				con.setAutoCommit(false);
-				PreparedStatement ps = con.prepareStatement("INSERT INTO approvals (label,workflow,createTS) VALUES (?,?,?)",Statement.RETURN_GENERATED_KEYS);
-				ps.setString(1, this.renderTemplate(this.label, request));
-				ps.setLong(2, this.getWorkflow().getId());
+				session.beginTransaction();
 				DateTime now = new DateTime();
-				ps.setTimestamp(3, new Timestamp(now.getMillis()));
-				ps.executeUpdate();
-				ResultSet keys = ps.getGeneratedKeys();
-				keys.next();
-				this.id = keys.getInt(1);
+				
+				Approvals approval = new Approvals();
+				approval.setLabel(this.renderTemplate(this.label, request));
+				approval.setWorkflow(this.getWorkflow().getFromDB(session));
+				approval.setCreateTs(new Timestamp(now.getMillis()));
+				
+				session.save(approval);
+				
+				
+				this.id = approval.getId();
 				
 				//request.put("APPROVAL_ID", Integer.toString(this.id));
 				request.put("APPROVAL_ID", this.id);
 				
-				keys.close();
-				ps.close();
 				
 				this.setOnHold(true);
 				
@@ -350,10 +355,10 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				
 				//String base64 = new String(org.bouncycastle.util.encoders.Base64.encode(baos.toByteArray()));
 				
-				ps = con.prepareStatement("UPDATE approvals SET workflowObj=? WHERE id=?");
-				ps.setString(1, gson.toJson(token));
-				ps.setInt(2, this.id);
-				ps.executeUpdate();
+				approval.setWorkflowObj(gson.toJson(token));
+				
+				session.save(approval);
+				
 				
 				boolean sendNotification = true;
 				if (request.containsKey(Approval.SEND_NOTIFICATION) && request.get(Approval.SEND_NOTIFICATION).equals("false")) {
@@ -365,19 +370,17 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				for (Approver approver : this.approvers) {
 					String constraintRendered = this.renderTemplate(approver.constraint, request);
 					switch (approver.type) {
-						case StaticGroup : AzUtils.loadStaticGroupApprovers(this.id,localTemplate,this.getConfigManager(),con,id,constraintRendered,sendNotification); break;
-						case Filter : AzUtils.loadFilterApprovers(this.id,localTemplate,this.getConfigManager(),con,id,constraintRendered,sendNotification); break;
-						case DN : AzUtils.loadDNApprovers(this.id,localTemplate,this.getConfigManager(),con,id,constraintRendered,sendNotification);break;
-						case Custom : AzUtils.loadCustomApprovers(this.id,localTemplate,this.getConfigManager(),con,id,constraintRendered,sendNotification,approver.customAz);break;
+						case StaticGroup : AzUtils.loadStaticGroupApprovers(approval,localTemplate,this.getConfigManager(),session,id,constraintRendered,sendNotification); break;
+						case Filter : AzUtils.loadFilterApprovers(approval,localTemplate,this.getConfigManager(),session,id,constraintRendered,sendNotification); break;
+						case DN : AzUtils.loadDNApprovers(approval,localTemplate,this.getConfigManager(),session,id,constraintRendered,sendNotification);break;
+						case Custom : AzUtils.loadCustomApprovers(approval,localTemplate,this.getConfigManager(),session,id,constraintRendered,sendNotification,approver.customAz);break;
 					}
 				}
 				
-				con.commit();
+				session.getTransaction().commit();
 				
 				return false;
 				
-			} catch (SQLException e) {
-				throw new ProvisioningException("Could not create approval",e);
 			} catch (IOException e) {
 				throw new ProvisioningException("Could not store approval",e);
 			} catch (NoSuchAlgorithmException e) {
@@ -391,19 +394,12 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 			} catch (BadPaddingException e) {
 				throw new ProvisioningException("Could not encrypt workflow object",e);
 			} finally {
-				if (con != null) {
-					
-					try {
-						con.rollback();
-					} catch (SQLException e1) {
-						
+				if (session != null) {
+					if (session.getTransaction() != null && session.getTransaction().getStatus() == TransactionStatus.ACTIVE) {
+						session.getTransaction().rollback();
 					}
 					
-					try {
-						con.close();
-					} catch (SQLException e) {
-						
-					}
+					session.close();
 				}
 			}
 		}
@@ -447,10 +443,11 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 		return b.toString();
 	}
 	
-	public boolean updateAllowedApprovals(Connection con,ConfigManager cfg, Map<String, Object> request) throws ProvisioningException, SQLException {
+	public boolean updateAllowedApprovals(Session session,ConfigManager cfg, Map<String, Object> request) throws ProvisioningException, SQLException {
 		boolean updateObj = false;
 		boolean localFail = false;
 		
+		Approvals approvalObj = session.load(Approvals.class, this.id);
 		
 		if (! this.failed && this.escalationRules != null && ! this.escalationRules.isEmpty()) {
 			boolean continueLooking = true;
@@ -521,11 +518,12 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 							
 							rule.setCompleted(true);
 							
-							PreparedStatement psAddEscalation = con.prepareStatement("INSERT INTO escalation (approval,whenTS) VALUES (?,?)");
-							psAddEscalation.setInt(1, this.id);
-							psAddEscalation.setTimestamp(2, new Timestamp(new DateTime().getMillis()));
-							psAddEscalation.executeUpdate();
-							psAddEscalation.close();
+							Escalation escalation = new Escalation();
+							escalation.setApprovals(approvalObj);
+							escalation.setWhenTs(new Timestamp(new DateTime().getMillis()));
+							
+							session.save(escalation);
+							
 							
 							break;
 						case stopEscalating : 
@@ -548,13 +546,15 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 		
 		boolean foundApprovers = false;
 		
+		Approvals approval = session.load(Approvals.class, this.id);
+		session.beginTransaction();
 		for (Approver approver : this.approvers) {
 			String constraintRendered = this.renderTemplate(approver.constraint, request);
 			switch (approver.type) {
-				case StaticGroup : foundApprovers |= AzUtils.loadStaticGroupApprovers(this.id,this.emailTemplate,cfg,con,id,constraintRendered,false); break;
-				case Filter : foundApprovers |= AzUtils.loadFilterApprovers(this.id,this.emailTemplate,cfg,con,id,constraintRendered,false); break;
-				case DN : foundApprovers |= AzUtils.loadDNApprovers(this.id,this.emailTemplate,cfg,con,id,constraintRendered,false);break;
-				case Custom : foundApprovers |= AzUtils.loadCustomApprovers(this.id,this.emailTemplate,cfg,con,id,constraintRendered,false,approver.customAz);break;
+				case StaticGroup : foundApprovers |= AzUtils.loadStaticGroupApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false); break;
+				case Filter : foundApprovers |= AzUtils.loadFilterApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false); break;
+				case DN : foundApprovers |= AzUtils.loadDNApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false);break;
+				case Custom : foundApprovers |= AzUtils.loadCustomApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false,approver.customAz);break;
 			}
 		}
 		
@@ -587,10 +587,10 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 			for (Approver approver : this.approvers) {
 				String constraintRendered = this.renderTemplate(approver.constraint, request);
 				switch (approver.type) {
-					case StaticGroup : AzUtils.loadStaticGroupApprovers(this.id,this.emailTemplate,cfg,con,id,constraintRendered,false); break;
-					case Filter : AzUtils.loadFilterApprovers(this.id,this.emailTemplate,cfg,con,id,constraintRendered,false); break;
-					case DN : AzUtils.loadDNApprovers(this.id,this.emailTemplate,cfg,con,id,constraintRendered,false);break;
-					case Custom : AzUtils.loadCustomApprovers(this.id,this.emailTemplate,cfg,con,id,constraintRendered,false,approver.customAz);break;
+					case StaticGroup : AzUtils.loadStaticGroupApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false); break;
+					case Filter : AzUtils.loadFilterApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false); break;
+					case DN : AzUtils.loadDNApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false);break;
+					case Custom : AzUtils.loadCustomApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false,approver.customAz);break;
 				}
 			}
 			

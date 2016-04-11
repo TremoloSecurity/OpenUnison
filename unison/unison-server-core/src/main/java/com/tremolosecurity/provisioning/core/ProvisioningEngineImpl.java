@@ -93,6 +93,7 @@ import org.hibernate.boot.jaxb.cfg.spi.JaxbCfgHibernateConfiguration.JaxbCfgSess
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.joda.time.DateTime;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.CronTrigger;
@@ -335,7 +336,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			});
 			
 			org.hibernate.Session session = sessionFactory.openSession();
-			
+			System.err.println(session.getFlushMode());
 			
 			
 			this.auditLogTypes = new HashMap<String,AuditLogType>();
@@ -742,7 +743,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			org.hibernate.Session session = sessionFactory.openSession();
 			
 			try {
-				
+				session.beginTransaction();
 				DateTime now = new DateTime();
 				Workflows workflow = new Workflows();
 				workflow.setName(wf.getName());
@@ -752,10 +753,15 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				
 				
 				wf.setId(workflow.getId());
+				wf.setFromDB(workflow);
+				session.getTransaction().commit();
 				
 			}  finally {
 				if (session != null) {
 					session.close();
+					
+					
+					
 				}
 			}
 		}
@@ -822,7 +828,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			
 			
-			Query query = session.createQuery("FROM approvers WHERE userKey = :user_key");
+			Query query = session.createQuery("FROM Approvers WHERE userKey = :user_key");
 			query.setParameter("user_key", userID);
 			List<Approvers> approvers = query.list();
 			Approvers approverObj = null;
@@ -846,7 +852,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				
 				approverID = approverObj.getId();
 			} else {
-				
+				approverObj = approvers.get(0);
 				approverID = approverObj.getId();
 			}
 			
@@ -891,7 +897,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				
 			}
 			
-			session.getTransaction().commit();
+			
 			
 			Approvals approvals = session.load(Approvals.class, id);
 			
@@ -970,6 +976,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				
 			}
 			
+			session.getTransaction().commit();
+			
 		} catch (LDAPException e) {
 			throw new ProvisioningException("Could not load approver",e);
 		} catch (SQLException e) {
@@ -997,9 +1005,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		} finally {
 			if (session != null) {
 				
-				if (session.getTransaction() != null) {
-					session.getTransaction().rollback();
-				}
+				
 				
 				session.close();
 			}

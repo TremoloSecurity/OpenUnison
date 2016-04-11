@@ -22,7 +22,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.provisioning.objects.Workflows;
 import com.tremolosecurity.provisioning.service.util.WFCall;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 
@@ -66,5 +70,7 @@ public interface Workflow extends Serializable {
 
 	public abstract void printWF(StringBuffer b, String prefix,
 			WorkflowTask task);
+	
+	public abstract Workflows getFromDB(Session session) throws HibernateException, ProvisioningException;
 
 }
