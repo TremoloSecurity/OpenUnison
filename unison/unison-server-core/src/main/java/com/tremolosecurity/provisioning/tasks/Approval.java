@@ -312,7 +312,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 			
 			return this.runChildren(user,nrequest);
 		} else {
-			Session session = GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getHibernateSessionFactory().openSession();
+			Session session = this.getConfigManager().getProvisioningEngine().getHibernateSessionFactory().openSession();
 			try {
 				session.beginTransaction();
 				DateTime now = new DateTime();

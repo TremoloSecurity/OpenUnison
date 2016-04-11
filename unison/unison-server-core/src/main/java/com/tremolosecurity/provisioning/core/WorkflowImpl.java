@@ -303,7 +303,7 @@ public class WorkflowImpl implements  Workflow {
 									session.save(userAttr);
 								}
 							}
-						}
+						} 
 						
 					}
 				}
@@ -312,12 +312,24 @@ public class WorkflowImpl implements  Workflow {
 				if (! found) {
 					UserAttributes nattr = new UserAttributes();
 					nattr.setName(attr);
-					LDAPAttribute userAttrFromLDAP = fromLDAP.getAttribute(attr);
-					if (userAttrFromLDAP != null) {
-						nattr.setValue(userAttrFromLDAP.getStringValue());
+					if (fromLDAP != null) {
+						LDAPAttribute userAttrFromLDAP = fromLDAP.getAttribute(attr);
+						if (userAttrFromLDAP != null) {
+							nattr.setValue(userAttrFromLDAP.getStringValue());
+						} 
+					} else  {
+						Attribute userAttr = user.getAttribs().get(attr);
+						if (userAttr != null) {
+							nattr.setValue(userAttr.getValues().get(0));
+						}
 					}
-					nattr.setUsers(userObj);
 					
+					if (nattr.getValue() == null) {
+						nattr.setValue("");
+					}
+					
+					nattr.setUsers(userObj);
+					userObj.getUserAttributeses().add(nattr);
 					session.save(nattr);
 					changed = true;
 				}

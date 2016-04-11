@@ -223,17 +223,29 @@ public class AzUtils {
 		try {
 			ArrayList<String> attrs = new ArrayList<String>();
 			//attrs.add(cfg.getProvisioningEngine().getUserIDAttribute());
-			
-			LDAPSearchResults res = cfg.getMyVD().search(dn, 0, "(objectClass=*)", attrs);
-			
-			if (! res.hasMore()) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Can not find '" + dn + "'");
+			LDAPEntry entry = null;
+			try {
+				LDAPSearchResults res = cfg.getMyVD().search(dn, 0, "(objectClass=*)", attrs);
+				
+				if (! res.hasMore()) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Can not find '" + dn + "'");
+					}
+					return null;
 				}
-				return null;
+				entry = res.next();
+			} catch (LDAPException e) {
+				if (e.getResultCode() == 32) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Can not find '" + dn + "'");
+					}
+					return null;
+				} else {
+					throw e;
+				}
 			}
 			
-			LDAPEntry entry = res.next();
+			
 			
 			if (logger.isDebugEnabled()) {
 				logger.debug("Approver DN - " + entry.getDN());
@@ -312,7 +324,7 @@ public class AzUtils {
 			
 			approverID = approverObj.getId();
 		} else {
-			
+			approverObj = approvers.get(0);
 			approverID = approverObj.getId();
 		}
 		

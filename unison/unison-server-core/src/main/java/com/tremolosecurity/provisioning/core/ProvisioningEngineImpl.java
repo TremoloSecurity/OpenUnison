@@ -890,6 +890,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 					if (approverAttr != null) {
 						attr.setValue(approverAttr.getStringValue());
 					}
+					attr.setApprovers(approverObj);
 					approverObj.getApproverAttributeses().add(attr);
 					session.save(attr);
 					changed = true;
@@ -1001,7 +1002,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		} catch (ProvisioningException e) {
 			throw e;
 		} catch (Exception e) {
-			throw new ProvisioningException("Could not send notification",e);
+			logger.error("Exception running workflow",e);
+			throw new ProvisioningException("Exception running workflow",e);
 		} finally {
 			if (session != null) {
 				
