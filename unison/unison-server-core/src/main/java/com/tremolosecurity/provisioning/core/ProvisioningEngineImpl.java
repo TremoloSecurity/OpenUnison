@@ -258,6 +258,22 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		config.setProperty("hibernate.hbm2ddl.auto", "update");
 		config.setProperty("show_sql", "true");
 		config.setProperty("hibernate.current_session_context_class", "thread");
+		
+		config.setProperty("hibernate.c3p0.max_size", Integer.toString(adbt.getMaxConns()));
+		config.setProperty("hibernate.c3p0.maxIdleTimeExcessConnections", Integer.toString(adbt.getMaxIdleConns()));
+		config.setProperty("hibernate.c3p0.testConnectionOnCheckout", "true");
+		config.setProperty("hibernate.c3p0.autoCommitOnClose", "true");
+		//config.setProperty("hibernate.c3p0.debugUnreturnedConnectionStackTraces", "true");
+		//config.setProperty("hibernate.c3p0.unreturnedConnectionTimeout", "30");
+		
+		
+		String validationQuery = adbt.getValidationQuery();
+		if (validationQuery == null) {
+			validationQuery = "SELECT 1";
+		}
+		config.setProperty("hibernate.c3p0.preferredTestQuery", validationQuery);
+		
+		
 
 		
 		JaxbCfgHibernateConfiguration jaxbCfg = new JaxbCfgHibernateConfiguration();
@@ -466,37 +482,12 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			logger.info("maxIdleCons : " + maxIdleCons);
 			
 			
-			DriverAdapterCPDS pool = new DriverAdapterCPDS();
 			
-			try {
-				pool.setDriver(driver);
-			} catch (ClassNotFoundException e) {
-				throw new ProvisioningException("Could not load JDBC Driver",e);
-			}
-			pool.setUrl(url);
-			pool.setUser(user);
-			pool.setPassword(pwd);
-			pool.setMaxActive(maxCons);
-			pool.setMaxIdle(maxIdleCons);
-			
-			
-			SharedPoolDataSource tds = new SharedPoolDataSource();
-	        tds.setConnectionPoolDataSource(pool);
-	        tds.setMaxActive(maxCons);
-	        tds.setMaxWait(50);
 	        
-	        if (adbt.getValidationQuery() == null) {
-	        	tds.setValidationQuery("SELECT 1");
-	        } else {
-	        	tds.setValidationQuery(adbt.getValidationQuery());
-	        }
-	        
-	        logger.info("Validation Query : '" + tds.getValidationQuery() + "'");
+	        logger.info("Validation Query : '" + adbt.getValidationQuery() + "'");
 	        
 	        
-	        tds.setTestOnBorrow(true);
 	        
-	        this.approvalConPool = tds;
 	        
 	        this.approverAttributes.addAll(cfgMgr.getCfg().getProvisioning().getApprovalDB().getApproverAttributes().getValue());
 	        this.userAttrbiutes = new ArrayList<String>();
@@ -511,7 +502,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		        }
 		        
 		        
-		        
+		        session.beginTransaction();
 		        
 		        for (TargetType targetCfg : cfgMgr.getCfg().getProvisioning().getTargets().getTarget()) {
 		        	if (! this.targetIDs.containsKey(targetCfg.getName())) {
@@ -521,6 +512,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 						this.targetIDs.put(target.getName(), target);
 					}
 		        }
+		        
+		        session.getTransaction().commit();
 	        } finally {
 	        	session.close();
 	        }

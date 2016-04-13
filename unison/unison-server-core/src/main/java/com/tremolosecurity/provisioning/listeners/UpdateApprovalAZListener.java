@@ -134,7 +134,7 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 		Set<Integer> currentApprovers = new HashSet<Integer>();
 		
 		Session session = cfg.getProvisioningEngine().getHibernateSessionFactory().openSession();
-		
+		try {
 		Approvals approvalObj = session.load(Approvals.class, approval.getId());
 				
 		
@@ -187,7 +187,17 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 			}
 		}
 		
-		
+		} catch (Throwable t) {
+			try {
+				if (session != null) {
+					session.getTransaction().rollback();
+				} 
+			} catch (Throwable tx) {};
+		} finally {
+			if (session != null) {
+				session.close();
+			}
+		}
 		
 	}
 	
