@@ -337,7 +337,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			});
 			
 			org.hibernate.Session session = sessionFactory.openSession();
-			System.err.println(session.getFlushMode());
+			
 			
 			
 			this.auditLogTypes = new HashMap<String,AuditLogType>();
