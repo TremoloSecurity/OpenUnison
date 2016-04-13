@@ -28,6 +28,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -40,6 +41,7 @@ import javax.jms.ObjectMessage;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
+import org.hibernate.Query;
 import org.quartz.JobExecutionContext;
 
 import com.google.gson.Gson;
@@ -47,6 +49,7 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.json.Token;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.Workflow;
+import com.tremolosecurity.provisioning.objects.Approvals;
 import com.tremolosecurity.provisioning.scheduler.UnisonJob;
 import com.tremolosecurity.provisioning.tasks.Approval;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
@@ -69,12 +72,8 @@ public class UpdateApprovalAz extends UnisonJob {
 		}
 		
 		
-		Connection con = null;
-		try {
-			con = configManager.getProvisioningEngine().getApprovalDBConn();
-		} catch (SQLException e) {
-			throw new ProvisioningException("Could not load connection",e);
-		}
+		org.hibernate.Session hsession = configManager.getProvisioningEngine().getHibernateSessionFactory().openSession();
+		
 		
 		try {
 			
@@ -84,15 +83,20 @@ public class UpdateApprovalAz extends UnisonJob {
 			MessageProducer mp = session.createProducer(queue);
 			
 			HashMap<Integer,String> approvals = new HashMap<Integer,String>();
-			PreparedStatement findOpenApprovals = con.prepareStatement("SELECT id,workflowObj FROM approvals WHERE approved IS NULL");
-			ResultSet rs = findOpenApprovals.executeQuery();
-			while (rs.next()) {
-				approvals.put(rs.getInt("id"), rs.getString("workflowObj"));
-				
+			//PreparedStatement findOpenApprovals = con.prepareStatement("SELECT id,workflowObj FROM approvals WHERE approved IS NULL");
+			
+			
+			
+			Query query = hsession.createQuery("FROM Approvals WHERE approved IS NULL");
+			List<com.tremolosecurity.provisioning.objects.Approvals> approvalObjs = query.list();
+			
+			for (Approvals aprv : approvalObjs) {
+				approvals.put(aprv.getId(), aprv.getWorkflowObj());
 			}
 			
-			rs.close();
-			findOpenApprovals.close();
+			
+			
+			
 			Gson gson = new Gson();
 			for (int approvalID : approvals.keySet()) {
 				HashMap<Integer,String> wf = new HashMap<Integer,String>();
@@ -110,20 +114,12 @@ public class UpdateApprovalAz extends UnisonJob {
 			
 			
 		} catch(Throwable t) {
-			try {
-				con.rollback();
-			} catch (SQLException e) {
-				
-			}
+			
 			
 			throw new ProvisioningException("Could not process open approvals",t);
 		} finally {
-			if (con != null) {
-				try {
-					con.close();
-				} catch (SQLException e) {
-					
-				}
+			if (hsession != null) {
+				hsession.close();
 			}
 		}
 		

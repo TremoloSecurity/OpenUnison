@@ -21,13 +21,21 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.joda.time.DateTime;
+import org.joda.time.Days;
 import org.quartz.JobExecutionContext;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
+import com.tremolosecurity.provisioning.objects.AllowedApprovers;
+import com.tremolosecurity.provisioning.objects.Approvals;
+import com.tremolosecurity.provisioning.objects.ApproverAttributes;
 import com.tremolosecurity.provisioning.scheduler.UnisonJob;
 
 
@@ -45,62 +53,60 @@ public class RemindApprovers extends UnisonJob {
 			return;
 		}
 		
-		String sql = context.getJobDetail().getJobDataMap().getString("sql");
+		
 		String msg = context.getJobDetail().getJobDataMap().getString("message");
 		int days = Integer.parseInt(context.getJobDetail().getJobDataMap().getString("days"));
+		String mailAttribute = context.getJobDetail().getJobDataMap().getString("mailAttributeName");
 		
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
+		Session session = null;
 		
 		try {
+			session = configManager.getProvisioningEngine().getHibernateSessionFactory().openSession();
+			
+			DateTime approvalsAfterDate = new DateTime().minusDays(days + 1);
+			
+			Query query = session.createQuery("FROM Approvals WHERE approved IS NULL AND createTS > :check_date");
+			query.setParameter("check_date", new java.sql.Date(approvalsAfterDate.getMillis()));
+			List<com.tremolosecurity.provisioning.objects.Approvals> approvals = query.list();
 			
 			
 			
+			DateTime now = new DateTime();
 			
-			con = configManager.getProvisioningEngine().getApprovalDBConn();
-			ps = con.prepareStatement(sql);
-			ps.setInt(1, days);
-			rs = ps.executeQuery();
-			while (rs.next()) {
-				int daysOpen = rs.getInt("daysOpen");
-				String label = rs.getString("label");
-				String mail = rs.getString("mail");
+			for (Approvals apr : approvals) {
+				int daysOpen = Days.daysBetween(new DateTime(apr.getCreateTs().getTime()), now).getDays();
+				String label = apr.getLabel();
+				String mail = null;
 				
-				if (logger.isDebugEnabled()) {
-					logger.debug("Notifying " + mail + " for " + label + " after " + daysOpen + " days");
+				for (AllowedApprovers allowed : apr.getAllowedApproverses()) {
+					mail = null;
+					for (ApproverAttributes attr : allowed.getApprovers().getApproverAttributeses()) {
+						if (attr.getName().equalsIgnoreCase(mailAttribute)) {
+							mail = attr.getValue();
+						}
+					}
+					
+					if (mail == null ) {
+						logger.warn("No attribute called '" + mailAttribute + "' for user '" + allowed.getApprovers().getUserKey() + "'");
+					} else {
+						if (logger.isDebugEnabled()) {
+							logger.debug("Notifying " + mail + " for " + label + " after " + daysOpen + " days");
+						}
+						
+						String toSend = msg.replaceAll("[%]L", label).replaceAll("[%]D", Integer.toString(daysOpen));
+						
+						configManager.getProvisioningEngine().sendNotification(mail, toSend, "Open Approval for " + daysOpen + " days", new User(mail));
+					}
 				}
 				
-				String toSend = msg.replaceAll("[%]L", label).replaceAll("[%]D", Integer.toString(daysOpen));
 				
-				configManager.getProvisioningEngine().sendNotification(mail, toSend, "Open Approval for " + daysOpen + " days", new User(mail));
 				
 			}
 		} catch (Exception e) {
 			throw new ProvisioningException("Error reminding open approvers",e);
 		} finally {
-			try {
-				if (rs != null) {
-					rs.close();
-				}
-			} catch (SQLException e) {
-				
-			}
-			
-			try {
-				if (ps != null) {
-					ps.close();
-				}
-			} catch (SQLException e) {
-				
-			}
-			
-			try {
-				if (con != null) {
-					con.close();
-				}
-			} catch (SQLException e) {
-				
+			if (session != null) {
+				session.close();
 			}
 		}
 

@@ -30,6 +30,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.crypto.BadPaddingException;
@@ -43,6 +44,7 @@ import javax.jms.Message;
 import javax.jms.ObjectMessage;
 
 import org.apache.log4j.Logger;
+import org.hibernate.Session;
 
 import com.cedarsoftware.util.io.JsonReader;
 import com.cedarsoftware.util.io.JsonWriter;
@@ -59,6 +61,8 @@ import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.UnisonMessageListener;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.Workflow;
+import com.tremolosecurity.provisioning.objects.AllowedApprovers;
+import com.tremolosecurity.provisioning.objects.Approvals;
 import com.tremolosecurity.provisioning.tasks.Approval;
 import com.tremolosecurity.saml.Attribute;
 
@@ -78,31 +82,19 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 		int approvalID = approval.keySet().iterator().next();
 		String workflow = approval.get(approvalID);
 		
-		Connection con = null;
+		
 		try {
-			con = cfg.getProvisioningEngine().getApprovalDBConn();
-			con.setAutoCommit(false);
 			
-			this.updateAllowedApprovals(cfg, con, approvalID, workflow);
+			this.updateAllowedApprovals(cfg,  approvalID, workflow);
 			
-			con.commit();
+			
 			
 		} catch (Throwable t) {
-			try {
-				if (con != null) {
-					con.rollback();
-				}
-			} catch (Exception e) {}
+			
 			
 			throw new ProvisioningException("Could not update approvers",t);
 		} finally {
-			if (con != null) {
-				try {
-					con.close();
-				} catch (SQLException e) {
-					
-				}
-			}
+			
 		}
 
 	}
@@ -114,7 +106,7 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 
 	}
 
-	private void updateAllowedApprovals(ConfigManager cfg,Connection con, int approvalID,
+	private void updateAllowedApprovals(ConfigManager cfg, int approvalID,
 			String workflowObj) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IOException, ClassNotFoundException, ProvisioningException, SQLException, InvalidAlgorithmParameterException {
 		SecretKey decryptionKey = cfg.getSecretKey(cfg.getCfg().getProvisioning().getApprovalDB().getEncryptionKey());
 		Gson gson = new Gson();
@@ -140,21 +132,25 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 		}
 		
 		Set<Integer> currentApprovers = new HashSet<Integer>();
-		PreparedStatement findApprovers = con.prepareStatement("SELECT approvers.id,approvers.userKey from allowedApprovers inner join approvers on allowedApprovers.approver=approvers.id WHERE approval=?");
-		findApprovers.setInt(1, approvalID);
-		ResultSet rsApprovers = findApprovers.executeQuery();
-		while (rsApprovers.next()) {
-			currentApprovers.add(rsApprovers.getInt("id"));
+		
+		Session session = cfg.getProvisioningEngine().getHibernateSessionFactory().openSession();
+		
+		Approvals approvalObj = session.load(Approvals.class, approval.getId());
+				
+		
+		for (AllowedApprovers approver : approvalObj.getAllowedApproverses()) {
+			currentApprovers.add(approver.getApprovers().getId());
 		}
-		rsApprovers.close();
 		
-		con.setAutoCommit(false);
-		PreparedStatement delAllowedApprovers = con.prepareStatement("DELETE FROM allowedApprovers WHERE approval=?");
-		delAllowedApprovers.setInt(1, approvalID);
-		delAllowedApprovers.executeUpdate();
-		delAllowedApprovers.close();
+		session.beginTransaction();
 		
-		approval.updateAllowedApprovals(con,cfg,wf.getRequest());
+		for (AllowedApprovers approver : approvalObj.getAllowedApproverses()) {
+			session.delete(approver);
+		}
+		
+		approvalObj.getAllowedApproverses().clear();
+		
+		approval.updateAllowedApprovals(session,cfg,wf.getRequest());
 		
 		//need to write the approval back to the db
 		json = JsonWriter.objectToJson(wf);
@@ -173,32 +169,29 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 		
 		//String base64 = new String(org.bouncycastle.util.encoders.Base64.encode(baos.toByteArray()));
 		
-		PreparedStatement ps = con.prepareStatement("UPDATE approvals SET workflowObj=? WHERE id=?");
-		ps.setString(1, gson.toJson(token));
-		ps.setInt(2, approval.getId());
-		ps.executeUpdate();
+		
+		approvalObj.setWorkflowObj(gson.toJson(token));
+		session.save(approvalObj);
+		
+		session.getTransaction().commit();
+		
+		approvalObj = session.load(Approvals.class, approvalObj.getId());
 		
 		
-		con.commit();
-		
-		
-		findApprovers.setInt(1, approvalID);
-		rsApprovers = findApprovers.executeQuery();
-		
-		while (rsApprovers.next()) {
-			int id = rsApprovers.getInt("id");
-			if (! currentApprovers.contains(id)) {
+		for (AllowedApprovers approver : approvalObj.getAllowedApproverses()) {
+			
+			if (! currentApprovers.contains(approver.getApprovers().getId())) {
 				
 				
-				this.sendNotification(approval.getEmailTemplate(), cfg, con, rsApprovers.getString("userKey"));
+				this.sendNotification(approval.getEmailTemplate(), cfg, session, approver.getApprovers().getUserKey());
 			}
 		}
-		rsApprovers.close();
+		
 		
 		
 	}
 	
-	private void sendNotification(String emailTemplate,ConfigManager cfg,Connection con, String userKey) throws ProvisioningException {
+	private void sendNotification(String emailTemplate,ConfigManager cfg,Session session, String userKey) throws ProvisioningException {
 		
 		
 		try {

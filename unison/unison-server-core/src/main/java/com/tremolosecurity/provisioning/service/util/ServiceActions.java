@@ -20,10 +20,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.servlet.ServletException;
+
+import org.hibernate.Query;
+import org.hibernate.Session;
 
 import com.cedarsoftware.util.io.JsonReader;
 import com.google.gson.Gson;
@@ -31,30 +35,49 @@ import com.tremolosecurity.config.xml.WorkflowType;
 import com.tremolosecurity.json.Token;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.Workflow;
+import com.tremolosecurity.provisioning.objects.Approvals;
+import com.tremolosecurity.provisioning.objects.Workflows;
 import com.tremolosecurity.server.GlobalEntries;
 
 public class ServiceActions {
 
 	public static ApprovalSummaries listOpenApprovals(String approver) throws ProvisioningException {
-		Connection con = null;
+		Session session = null;
 		try {
-			con = GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getApprovalDBConn();
-			PreparedStatement ps = con.prepareStatement("SELECT workflows.requestReason AS wfreason, workflows.name AS wfName,workflows.id AS workflow, workflows.startTS AS wfStart, approvals.id AS approval,approvals.label AS label,approvals.createTS AS approvalTS, users.userKey AS userid   FROM approvals INNER JOIN workflows ON approvals.workflow=workflows.id INNER JOIN allowedApprovers ON allowedApprovers.approval=approvals.id INNER JOIN approvers ON approvers.id=allowedApprovers.approver INNER JOIN users ON users.id=workflows.userid WHERE approvers.userKey=? AND approvals.approved IS NULL");
-			ps.setString(1, approver);
-			ResultSet rs = ps.executeQuery();
+			
+			//PreparedStatement ps = con.prepareStatement("SELECT workflows.requestReason AS wfreason, workflows.name AS wfName,workflows.id AS workflow, workflows.startTS AS wfStart, approvals.id AS approval,approvals.label AS label,approvals.createTS AS approvalTS, users.userKey AS userid   FROM approvals INNER JOIN workflows ON approvals.workflow=workflows.id INNER JOIN allowedApprovers ON allowedApprovers.approval=approvals.id INNER JOIN approvers ON approvers.id=allowedApprovers.approver INNER JOIN users ON users.id=workflows.userid WHERE approvers.userKey=? AND approvals.approved IS NULL");
+			
+			session = GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getHibernateSessionFactory().openSession();
+			
+			Query query = session.createQuery("SELECT aprv FROM Approvals aprv JOIN aprv.allowedApproverses allowed JOIN allowed.approvers apprv  WHERE aprv.approved IS  NULL AND apprv.userKey = :user_key");
+			query.setParameter("user_key", approver);
+			List<com.tremolosecurity.provisioning.objects.Approvals> approvals = query.list();
+			
+			
+			
+			
+			
 			ArrayList<ApprovalSummary> summaries = new ArrayList<ApprovalSummary>();
 			
-			while (rs.next()) {
+			
+			
+			
+			for (Approvals appr : approvals) {
 				ApprovalSummary sum = new ApprovalSummary();
-				sum.setApproval(rs.getInt("approval"));
-				sum.setWorkflow(rs.getInt("workflow"));
-				sum.setLabel(rs.getString("label"));
-				sum.setUser(rs.getString("userid"));
-				sum.setWfStart(rs.getTimestamp("wfStart").getTime());
-				sum.setApprovalStart(rs.getTimestamp("approvalTS").getTime());
-				sum.setReason(rs.getString("wfreason"));
 				
-				String wfName = rs.getString("wfName");
+				
+				
+				
+				
+				sum.setApproval(appr.getId());
+				sum.setWorkflow(appr.getWorkflow().getId());
+				sum.setLabel(appr.getLabel());
+				sum.setUser(appr.getWorkflow().getUsers().getUserKey());
+				sum.setWfStart(appr.getWorkflow().getStartTs().getTime());
+				sum.setApprovalStart(appr.getCreateTs().getTime());
+				sum.setReason(appr.getWorkflow().getRequestReason());
+				
+				String wfName = appr.getWorkflow().getName();
 				sum.setWfName(wfName);
 				
 				for (WorkflowType wf : GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getWorkflows().getWorkflow()) {
@@ -77,49 +100,44 @@ public class ServiceActions {
 		} catch (Throwable t) {
 			throw new ProvisioningException("Could not load approvals",t);
 		} finally {
-			if (con != null) {
-				try {
-					con.rollback();
-				} catch (SQLException e) {
-					
-				}
-				
-				try {
-					con.close();
-				} catch (SQLException e) {
-					
-				}
+			if (session != null) {
+				session.close();
 			}
 		}
 	}
 	
 	public static ApprovalDetails loadApprovalDetails(String approver,int approvalID) throws ProvisioningException {
-		Connection con = null;
+		Session session = null;
 		Gson gson = new Gson();
 		try {
-			con = GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getApprovalDBConn();
-			PreparedStatement ps = con.prepareStatement("SELECT workflows.requestReason as wfreason,approvals.workflowObj,workflows.name AS wfName, workflows.id AS workflow, workflows.startTS AS wfStart, approvals.id AS approval,approvals.label AS label,approvals.createTS AS approvalTS, users.userKey AS userid   FROM approvals INNER JOIN workflows ON approvals.workflow=workflows.id INNER JOIN allowedApprovers ON allowedApprovers.approval=approvals.id INNER JOIN approvers ON approvers.id=allowedApprovers.approver INNER JOIN users ON users.id=workflows.userid WHERE approvers.userKey=? AND approvals.id=? AND approvals.approved IS NULL");
-			ps.setString(1, approver);
-			ps.setInt(2, approvalID);
-			ResultSet rs = ps.executeQuery();
+			session = GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getHibernateSessionFactory().openSession();
 			
-			if (! rs.next()) {
+			Query query = session.createQuery("SELECT apprv FROM Approvals apprv JOIN apprv.allowedApproverses allowed JOIN allowed.approvers approver WHERE apprv.id = :approval_id AND approver.userKey = :approver_id");
+			query.setParameter("approval_id", approvalID);
+			query.setParameter("approver_id", approver);
+			List<com.tremolosecurity.provisioning.objects.Approvals> approvals = query.list();
+			
+			
+			
+			
+			if (approvals.isEmpty()) {
 				throw new ServletException("no approval found");
 			}
 			
+			Approvals approval = approvals.get(0);
 			
 			ApprovalDetails sum = new ApprovalDetails();
-			sum.setApproval(rs.getInt("approval"));
-			sum.setWorkflow(rs.getInt("workflow"));
-			sum.setLabel(rs.getString("label"));
-			sum.setUser(rs.getString("userid"));
-			sum.setWfStart(rs.getTimestamp("wfStart").getTime());
-			sum.setApprovalStart(rs.getTimestamp("approvalTS").getTime());
-			sum.setReason(rs.getString("wfreason"));
+			sum.setApproval(approval.getId());
+			sum.setWorkflow(approval.getWorkflow().getId());
+			sum.setLabel(approval.getLabel());
+			sum.setUser(approval.getWorkflow().getUsers().getUserKey());
+			sum.setWfStart(approval.getWorkflow().getStartTs().getTime());
+			sum.setApprovalStart(approval.getCreateTs().getTime());
+			sum.setReason(approval.getWorkflow().getRequestReason());
 			
 			
 			
-			String json = rs.getString("workflowObj");
+			String json = approval.getWorkflowObj();
 			Token token = gson.fromJson(json, Token.class);
 			
 			byte[] iv = org.bouncycastle.util.encoders.Base64.decode(token.getIv());
@@ -139,7 +157,7 @@ public class ServiceActions {
 			
 			sum.setUserObj(wf.getUser());
 			
-			String wfName = rs.getString("wfName");
+			String wfName = approval.getWorkflow().getName();
 			sum.setWfName(wfName);
 			
 			for (WorkflowType wft : GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getWorkflows().getWorkflow()) {
@@ -153,12 +171,8 @@ public class ServiceActions {
 		} catch (Throwable t) {
 			throw new ProvisioningException("Could not load approval",t);
 		} finally {
-			if (con != null) {
-				try {
-					con.close();
-				} catch (SQLException e) {
-					
-				}
+			if (session != null) {
+				session.close();
 			}
 		}
 	}

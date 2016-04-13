@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
 package com.tremolosecurity.provisioning.workflow;
 
 import java.sql.Connection;
@@ -25,87 +24,88 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.hibernate.Query;
+import org.hibernate.Session;
+
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.Workflow;
+import com.tremolosecurity.provisioning.objects.Users;
+import com.tremolosecurity.provisioning.objects.Workflows;
 import com.tremolosecurity.provisioning.service.util.WFCall;
-
+import com.tremolosecurity.server.GlobalEntries;
 
 public class ExecuteWorkflow {
 
-	public void execute(WFCall wfcall,ConfigManager cfgMgr,List<ApprovalData> approvals) throws ProvisioningException,SQLException {
+	public void execute(WFCall wfcall, ConfigManager cfgMgr, List<ApprovalData> approvals)
+			throws ProvisioningException, SQLException {
 		Workflow wf = cfgMgr.getProvisioningEngine().getWorkFlow(wfcall.getName());
 		wf.executeWorkflow(wfcall);
-		
+
 		if (approvals != null && approvals.size() > 0) {
-			ProvisioningEngine prov =  cfgMgr.getProvisioningEngine(); //TremoloContext.getContext().getConfigManager("proxy").getProvisioningEngine();
+			ProvisioningEngine prov = cfgMgr.getProvisioningEngine(); // TremoloContext.getContext().getConfigManager("proxy").getProvisioningEngine();
 			String approver = approvals.get(0).getApprover();
-			String approvalReason = approvals.get(0).getReason(); 
-			
+			String approvalReason = approvals.get(0).getReason();
+
 			try {
 				Thread.sleep(5000);
 			} catch (InterruptedException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			
-			Connection con = prov.getApprovalDBConn();
+
 			try {
-				
+
 				int i = 0;
-				while (executeApprovals(wfcall, wf, prov, approvalReason, con,approver)) {
+				while (executeApprovals(wfcall, wf, prov, approvalReason, approver)) {
 					i++;
 					if (i >= approvals.size()) {
 						i = 0;
 					}
-					
+
 					approver = approvals.get(i).getApprover();
 					approvalReason = approvals.get(i).getReason();
 				}
 			} catch (Exception e) {
-				throw new ProvisioningException("Could not complete approvals",e);
+				throw new ProvisioningException("Could not complete approvals", e);
 			} finally {
-				if (con != null) {
-					try {
-						con.close();
-					} catch (Exception e) {}
-				}
+
 			}
 		}
-		
-		
+
 	}
-	
-	private boolean executeApprovals(WFCall wfcall,
-			Workflow wf, ProvisioningEngine prov, String approvalReason,
-			Connection con,String approver) throws SQLException, ProvisioningException {
-		if (con != null) {
-			PreparedStatement ps = con.prepareStatement("SELECT id FROM approvals WHERE approvedTS IS NULL AND workflow=?");
-			ps.setInt(1, wf.getId());
-			ResultSet rs = ps.executeQuery();
-			if (rs.next()) {
-				int approval = rs.getInt("id");
-				/*AuthController ac = (AuthController) req.getSession().getAttribute(AuthSys.AUTH_CTL);
-				Attribute attr = ac.getAuthInfo().getAttribs().get(wfcall.getUidAttributeName());
-				if (attr == null) {
-					throw new ProvisioningException("Administrator does not have attribute '" + wfcall.getUidAttributeName() + "'");
-				}*/
-				
-				ps.close();
-				rs.close();
-				
-				prov.doApproval(approval, approver, true, approvalReason);
-				
-				return true;
-			} else {
-				ps.close();
-				rs.close();
-				
-				return false;
+
+	private boolean executeApprovals(WFCall wfcall, Workflow wf, ProvisioningEngine prov, String approvalReason,
+			String approver) throws SQLException, ProvisioningException {
+		Session session = GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine()
+				.getHibernateSessionFactory().openSession();
+		if (session != null) {
+			Workflows workflow = wf.getFromDB(session);
+
+			int approvalID = -1;
+
+			Query query = session.createQuery("FROM Approvals WHERE workflow = :wfid");
+			query.setParameter("wfid", workflow);
+			List<com.tremolosecurity.provisioning.objects.Approvals> approvals = query.list();
+
+			for (com.tremolosecurity.provisioning.objects.Approvals approval : approvals) {
+				if (approval.getWorkflowObj() != null) {
+					approvalID = approval.getId();
+				}
 			}
-			
-			
+
+			session.close();
+
+			if (approvalID == -1) {
+				return false;
+			} else {
+
+				prov.doApproval(approvalID, approver, true, approvalReason);
+
+				return true;
+			}
+
 		} else {
 			return false;
 		}

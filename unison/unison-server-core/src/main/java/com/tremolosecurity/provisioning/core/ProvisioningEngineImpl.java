@@ -81,6 +81,7 @@ import javax.sql.DataSource;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.dbcp.cpdsadapter.DriverAdapterCPDS;
 import org.apache.commons.dbcp.datasources.SharedPoolDataSource;
+import org.apache.commons.net.smtp.SMTP;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
@@ -770,17 +771,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		return wf;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.tremolosecurity.provisioning.core.ProvisioningEngine#getApprovalDBConn()
-	 */
-	@Override
-	public Connection getApprovalDBConn() throws SQLException {
-		if (this.approvalConPool != null) {
-			return this.approvalConPool.getConnection();
-		} else {
-			return null;
-		}
-	}
+
 	
 	/* (non-Javadoc)
 	 * @see com.tremolosecurity.provisioning.core.ProvisioningEngine#doApproval(int, java.lang.String, boolean, java.lang.String)
@@ -1829,8 +1820,9 @@ class SendMessageThread implements MessageListener {
 	public void enqEmail(SmtpMessage msg) throws IOException, JMSException {
 
 		
-		ObjectMessage bm = session.createObjectMessage();
-		bm.setObject(msg);
+		TextMessage bm = session.createTextMessage();
+		Gson gson = new Gson();
+		bm.setText(gson.toJson(msg));
 		bm.setStringProperty("OriginalQueue", this.smtpQueue);
 		mp.send(bm);
 		//session.commit();
@@ -1899,10 +1891,14 @@ class SendMessageThread implements MessageListener {
 
 	@Override
 	public void onMessage(javax.jms.Message msg) {
-		ObjectMessage fromq = (ObjectMessage) msg;
+		TextMessage fromq = (TextMessage) msg;
 		
 		try {
-			this.sendEmail((SmtpMessage) fromq.getObject());
+			
+			Gson gson = new Gson();
+			SmtpMessage email = gson.fromJson(fromq.getText(), SmtpMessage.class);
+			
+			this.sendEmail(email);
 			fromq.acknowledge();
 			//session.commit();
 		} catch (MessagingException | JMSException e) {

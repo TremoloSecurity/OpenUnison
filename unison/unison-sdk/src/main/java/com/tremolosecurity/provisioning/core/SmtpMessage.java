@@ -19,13 +19,51 @@ package com.tremolosecurity.provisioning.core;
 
 import java.io.Serializable;
 
-class SmtpMessage implements Serializable {
+public class SmtpMessage  {
 
-	private static final long serialVersionUID = 5495633986138192145L;
+	
 	
 	String subject;
 	String to;
 	String from;
 	String msg;
+	
+	public SmtpMessage() {
+		
+	}
+
+	public String getSubject() {
+		return subject;
+	}
+
+	public void setSubject(String subject) {
+		this.subject = subject;
+	}
+
+	public String getTo() {
+		return to;
+	}
+
+	public void setTo(String to) {
+		this.to = to;
+	}
+
+	public String getFrom() {
+		return from;
+	}
+
+	public void setFrom(String from) {
+		this.from = from;
+	}
+
+	public String getMsg() {
+		return msg;
+	}
+
+	public void setMsg(String msg) {
+		this.msg = msg;
+	}
+	
+	
 	
 }

@@ -23,14 +23,20 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hibernate.Query;
+import org.hibernate.Session;
+
 import com.google.gson.Gson;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
+import com.tremolosecurity.provisioning.objects.Approvals;
+import com.tremolosecurity.provisioning.objects.Workflows;
 import com.tremolosecurity.provisioning.service.util.ProvisioningError;
 import com.tremolosecurity.provisioning.service.util.ProvisioningResult;
 import com.tremolosecurity.server.GlobalEntries;
@@ -42,45 +48,37 @@ public class ExecutedWorkflows extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		String userKey = req.getParameter("user");
-		Connection con = null;
+		Session session = null;
 		try {
-			con = GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getApprovalDBConn();
-			PreparedStatement ps = con.prepareStatement("select workflows.id,workflows.name from workflows inner join users on users.id=workflows.userid where workflows.completeTS IS NOT NULL AND userKey=?");
-			ps.setString(1, userKey);
-			ResultSet rs = ps.executeQuery();
+			session = GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getHibernateSessionFactory().openSession();
+			//PreparedStatement ps = con.prepareStatement("select workflows.id,workflows.name from workflows inner join users on users.id=workflows.userid where workflows.completeTS IS NOT NULL AND userKey=?");
+			
+			Query query = session.createQuery("FROM Workflows WHERE Workflows.completeTS IS NOT NULL AND Workflows.users.userKey = :user_key");
+			query.setParameter("user_key", userKey);
+			List<com.tremolosecurity.provisioning.objects.Workflows> workflows = query.list();
+			
 			ArrayList<String> workflowids = new ArrayList<String>();
-			PreparedStatement approvals = con.prepareStatement("select * from approvals where workflow=? order by approvedTS DESC");
-			while (rs.next()) {
-				int id = rs.getInt("id");
-				String name = rs.getString("name");
-				
-				approvals.setInt(1, id);
-				ResultSet compApprovals = approvals.executeQuery();
-				
-				if (compApprovals.next()) {
-					if (compApprovals.getInt("approved") == 1) {
-						workflowids.add(rs.getString("name"));
-					}
+			
+			for (Workflows wf : workflows) {
+				if (wf.getApprovals().isEmpty()) {
+					workflowids.add(wf.getName());
 				} else {
-					//no approval
-					workflowids.add(rs.getString("name"));
+					boolean approved = true;
+					for (Approvals approval : wf.getApprovals()) {
+						approved  = approved && (approval.getApproved() == 1 && approval.getApprovedTs() != null);
+					}
 				}
-				
-				compApprovals.close();
-				
-				
 			}
 			
-			rs.close();
-			ps.close();
-			approvals.close();
+			
+			
 			
 			Gson gson = new Gson();
 			ProvisioningResult resObj = new ProvisioningResult();
 			resObj.setSuccess(true);
 			resObj.setWorkflowIds(workflowids);
 			resp.getOutputStream().println(gson.toJson(resObj));
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			
 			ProvisioningError pe = new ProvisioningError();
 			pe.setError("Could not load executed workflows : " + e.getMessage());
@@ -93,12 +91,8 @@ public class ExecutedWorkflows extends HttpServlet {
 			
 			
 		} finally {
-			if (con != null) {
-				try {
-					con.close();
-				} catch (SQLException e) {
-					
-				}
+			if (session != null) {
+				session.close();
 			}
 		}
 	}

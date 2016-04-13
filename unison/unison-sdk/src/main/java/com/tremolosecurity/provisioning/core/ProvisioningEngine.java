@@ -62,7 +62,7 @@ public interface ProvisioningEngine {
 	public abstract Workflow getWorkFlow(String name)
 			throws ProvisioningException;
 
-	public abstract Connection getApprovalDBConn() throws SQLException;
+	
 
 	public abstract void doApproval(int id, String userID, boolean approved,
 			String reason) throws ProvisioningException;

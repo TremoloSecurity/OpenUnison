@@ -144,7 +144,7 @@ public class AuditLogs implements java.io.Serializable {
 		this.attribute = attribute;
 	}
 
-	@Column(name = "val")
+	@Column(name = "val", columnDefinition = "TEXT")
 	public String getVal() {
 		return this.val;
 	}

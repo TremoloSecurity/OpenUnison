@@ -142,12 +142,12 @@ public class WorkflowImpl implements  Workflow {
 		
 		this.user = user;
 		
-		
 		Session session = null;
+		
 		try {
-			session = this.cfgMgr.getProvisioningEngine().getHibernateSessionFactory().openSession();
-			if (session != null) {
-				
+			
+			if (this.cfgMgr.getProvisioningEngine().getHibernateSessionFactory() != null) {
+				session = this.cfgMgr.getProvisioningEngine().getHibernateSessionFactory().openSession();
 				this.userNum = getUserNum(user,session,this.cfgMgr);
 				
 				session.beginTransaction();
@@ -264,6 +264,8 @@ public class WorkflowImpl implements  Workflow {
 					Attribute fromObj = user.getAttribs().get(attr);
 					if (fromObj != null) {
 						nattr.setValue(fromObj.getValues().get(0));
+					} else {
+						nattr.setValue("");
 					}
 					nattr.setUsers(userObj);
 					
@@ -543,8 +545,9 @@ public class WorkflowImpl implements  Workflow {
 	public void completeWorkflow() throws ProvisioningException {
 		Session session = null;
 		try {
-			session = this.cfgMgr.getProvisioningEngine().getHibernateSessionFactory().openSession();
-			if (session != null) {
+			
+			if (this.cfgMgr.getProvisioningEngine().getHibernateSessionFactory() != null) {
+				session = this.cfgMgr.getProvisioningEngine().getHibernateSessionFactory().openSession();
 				session.beginTransaction();
 				DateTime now = new DateTime();
 				Workflows wf = session.load(Workflows.class, this.id);

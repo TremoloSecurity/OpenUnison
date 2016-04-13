@@ -44,6 +44,7 @@ public class Workflows implements java.io.Serializable {
 	private String requestReason;
 	private Set<AuditLogs> auditLogses = new HashSet<AuditLogs>(0);
 	private Set<WorkflowParameters> workflowParameterses = new HashSet<WorkflowParameters>(0);
+	private Set<Approvals> approvals = new HashSet<Approvals>();
 
 	public Workflows() {
 	}
@@ -140,6 +141,15 @@ public class Workflows implements java.io.Serializable {
 
 	public void setWorkflowParameterses(Set<WorkflowParameters> workflowParameterses) {
 		this.workflowParameterses = workflowParameterses;
+	}
+	
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "workflow")
+	public Set<Approvals> getApprovals() {
+		return this.approvals;
+	}
+	
+	public void setApprovals(Set<Approvals> approvals) {
+		this.approvals = approvals;
 	}
 
 }
