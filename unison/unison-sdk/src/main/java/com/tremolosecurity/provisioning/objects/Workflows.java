@@ -46,6 +46,7 @@ public class Workflows implements java.io.Serializable {
 	private Set<WorkflowParameters> workflowParameterses = new HashSet<WorkflowParameters>(0);
 	private Set<Approvals> approvals = new HashSet<Approvals>();
 
+
 	public Workflows() {
 	}
 
@@ -151,5 +152,9 @@ public class Workflows implements java.io.Serializable {
 	public void setApprovals(Set<Approvals> approvals) {
 		this.approvals = approvals;
 	}
+
+	
+	
+	
 
 }

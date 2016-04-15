@@ -263,6 +263,13 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		config.setProperty("hibernate.c3p0.maxIdleTimeExcessConnections", Integer.toString(adbt.getMaxIdleConns()));
 		config.setProperty("hibernate.c3p0.testConnectionOnCheckout", "true");
 		config.setProperty("hibernate.c3p0.autoCommitOnClose", "true");
+		
+		if (adbt.getHibernateProperty() != null) {
+			for (ParamType pt : adbt.getHibernateProperty()) {
+				config.setProperty(pt.getName(), pt.getValue());
+			}
+		}
+		
 		//config.setProperty("hibernate.c3p0.debugUnreturnedConnectionStackTraces", "true");
 		//config.setProperty("hibernate.c3p0.unreturnedConnectionTimeout", "30");
 		
@@ -1731,6 +1738,13 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	@Override
 	public SessionFactory getHibernateSessionFactory() throws ProvisioningException {
 		return this.sessionFactory;
+	}
+
+
+	@Override
+	public void rebuildHibernate() {
+		this.initializeHibernate(this.cfgMgr.getCfg().getProvisioning().getApprovalDB());
+		
 	}
 	
 	

@@ -127,5 +127,7 @@ public interface ProvisioningEngine {
 	
 	public abstract SessionFactory getHibernateSessionFactory() throws ProvisioningException;
 	
+	public void rebuildHibernate();
+	
 
 }

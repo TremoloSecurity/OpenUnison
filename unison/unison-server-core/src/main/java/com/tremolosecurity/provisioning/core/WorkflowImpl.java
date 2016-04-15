@@ -52,6 +52,7 @@ import com.tremolosecurity.provisioning.objects.ApproverAttributes;
 import com.tremolosecurity.provisioning.objects.Approvers;
 import com.tremolosecurity.provisioning.objects.UserAttributes;
 import com.tremolosecurity.provisioning.objects.Users;
+import com.tremolosecurity.provisioning.objects.WorkflowParameters;
 import com.tremolosecurity.provisioning.objects.Workflows;
 import com.tremolosecurity.provisioning.service.util.TremoloUser;
 import com.tremolosecurity.provisioning.service.util.WFCall;
@@ -154,7 +155,31 @@ public class WorkflowImpl implements  Workflow {
 				Workflows workflow = session.load(Workflows.class, this.getId());
 				workflow.setUsers(session.load(Users.class, this.userNum));
 				workflow.setRequestReason(user.getRequestReason());
+				
+				
+				
+				
+				
+				
+				
+				
+				
 				session.save(workflow);
+				
+				for (String paramName : params.keySet()) {
+					WorkflowParameters param = new WorkflowParameters();
+					param.setName(paramName);
+					Object  o = params.get(paramName);
+					if (o != null) {
+						param.setValue(o.toString());
+					} else {
+						param.setValue("");
+					}
+					param.setWorkflows(workflow);
+					session.save(param);
+				}
+				
+				
 				session.getTransaction().commit();
 				
 				
