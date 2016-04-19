@@ -701,11 +701,11 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		try {
 			
 			int userid = WorkflowImpl.getUserNum(user, session, cfgMgr);
-			if (user.isJitAddToAuditDB()) {
+			//if (user.isJitAddToAuditDB()) {
 				return this.getWorkFlow(name);
-			} else {
-				return null;
-			}
+			//} else {
+			//	return null;
+			//}
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not load workflow",e);
 		} finally {
