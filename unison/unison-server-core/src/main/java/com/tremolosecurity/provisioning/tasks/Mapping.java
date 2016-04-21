@@ -63,12 +63,16 @@ public class Mapping extends WorkflowTaskImpl {
 		
 		
 		User mappedUser = this.mapper.mapUser(user,strict,request,this);
-		
-		boolean doContinue = this.runChildren(mappedUser,request);
-		user.setResync(mappedUser.isResync());
-		user.setKeepExternalAttrs(mappedUser.isKeepExternalAttrs());
-		
-		return doContinue;
+		if (super.getOnSuccess() != null) {
+			boolean doContinue = super.runSubTasks(super.getOnSuccess(),mappedUser,request);
+			user.setResync(mappedUser.isResync());
+			user.setKeepExternalAttrs(mappedUser.isKeepExternalAttrs());
+			
+			return doContinue;
+		} else {
+			logger.warn("No sub tasks");
+			return true;
+		}
 	}
 	
 	public MapIdentity getMapping() {

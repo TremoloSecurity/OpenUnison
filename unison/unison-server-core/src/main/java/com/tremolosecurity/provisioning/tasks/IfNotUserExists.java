@@ -74,10 +74,12 @@ public class IfNotUserExists extends WorkflowTaskImpl {
 		String attr = user.getAttribs().get(this.attributeName).getValues().get(0);
 		User toFind  = this.target.findUser(attr,request);
 		if (toFind == null) {
-			return super.runChildren(user,request);
+			return super.runSubTasks(super.getOnSuccess(),user,request);
+		}else {
+			return super.runSubTasks(super.getOnFailure(),user,request);
 		}
 		
-		return true;
+		
 
 	}
 

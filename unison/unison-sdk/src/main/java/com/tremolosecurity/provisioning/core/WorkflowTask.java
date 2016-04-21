@@ -61,7 +61,9 @@ public interface WorkflowTask {
 
 	public abstract WorkflowTask findApprovalTask();
 
-	public abstract ArrayList<WorkflowTask> getChildren();
+	public abstract ArrayList<WorkflowTask> getOnSuccess();
+	
+	public abstract ArrayList<WorkflowTask> getOnFailure();
 	
 	public abstract String getLabel();
 

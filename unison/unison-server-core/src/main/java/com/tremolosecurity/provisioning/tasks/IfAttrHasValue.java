@@ -64,11 +64,11 @@ public class IfAttrHasValue extends WorkflowTaskImpl {
 		if (attr != null) {
 			String localValue = this.renderTemplate(value, request);
 			if (attr.getValues().contains(localValue)) {
-				return super.runChildren(user,request);
+				return super.runSubTasks(super.getOnSuccess(),user,request);
 			}
 		}
 		
-		return true;
+		return super.runSubTasks(super.getOnFailure(),user,request);
 
 	}
 

@@ -658,9 +658,15 @@ public class WorkflowImpl implements  Workflow {
 	@Override
 	public void printWF(StringBuffer b,String prefix,WorkflowTask task) {
 		b.append(prefix).append(task.toString()).append('\n');
-		if (task.getChildren() != null) {
-			for (WorkflowTask c : task.getChildren()) {
-				this.printWF(b, prefix + "   ", c);
+		if (task.getOnSuccess() != null) {
+			for (WorkflowTask c : task.getOnSuccess()) {
+				this.printWF(b, prefix + " on success  ", c);
+			}
+		}
+		
+		if (task.getOnFailure() != null) {
+			for (WorkflowTask c : task.getOnFailure()) {
+				this.printWF(b, prefix + " on failure  ", c);
 			}
 		}
 	}

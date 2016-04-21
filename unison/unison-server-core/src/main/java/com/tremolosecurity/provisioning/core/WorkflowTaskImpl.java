@@ -29,6 +29,7 @@ import org.stringtemplate.v4.ST;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UnisonConfigManagerImpl;
+import com.tremolosecurity.config.xml.WorkflowChoiceTaskType;
 import com.tremolosecurity.config.xml.WorkflowTaskType;
 import com.tremolosecurity.provisioning.tasks.Approval;
 import com.tremolosecurity.provisioning.util.TaskHolder;
@@ -37,7 +38,8 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 	
 	transient static Logger logger = Logger.getLogger(WorkflowTaskImpl.class.getName());
 
-	private ArrayList<WorkflowTask> children;
+	private ArrayList<WorkflowTask> onSuccess;
+	private ArrayList<WorkflowTask> onFailure;
 
 
 	transient private WorkflowTaskType taskConfig;
@@ -52,12 +54,27 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 	public WorkflowTaskImpl(WorkflowTaskType taskConfig,ConfigManager cfg,Workflow wf) throws ProvisioningException {
 		this.taskConfig = taskConfig;
 		this.cfgMgr = cfg;
-		this.children = new ArrayList<WorkflowTask>();
-		Iterator<WorkflowTaskType> it = taskConfig.getWorkflowTasksGroup().iterator();
+		
 		this.workflow = wf;
-		while (it.hasNext()) {
-			WorkflowTaskType childCfg = it.next();
-			this.children.add(loadTask(childCfg,cfg,wf));
+		
+		if (taskConfig instanceof WorkflowChoiceTaskType) {
+			this.onSuccess = new ArrayList<WorkflowTask>();
+			this.onFailure = new ArrayList<WorkflowTask>();
+			
+			if (((WorkflowChoiceTaskType) taskConfig).getOnSuccess() != null) {
+				for (WorkflowTaskType wtt : ((WorkflowChoiceTaskType) taskConfig).getOnSuccess().getWorkflowTasksGroup()  ) {
+					this.onSuccess.add(loadTask(wtt,cfg,wf));
+				}
+			}
+			if (((WorkflowChoiceTaskType) taskConfig).getOnFailure() != null) {
+				for (WorkflowTaskType wtt : ((WorkflowChoiceTaskType) taskConfig).getOnFailure().getWorkflowTasksGroup()  ) {
+					this.onFailure.add(loadTask(wtt,cfg,wf));
+				}
+			}
+			
+			
+			
+			
 		}
 		
 		this.setOnHold(false);
@@ -96,8 +113,17 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 		this.cfgMgr = cfgMgr;
 		this.workflow = wf;
 		this.reInit();
-		for (WorkflowTask wft : this.children) {
-			wft.reInit(cfgMgr,wf);
+		
+		if (this.onSuccess != null) {
+			for (WorkflowTask wft : this.onSuccess) {
+				wft.reInit(cfgMgr,wf);
+			}
+		}
+		
+		if (this.onSuccess != null) {
+			for (WorkflowTask wft : this.onFailure) {
+				wft.reInit(cfgMgr,wf);
+			}
 		}
 	}
 	
@@ -121,24 +147,28 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 		
 	}
 	
-	protected final boolean runChildren(User user,Map<String,Object> request) throws ProvisioningException {
+	
+	
+	
+	protected final boolean runSubTasks(ArrayList<WorkflowTask> subs,User user,Map<String,Object> request) throws ProvisioningException {
 		
 		if (request.get(ProvisioningParams.UNISON_EXEC_TYPE) != null && request.get(ProvisioningParams.UNISON_EXEC_TYPE).equals(ProvisioningParams.UNISON_EXEC_SYNC)) {
-			Iterator<WorkflowTask> it = this.children.iterator();
 			
-			while (it.hasNext()) {
-				boolean doContinue = it.next().doTask(user,request);
+			for (WorkflowTask wft : subs) {
+				boolean doContinue = wft.doTask(user, request);
 				if (! doContinue) {
 					return false;
 				}
 			}
+			
+			
 			
 			return true;
 		} else {
 			WorkflowHolder holder = (WorkflowHolder) request.get(WorkflowHolder.WF_HOLDER_REQUEST);
 			TaskHolder th = new TaskHolder();
 			th.setPosition(0);
-			th.setParent(children);
+			th.setParent(subs);
 			th.setCurrentUser(user);
 			holder.getWfStack().push(th);
 			((ProvisioningEngineImpl) this.cfgMgr.getProvisioningEngine()).enqueue(holder);
@@ -146,14 +176,12 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 		}
 	}
 	
+	
+	
 	protected final boolean restartChildren(User user,Map<String,Object> request) throws ProvisioningException {
-		Iterator<WorkflowTask> it = this.children.iterator();
 		
-		
-		while (it.hasNext()) {
-			WorkflowTask wft = it.next();
+		for (WorkflowTask wft : this.onSuccess) {
 			if (wft.isOnHold()) {
-				
 				boolean doContinue = wft.doTask(user,request);
 				if (! doContinue) {
 					return false;
@@ -161,8 +189,22 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 			} else {
 				return wft.restartChildren();
 			}
-			
 		}
+		
+		for (WorkflowTask wft : this.onFailure) {
+			if (wft.isOnHold()) {
+				boolean doContinue = wft.doTask(user,request);
+				if (! doContinue) {
+					return false;
+				}
+			} else {
+				return wft.restartChildren();
+			}
+		}
+		
+		
+		
+		
 		
 		return true;
 	}
@@ -174,10 +216,19 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 	public void initWorkFlow() throws ProvisioningException {
 		this.init(this.taskConfig);
 		
-		Iterator<WorkflowTask> it = this.children.iterator();
-		while (it.hasNext()) {
-			it.next().initWorkFlow();
+		if (this.onSuccess != null) {
+			for (WorkflowTask wft : this.onSuccess) {
+				wft.initWorkFlow();
+			}
 		}
+		
+		if (this.onFailure != null) {
+			for (WorkflowTask wft : this.onFailure) {
+				wft.initWorkFlow();
+			}
+		}
+		
+		
 		
 	}
 	
@@ -251,11 +302,27 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 	 */
 	@Override
 	public Approval findApprovalTask() {
-		if (this.children == null || this.children.size() == 0) {
+		
+		if (this.onSuccess == null || this.onSuccess.size() == 0) {
 			return null;
 		}
 		
-		for (WorkflowTask wft : this.children) {
+		for (WorkflowTask wft : this.onSuccess) {
+			if (wft.isOnHold()) {
+				return (Approval) wft;
+			} else {
+				Approval appr = (Approval) wft.findApprovalTask();
+				if (appr != null) {
+					return appr;
+				}
+			}
+		}
+		
+		if (this.onFailure == null || this.onFailure.size() == 0) {
+			return null;
+		}
+		
+		for (WorkflowTask wft : this.onFailure) {
 			if (wft.isOnHold()) {
 				return (Approval) wft;
 			} else {
@@ -269,13 +336,7 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 		return null;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.tremolosecurity.provisioning.core.WorkflowTask#getChildren()
-	 */
-	@Override
-	public ArrayList<WorkflowTask> getChildren() {
-		return children;
-	}
+	
 	
 	@Override
 	public String renderTemplate(String val,Map<String,Object> request) {
@@ -285,6 +346,16 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 		}
 		
 		return st.render();
+	}
+	
+	@Override
+	public ArrayList<WorkflowTask> getOnSuccess() {
+		return this.onSuccess;
+	}
+	
+	@Override
+	public ArrayList<WorkflowTask> getOnFailure() {
+		return this.onFailure;
 	}
 	
 }

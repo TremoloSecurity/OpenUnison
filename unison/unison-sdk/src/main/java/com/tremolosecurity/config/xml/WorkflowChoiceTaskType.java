@@ -22,27 +22,28 @@ package com.tremolosecurity.config.xml;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * Workflow task for provisioning an account to a target
- * 				type, may not have children
  * 
- * <p>Java class for provisionType complex type.
+ * 				Individual workflow task that can choose between two
+ * 				paths (success and fail)
+ * 			
+ * 
+ * <p>Java class for workflowChoiceTaskType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="provisionType">
+ * &lt;complexType name="workflowChoiceTaskType">
  *   &lt;complexContent>
  *     &lt;extension base="{http://www.tremolosecurity.com/tremoloConfig}workflowTaskType">
  *       &lt;sequence>
+ *         &lt;element name="onSuccess" type="{http://www.tremolosecurity.com/tremoloConfig}workflowTaskListType" minOccurs="0"/>
+ *         &lt;element name="onFailure" type="{http://www.tremolosecurity.com/tremoloConfig}workflowTaskListType" minOccurs="0"/>
  *       &lt;/sequence>
- *       &lt;attribute name="sync" type="{http://www.w3.org/2001/XMLSchema}boolean" />
- *       &lt;attribute name="target" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="setPassword" type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" />
  *     &lt;/extension>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -51,92 +52,70 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "provisionType")
-public class ProvisionType
+@XmlType(name = "workflowChoiceTaskType", propOrder = {
+    "onSuccess",
+    "onFailure"
+})
+@XmlSeeAlso({
+    MappingType.class,
+    ApprovalType.class,
+    IfAttrHasValueType.class,
+    IfAttrExistsType.class,
+    IfNotUserExistsType.class
+})
+public abstract class WorkflowChoiceTaskType
     extends WorkflowTaskType
 {
 
-    @XmlAttribute(name = "sync")
-    protected Boolean sync;
-    @XmlAttribute(name = "target")
-    protected String target;
-    @XmlAttribute(name = "setPassword")
-    protected Boolean setPassword;
+    protected WorkflowTaskListType onSuccess;
+    protected WorkflowTaskListType onFailure;
 
     /**
-     * Gets the value of the sync property.
+     * Gets the value of the onSuccess property.
      * 
      * @return
      *     possible object is
-     *     {@link Boolean }
+     *     {@link WorkflowTaskListType }
      *     
      */
-    public Boolean isSync() {
-        return sync;
+    public WorkflowTaskListType getOnSuccess() {
+        return onSuccess;
     }
 
     /**
-     * Sets the value of the sync property.
+     * Sets the value of the onSuccess property.
      * 
      * @param value
      *     allowed object is
-     *     {@link Boolean }
+     *     {@link WorkflowTaskListType }
      *     
      */
-    public void setSync(Boolean value) {
-        this.sync = value;
+    public void setOnSuccess(WorkflowTaskListType value) {
+        this.onSuccess = value;
     }
 
     /**
-     * Gets the value of the target property.
+     * Gets the value of the onFailure property.
      * 
      * @return
      *     possible object is
-     *     {@link String }
+     *     {@link WorkflowTaskListType }
      *     
      */
-    public String getTarget() {
-        return target;
+    public WorkflowTaskListType getOnFailure() {
+        return onFailure;
     }
 
     /**
-     * Sets the value of the target property.
+     * Sets the value of the onFailure property.
      * 
      * @param value
      *     allowed object is
-     *     {@link String }
+     *     {@link WorkflowTaskListType }
      *     
      */
-    public void setTarget(String value) {
-        this.target = value;
-    }
-
-    /**
-     * Gets the value of the setPassword property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
-     */
-    public boolean isSetPassword() {
-        if (setPassword == null) {
-            return false;
-        } else {
-            return setPassword;
-        }
-    }
-
-    /**
-     * Sets the value of the setPassword property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
-     */
-    public void setSetPassword(Boolean value) {
-        this.setPassword = value;
+    public void setOnFailure(WorkflowTaskListType value) {
+        this.onFailure = value;
     }
 
 }

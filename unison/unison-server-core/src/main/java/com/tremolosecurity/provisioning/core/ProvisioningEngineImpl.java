@@ -126,6 +126,7 @@ import com.tremolosecurity.config.xml.SchedulingType;
 import com.tremolosecurity.config.xml.TargetType;
 import com.tremolosecurity.config.xml.TargetsType;
 import com.tremolosecurity.config.xml.TremoloType;
+import com.tremolosecurity.config.xml.WorkflowChoiceTaskType;
 import com.tremolosecurity.config.xml.WorkflowTaskType;
 import com.tremolosecurity.config.xml.WorkflowType;
 import com.tremolosecurity.json.Token;
@@ -580,33 +581,71 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				wtt = wft.getWorkflowTasksGroup().get(i);
 			}
 			
-			this.processCallTask(wtt);
+			
+			if (wtt instanceof com.tremolosecurity.config.xml.WorkflowChoiceTaskType) {
+				this.processCallTask((WorkflowChoiceTaskType) wtt);
+			}
 			
 			i++;
 			
 		}
 	}
 	
-	private void processCallTask(WorkflowTaskType wtt) {
+	private void processCallTask(WorkflowChoiceTaskType wtt) {
 		int i = 0;
-		while (i<wtt.getWorkflowTasksGroup().size()) {
-			WorkflowTaskType wttc = wtt.getWorkflowTasksGroup().get(i);
-			
-			
-			if (wttc instanceof com.tremolosecurity.config.xml.CallWorkflowType) {
-				List<WorkflowTaskType> tasks = this.getWFTasks(((com.tremolosecurity.config.xml.CallWorkflowType) wttc).getName()  );
-				//remove call wf
-				wtt.getWorkflowTasksGroup().remove(i);
-				//add tasks
-				wtt.getWorkflowTasksGroup().addAll(i, tasks);
+		
+		
+		if (wtt.getOnSuccess() != null) {
+			while (i < wtt.getOnSuccess().getWorkflowTasksGroup().size()) {
+				WorkflowTaskType wttc = wtt.getOnSuccess().getWorkflowTasksGroup().get(i);
+				if (wttc instanceof com.tremolosecurity.config.xml.CallWorkflowType) {
+					com.tremolosecurity.config.xml.CallWorkflowType callTask = (com.tremolosecurity.config.xml.CallWorkflowType) wttc;
+					
+					List<WorkflowTaskType> tasks = this.getWFTasks(callTask.getName()  );
+					//remove call wf
+					wtt.getOnSuccess().getWorkflowTasksGroup().remove(i);
+					//add tasks
+					wtt.getOnSuccess().getWorkflowTasksGroup().addAll(i, tasks);
+					
+					wttc = wtt.getOnSuccess().getWorkflowTasksGroup().get(i);
+				}
 				
-				wttc = wtt.getWorkflowTasksGroup().get(i);
+				i++;
+				
+				if (wttc instanceof WorkflowChoiceTaskType) {
+					this.processCallTask((WorkflowChoiceTaskType) wttc);
+				}
 			}
 			
-			i++;
-			
-			this.processCallTask(wttc);
 		}
+		
+		if (wtt.getOnFailure() != null) {
+			while (i < wtt.getOnFailure().getWorkflowTasksGroup().size()) {
+				WorkflowTaskType wttc = wtt.getOnFailure().getWorkflowTasksGroup().get(i);
+				if (wttc instanceof com.tremolosecurity.config.xml.CallWorkflowType) {
+					com.tremolosecurity.config.xml.CallWorkflowType callTask = (com.tremolosecurity.config.xml.CallWorkflowType) wttc;
+					
+					List<WorkflowTaskType> tasks = this.getWFTasks(callTask.getName()  );
+					//remove call wf
+					wtt.getOnFailure().getWorkflowTasksGroup().remove(i);
+					//add tasks
+					wtt.getOnFailure().getWorkflowTasksGroup().addAll(i, tasks);
+					
+					wttc = wtt.getOnFailure().getWorkflowTasksGroup().get(i);
+				}
+				
+				i++;
+				
+				if (wttc instanceof WorkflowChoiceTaskType) {
+					this.processCallTask((WorkflowChoiceTaskType) wttc);
+				}
+			}
+			
+		}
+		
+		
+		
+		
 	}
 	
 	private void generateWorkflows() throws ProvisioningException {
@@ -953,6 +992,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			
 			
+			wf.getRequest().put(Approval.APPROVAL_RESULT, new Boolean(approved));
+			
 			if (approved) {
 				wf.reInit(cfgMgr);
 				wf.restart();
@@ -965,6 +1006,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 					this.sendNotification(wf.getUser().getAttribs().get(approval.getMailAttr()).getValues().get(0),  approval.getFailureEmailMsg(),approval.getFailureEmailSubject(), wf.getUser());
 				}
 				
+				wf.reInit(cfgMgr);
+				wf.restart();
 				
 			}
 			

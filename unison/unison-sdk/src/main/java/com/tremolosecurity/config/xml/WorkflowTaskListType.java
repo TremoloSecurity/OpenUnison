@@ -24,30 +24,23 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * A workflow is a series of tasks and decisions to
- * 				update downstream identity stores
+ * List of workflow tasks
  * 
- * <p>Java class for workflowType complex type.
+ * <p>Java class for workflowTaskListType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="workflowType">
+ * &lt;complexType name="workflowTaskListType">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;group ref="{http://www.tremolosecurity.com/tremoloConfig}workflowTasksGroup" maxOccurs="unbounded" minOccurs="0"/>
- *       &lt;attribute name="name" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="label" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="description" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="inList" type="{http://www.w3.org/2001/XMLSchema}boolean" />
- *       &lt;attribute name="orgid" type="{http://www.w3.org/2001/XMLSchema}string" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -56,10 +49,10 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "workflowType", propOrder = {
+@XmlType(name = "workflowTaskListType", propOrder = {
     "workflowTasksGroup"
 })
-public class WorkflowType {
+public class WorkflowTaskListType {
 
     @XmlElements({
         @XmlElement(name = "provision", type = ProvisionType.class),
@@ -77,16 +70,6 @@ public class WorkflowType {
         @XmlElement(name = "delete", type = DeleteType.class)
     })
     protected List<WorkflowTaskType> workflowTasksGroup;
-    @XmlAttribute(name = "name")
-    protected String name;
-    @XmlAttribute(name = "label")
-    protected String label;
-    @XmlAttribute(name = "description")
-    protected String description;
-    @XmlAttribute(name = "inList")
-    protected Boolean inList;
-    @XmlAttribute(name = "orgid")
-    protected String orgid;
 
     /**
      * Gets the value of the workflowTasksGroup property.
@@ -127,126 +110,6 @@ public class WorkflowType {
             workflowTasksGroup = new ArrayList<WorkflowTaskType>();
         }
         return this.workflowTasksGroup;
-    }
-
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
-    }
-
-    /**
-     * Gets the value of the label property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getLabel() {
-        return label;
-    }
-
-    /**
-     * Sets the value of the label property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setLabel(String value) {
-        this.label = value;
-    }
-
-    /**
-     * Gets the value of the description property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * Sets the value of the description property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDescription(String value) {
-        this.description = value;
-    }
-
-    /**
-     * Gets the value of the inList property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
-     */
-    public Boolean isInList() {
-        return inList;
-    }
-
-    /**
-     * Sets the value of the inList property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
-     */
-    public void setInList(Boolean value) {
-        this.inList = value;
-    }
-
-    /**
-     * Gets the value of the orgid property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getOrgid() {
-        return orgid;
-    }
-
-    /**
-     * Sets the value of the orgid property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setOrgid(String value) {
-        this.orgid = value;
     }
 
 }

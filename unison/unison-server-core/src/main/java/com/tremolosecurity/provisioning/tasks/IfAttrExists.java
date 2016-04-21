@@ -61,9 +61,9 @@ public class IfAttrExists extends WorkflowTaskImpl {
 		String localName = this.renderTemplate(name, request);
 		
 		if (user.getAttribs().containsKey(localName)) {
-			return super.runChildren(user,request);
+			return super.runSubTasks(super.getOnSuccess(),user,request);
 		} else {
-			return true;
+			return super.runSubTasks(super.getOnFailure(),user,request);
 		}
 
 	}

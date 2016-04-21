@@ -81,11 +81,11 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -4449491970307931192L;
+	
 	public static final String SEND_NOTIFICATION = "APPROVAL_SEND_NOTIFICATION";
 	static Logger logger = Logger.getLogger(Approval.class.getName());
 	
-	
+	public static final String APPROVAL_RESULT = "APPROVAL_RESULT";
 
 	public enum ApproverType {
 		StaticGroup,
@@ -310,7 +310,15 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 			
 			nrequest.put("APPROVAL_ID", this.id);
 			
-			return this.runChildren(user,nrequest);
+			Boolean result = (Boolean) request.get(Approval.APPROVAL_RESULT);
+			
+			if (result != null && result.booleanValue()) {
+				return super.runSubTasks(super.getOnSuccess(),user,request);
+			} else {
+				return super.runSubTasks(super.getOnFailure(),user,request);
+			}
+			
+			
 		} else {
 			Session session = this.getConfigManager().getProvisioningEngine().getHibernateSessionFactory().openSession();
 			try {
@@ -330,6 +338,9 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				//request.put("APPROVAL_ID", Integer.toString(this.id));
 				request.put("APPROVAL_ID", this.id);
 				
+				if (request.get(Approval.APPROVAL_RESULT) != null) {
+					request.remove(Approval.APPROVAL_RESULT);
+				}
 				
 				this.setOnHold(true);
 				
