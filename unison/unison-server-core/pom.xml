@@ -46,11 +46,7 @@
 			<artifactId>net.sourceforge.spnego</artifactId>
 			<version>${net.sourceforge.spnego.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.mxgraph</groupId>
-			<artifactId>jgraphx</artifactId>
-			<version>${jgraphx.version}</version>
-		</dependency>
+
 
 		<dependency>
 			<groupId>org.reflections</groupId>

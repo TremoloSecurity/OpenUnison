@@ -13,10 +13,13 @@
 package com.tremolosecurity.openunison.util.upgrade;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -44,7 +47,7 @@ public class AddChoiceToTasks {
 	static HashSet<String> checkTags;
 	static HashSet<String> ignoreTags;
 	
-	public static void convert(String path) throws Exception {
+	public static void convert(InputStream input,OutputStream output) throws Exception {
 		
 		checkTags = new HashSet<String>();
 		checkTags.add("ifNotUserExists");
@@ -61,15 +64,17 @@ public class AddChoiceToTasks {
 		ignoreTags.add("failureEmailSubject");
 		ignoreTags.add("failureEmailMsg");
 		ignoreTags.add("escalationPolicy");
+		ignoreTags.add("onSuccess");
+		ignoreTags.add("onFailure");
 
 		
 		
 		//make a backup
-		String backup = path + ".backup";
+		//String backup = path + ".backup";
 		
-		logger.info("Backing up '" + path + "' to '" + backup + "'");
+		//logger.info("Backing up '" + path + "' to '" + backup + "'");
 		
-		BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(path)));
+		/*BufferedReader in = new BufferedReader(new InputStreamReader(input));
 		PrintWriter out = new PrintWriter(new FileOutputStream(backup));
 		String line = null;
 		
@@ -79,7 +84,7 @@ public class AddChoiceToTasks {
 		
 		in.close();
 		out.flush();
-		out.close();
+		out.close();*/
 		
 		logger.info("Backup complete");
 		
@@ -88,20 +93,59 @@ public class AddChoiceToTasks {
 		DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory
 		        .newInstance();
 		    DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-		    Document document = docBuilder.parse(new File(path));
+		    Document document = docBuilder.parse(input);
 		
-		walkDOM(document.getDocumentElement());
-		
-		logger.info("Saving XML");
-		Transformer transformer = TransformerFactory.newInstance().newTransformer();
-		Result output = new StreamResult(System.out);//new StreamResult(new File(path));
-		Source input = new DOMSource(document);
-
-		transformer.transform(input, output);
+		    
+		Node workflows = findWorkflows(document.getDocumentElement());
+		if (workflows != null) {
+			walkDOM(workflows);
+			
+			logger.info("Saving XML");
+			Transformer transformer = TransformerFactory.newInstance().newTransformer();
+			Result outputDoc = new StreamResult(output);//new StreamResult(new File(path));
+			Source inputDoc = new DOMSource(document);
+	
+			transformer.transform(inputDoc, outputDoc);
+		} else {
+			logger.warn("No workflows found");
+		}
 		
 		
 	}
 	
+	
+	private static Node findWorkflows(Node node) throws Exception {
+		String name = node.getNodeName();
+		String prefix = null;
+		
+		
+		Node found = null;
+		
+		if (name.indexOf(':') >= 0) {
+			prefix = name.substring(0,name.indexOf(':'));
+			name = name.substring(name.indexOf(':') + 1);
+		}
+		
+		if (name.equals("workflows")) {
+			return node;
+		} else {
+			NodeList nodeList = node.getChildNodes();
+			
+			
+			for (int i = 0; i < nodeList.getLength(); i++) {
+		        org.w3c.dom.Node currentNode = nodeList.item(i);
+		        if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
+		            //calls this method for all the children which is Element
+		        	found = findWorkflows(currentNode);
+		        	if (found != null) {
+		        		return found;
+		        	}
+		        }
+		    }
+			
+			return null;
+		}
+	}
 	
 	private static void walkDOM(Node node) throws Exception {
 		String name = node.getNodeName();
@@ -125,7 +169,7 @@ public class AddChoiceToTasks {
 		        org.w3c.dom.Node currentNode = nodeList.item(i);
 		        if (currentNode.getNodeType() == Node.ELEMENT_NODE ) {
 		        	
-		        	String lname = node.getNodeName();
+		        	String lname = currentNode.getNodeName();
 		    		String lprefix = null;
 		    		if (lname.indexOf(':') >= 0) {
 		    			lprefix = lname.substring(0,lname.indexOf(':'));
@@ -173,7 +217,19 @@ public class AddChoiceToTasks {
 		
 		
 		PropertyConfigurator.configure(props);
+		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		
-		AddChoiceToTasks.convert("/Users/mlb/Documents/git/unison/unison-appliance/unit-tests/test/xml/testMapper.xml");
+		String path = "xml/testSupervisorAzFilter.xml";
+		
+		AddChoiceToTasks.convert(new FileInputStream("/Users/mlb/Documents/git/unison/unison-appliance/unit-tests/test/" + path),bout);
+		
+		
+		System.out.println(new String(bout.toByteArray()));
+		
+		FileOutputStream  fsout = new FileOutputStream("/Users/mlb/Documents/git/unison/unison-appliance/unit-tests/test/" + path);
+		fsout.write(bout.toByteArray());
+		fsout.flush();
+		fsout.close();
+		
 	}
 }
