@@ -17,7 +17,9 @@ limitations under the License.
 
 package com.tremolosecurity.openunison.util;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -25,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.StringReader;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -123,6 +126,7 @@ import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.config.xml.TrustType;
 import com.tremolosecurity.openunison.util.queue.QueUtils;
+import com.tremolosecurity.openunison.util.upgrade.AddChoiceToTasks;
 
 public class OpenUnisonUtils {
 
@@ -161,6 +165,7 @@ public class OpenUnisonUtils {
 		options.addOption("help", false, "Prints this message");
 		options.addOption("signMetadataWithKey", true, "Signs the metadata with the specified key");
 		options.addOption("dlqName", true, "The name of the dead letter queue");
+		options.addOption("upgradeFrom106", false, "Updates workflows from 1.0.6");
 		
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = parser.parse(options, args,true);
@@ -222,6 +227,31 @@ public class OpenUnisonUtils {
 			logger.info("Getting the DLQ Name...");
 			String dlqName = loadOption(cmd,"dlqName",options);
 			QueUtils.emptyDLQ(tt, dlqName);
+		} else if (action.equalsIgnoreCase("upgradeFrom106")) {
+			logger.info("Upgrading OpenUnison's configuration from 1.0.6");
+			
+			String backupFileName = unisonXMLFile + ".bak";
+			
+			logger.info("Backing up to '" + backupFileName + "'");
+			
+			BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(unisonXMLFile)));
+			PrintWriter out = new PrintWriter(new FileOutputStream(backupFileName));
+			String line = null;
+			while ((line = in.readLine()) != null) {
+				out.println(line);
+			}
+			out.flush();
+			out.close();
+			in.close();
+			
+			ByteArrayOutputStream bout = new ByteArrayOutputStream();
+			AddChoiceToTasks.convert(new FileInputStream(unisonXMLFile),bout);
+			FileOutputStream  fsout = new FileOutputStream(unisonXMLFile);
+			fsout.write(bout.toByteArray());
+			fsout.flush();
+			fsout.close();
+			
+			
 		}
 		
 		
