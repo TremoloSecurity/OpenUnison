@@ -39,6 +39,10 @@ public interface Workflow extends Serializable {
 
 	public abstract void executeWorkflow(User user, Map<String, Object> params)
 			throws ProvisioningException;
+	
+	public abstract void executeWorkflow(User user, Map<String, Object> params,String requesterID)
+			throws ProvisioningException;
+	
 
 	public abstract void executeWorkflow(AuthInfo authInfo, String uidAttr)
 			throws ProvisioningException;
@@ -55,6 +59,10 @@ public interface Workflow extends Serializable {
 	public abstract void restart() throws ProvisioningException;
 
 	public abstract User getUser();
+	
+	public abstract User getRequester();
+	
+	public abstract int getRequesterNum();
 
 	public abstract void completeWorkflow() throws ProvisioningException;
 

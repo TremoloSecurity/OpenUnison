@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class WFCall {
+	String requestor;
 	String name;
 	String uidAttributeName;
 	TremoloUser user;
@@ -69,6 +70,18 @@ public class WFCall {
 	}
 	public void setUser(TremoloUser user) {
 		this.user = user;
+	}
+
+
+
+	public String getRequestor() {
+		return requestor;
+	}
+
+
+
+	public void setRequestor(String requestor) {
+		this.requestor = requestor;
 	}
 	
 	

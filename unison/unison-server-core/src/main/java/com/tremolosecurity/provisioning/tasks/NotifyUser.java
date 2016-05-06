@@ -63,6 +63,23 @@ public class NotifyUser extends WorkflowTaskImpl {
 			throw new ProvisioningException("No mail attribute");
 		}
 		
+		
+		
+		if (this.getWorkflow().getRequesterNum() != this.getWorkflow().getUserNum()) {
+			String mail = this.getWorkflow().getRequester().getAttribs().get(this.mailAttr).getValues().get(0);
+			
+			String localSubject = this.renderTemplate(subject, request);
+			String localMsg = this.renderTemplate(msg, request);
+			
+			try {
+				this.getConfigManager().getProvisioningEngine().sendNotification(mail, localMsg,localSubject,this.getWorkflow().getRequester());
+			} catch (Exception e) {
+				throw new ProvisioningException("Could not send user notification",e);
+			}
+		}
+		
+		
+		
 		String mail = user.getAttribs().get(this.mailAttr).getValues().get(0);
 		
 		String localSubject = this.renderTemplate(subject, request);

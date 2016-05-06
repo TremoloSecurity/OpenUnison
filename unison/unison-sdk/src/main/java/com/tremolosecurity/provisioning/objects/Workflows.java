@@ -45,7 +45,7 @@ public class Workflows implements java.io.Serializable {
 	private Set<AuditLogs> auditLogses = new HashSet<AuditLogs>(0);
 	private Set<WorkflowParameters> workflowParameterses = new HashSet<WorkflowParameters>(0);
 	private Set<Approvals> approvals = new HashSet<Approvals>();
-
+	private Users requester;
 
 	public Workflows() {
 	}
@@ -153,7 +153,15 @@ public class Workflows implements java.io.Serializable {
 		this.approvals = approvals;
 	}
 
-	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "requesterid")
+	public Users getRequester() {
+		return this.requester;
+	}
+
+	public void setRequester(Users requestor) {
+		this.requester = requestor;
+	}
 	
 	
 

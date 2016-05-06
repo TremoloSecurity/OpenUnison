@@ -998,6 +998,18 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				wf.reInit(cfgMgr);
 				wf.restart();
 			} else {
+				
+				if (wf.getUserNum() != wf.getRequesterNum()) {
+					wf.getRequester().getAttribs().put("reason", new Attribute("reason",reason));
+					
+					if (! wf.getRequester().getAttribs().containsKey(approval.getMailAttr())) {
+						logger.warn("Can not send failure notification to " + wf.getRequester().getUserID() + ", no mail found");
+					} else {
+						this.sendNotification(wf.getRequester().getAttribs().get(approval.getMailAttr()).getValues().get(0),  approval.getFailureEmailMsg(),approval.getFailureEmailSubject(), wf.getRequester());
+					}
+				}
+				
+				
 				wf.getUser().getAttribs().put("reason", new Attribute("reason",reason));
 				
 				if (! wf.getUser().getAttribs().containsKey(approval.getMailAttr())) {

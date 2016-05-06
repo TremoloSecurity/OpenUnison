@@ -72,9 +72,11 @@ public class WorkflowImpl implements  Workflow {
 	transient ConfigManager cfgMgr;
 	private int id;
 	private User user;
+	private User requester;
 	
 	private HashMap<String,Object> request;
 	private int userNum;
+	private int requesterNum;
 	
 	private transient Workflows fromDB;
 	
@@ -134,6 +136,14 @@ public class WorkflowImpl implements  Workflow {
 	 */
 	@Override
 	public void executeWorkflow(User user,Map<String,Object> params) throws ProvisioningException {
+		this.executeWorkflow(user, params, null);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.tremolosecurity.provisioning.core.Workflow#executeWorkflow(com.tremolosecurity.provisioning.core.User, java.util.Map)
+	 */
+	@Override
+	public void executeWorkflow(User user,Map<String,Object> params, String requesterUID) throws ProvisioningException {
 		
 		request = new HashMap<String,Object>();
 		
@@ -151,9 +161,20 @@ public class WorkflowImpl implements  Workflow {
 				session = this.cfgMgr.getProvisioningEngine().getHibernateSessionFactory().openSession();
 				this.userNum = getUserNum(user,session,this.cfgMgr);
 				
+				if (requesterUID == null) {
+					this.requester = this.user;
+					this.requesterNum = this.userNum;
+				} else {
+					this.requester = getRequester(requesterUID,session,cfgMgr);
+					this.requesterNum = getUserNum(requester,session,this.cfgMgr);
+				}
+				
+				
+				
 				session.beginTransaction();
 				Workflows workflow = session.load(Workflows.class, this.getId());
 				workflow.setUsers(session.load(Users.class, this.userNum));
+				workflow.setRequester(session.load(Users.class, this.requesterNum));
 				workflow.setRequestReason(user.getRequestReason());
 				
 				
@@ -225,6 +246,87 @@ public class WorkflowImpl implements  Workflow {
 		
 	}
 
+	
+	public static User getRequester(String requestorID, Session session,ConfigManager cfgMgr) throws LDAPException, SQLException {
+		StringBuffer filter = new StringBuffer();
+		
+		
+		
+		
+		LDAPSearchResults res = cfgMgr.getMyVD().search("o=Tremolo", 2, equal(cfgMgr.getProvisioningEngine().getUserIDAttribute(),requestorID).toString(), new ArrayList<String>());
+		LDAPEntry fromLDAP = null;
+		if (res.hasMore()) {
+			fromLDAP = res.next();
+		}
+		
+		while (res.hasMore()) res.next();
+		
+		
+		
+		
+		Query query = session.createQuery("FROM Users WHERE userKey = :user_key");
+		query.setParameter("user_key", requestorID);
+		List<Users> users = query.list();
+		Users userObj = null;
+		
+		
+		
+		session.beginTransaction();
+		
+		int id = 0;
+		
+		User requestor = new User(requestorID);
+		
+		if (users.size() > 0) {
+			userObj = users.get(0);
+			id = userObj.getId();
+			requestor.setJitAddToAuditDB(false);
+			
+		} else {
+			
+			userObj = new Users();
+			userObj.setUserKey(requestor.getUserID());
+			session.save(userObj);
+			id = userObj.getId();
+			
+			if (fromLDAP != null) {
+				for (String attr : cfgMgr.getProvisioningEngine().getUserAttrbiutes()) {
+					UserAttributes nattr = new UserAttributes();
+					
+					nattr.setName(attr);
+					LDAPAttribute userAttrFromLDAP = fromLDAP.getAttribute(attr);
+					if (userAttrFromLDAP != null) {
+						nattr.setValue(userAttrFromLDAP.getStringValue());
+						
+					}
+					nattr.setUsers(userObj);
+					userObj.getUserAttributeses().add(nattr);
+					
+					session.save(nattr);
+					
+				}
+			}
+			
+		}
+		
+		for (UserAttributes attr : userObj.getUserAttributeses()) {
+			Attribute nattr = requestor.getAttribs().get(attr.getName());
+			if (nattr == null) {
+				nattr = new Attribute(attr.getName());
+				requestor.getAttribs().put(nattr.getName(), nattr);
+			}
+			nattr.getValues().add(attr.getValue());
+		}
+		
+		if (! requestor.getAttribs().containsKey(cfgMgr.getProvisioningEngine().getUserIDAttribute())) {
+			requestor.getAttribs().put(cfgMgr.getProvisioningEngine().getUserIDAttribute(), new Attribute(cfgMgr.getProvisioningEngine().getUserIDAttribute(),requestor.getUserID()));
+		}
+		
+		requestor.setJitAddToAuditDB(true);
+		session.getTransaction().commit();
+		
+		return requestor;
+	}
 	
 	public static int getUserNum(User user, Session session,ConfigManager cfgMgr) throws LDAPException, SQLException {
 		StringBuffer filter = new StringBuffer();
@@ -499,7 +601,7 @@ public class WorkflowImpl implements  Workflow {
 		
 		
 		
-		this.executeWorkflow(user,call.getRequestParams());
+		this.executeWorkflow(user,call.getRequestParams(),call.getRequestor());
 		
 	} 
 	
@@ -683,5 +785,15 @@ public class WorkflowImpl implements  Workflow {
 	
 	public void setFromDB(Workflows fromDB) {
 		this.fromDB = fromDB;
+	}
+
+	@Override
+	public User getRequester() {
+		return this.requester;
+	}
+
+	@Override
+	public int getRequesterNum() {
+		return this.requesterNum;
 	}
 }
