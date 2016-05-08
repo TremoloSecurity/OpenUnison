@@ -151,11 +151,7 @@
 			<version>${commons-pool2.version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>org.antlr</groupId>
-			<artifactId>stringtemplate</artifactId>
-			<version>${stringtemplate.version}</version>
-		</dependency>
+
 
 
 		<dependency>
@@ -163,6 +159,7 @@
 			<artifactId>hibernate-c3p0</artifactId>
 			<version>${hibernate.version}</version>
 		</dependency>
+
 		
 
 	</dependencies>

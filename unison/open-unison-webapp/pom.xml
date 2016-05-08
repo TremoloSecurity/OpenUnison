@@ -151,6 +151,13 @@
 			<artifactId>unison-applications-drupal</artifactId>
 			<version>${openunison.version}</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-scalejs-main</artifactId>
+			<version>${openunison.version}</version>
+			<type>jar</type>
+		</dependency>
 	</dependencies>
 
 

@@ -57,7 +57,6 @@ import com.tremolosecurity.config.xml.ResultGroupType;
 import com.tremolosecurity.config.xml.ResultType;
 import com.tremolosecurity.log.AccessLog;
 import com.tremolosecurity.log.AccessLog.AccessEvent;
-import com.tremolosecurity.proxy.ProxyResponse;
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import com.tremolosecurity.proxy.az.AzException;
 import com.tremolosecurity.proxy.az.AzRule;
