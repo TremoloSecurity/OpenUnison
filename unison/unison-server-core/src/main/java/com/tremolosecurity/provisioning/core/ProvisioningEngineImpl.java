@@ -558,7 +558,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	private List<WorkflowTaskType> getWFTasks(String name) {
 		for (WorkflowType wt : this.cfgMgr.getCfg().getProvisioning().getWorkflows().getWorkflow() ) {
 			if (wt.getName().equalsIgnoreCase(name)) {
-				return wt.getWorkflowTasksGroup();
+				return wt.getTasks().getWorkflowTasksGroup();
 			}
 		}
 		
@@ -567,18 +567,18 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	
 	private void processCallWf(WorkflowType wft) {
 		int i = 0;
-		while (i < wft.getWorkflowTasksGroup().size()) {
-			WorkflowTaskType wtt = wft.getWorkflowTasksGroup().get(i);
+		while (i < wft.getTasks().getWorkflowTasksGroup().size()) {
+			WorkflowTaskType wtt = wft.getTasks().getWorkflowTasksGroup().get(i);
 			
 			
 			if (wtt instanceof com.tremolosecurity.config.xml.CallWorkflowType) {
 				List<WorkflowTaskType> tasks = this.getWFTasks(((com.tremolosecurity.config.xml.CallWorkflowType) wtt).getName()  );
 				//remove call wf
-				wft.getWorkflowTasksGroup().remove(i);
+				wft.getTasks().getWorkflowTasksGroup().remove(i);
 				//add tasks
-				wft.getWorkflowTasksGroup().addAll(i, tasks);
+				wft.getTasks().getWorkflowTasksGroup().addAll(i, tasks);
 				
-				wtt = wft.getWorkflowTasksGroup().get(i);
+				wtt = wft.getTasks().getWorkflowTasksGroup().get(i);
 			}
 			
 			

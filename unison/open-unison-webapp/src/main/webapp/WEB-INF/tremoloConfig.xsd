@@ -865,15 +865,27 @@
 		</complexContent>
 	</complexType>
 
+
+	<complexType name="workflowTasksType">
+		<group ref="tns:workflowTasksGroup" maxOccurs="unbounded"
+			minOccurs="0">
+		</group>
+	</complexType>
+
 	<complexType name="workflowType">
 		<annotation>
 			<documentation>A workflow is a series of tasks and decisions to
 				update downstream identity stores</documentation>
 		</annotation>
+	
+		<sequence>
+			<element name="dynamicConfiguration" type="tns:dynamicWorkflowType" minOccurs="0" maxOccurs="1"></element>
+			<element name="tasks" minOccurs="1" type="tns:workflowTasksType">
+									
+			</element>
+		</sequence>
 
-		<group ref="tns:workflowTasksGroup" maxOccurs="unbounded"
-			minOccurs="0">
-		</group>
+
 
 		<attribute name="name" type="string">
 			<annotation>
@@ -905,6 +917,8 @@
 					listed under</documentation>
 			</annotation>
 		</attribute>
+		
+		
 	</complexType>
 
 	<complexType name="workflowsType">
@@ -924,11 +938,13 @@
 
 		<choice>
 			<element name="provision" type="tns:provisionType"></element>
-			<element name="ifNotUserExists" type="tns:ifNotUserExistsType">
+			<element name="ifNotUserExists"
+				type="tns:ifNotUserExistsType">
 			</element>
 			<element name="addGroup" type="tns:addGroupType"></element>
 			<element name="resync" type="tns:resyncType"></element>
-			<element name="ifAttrHasValue" type="tns:ifAttrHasValueType">
+			<element name="ifAttrHasValue"
+				type="tns:ifAttrHasValueType">
 			</element>
 			<element name="ifAttrExists" type="tns:ifAttrExistsType"></element>
 			<element name="addAttribute" type="tns:addAttributeType"></element>
@@ -938,6 +954,7 @@
 			<element name="notifyUser" type="tns:notifyUserType"></element>
 			<element name="customTask" type="tns:customTaskType"></element>
 			<element name="delete" type="tns:deleteType"></element>
+			
 		</choice>
 
 	</group>
@@ -2148,5 +2165,33 @@
 			<element name="azRule" type="tns:customAzRuleType" minOccurs="0"
 				maxOccurs="unbounded"></element>
 		</sequence>
+	</complexType>
+
+	<complexType name="dynamicWorkflowType">
+		<annotation>
+			<documentation>Optional element used to configure a workflow as dynamic</documentation>
+		</annotation>
+		<sequence>
+			
+			<element name="param" type="tns:paramType" minOccurs="0" maxOccurs="unbounded">
+				<annotation>
+				<documentation>Parameter used to initialize the dynamic workflow generator</documentation>
+			</annotation>
+			
+			</element>
+		</sequence>
+		
+		
+		<attribute name="dynamic" type="boolean">
+			<annotation>
+			<documentation>If set to true, the workflow is dynamic</documentation>
+		</annotation>
+		</attribute>
+		<attribute name="className" type="string">
+		
+			<annotation>
+				<documentation>Implementation of com.tremolosecurity.provisioning.util.DynamicWorkflow</documentation>
+			</annotation>
+		</attribute>
 	</complexType>
 </schema>

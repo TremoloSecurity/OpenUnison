@@ -106,7 +106,7 @@ public class WorkflowImpl implements  Workflow {
 			this.description = "";
 		}
 		
-		Iterator<WorkflowTaskType> it = wf.getWorkflowTasksGroup().iterator();
+		Iterator<WorkflowTaskType> it = wf.getTasks().getWorkflowTasksGroup().iterator();
 		while (it.hasNext()) {
 			WorkflowTaskType taskCfg = it.next();
 			tasks.add(WorkflowTaskImpl.loadTask(taskCfg,cfgMgr,this));

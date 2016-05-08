@@ -29,21 +29,21 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * Listens on the queu for messages
+ * Optional element used to configure a workflow as dynamic
  * 
- * <p>Java class for messageListenerType complex type.
+ * <p>Java class for dynamicWorkflowType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="messageListenerType">
+ * &lt;complexType name="dynamicWorkflowType">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="params" type="{http://www.tremolosecurity.com/tremoloConfig}paramType" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element name="param" type="{http://www.tremolosecurity.com/tremoloConfig}paramType" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
+ *       &lt;attribute name="dynamic" type="{http://www.w3.org/2001/XMLSchema}boolean" />
  *       &lt;attribute name="className" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="queueName" type="{http://www.w3.org/2001/XMLSchema}string" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -52,30 +52,30 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "messageListenerType", propOrder = {
-    "params"
+@XmlType(name = "dynamicWorkflowType", propOrder = {
+    "param"
 })
-public class MessageListenerType {
+public class DynamicWorkflowType {
 
-    protected List<ParamType> params;
+    protected List<ParamType> param;
+    @XmlAttribute(name = "dynamic")
+    protected Boolean dynamic;
     @XmlAttribute(name = "className")
     protected String className;
-    @XmlAttribute(name = "queueName")
-    protected String queueName;
 
     /**
-     * Gets the value of the params property.
+     * Gets the value of the param property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the params property.
+     * This is why there is not a <CODE>set</CODE> method for the param property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getParams().add(newItem);
+     *    getParam().add(newItem);
      * </pre>
      * 
      * 
@@ -85,11 +85,35 @@ public class MessageListenerType {
      * 
      * 
      */
-    public List<ParamType> getParams() {
-        if (params == null) {
-            params = new ArrayList<ParamType>();
+    public List<ParamType> getParam() {
+        if (param == null) {
+            param = new ArrayList<ParamType>();
         }
-        return this.params;
+        return this.param;
+    }
+
+    /**
+     * Gets the value of the dynamic property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link Boolean }
+     *     
+     */
+    public Boolean isDynamic() {
+        return dynamic;
+    }
+
+    /**
+     * Sets the value of the dynamic property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link Boolean }
+     *     
+     */
+    public void setDynamic(Boolean value) {
+        this.dynamic = value;
     }
 
     /**
@@ -114,30 +138,6 @@ public class MessageListenerType {
      */
     public void setClassName(String value) {
         this.className = value;
-    }
-
-    /**
-     * Gets the value of the queueName property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getQueueName() {
-        return queueName;
-    }
-
-    /**
-     * Sets the value of the queueName property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setQueueName(String value) {
-        this.queueName = value;
     }
 
 }

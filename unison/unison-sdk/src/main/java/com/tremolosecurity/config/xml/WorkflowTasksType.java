@@ -30,14 +30,12 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * List of workflow tasks
- * 
- * <p>Java class for workflowTaskListType complex type.
+ * <p>Java class for workflowTasksType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="workflowTaskListType">
+ * &lt;complexType name="workflowTasksType">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;group ref="{http://www.tremolosecurity.com/tremoloConfig}workflowTasksGroup" maxOccurs="unbounded" minOccurs="0"/>
@@ -49,10 +47,10 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "workflowTaskListType", propOrder = {
+@XmlType(name = "workflowTasksType", propOrder = {
     "workflowTasksGroup"
 })
-public class WorkflowTaskListType {
+public class WorkflowTasksType {
 
     @XmlElements({
         @XmlElement(name = "provision", type = ProvisionType.class),

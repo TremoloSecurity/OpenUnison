@@ -21,6 +21,7 @@ public class WFDescription {
 	String name;
 	String description;
 	String label;
+	String encryptedParams;
 	
 	public WFDescription() {
 		
@@ -48,6 +49,14 @@ public class WFDescription {
 
 	public void setLabel(String label) {
 		this.label = label;
+	}
+
+	public String getEncryptedParams() {
+		return encryptedParams;
+	}
+
+	public void setEncryptedParams(String encryptedParams) {
+		this.encryptedParams = encryptedParams;
 	}
 	
 	
