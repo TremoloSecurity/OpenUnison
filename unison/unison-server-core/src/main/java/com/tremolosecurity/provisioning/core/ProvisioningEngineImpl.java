@@ -179,7 +179,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	
 	String userIDAttributeName;
 	
-	private DataSource approvalConPool;
+	
 	
 	ArrayList<String> approverAttributes;
 	ArrayList<String> userAttrbiutes;

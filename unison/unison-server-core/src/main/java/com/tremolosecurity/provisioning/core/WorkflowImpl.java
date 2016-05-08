@@ -39,6 +39,7 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.joda.time.DateTime;
+import org.stringtemplate.v4.ST;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
@@ -79,6 +80,7 @@ public class WorkflowImpl implements  Workflow {
 	private int requesterNum;
 	
 	private transient Workflows fromDB;
+	private String description;
 	
 	/* (non-Javadoc)
 	 * @see com.tremolosecurity.provisioning.core.Workflow#getUserNum()
@@ -98,6 +100,11 @@ public class WorkflowImpl implements  Workflow {
 		this.cfgMgr = cfgMgr;
 		this.name = wf.getName();
 		this.tasks = new ArrayList<WorkflowTask>();
+		this.description = wf.getDescription();
+		
+		if (this.description == null) {
+			this.description = "";
+		}
 		
 		Iterator<WorkflowTaskType> it = wf.getWorkflowTasksGroup().iterator();
 		while (it.hasNext()) {
@@ -178,7 +185,12 @@ public class WorkflowImpl implements  Workflow {
 				workflow.setRequestReason(user.getRequestReason());
 				
 				
+				ST st = new ST(this.description,'$','$');
+				for (String key : request.keySet()) {
+					st.add(key.replaceAll("[.]", "_"), request.get(key));
+				}
 				
+				workflow.setDescription(st.render());
 				
 				
 				
