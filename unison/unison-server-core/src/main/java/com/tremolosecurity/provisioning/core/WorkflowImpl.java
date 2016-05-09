@@ -81,6 +81,7 @@ public class WorkflowImpl implements  Workflow {
 	
 	private transient Workflows fromDB;
 	private String description;
+	private String label;
 	
 	/* (non-Javadoc)
 	 * @see com.tremolosecurity.provisioning.core.Workflow#getUserNum()
@@ -101,6 +102,7 @@ public class WorkflowImpl implements  Workflow {
 		this.name = wf.getName();
 		this.tasks = new ArrayList<WorkflowTask>();
 		this.description = wf.getDescription();
+		this.label = wf.getLabel();
 		
 		if (this.description == null) {
 			this.description = "";
@@ -192,7 +194,17 @@ public class WorkflowImpl implements  Workflow {
 				
 				workflow.setDescription(st.render());
 				
-				
+				if (this.label != null) {
+					st = new ST(this.label,'$','$');
+					for (String key : request.keySet()) {
+						st.add(key.replaceAll("[.]", "_"), request.get(key));
+					}
+					
+					workflow.setLabel(st.render());
+					
+				} else {
+					workflow.setLabel("");
+				}
 				
 				
 				

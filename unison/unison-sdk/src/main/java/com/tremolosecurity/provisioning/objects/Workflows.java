@@ -39,6 +39,7 @@ public class Workflows implements java.io.Serializable {
 	private int id;
 	private Users users;
 	private String name;
+	private String label;
 	private String description;
 	private Date startTs;
 	private Date completeTs;
@@ -172,6 +173,16 @@ public class Workflows implements java.io.Serializable {
 	public void setDescription(String description) {
 		this.description = description;
 	}
+
+	@Column(name = "label")
+	public String getLabel() {
+		return label;
+	}
+
+	public void setLabel(String label) {
+		this.label = label;
+	}
+	
 	
 	
 
