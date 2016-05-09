@@ -38,6 +38,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -99,6 +100,7 @@ public class AddChoiceToTasks {
 		Node workflows = findWorkflows(document.getDocumentElement());
 		if (workflows != null) {
 			walkDOM(workflows);
+			walkDOMTasks(workflows);
 			
 			logger.info("Saving XML");
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
@@ -147,6 +149,33 @@ public class AddChoiceToTasks {
 		}
 	}
 	
+	
+	private static boolean isSuccessSet(Node node) throws Exception {
+		NodeList nodeList = node.getChildNodes();
+		for (int i=0;i<nodeList.getLength();i++) {
+			Node n = nodeList.item(i);
+			if (n.getNodeName().contains("onSuccess") || n.getNodeName().contains("onFailure")) {
+				return true;
+			}
+				
+		}
+		
+		return false;
+	}
+	
+	private static boolean isTasksSet(Node node) throws Exception {
+		NodeList nodeList = node.getChildNodes();
+		for (int i=0;i<nodeList.getLength();i++) {
+			Node n = nodeList.item(i);
+			if (n.getNodeName().contains("tasks")) {
+				return true;
+			}
+				
+		}
+		
+		return false;
+	}
+	
 	private static void walkDOM(Node node) throws Exception {
 		String name = node.getNodeName();
 		String prefix = null;
@@ -157,7 +186,7 @@ public class AddChoiceToTasks {
 		
 		logger.debug("Name : '" + name + "' (prefix : '" + prefix + "')");
 		
-		if (checkTags.contains(name)) {
+		if (checkTags.contains(name) && ! isSuccessSet(node)) {
 			logger.debug("Found tag to convert");
 			
 			NodeList nodeList = node.getChildNodes();
@@ -200,6 +229,68 @@ public class AddChoiceToTasks {
 	        if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
 	            //calls this method for all the children which is Element
 	            walkDOM(currentNode);
+	        }
+	    }
+	}
+	
+	
+	private static void walkDOMTasks(Node node) throws Exception {
+		String name = node.getNodeName();
+		String prefix = null;
+		if (name.indexOf(':') >= 0) {
+			prefix = name.substring(0,name.indexOf(':'));
+			name = name.substring(name.indexOf(':') + 1);
+		}
+		
+		logger.debug("Name : '" + name + "' (prefix : '" + prefix + "')");
+		
+		if (name.equalsIgnoreCase("workflow") && ! isTasksSet(node)) {
+			logger.debug("Found tag to convert");
+			
+			NodeList nodeList = node.getChildNodes();
+		    
+			Node tasks = node.getOwnerDocument().createElement( prefix == null ? "tasks" : prefix + ":tasks"   );
+			ArrayList<Node> toMove = new ArrayList<Node>();
+			
+			for (int i = 0; i < nodeList.getLength(); i++) {
+		        org.w3c.dom.Node currentNode = nodeList.item(i);
+		        if (currentNode.getNodeType() == Node.ELEMENT_NODE ) {
+		        	
+		        	String lname = currentNode.getNodeName();
+		    		String lprefix = null;
+		    		if (lname.indexOf(':') >= 0) {
+		    			lprefix = lname.substring(0,lname.indexOf(':'));
+		    			lname = lname.substring(lname.indexOf(':') + 1);
+		    		}
+		        	
+		        	if (! ignoreTags.contains(lname)) {
+		        		toMove.add(currentNode);
+		        	}
+		        }
+		        
+		    }
+			
+			for (Node n : toMove) {
+				tasks.appendChild(n);
+			}
+			
+			
+			Element dynamicConfig = (Element) node.getOwnerDocument().createElement( prefix == null ? "dynamicConfiguration" : prefix + ":dynamicConfiguration"   );
+			dynamicConfig.setAttribute("dynamic", "false");
+			node.appendChild(dynamicConfig);
+			node.appendChild(tasks);
+			node = tasks;
+		}
+		
+		
+		NodeList nodeList = node.getChildNodes();
+		
+		
+		for (int i = 0; i < nodeList.getLength(); i++) {
+	        org.w3c.dom.Node currentNode = nodeList.item(i);
+	        if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
+	            //calls this method for all the children which is Element
+	            walkDOMTasks(currentNode);
 	        }
 	    }
 	}
