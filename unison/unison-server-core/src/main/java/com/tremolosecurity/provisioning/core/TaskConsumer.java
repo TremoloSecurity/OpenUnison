@@ -68,13 +68,13 @@ public class TaskConsumer implements MessageListener {
 			}
 			
 			if (task.doTask(user, wfHolder.getRequest())) {
-				if (isDone(wfHolder)) {
+				if (isDone(wfHolder,null)) {
 					wfHolder.getWorkflow().completeWorkflow();
 				} else {
 					((ProvisioningEngineImpl) this.prov).enqueue(wfHolder);
 				}
 			} else {
-				if (isDone(wfHolder)) {
+				if (isDone(wfHolder,task)) {
 					wfHolder.getWorkflow().completeWorkflow();
 				} else {
 					//do nothing
@@ -96,16 +96,16 @@ public class TaskConsumer implements MessageListener {
 		
 	}
 	
-	private boolean isDone(WorkflowHolder holder) {
+	private boolean isDone(WorkflowHolder holder, WorkflowTask task) {
 		if (holder.getWfStack().isEmpty()) {
 			return true;
 		} else {
 			TaskHolder th = holder.getWfStack().peek();
-			if (th.getPosition() < th.getParent().size()) {
+			if ((th.getPosition() < th.getParent().size()) || (task != null && task.isOnHold())) {
 				return false;
 			} else {
 				holder.getWfStack().pop();
-				return isDone(holder);
+				return isDone(holder,null);
 			}
 		}
 	}

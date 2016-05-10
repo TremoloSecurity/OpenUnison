@@ -180,7 +180,7 @@ public class WorkflowImpl implements  Workflow {
 				
 				
 				
-				session.beginTransaction();
+				
 				Workflows workflow = session.load(Workflows.class, this.getId());
 				workflow.setUsers(session.load(Users.class, this.userNum));
 				workflow.setRequester(session.load(Users.class, this.requesterNum));
@@ -207,7 +207,7 @@ public class WorkflowImpl implements  Workflow {
 				}
 				
 				
-				
+				session.beginTransaction();
 				
 				session.save(workflow);
 				
