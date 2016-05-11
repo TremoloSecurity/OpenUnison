@@ -22,6 +22,7 @@ public class WFDescription {
 	String description;
 	String label;
 	String encryptedParams;
+	String uuid;
 	
 	public WFDescription() {
 		
@@ -58,6 +59,16 @@ public class WFDescription {
 	public void setEncryptedParams(String encryptedParams) {
 		this.encryptedParams = encryptedParams;
 	}
+
+	public String getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
+	
+	
 	
 	
 }

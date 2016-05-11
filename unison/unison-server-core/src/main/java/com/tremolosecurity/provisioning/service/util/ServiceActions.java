@@ -79,13 +79,10 @@ public class ServiceActions {
 				
 				String wfName = appr.getWorkflow().getName();
 				sum.setWfName(wfName);
+				sum.setWfLabel(appr.getWorkflow().getLabel());
+				sum.setWfDescription(appr.getWorkflow().getDescription());
 				
-				for (WorkflowType wf : GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getWorkflows().getWorkflow()) {
-					if (wf.getName().equalsIgnoreCase(sum.getWfName())) {
-						sum.setWfLabel(wf.getLabel());
-						sum.setWfDescription(wf.getDescription());
-					}
-				}
+				
 				
 				summaries.add(sum);
 			}
@@ -159,13 +156,10 @@ public class ServiceActions {
 			
 			String wfName = approval.getWorkflow().getName();
 			sum.setWfName(wfName);
+			sum.setWfLabel(approval.getWorkflow().getLabel());
+			sum.setWfDescription(approval.getWorkflow().getDescription());
 			
-			for (WorkflowType wft : GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getWorkflows().getWorkflow()) {
-				if (wft.getName().equalsIgnoreCase(sum.getWfName())) {
-					sum.setWfLabel(wft.getLabel());
-					sum.setWfDescription(wft.getDescription());
-				}
-			}
+			
 			
 			return sum;
 		} catch (Throwable t) {
