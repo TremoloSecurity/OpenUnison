@@ -64,7 +64,7 @@ public class SearchService extends HttpServlet {
 					logger.debug("UID Filter : '" + sfilter.toString() + "'");
 				}
 				filter = sfilter.toString();
-				base = "o=Tremolo";
+				base = GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot();
 				scope = 2;
 			} else if (req.getParameter("dn") != null) {
 				filter = "(objectClass=*)";
@@ -78,7 +78,7 @@ public class SearchService extends HttpServlet {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Filter : '" + filter + "'");
 				}
-				base = "o=Tremolo";
+				base = GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot();
 				scope = 2;
 			}
 			
@@ -143,8 +143,8 @@ public class SearchService extends HttpServlet {
 			reqAttrs.add("cn");
 			
 			StringBuffer b = new StringBuffer();
-			b.append("(uniqueMember=").append(user.getDn()).append(")");
-			res = con.search("o=Tremolo", 2,equal("uniqueMember",user.getDn()).toString() , reqAttrs);
+			b.append("(").append(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute()).append(")=").append(user.getDn()).append(")");
+			res = con.search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2,equal(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),user.getDn()).toString() , reqAttrs);
 			
 			while (res.hasMore()) {
 				

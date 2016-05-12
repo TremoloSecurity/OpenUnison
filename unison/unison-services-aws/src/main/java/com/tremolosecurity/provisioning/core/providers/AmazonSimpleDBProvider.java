@@ -47,6 +47,7 @@ import com.tremolosecurity.provisioning.core.UserStoreProvider;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 
 
 
@@ -162,7 +163,7 @@ public class AmazonSimpleDBProvider implements UserStoreProvider {
 			}
 			
 			attrs = new ArrayList<ReplaceableAttribute>();
-			attrs.add(new ReplaceableAttribute("uniquemember",userid,false));
+			attrs.add(new ReplaceableAttribute(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),userid,false));
 			sdb.putAttributes(new PutAttributesRequest(this.groupDomain,groupName,attrs));
 			
 			this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add, approvalID, workflow, "group", groupName);
@@ -177,7 +178,7 @@ public class AmazonSimpleDBProvider implements UserStoreProvider {
 				}
 				
 				StringBuffer select = new StringBuffer();
-				select.append("SELECT uniquemember FROM `").append(this.groupDomain).append("` WHERE cn='").append(groupName).append("' AND uniquemember='").append(userid).append("'");
+				select.append("SELECT ").append(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute()).append(" FROM `").append(this.groupDomain).append("` WHERE cn='").append(groupName).append("' AND ").append(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute()).append("='").append(userid).append("'");
 				
 				res = this.sdb.select(new SelectRequest(select.toString()));
 				
@@ -346,7 +347,7 @@ public class AmazonSimpleDBProvider implements UserStoreProvider {
 				String name = group.getName();
 				if (! user.getGroups().contains(name) && ! addOnly) {
 					ArrayList<com.amazonaws.services.simpledb.model.Attribute> list = new ArrayList<com.amazonaws.services.simpledb.model.Attribute>();
-					list.add(new com.amazonaws.services.simpledb.model.Attribute("uniquemember",amazonUser.getUserID()));
+					list.add(new com.amazonaws.services.simpledb.model.Attribute(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),amazonUser.getUserID()));
 					sdb.deleteAttributes(new DeleteAttributesRequest(this.groupDomain,name,list));
 					
 					this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Delete, approvalID, workflow, "group",name);
@@ -367,7 +368,7 @@ public class AmazonSimpleDBProvider implements UserStoreProvider {
 				}
 				
 				ArrayList<com.amazonaws.services.simpledb.model.ReplaceableAttribute> list = new ArrayList<com.amazonaws.services.simpledb.model.ReplaceableAttribute>();
-				list.add(new com.amazonaws.services.simpledb.model.ReplaceableAttribute("uniquemember",amazonUser.getUserID(),false));
+				list.add(new com.amazonaws.services.simpledb.model.ReplaceableAttribute(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),amazonUser.getUserID(),false));
 				sdb.putAttributes(new PutAttributesRequest(this.groupDomain,groupName,list));
 				this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add, approvalID, workflow, "group",groupName);
 			}
@@ -461,7 +462,7 @@ public class AmazonSimpleDBProvider implements UserStoreProvider {
 	}
 	
 	private String getGroupSelect(String userID) {
-		return this.getSelect(groupDomain, "uniqueMember", userID, AmazonSimpleDBProvider.CN);
+		return this.getSelect(groupDomain, GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(), userID, AmazonSimpleDBProvider.CN);
 	}
 	
 	private String getSelect(String domain,String attrName,String attrId,Set<String> attributes) {

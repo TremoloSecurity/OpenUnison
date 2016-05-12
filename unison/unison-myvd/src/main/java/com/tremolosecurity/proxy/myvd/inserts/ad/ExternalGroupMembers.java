@@ -28,6 +28,7 @@ import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
+import com.tremolosecurity.server.GlobalEntries;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -125,7 +126,7 @@ public class ExternalGroupMembers implements Insert {
 		boolean add = false;
 		
 		for (Attribute attr : attributes) {
-			if (attr.getAttribute().getName().equalsIgnoreCase("uniqueMember")) {
+			if (attr.getAttribute().getName().equalsIgnoreCase(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute())) {
 				add = true;
 			}
 		}
@@ -160,11 +161,11 @@ public class ExternalGroupMembers implements Insert {
 		switch (node.getType()) {
 			 
 			case EQUALS 	  :  name = node.getName().toLowerCase();
-			if (name.equalsIgnoreCase("uniqueMember")) {
+			if (name.equalsIgnoreCase(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute())) {
 				String val = node.getValue();
 				node.setType(FilterType.OR);
 				ArrayList<FilterNode> nodes = new ArrayList<FilterNode>();
-				FilterNode newnode = new FilterNode(FilterType.EQUALS,"uniqueMember",val);
+				FilterNode newnode = new FilterNode(FilterType.EQUALS,GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),val);
 				nodes.add(newnode);
 				newnode = new FilterNode(FilterType.EQUALS,this.externalGroupAttrName,val);
 				nodes.add(newnode);
@@ -212,12 +213,12 @@ public class ExternalGroupMembers implements Insert {
 			LDAPSearchConstraints constraints) throws LDAPException {
 		chain.nextPostSearchEntry(entry, base, scope, filter, attributes, typesOnly, constraints);
 		
-		LDAPAttribute goun = entry.getEntry().getAttribute("uniqueMember");
+		LDAPAttribute goun = entry.getEntry().getAttribute(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute());
 		LDAPAttribute extern = entry.getEntry().getAttribute(this.externalGroupAttrName);
 		
 		if (extern != null) {
 			if (goun == null) {
-				goun = new LDAPAttribute("uniqueMember");
+				goun = new LDAPAttribute(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute());
 				entry.getEntry().getAttributeSet().add(goun);
 			}
 			

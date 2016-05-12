@@ -34,6 +34,7 @@ import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.az.AzException;
 import com.tremolosecurity.proxy.az.CustomAuthorization;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 
 public class ManagerAuthorization implements CustomAuthorization {
 
@@ -187,7 +188,7 @@ public class ManagerAuthorization implements CustomAuthorization {
 				if (! attrs.isEmpty() && ! attrs.contains("*")) {
 					attrs.add(this.configManager.getCfg().getProvisioning().getApprovalDB().getUserIdAttribute());
 				}
-				LDAPSearchResults res = this.configManager.getMyVD().search("o=Tremolo", 2, filter, attrs);
+				LDAPSearchResults res = this.configManager.getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, filter, attrs);
 				if (! res.hasMore()) {
 					return null;
 				} else {

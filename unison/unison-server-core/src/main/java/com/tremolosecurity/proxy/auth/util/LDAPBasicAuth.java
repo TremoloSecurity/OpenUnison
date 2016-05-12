@@ -29,6 +29,7 @@ import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
+import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.AuthMechType;
 import com.tremolosecurity.proxy.auth.AuthController;
@@ -40,7 +41,7 @@ import com.tremolosecurity.saml.Attribute;
 public class LDAPBasicAuth implements BasicAuthImpl {
 	public void doAuth(HttpServletRequest request,HttpSession session, String uidAttr,
 			String userName, String password, MyVDConnection myvd,
-			AuthChainType act, AuthMechType amt,AuthStep as) throws LDAPException {
+			AuthChainType act, AuthMechType amt,AuthStep as,ConfigManager cfgMgr) throws LDAPException {
 		
 		
 		if (password == null || password.trim().length() == 0) {
@@ -54,7 +55,7 @@ public class LDAPBasicAuth implements BasicAuthImpl {
 		
 		
 		
-		LDAPSearchResults res = myvd.search(AuthUtil.getChainRoot(act), 2, equal(uidAttr,userName).toString(), new ArrayList<String>());
+		LDAPSearchResults res = myvd.search(AuthUtil.getChainRoot(cfgMgr,act), 2, equal(uidAttr,userName).toString(), new ArrayList<String>());
 		
 		if (res.hasMore()) {
 			LDAPEntry entry = res.next();

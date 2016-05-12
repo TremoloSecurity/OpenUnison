@@ -36,6 +36,7 @@ import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.WorkflowTask;
 import com.tremolosecurity.provisioning.util.CustomTask;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 
 public class LoadGroups implements CustomTask {
 
@@ -96,7 +97,7 @@ public class LoadGroups implements CustomTask {
 				user.getGroups().clear();
 			}
 			
-			LDAPSearchResults res = this.cfg.getMyVD().search("o=Tremolo", 2, filter.toString(), params);
+			LDAPSearchResults res = this.cfg.getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, filter.toString(), params);
 			res.hasMore();
 			LDAPEntry entry = res.next();
 			
@@ -104,12 +105,12 @@ public class LoadGroups implements CustomTask {
 			while (res.hasMore()) res.next();
 			
 			
-			filter = equal("uniqueMember",dn).toString();
+			filter = equal(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),dn).toString();
 			
 			params.clear();
 			params.add("cn");
 			
-			res = this.cfg.getMyVD().search("o=Tremolo", 2, filter.toString(), params);
+			res = this.cfg.getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, filter.toString(), params);
 			
 			
 			

@@ -68,7 +68,7 @@ public class ListOrgs extends HttpServlet {
 			
 			
 			
-			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search("o=Tremolo", 2, equal(uidAttr,userID).toString(), new ArrayList<String>());
+			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, equal(uidAttr,userID).toString(), new ArrayList<String>());
 			if (! res.hasMore()) {
 				throw new ProvisioningException("Could not locate user '" + userID + "'");
 			}

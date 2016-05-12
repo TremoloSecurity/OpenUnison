@@ -48,6 +48,7 @@ import com.tremolosecurity.provisioning.util.ldap.pool.LdapConnection;
 import com.tremolosecurity.provisioning.util.ldap.pool.LdapPool;
 import com.tremolosecurity.proxy.ssl.TremoloSSLSocketFactory;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
@@ -164,7 +165,7 @@ public class LDAPProvider implements UserStoreProvider {
 				
 				while (res.hasMore()) res.next();
 				
-				LDAPAttribute attr = new LDAPAttribute("uniqueMember",dn);
+				LDAPAttribute attr = new LDAPAttribute(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),dn);
 				
 				LDAPModification mod = new LDAPModification(LDAPModification.ADD,attr);
 				
@@ -358,7 +359,7 @@ public class LDAPProvider implements UserStoreProvider {
 		}
 		
 		StringBuffer b = new StringBuffer();
-		b.append("(uniqueMember=").append(userDN).append(")");
+		b.append("(").append(cfgMgr.getCfg().getGroupMemberAttribute()).append("=").append(userDN).append(")");
 		res = con.search(searchBase, 2, b.toString(), new String[] {"cn"}, false);
 		done.clear();
 		while (res.hasMore()) {
@@ -369,7 +370,7 @@ public class LDAPProvider implements UserStoreProvider {
 					
 					
 					
-					con.modify(groupEntry.getDN(), new LDAPModification(LDAPModification.DELETE,new LDAPAttribute("uniqueMember",userDN)));
+					con.modify(groupEntry.getDN(), new LDAPModification(LDAPModification.DELETE,new LDAPAttribute(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),userDN)));
 					cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Delete, approvalID, workflow, "group", groupEntry.getAttribute("cn").getStringValue());
 				}
 			}
@@ -401,7 +402,7 @@ public class LDAPProvider implements UserStoreProvider {
 			
 			
 			
-			con.modify(groupDN, new LDAPModification(LDAPModification.ADD,new LDAPAttribute("uniqueMember",userDN)));
+			con.modify(groupDN, new LDAPModification(LDAPModification.ADD,new LDAPAttribute(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),userDN)));
 			cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add, approvalID, workflow, "group", groupName);
 		}
 			
@@ -538,7 +539,7 @@ public class LDAPProvider implements UserStoreProvider {
 		}
 		
 		
-		res = con.search(searchBase, 2, equal("uniqueMember",userDN).toString(), new String[] {"cn"}, false);
+		res = con.search(searchBase, 2, equal(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),userDN).toString(), new String[] {"cn"}, false);
 		while (res.hasMore()) {
 			LDAPEntry group = res.next();
 			user.getGroups().add(group.getAttribute("cn").getStringValue());
@@ -571,7 +572,7 @@ public class LDAPProvider implements UserStoreProvider {
 		attrs.add("1.1");
 		StringBuffer filter = new StringBuffer();
 		filter.append("(").append(this.userIDAttribute).append("=").append(userID).append(")");
-		res = this.cfgMgr.getMyVD().search("o=Tremolo", 2, filter.toString(), attrs);
+		res = this.cfgMgr.getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, filter.toString(), attrs);
 		return res;
 	}
 

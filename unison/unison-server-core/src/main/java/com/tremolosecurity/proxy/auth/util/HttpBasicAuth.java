@@ -65,6 +65,7 @@ import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.filter.PostProcess;
 import com.tremolosecurity.proxy.myvd.MyVDConnection;
 import com.tremolosecurity.proxy.util.ProxyConstants;
+import com.tremolosecurity.server.GlobalEntries;
 
 public class HttpBasicAuth implements BasicAuthImpl {
 
@@ -86,11 +87,9 @@ public class HttpBasicAuth implements BasicAuthImpl {
 	public void doAuth(HttpServletRequest request, HttpSession session,
 			String uidAttr, final String userName, final String password,
 			MyVDConnection myvd, AuthChainType act, AuthMechType amt,
-			AuthStep as) throws LDAPException {
+			AuthStep as,ConfigManager cfgMgr) throws LDAPException {
 
-		ConfigManager cfgMgr = ((UrlHolder) request
-				.getAttribute(ProxyConstants.AUTOIDM_CFG)).getConfig();
-
+		
 		BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(
 				cfgMgr.getHttpClientSocketRegistry());
 		try {
@@ -122,7 +121,7 @@ public class HttpBasicAuth implements BasicAuthImpl {
 					Gson gson = new Gson();
 					AuthInfo authInfo = gson.fromJson(json, AuthInfo.class);
 					StringBuffer b = new StringBuffer();
-					b.append("uid=").append(userName).append(",o=Tremolo");
+					b.append("uid=").append(userName).append(",").append(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot());
 					authInfo.setUserDN(b.toString());
 					authInfo.setAuthChain(act.getName());
 					authInfo.setAuthLevel(act.getLevel());

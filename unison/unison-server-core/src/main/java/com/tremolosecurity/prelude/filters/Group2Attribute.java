@@ -36,6 +36,7 @@ import com.tremolosecurity.proxy.filter.HttpFilterRequest;
 import com.tremolosecurity.proxy.filter.HttpFilterResponse;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 
 
 
@@ -70,7 +71,7 @@ public class Group2Attribute implements HttpFilter {
 			
 			
 			
-			LDAPSearchResults res = cfgMgr.getMyVD().search(groupDN, 0,  equal("uniqueMember",authInfo.getUserDN()).toString(), attribs);
+			LDAPSearchResults res = cfgMgr.getMyVD().search(groupDN, 0,  equal(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),authInfo.getUserDN()).toString(), attribs);
 			if (res.hasMore()) {
 				res.next();
 				isMember = true;

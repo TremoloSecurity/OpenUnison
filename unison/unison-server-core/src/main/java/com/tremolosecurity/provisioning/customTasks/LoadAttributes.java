@@ -34,6 +34,7 @@ import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.WorkflowTask;
 import com.tremolosecurity.provisioning.util.CustomTask;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 
 public class LoadAttributes implements CustomTask {
 
@@ -77,7 +78,7 @@ public class LoadAttributes implements CustomTask {
 		params.addAll(this.attrs);
 		
 		try {
-			LDAPSearchResults res = this.cfg.getMyVD().search("o=Tremolo", 2, equal(this.nameAttr,user.getUserID()).toString(), params);
+			LDAPSearchResults res = this.cfg.getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, equal(this.nameAttr,user.getUserID()).toString(), params);
 			res.hasMore();
 			LDAPEntry entry = res.next();
 			LDAPAttributeSet attrs = entry.getAttributeSet();

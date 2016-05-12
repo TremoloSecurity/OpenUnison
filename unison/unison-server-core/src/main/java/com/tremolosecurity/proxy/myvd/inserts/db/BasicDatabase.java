@@ -28,6 +28,7 @@ import net.sourceforge.myvd.inserts.jdbc.JdbcInsert;
 import net.sourceforge.myvd.inserts.jdbc.JdbcPool;
 
 import com.tremolosecurity.proxy.myvd.inserts.util.MultiNameSpaceInsert;
+import com.tremolosecurity.server.GlobalEntries;
 
 public class BasicDatabase extends MultiNameSpaceInsert implements JdbcPool {
 
@@ -60,7 +61,7 @@ public class BasicDatabase extends MultiNameSpaceInsert implements JdbcPool {
 		nsProps.put("server.db.jdbc.config.maxConsIdle",props.getProperty("maxConsIdle"));
 		nsProps.put("server.db.jdbc.config.rdn","uid");
 		nsProps.put("server.db.jdbc.config.mapping",props.getProperty("user-mapping"));
-		nsProps.put("server.db.jdbc.config.objectClass","inetOrgPerson");
+		nsProps.put("server.db.jdbc.config.objectClass",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getUserObjectClass());
 		nsProps.put("server.db.jdbc.config.sql",getUserSelect(props));
 		nsProps.put("server.db.jdbc.config.addBaseToFilter","false");
 		nsProps.put("server.db.jdbc.config.useSimple","true");
@@ -75,7 +76,7 @@ public class BasicDatabase extends MultiNameSpaceInsert implements JdbcPool {
 			nsProps.put("server.groupdb.nameSpace","ou=groups," + nameSpace.getBase().getDN().toString());
 			nsProps.put("server.groupdb.weight","0");
 			nsProps.put("server.groupdb.DBGroups.className","net.sourceforge.myvd.inserts.jdbc.DBGroups");
-			nsProps.put("server.groupdb.DBGroups.config.memberAttribute","uniquemember");
+			nsProps.put("server.groupdb.DBGroups.config.memberAttribute",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute());
 			nsProps.put("server.groupdb.DBGroups.config.suffix","ou=users," + nameSpace.getBase().getDN().toString());
 			nsProps.put("server.groupdb.DBGroups.config.rdn","uid");
 			nsProps.put("server.groupdb.jdbc.className","net.sourceforge.myvd.inserts.jdbc.JdbcInsert");
@@ -87,7 +88,7 @@ public class BasicDatabase extends MultiNameSpaceInsert implements JdbcPool {
 			nsProps.put("server.groupdb.jdbc.config.maxCons",props.getProperty("maxCons"));
 			nsProps.put("server.groupdb.jdbc.config.maxConsIdle",props.getProperty("maxConsIdle"));
 			nsProps.put("server.groupdb.jdbc.config.mapping",props.getProperty("group-mapping"));
-			nsProps.put("server.groupdb.jdbc.config.objectClass","groupOfUniqueNames");
+			nsProps.put("server.groupdb.jdbc.config.objectClass",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupObjectClass());
 			nsProps.put("server.groupdb.jdbc.config.sql",getGroupSelect(props));
 			nsProps.put("server.groupdb.jdbc.config.addBaseToFilter","false");
 			nsProps.put("server.groupdb.jdbc.config.useSimple","true");

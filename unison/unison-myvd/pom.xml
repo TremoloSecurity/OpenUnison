@@ -29,5 +29,10 @@
   		<artifactId>myvd-server</artifactId>
   		<version>${myvd-server.version}</version>
   	</dependency>
+  	<dependency>
+  		<groupId>com.tremolosecurity.unison</groupId>
+  		<artifactId>unison-sdk</artifactId>
+  		<version>${openunison.version}</version>
+  	</dependency>
   </dependencies>
 </project>

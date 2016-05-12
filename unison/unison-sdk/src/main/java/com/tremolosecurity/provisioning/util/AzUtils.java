@@ -17,6 +17,7 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.util;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -44,6 +45,7 @@ import com.tremolosecurity.provisioning.objects.ApproverAttributes;
 import com.tremolosecurity.provisioning.objects.Approvers;
 import com.tremolosecurity.proxy.az.CustomAuthorization;
 
+
 public class AzUtils {
 	static Logger logger = Logger.getLogger(AzUtils.class);
 	
@@ -66,7 +68,7 @@ public class AzUtils {
 		boolean found = false;
 		
 		try {
-			res = cfg.getMyVD().search(constraint, 2, "(objectClass=inetOrgPerson)", attrs);
+			res = cfg.getMyVD().search(constraint, 2, equal("objectClass",cfg.getCfg().getUserObjectClass()).toString(), attrs);
 			
 			
 			
@@ -112,7 +114,7 @@ public class AzUtils {
 		boolean found = false;
 		
 		try {
-			res = cfg.getMyVD().search("o=Tremolo", 2, constraint, attrs);
+			res = cfg.getMyVD().search(cfg.getCfg().getLdapRoot(), 2, constraint, attrs);
 			
 			
 			
@@ -166,7 +168,7 @@ public class AzUtils {
 
 	public static boolean loadStaticGroupApprovers(Approvals approval,String emailTemplate,ConfigManager cfg,Session session, int id, String constraint,boolean sendNotification) throws ProvisioningException {
 		ArrayList<String> attrs = new ArrayList<String>();
-		attrs.add("uniqueMember");
+		attrs.add(cfg.getCfg().getGroupMemberAttribute());
 		LDAPSearchResults res = null;
 		LDAPEntry entry = null;
 		
@@ -181,7 +183,7 @@ public class AzUtils {
 			throw new ProvisioningException("Could not find group",e);
 		}
 		
-		LDAPAttribute members = entry.getAttribute("uniqueMember");
+		LDAPAttribute members = entry.getAttribute(cfg.getCfg().getGroupMemberAttribute());
 		String[] dns = members != null ? members.getStringValueArray() : new String[0];
 		
 		if (dns.length == 0) {

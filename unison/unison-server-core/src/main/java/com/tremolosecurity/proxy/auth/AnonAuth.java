@@ -31,7 +31,7 @@ import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.AuthMechType;
 import com.tremolosecurity.saml.Attribute;
-
+import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.proxy.auth.util.AuthStep;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 
@@ -81,7 +81,7 @@ public class AnonAuth implements AuthMechanism {
 		
 		
 		authInfo.getAttribs().put(this.uidAttr, new Attribute(this.uidAttr,this.uidVal));
-		authInfo.getAttribs().put("objectClass", new Attribute("objectClass","inetOrgPerson"));
+		authInfo.getAttribs().put("objectClass", new Attribute("objectClass",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getUserObjectClass()));
 		
 		if (this.attrs != null) {
 		
@@ -140,7 +140,7 @@ public class AnonAuth implements AuthMechanism {
 	@Override
 	public void init(ServletContext ctx, HashMap<String, Attribute> init) {
 		String cfg = init.get("userName").getValues().get(0);
-		this.rdn = cfg + ",o=Tremolo";
+		this.rdn = cfg + "," + GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot();
 		this.uidAttr = cfg.substring(0,cfg.indexOf('='));
 		this.uidVal =  cfg.substring(cfg.indexOf('=') + 1);
 		

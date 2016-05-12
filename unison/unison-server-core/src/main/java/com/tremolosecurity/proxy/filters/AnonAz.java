@@ -34,6 +34,7 @@ import com.tremolosecurity.proxy.filter.HttpFilterRequest;
 import com.tremolosecurity.proxy.filter.HttpFilterResponse;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 
 
 
@@ -65,7 +66,7 @@ public class AnonAz implements HttpFilter {
 			((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).setAuthInfo(authInfo);
 			
 			authInfo.getAttribs().put(this.uidAttr, new Attribute(this.uidAttr,this.uidVal));
-			authInfo.getAttribs().put("objectClass", new Attribute("objectClass","inetOrgPerson"));
+			authInfo.getAttribs().put("objectClass", new Attribute("objectClass",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getUserObjectClass()));
 			actl.setAuthInfo(authInfo);
 			
 		}
@@ -96,7 +97,7 @@ public class AnonAz implements HttpFilter {
 	@Override
 	public void initFilter(HttpFilterConfig config) throws Exception {
 		String cfg = config.getAttribute("userName").getValues().get(0);
-		this.rdn = cfg + ",o=Tremolo";
+		this.rdn = cfg + "," + GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot();
 		this.uidAttr = cfg.substring(0,cfg.indexOf('='));
 		this.uidVal =  cfg.substring(cfg.indexOf('=') + 1);
 

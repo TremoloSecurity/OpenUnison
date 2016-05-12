@@ -155,6 +155,7 @@ import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.AzSys;
 import com.tremolosecurity.proxy.az.AzRule;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.server.StopableThread;
 
 

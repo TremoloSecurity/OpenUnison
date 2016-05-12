@@ -259,7 +259,7 @@ public class PasswordReset implements AuthMechanism {
 			
 			
 			try {
-				LDAPSearchResults res = this.cfgMgr.getMyVD().search(AuthUtil.getChainRoot(act), 2, equal("mail",email).toString(), new ArrayList<String>());
+				LDAPSearchResults res = this.cfgMgr.getMyVD().search(AuthUtil.getChainRoot(cfgMgr,act), 2, equal("mail",email).toString(), new ArrayList<String>());
 				
 				if (res.hasMore()) {
 					
@@ -419,7 +419,7 @@ public class PasswordReset implements AuthMechanism {
 		
 		try {
 			
-			LDAPSearchResults res = this.cfgMgr.getMyVD().search(AuthUtil.getChainRoot(act), 2, equal("mail",emailAddress).toString(), attrs);
+			LDAPSearchResults res = this.cfgMgr.getMyVD().search(AuthUtil.getChainRoot(cfgMgr,act), 2, equal("mail",emailAddress).toString(), attrs);
 			
 			if (! res.hasMore()) {
 				response.sendRedirect(noUserSplash);

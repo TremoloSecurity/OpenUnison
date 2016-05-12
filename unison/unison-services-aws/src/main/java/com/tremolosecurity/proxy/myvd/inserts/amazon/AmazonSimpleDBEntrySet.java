@@ -28,6 +28,7 @@ import com.novell.ldap.LDAPAttributeSet;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.util.DN;
+import com.tremolosecurity.server.GlobalEntries;
 
 import net.sourceforge.myvd.types.Entry;
 import net.sourceforge.myvd.types.EntrySet;
@@ -163,10 +164,10 @@ public class AmazonSimpleDBEntrySet implements EntrySet {
 		
 		if (user) {
 			dnBuff.append("uid=").append(item.getName()).append(",ou=users,").append(this.dnBase);
-			objClass = new LDAPAttribute("objectClass","inetOrgPerson");
+			objClass = new LDAPAttribute("objectClass",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getUserObjectClass());
 		} else {
 			dnBuff.append("cn=").append(item.getName()).append(",ou=groups,").append(this.dnBase);
-			objClass = new LDAPAttribute("objectClass","groupOfUniqueNames");
+			objClass = new LDAPAttribute("objectClass",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupObjectClass());
 		}
 		
 		LDAPAttributeSet attrs = new LDAPAttributeSet();

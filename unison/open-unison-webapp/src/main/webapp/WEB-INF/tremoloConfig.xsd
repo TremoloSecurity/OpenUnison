@@ -186,7 +186,9 @@
 
 	<complexType name="tremoloType">
 		<annotation>
-			<documentation>The base configuration type for Unison</documentation>
+			<documentation>
+				The base configuration type for Unison
+			</documentation>
 		</annotation>
 		<sequence>
 			<element name="applications" type="tns:applicationsType"></element>
@@ -198,14 +200,15 @@
 					</documentation>
 				</annotation>
 			</element>
-			<element name="authMechs" type="tns:authMechTypes" maxOccurs="1"
-				minOccurs="1">
+			<element name="authMechs" type="tns:authMechTypes"
+				maxOccurs="1" minOccurs="1">
 			</element>
 			<element name="authChains" type="tns:authChainsType"
 				maxOccurs="1" minOccurs="1">
 			</element>
 			<element name="customAzRules" type="tns:customAzRulesType"
-				minOccurs="0" maxOccurs="1"></element>
+				minOccurs="0" maxOccurs="1">
+			</element>
 			<element name="resultGroups" type="tns:resultGroupsType"
 				maxOccurs="1" minOccurs="1">
 			</element>
@@ -230,6 +233,29 @@
 				maxOccurs="1" minOccurs="0">
 			</element>
 		</sequence>
+		<attribute name="ldapRoot" type="string" use="optional"
+			default="o=Tremolo">
+			<annotation>
+				<documentation>If set, determines the root dn of the virtual directory.  Defaults to o=Tremolo</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="groupObjectClass" type="string" use="optional"
+			default="groupOfUniqueNames">
+			<annotation>
+				<documentation>If set, determines the objectClass for groups in the virtual directory.  Defaults to groupOfUniqueNames</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="groupMemberAttribute" type="string"
+			use="optional" default="uniqueMember">
+			<annotation>
+				<documentation>If set, determines the name of the group attribute that stores members.  Defaults to uniqueMember</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="userObjectClass" type="string" use="optional" default="inetOrgPerson">
+			<annotation>
+				<documentation>If set, determines the objectClass to use for users.  Defaults to inetOrgPerson.</documentation>
+			</annotation>
+		</attribute>
 	</complexType>
 
 	<complexType name="applicationsType">

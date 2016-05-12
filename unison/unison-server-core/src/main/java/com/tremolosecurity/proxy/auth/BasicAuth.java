@@ -113,7 +113,7 @@ public class BasicAuth implements AuthMechanism {
 		AuthMechType amt = act.getAuthMech().get(as.getId());
 		
 		try {
-			authImpl.doAuth(request,session, uidAttr, userName, password, myvd, act, amt,as);
+			authImpl.doAuth(request,session, uidAttr, userName, password, myvd, act, amt,as,cfgMgr);
 			
 		} catch (LDAPException e) {
 			if (e.getResultCode() != LDAPException.INVALID_CREDENTIALS) {

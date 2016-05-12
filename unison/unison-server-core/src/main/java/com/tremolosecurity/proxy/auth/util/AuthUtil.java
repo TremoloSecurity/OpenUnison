@@ -17,14 +17,16 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.auth.util;
 
+import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.AuthChainType;
+import com.tremolosecurity.server.GlobalEntries;
 
 public class AuthUtil {
 
-	public static String getChainRoot(AuthChainType act) {
+	public static String getChainRoot(ConfigManager cfg,AuthChainType act) {
 		String root = act.getRoot();
 		if (root == null || root.trim().isEmpty()) {
-			root = "o=Tremolo";
+			root = cfg.getCfg().getLdapRoot();
 		}
 		
 		return root;

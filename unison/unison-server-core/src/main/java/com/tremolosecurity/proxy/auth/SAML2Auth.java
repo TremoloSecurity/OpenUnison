@@ -126,6 +126,7 @@ import com.tremolosecurity.proxy.myvd.MyVDConnection;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.proxy.util.ProxyTools;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 
 
 
@@ -709,7 +710,7 @@ public class SAML2Auth implements AuthMechanism {
 					StringBuffer filter = new StringBuffer();
 					filter.append('(').append(ldapAttrib).append('=').append(assertion.getSubject().getNameID().getValue()).append(')');
 					
-					LDAPSearchResults res = myvd.search(AuthUtil.getChainRoot(act), 2, filter.toString(), new ArrayList<String>());
+					LDAPSearchResults res = myvd.search(AuthUtil.getChainRoot(cfgMgr,act), 2, filter.toString(), new ArrayList<String>());
 	
 					if (res.hasMore()) {
 						createUserFromDir(session, act, ldapAttrib, assertion,
@@ -764,7 +765,7 @@ public class SAML2Auth implements AuthMechanism {
 		
 		
 		StringBuffer b = new StringBuffer();
-		b.append(ldapAttrib).append("=").append(assertion.getSubject().getNameID().getValue()).append(",ou=").append(dnLabel).append(",ou=SAML2,o=Tremolo");
+		b.append(ldapAttrib).append("=").append(assertion.getSubject().getNameID().getValue()).append(",ou=").append(dnLabel).append(",ou=SAML2,").append(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot());
 		String dn = b.toString();
 		
 		AuthInfo authInfo = new AuthInfo(dn,

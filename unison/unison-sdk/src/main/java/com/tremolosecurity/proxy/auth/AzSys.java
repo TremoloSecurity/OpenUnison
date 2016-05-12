@@ -67,6 +67,7 @@ import com.tremolosecurity.proxy.util.NextSys;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.proxy.util.ProxyTools;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 
 public class AzSys {
 	
@@ -350,7 +351,7 @@ public class AzSys {
 			
 			
 			
-			LDAPSearchResults res = con.search(localConstraint, 0, equal("uniqueMember",authData.getUserDN()).toString(), attribs);
+			LDAPSearchResults res = con.search(localConstraint, 0, equal(cfgMgr.getCfg().getGroupMemberAttribute(),authData.getUserDN()).toString(), attribs);
 			
 			if (res.hasMore()) {
 				OK = true;

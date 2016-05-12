@@ -67,6 +67,7 @@ import com.tremolosecurity.proxy.auth.util.AuthUtil;
 import com.tremolosecurity.proxy.myvd.MyVDConnection;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.server.StopableThread;
 
 
@@ -258,7 +259,7 @@ public class CertAuth implements AuthMechanism {
 		as.setSuccess(true);
 		
 		try {
-			LDAPSearchResults res = myvd.search(AuthUtil.getChainRoot(act), 2, filter, new ArrayList<String>());
+			LDAPSearchResults res = myvd.search(AuthUtil.getChainRoot(cfgMgr,act), 2, filter, new ArrayList<String>());
 
 			if (res.hasMore()) {
 				createUserFromDir(session, act, res);
@@ -427,7 +428,7 @@ public class CertAuth implements AuthMechanism {
 		for (String attrName : rdnAttributes) {
 			String rdnVal = subject.get(attrName);
 			if (rdnVal != null) {
-				b.append(attrName).append("=").append(rdnVal).append(",ou=").append(dnLabel).append(",ou=SSL,o=Tremolo");
+				b.append(attrName).append("=").append(rdnVal).append(",ou=").append(dnLabel).append(",ou=SSL,").append(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot());
 				break;
 			}
 		}

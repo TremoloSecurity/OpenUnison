@@ -53,6 +53,7 @@ import com.tremolosecurity.provisioning.util.ldap.pool.LdapConnection;
 import com.tremolosecurity.provisioning.util.ldap.pool.LdapPool;
 import com.tremolosecurity.proxy.ssl.TremoloSSLSocketFactory;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 
 
 
@@ -893,7 +894,7 @@ public class ADProvider implements UserStoreProvider {
 		LDAPEntry ldapUser;
 		ArrayList<String> attrs = new ArrayList<String>();
 		attrs.add("1.1");
-		res = this.cfgMgr.getMyVD().search("o=Tremolo", 2, filter.toString(), attrs);
+		res = this.cfgMgr.getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, filter.toString(), attrs);
 		
 		if (! res.hasMore()) {
 			return null;

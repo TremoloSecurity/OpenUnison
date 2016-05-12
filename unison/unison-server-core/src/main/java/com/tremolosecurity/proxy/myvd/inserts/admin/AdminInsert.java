@@ -30,6 +30,7 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
+import com.tremolosecurity.server.GlobalEntries;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -126,7 +127,7 @@ public class AdminInsert implements Insert {
 		attrs.add(new LDAPAttribute("uid",uid));
 		attrs.add(new LDAPAttribute("cn",uid));
 		attrs.add(new LDAPAttribute("sn",uid));
-		attrs.add(new LDAPAttribute("objectClass","inetOrgPerson"));
+		attrs.add(new LDAPAttribute("objectClass",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getUserObjectClass()));
 		
 		this.userEntry = new LDAPEntry(uidDN,attrs);
 		

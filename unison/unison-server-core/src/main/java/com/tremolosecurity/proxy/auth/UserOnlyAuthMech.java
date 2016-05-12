@@ -131,7 +131,7 @@ public class UserOnlyAuthMech implements AuthMechanism {
 		
 		
 		try {
-			LDAPSearchResults res = myvd.search(AuthUtil.getChainRoot(act), 2, filter, new ArrayList<String>());
+			LDAPSearchResults res = myvd.search(AuthUtil.getChainRoot(cfgMgr,act), 2, filter, new ArrayList<String>());
 			
 			if (res.hasMore()) {
 				LDAPEntry entry = res.next();

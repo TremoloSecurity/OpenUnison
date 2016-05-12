@@ -33,6 +33,7 @@ import com.tremolosecurity.proxy.filter.HttpFilterRequest;
 import com.tremolosecurity.proxy.filter.HttpFilterResponse;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 
 public class MyVDFilter implements HttpFilter {
 
@@ -51,7 +52,7 @@ public class MyVDFilter implements HttpFilter {
 		
 		
 		
-		LDAPSearchResults res = con.search("o=Tremolo", 2, equal("uid",uid).toString(), attribs);
+		LDAPSearchResults res = con.search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, equal("uid",uid).toString(), attribs);
 		res.hasMore();
 		LDAPEntry entry = res.next();
 		

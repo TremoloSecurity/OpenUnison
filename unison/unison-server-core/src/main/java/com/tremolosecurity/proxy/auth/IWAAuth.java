@@ -146,7 +146,7 @@ MyVDConnection myvd = cfgMgr.getMyVD();
 			StringBuffer b = new StringBuffer();
 			b.append("(userPrincipalName=").append(principal.toString()).append(")");
 			
-			LDAPSearchResults res = myvd.search(AuthUtil.getChainRoot(act), 2, equal("userPrincipalName",principal.toString()).toString(), new ArrayList<String>());
+			LDAPSearchResults res = myvd.search(AuthUtil.getChainRoot(cfgMgr,act), 2, equal("userPrincipalName",principal.toString()).toString(), new ArrayList<String>());
 			
 			if (res.hasMore()) {
 				logger.info("Loading user attributes");

@@ -65,6 +65,7 @@ import com.tremolosecurity.provisioning.objects.AllowedApprovers;
 import com.tremolosecurity.provisioning.objects.Approvals;
 import com.tremolosecurity.provisioning.tasks.Approval;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
@@ -209,7 +210,7 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 			//attrs.add("mail");
 			//attrs.add(cfg.getProvisioningEngine().getUserIDAttribute());
 			
-			LDAPSearchResults res = cfg.getMyVD().search("o=Tremolo", 2, equal(cfg.getProvisioningEngine().getUserIDAttribute(),userKey).toString(), attrs);
+			LDAPSearchResults res = cfg.getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, equal(cfg.getProvisioningEngine().getUserIDAttribute(),userKey).toString(), attrs);
 			
 			if (! res.hasMore()) {
 				if (logger.isDebugEnabled()) {

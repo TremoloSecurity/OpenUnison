@@ -57,5 +57,6 @@ public class GlobalEntries {
 	
 	public static void reset() {
 		ge = new GlobalEntries();
+		
 	}
 }

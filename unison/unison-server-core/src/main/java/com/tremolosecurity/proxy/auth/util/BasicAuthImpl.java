@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import com.novell.ldap.LDAPException;
+import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.AuthMechType;
 import com.tremolosecurity.proxy.myvd.MyVDConnection;
@@ -29,5 +30,5 @@ public interface BasicAuthImpl {
 
 	public void doAuth(HttpServletRequest request,HttpSession session, String uidAttr,
 			String userName, String password, MyVDConnection myvd,
-			AuthChainType act, AuthMechType amt,AuthStep as) throws LDAPException;
+			AuthChainType act, AuthMechType amt,AuthStep as,ConfigManager cfgMgr) throws LDAPException;
 }
