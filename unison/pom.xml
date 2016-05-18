@@ -64,6 +64,8 @@
 		<amazon-sqs-java-messaging-lib.version>1.0.0</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.0.2</stringtemplate.version>
 		<hibernate.version>5.1.0.Final</hibernate.version>
+		<javaee.version>7.0</javaee.version>
+		<org.apache.poi.version>3.12</org.apache.poi.version>
 	</properties>
 
 	<repositories>
@@ -126,6 +128,9 @@
 		<module>openunsion-manual</module>
 		<module>unison-myvd</module>
 		<module>open-unison-webapp-webservices</module>
+		<module>unison-scalejs-main</module>
+		<module>unison-scalejs-token</module>
+		<module>unison-scalejs-common</module>
 	</modules>
 	<build>
 		<plugins>
