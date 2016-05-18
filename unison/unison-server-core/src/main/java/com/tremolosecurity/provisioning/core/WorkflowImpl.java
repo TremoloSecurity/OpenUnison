@@ -17,7 +17,7 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.core;
 
-import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
 import java.io.Serializable;
 import java.sql.Connection;
@@ -358,7 +358,7 @@ public class WorkflowImpl implements  Workflow {
 		
 		
 		
-		LDAPSearchResults res = cfgMgr.getMyVD().search("o=Tremolo", 2, equal(cfgMgr.getProvisioningEngine().getUserIDAttribute(),user.getAttribs().get(cfgMgr.getProvisioningEngine().getUserIDAttribute()).getValues().get(0)).toString(), new ArrayList<String>());
+		LDAPSearchResults res = cfgMgr.getMyVD().search(cfgMgr.getCfg().getLdapRoot(), 2, and(equal(cfgMgr.getProvisioningEngine().getUserIDAttribute(),user.getAttribs().get(cfgMgr.getProvisioningEngine().getUserIDAttribute()).getValues().get(0)),equal("objectClass",cfgMgr.getCfg().getUserObjectClass())).toString(), new ArrayList<String>());
 		LDAPEntry fromLDAP = null;
 		if (res.hasMore()) {
 			fromLDAP = res.next();
@@ -402,10 +402,14 @@ public class WorkflowImpl implements  Workflow {
 					LDAPAttribute userAttrFromLDAP = fromLDAP.getAttribute(attr);
 					if (userAttrFromLDAP != null) {
 						nattr.setValue(userAttrFromLDAP.getStringValue());
+						nattr.setUsers(userObj);
+						session.save(nattr);
+					} else {
+						logger.warn("No value for attribute '" + attr + "'");
 					}
-					nattr.setUsers(userObj);
 					
-					session.save(nattr);
+					
+					
 					
 				}
 			} else {

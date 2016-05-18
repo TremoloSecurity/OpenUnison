@@ -363,10 +363,11 @@ public class AzUtils {
 				LDAPAttribute approverAttr = approver.getAttribute(attrName);
 				if (approverAttr != null) {
 					attr.setValue(approverAttr.getStringValue());
-				}
-				attr.setApprovers(approverObj);
-				approverObj.getApproverAttributeses().add(attr);
-				session.save(attr);
+					attr.setApprovers(approverObj);
+					approverObj.getApproverAttributeses().add(attr);
+					session.save(attr);
+				} 
+				
 				changed = true;
 			}
 			
