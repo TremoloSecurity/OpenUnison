@@ -1,0 +1,53 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.tremolosecurity.unison</groupId>
+		<artifactId>unison</artifactId>
+		<version>1.0.7</version>
+
+	</parent>
+
+	<groupId>com.tremolosecurity.unison</groupId>
+	<artifactId>unison-services-freeipa</artifactId>
+	<packaging>jar</packaging>
+	<version>1.0.7</version>
+	<name>unison-services-freeipa</name>
+	<url>http://maven.apache.org</url>
+
+	<repositories>
+		<repository>
+			<id>Tremolo Security</id>
+			<url>https://www.tremolosecurity.com/nexus/content/repositories/releases/</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-sdk</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-provisioning-sdk</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+		
+		
+
+
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>${json-simple.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>${gson.version}</version>
+		</dependency>
+	</dependencies>
+</project>

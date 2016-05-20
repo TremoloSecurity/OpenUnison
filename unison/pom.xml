@@ -131,6 +131,7 @@
 		<module>unison-scalejs-main</module>
 		<module>unison-scalejs-token</module>
 		<module>unison-scalejs-common</module>
+		<module>unison-services-freeipa</module>
 	</modules>
 	<build>
 		<plugins>
