@@ -16,6 +16,8 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.workflow;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -28,19 +30,49 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.config.xml.WorkflowType;
+import com.tremolosecurity.lastmile.LastMile;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.objects.Users;
 import com.tremolosecurity.provisioning.objects.Workflows;
 import com.tremolosecurity.provisioning.service.util.WFCall;
+import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 
 public class ExecuteWorkflow {
 
 	public void execute(WFCall wfcall, ConfigManager cfgMgr, List<ApprovalData> approvals)
-			throws ProvisioningException, SQLException {
+			throws Exception {
 		Workflow wf = cfgMgr.getProvisioningEngine().getWorkFlow(wfcall.getName());
+		
+		if (wfcall.getEncryptedParams() != null) {
+			LastMile lm = new LastMile();
+			lm.loadLastMielToken(wfcall.getEncryptedParams(), GlobalEntries.getGlobalEntries().getConfigManager().getSecretKey(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getApprovalDB().getEncryptionKey()));
+			StringBuffer b = new StringBuffer();
+			b.append('/').append(URLEncoder.encode(wfcall.getName(), "UTF-8"));
+			if (! lm.isValid(b.toString())) {
+				throw new ProvisioningException("Invalid parameters");
+			} else {
+				for (Attribute attr : lm.getAttributes()) {
+					wfcall.getRequestParams().put(attr.getName(), attr.getValues().get(0));
+				}
+			}
+		} else {
+			boolean resultSet = false;
+			for (WorkflowType wft : GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getWorkflows().getWorkflow()) {
+				if (wft.getName().equalsIgnoreCase(wfcall.getName())) {
+					if (wft.getDynamicConfiguration() != null && wft.getDynamicConfiguration().isDynamic()) {
+						throw new ProvisioningException("Encrypted parameters not supplied");
+					}
+				}
+			}
+			
+			
+		}
+		
+		
 		wf.executeWorkflow(wfcall);
 
 		if (approvals != null && approvals.size() > 0) {

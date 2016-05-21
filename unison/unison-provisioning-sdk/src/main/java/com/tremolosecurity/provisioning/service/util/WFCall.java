@@ -27,6 +27,7 @@ public class WFCall {
 	TremoloUser user;
 	String reason;
 	Map<String,Object> requestParams;
+	String encryptedParams;
 	
 	
 	public WFCall() {
@@ -83,6 +84,20 @@ public class WFCall {
 	public void setRequestor(String requestor) {
 		this.requestor = requestor;
 	}
+
+
+
+	public String getEncryptedParams() {
+		return encryptedParams;
+	}
+
+
+
+	public void setEncryptedParams(String encryptedParams) {
+		this.encryptedParams = encryptedParams;
+	}
+	
+	
 	
 	
 }

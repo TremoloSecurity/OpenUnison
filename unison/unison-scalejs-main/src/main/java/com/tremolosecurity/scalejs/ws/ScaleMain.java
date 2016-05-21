@@ -785,36 +785,9 @@ public class ScaleMain implements HttpFilter {
 					wfCall.setName(req.getName());
 					wfCall.setReason(req.getReason());
 					wfCall.setUidAttributeName(this.scaleConfig.getUidAttributeName());
-						
+					wfCall.setEncryptedParams(req.getEncryptedParams());	
 					
-					if (req.getEncryptedParams() != null) {
-						LastMile lm = new LastMile();
-						lm.loadLastMielToken(req.getEncryptedParams(), GlobalEntries.getGlobalEntries().getConfigManager().getSecretKey(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getApprovalDB().getEncryptionKey()));
-						StringBuffer b = new StringBuffer();
-						b.append('/').append(URLEncoder.encode(req.getName(), "UTF-8"));
-						if (! lm.isValid(b.toString())) {
-							throw new ProvisioningException("Invalid parameters");
-						} else {
-							for (Attribute attr : lm.getAttributes()) {
-								wfCall.getRequestParams().put(attr.getName(), attr.getValues().get(0));
-							}
-						}
-					} else {
-						boolean resultSet = false;
-						for (WorkflowType wf : GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getWorkflows().getWorkflow()) {
-							if (wf.getName().equalsIgnoreCase(req.getName())) {
-								if (wf.getDynamicConfiguration() != null && wf.getDynamicConfiguration().isDynamic()) {
-									results.put(req.getUuid(),"Unauthorized");
-									resultSet = true;
-									continue;
-								}
-							}
-						}
-						
-						if (resultSet) {
-							continue;
-						}
-					}
+					
 					
 					TremoloUser tu = new TremoloUser();
 					tu.setUid(userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0));

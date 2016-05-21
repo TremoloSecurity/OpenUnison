@@ -20,6 +20,14 @@ package com.tremolosecurity.provisioning.service.util;
 public class ProvisioningError {
 	String error;
 
+	public ProvisioningError() {
+		
+	}
+	
+	public ProvisioningError(String error) {
+		this.error  = error;
+	}
+	
 	public String getError() {
 		return error;
 	}
