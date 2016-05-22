@@ -17,6 +17,9 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.auth.oauth2;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,6 +54,26 @@ public class OAuth2BearerLastMile extends OAuth2Bearer {
 			HashMap<String, Attribute> authParams, AuthChainType act,
 			String realmName, String scope, ConfigManager cfg, String lmToken)
 			throws ServletException, IOException {
+		
+		Attribute attr = authParams.get("lookupByAttribute");
+		boolean lookupByAttribute = false;
+		if (attr != null) {
+			lookupByAttribute = attr.getValues().get(0).equalsIgnoreCase("true");
+		}
+		
+		String lookupAttrName = "";
+		if (lookupByAttribute) {
+			lookupAttrName = authParams.get("lookupAttributeName").getValues().get(0);
+		}
+		
+		boolean useURIforLastMile = false;
+		attr = authParams.get("useURIForLastMile");
+		if (attr != null) {
+			useURIforLastMile = attr.getValues().get(0).equalsIgnoreCase("true");
+		}
+		
+		
+		
 		String encKeyAlias = authParams.get("encKeyAlias").getValues().get(0);
 		
 		SecretKey key = cfg.getSecretKey(encKeyAlias);
@@ -59,13 +82,23 @@ public class OAuth2BearerLastMile extends OAuth2Bearer {
 		try {
 			lmresp.loadLastMielToken(lmToken, key);
 		
+			
 			StringBuffer uri = new StringBuffer();
-			uri.append('/').append(realmName);
-			if (scope != null) {
-				uri.append('/').append(scope);
+			
+			
+			if (useURIforLastMile) {
+				uri.append(request.getRequestURI());
+			} else {
+				uri.append('/').append(realmName);
+				if (scope != null) {
+					uri.append('/').append(scope);
+				}
 			}
 			
+			
+			
 			if (! lmresp.isValid(uri.toString())) {
+			
 				as.setExecuted(false);
 				sendFail(response, realmName,scope,"invalid_token","the token is invalid");
 				return;
@@ -77,7 +110,15 @@ public class OAuth2BearerLastMile extends OAuth2Bearer {
 		String dn = lmresp.getAttributes().get(0).getValues().get(0);
 		
 		try {
-			LDAPSearchResults res = cfg.getMyVD().search(dn, 0, "(objectClass=*)", new ArrayList<String>());
+			LDAPSearchResults res;
+			if (lookupByAttribute) {
+				res = cfg.getMyVD().search(act.getRoot(), 2, equal(lookupAttrName,dn).toString(), new ArrayList<String>());
+			} else {
+				res = cfg.getMyVD().search(dn, 0, "(objectClass=*)", new ArrayList<String>());
+			}
+			
+			
+			
 			
 			if (res.hasMore()) {
 				LDAPEntry entry = res.next();
@@ -96,7 +137,7 @@ public class OAuth2BearerLastMile extends OAuth2Bearer {
 				
 				while (it.hasNext()) {
 					LDAPAttribute attrib = it.next();
-					Attribute attr = new Attribute(attrib.getName());
+					attr = new Attribute(attrib.getName());
 					String[] vals = attrib.getStringValueArray();
 					for (int i=0;i<vals.length;i++) {
 						attr.getValues().add(vals[i]);
@@ -108,7 +149,7 @@ public class OAuth2BearerLastMile extends OAuth2Bearer {
 				as.setExecuted(true);
 				as.setSuccess(true);
 				
-				super.getConfigManager().getAuthManager().nextAuth(request, response,request.getSession(),false);
+				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
 				
 				
 				

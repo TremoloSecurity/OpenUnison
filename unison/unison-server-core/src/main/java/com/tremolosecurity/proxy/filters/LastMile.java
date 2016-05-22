@@ -53,6 +53,8 @@ public class LastMile implements HttpFilter {
 	String headerName;
 	
 	HashMap<String,String> headers;
+
+	private String headerPrefix;
 	
 	@Override
 	public void doFilter(HttpFilterRequest request,
@@ -98,6 +100,11 @@ public class LastMile implements HttpFilter {
 		
 		String encryptedXML = lastmile.generateLastMileToken(encKey);
 
+		if (this.headerPrefix != null && ! this.headerPrefix.isEmpty()) {
+			StringBuffer b = new StringBuffer();
+			b.append(this.headerPrefix).append(' ').append(encryptedXML);
+			encryptedXML = b.toString();
+		}
 		
 		request.addHeader(new Attribute(this.headerName,encryptedXML));
 		
@@ -139,6 +146,16 @@ public class LastMile implements HttpFilter {
 		
 		this.timeScew = Integer.parseInt(config.getAttribute("timeScew").getValues().get(0));
 		this.headerName = config.getAttribute("headerName").getValues().get(0);
+		
+		
+		Attribute attr = config.getAttribute("headerPrefix");
+		if (attr != null) {
+			this.headerPrefix = attr.getValues().get(0);
+		} else {
+			this.headerPrefix = "";
+		}
+		 
+		
 		
 		headers = new HashMap<String,String>();
 		
