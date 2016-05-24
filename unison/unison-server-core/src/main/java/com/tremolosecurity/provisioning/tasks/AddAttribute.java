@@ -37,6 +37,7 @@ public class AddAttribute extends WorkflowTaskImpl {
 	private static final long serialVersionUID = -878014522800894726L;
 	String name;
 	String value;
+	boolean remove;
 	
 	public AddAttribute() {
 		
@@ -53,14 +54,30 @@ public class AddAttribute extends WorkflowTaskImpl {
 		AddAttributeType cfg = (AddAttributeType) taskConfig;
 		name = cfg.getName();
 		value = cfg.getValue();
+		remove = cfg.isRemove();
 
 	}
 
 	@Override
 	public boolean doTask(User user,Map<String,Object> request) throws ProvisioningException {
 		String localName = this.renderTemplate(name, request);
-		Attribute attr = new Attribute(localName,this.renderTemplate(value, request));
-		user.getAttribs().put(localName, attr);
+		String localVal = this.renderTemplate(value, request);
+		
+		if (this.remove) {
+			Attribute attr = user.getAttribs().get(localName);
+			if (attr != null) { 
+				if (localVal.isEmpty()) {
+					user.getAttribs().remove(localName);
+				} else {
+					attr.getValues().remove(localVal);
+				}
+			}
+		} else {
+			Attribute attr = new Attribute(localName,localVal);
+			user.getAttribs().put(localName, attr);
+		}
+		
+		
 		return true;
 	}
 

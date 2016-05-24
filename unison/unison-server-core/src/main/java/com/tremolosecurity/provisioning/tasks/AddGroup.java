@@ -37,6 +37,7 @@ public class AddGroup extends WorkflowTaskImpl {
 	 */
 	private static final long serialVersionUID = -4528632593490038311L;
 	String name;
+	boolean remove;
 	
 	public AddGroup() {
 		
@@ -52,13 +53,16 @@ public class AddGroup extends WorkflowTaskImpl {
 	public void init(WorkflowTaskType taskConfig) throws ProvisioningException {
 		AddGroupType addGrpTpCfg = (AddGroupType) taskConfig;
 		this.name = addGrpTpCfg.getName();
-
+		this.remove = addGrpTpCfg.isRemove();
 	}
 
 	@Override
 	public boolean doTask(User user,Map<String,Object> request) throws ProvisioningException {
-		
-		user.getGroups().add(this.renderTemplate(name, request));
+		if (this.remove) {
+			user.getGroups().remove(this.renderTemplate(name, request));
+		} else {
+			user.getGroups().add(this.renderTemplate(name, request));
+		}
 		return true;
 	}
 

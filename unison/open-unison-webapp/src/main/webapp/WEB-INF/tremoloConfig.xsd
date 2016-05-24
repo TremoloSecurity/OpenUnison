@@ -1081,13 +1081,22 @@
 
 	<complexType name="addGroupType">
 		<annotation>
-			<documentation>Adds a group to the user object</documentation>
+			<documentation>
+				Adds a group to the user object
+			</documentation>
 		</annotation>
 		<complexContent>
 			<extension base="tns:workflowTaskType">
 				<attribute name="name" type="string">
 					<annotation>
-						<documentation>The name of the group to add</documentation>
+						<documentation>
+							The name of the group to add
+						</documentation>
+					</annotation>
+				</attribute>
+				<attribute name="remove" type="boolean" default="false">
+					<annotation>
+						<documentation>If true, removes the group</documentation>
 					</annotation>
 				</attribute>
 			</extension>
@@ -1159,19 +1168,30 @@
 
 	<complexType name="addAttributeType">
 		<annotation>
-			<documentation>Adds an attribute to the user's object</documentation>
+			<documentation>
+				Adds an attribute to the user's object
+			</documentation>
 		</annotation>
 		<complexContent>
 			<extension base="tns:workflowTaskType">
 				<attribute name="name" type="string">
 					<annotation>
-						<documentation>Name of the attribute to add</documentation>
+						<documentation>
+							Name of the attribute to add
+						</documentation>
 					</annotation>
 
 				</attribute>
 				<attribute name="value" type="string">
 					<annotation>
-						<documentation>Value of the attribute</documentation>
+						<documentation>
+							Value of the attribute
+						</documentation>
+					</annotation>
+				</attribute>
+				<attribute name="remove" type="boolean" default="false">
+					<annotation>
+						<documentation>If true and the value is empty, remove the entire attribute; if true and the value is set, remove only that value of the attribute</documentation>
 					</annotation>
 				</attribute>
 			</extension>
