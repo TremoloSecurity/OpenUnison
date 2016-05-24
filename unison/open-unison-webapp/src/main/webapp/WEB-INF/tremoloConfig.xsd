@@ -395,8 +395,9 @@
 			</documentation>
 		</annotation>
 		<sequence>
-			<element name="authMech" type="tns:authMechType" maxOccurs="unbounded"
-				minOccurs="1">
+            <element name="compliance" type="tns:authLockoutType" minOccurs="0" maxOccurs="1"></element>
+            <element name="authMech" type="tns:authMechType"
+				maxOccurs="unbounded" minOccurs="1">
 			</element>
 		</sequence>
 		<attribute name="name" type="string">
@@ -2219,5 +2220,39 @@
 				<documentation>Implementation of com.tremolosecurity.provisioning.util.DynamicWorkflow</documentation>
 			</annotation>
 		</attribute>
+	</complexType>
+
+	
+	<complexType name="authLockoutType">
+		<annotation>
+			<documentation>Configuration for making sure brute force attacks can't be used</documentation>
+		</annotation>
+		
+		<attribute name="enabled" type="boolean">
+			<annotation><documentation>If true, enable lockout compliance</documentation></annotation>
+		</attribute>
+		
+		<attribute name="maxFailedAttempts" type="int">
+			<annotation><documentation>Maximum attempts before locking a user out</documentation></annotation>
+		</attribute>
+		<attribute name="maxLockoutTime" type="long">
+			<annotation><documentation>The amount of time in milliseconds that a user must be locked out before allowing logins</documentation></annotation>
+		</attribute>
+		<attribute name="numFailedAttribute" type="string">
+			<annotation><documentation>Attribute used to store the number of failed attempts</documentation></annotation>
+		</attribute>
+		<attribute name="lastFailedAttribute" type="string">
+			<annotation><documentation>Attribute that stores the time stamp of the last failed attempt at authentication as the milliseconds since EPOCH</documentation></annotation>
+		</attribute>
+		<attribute name="lastSucceedAttribute" type="string">
+			<annotation><documentation>Attribute that stores the last successful authentication as the milliseconds since EPOCH</documentation></annotation>
+		</attribute>
+		<attribute name="updateAttributesWorkflow" type="string">
+			<annotation><documentation>The workflow used to update the attributes</documentation></annotation>
+		</attribute>
+		<attribute name="uidAttributeName" type="string">
+			<annotation><documentation>Attribute used to identify the user in the workflow</documentation></annotation>
+		</attribute>
+		
 	</complexType>
 </schema>

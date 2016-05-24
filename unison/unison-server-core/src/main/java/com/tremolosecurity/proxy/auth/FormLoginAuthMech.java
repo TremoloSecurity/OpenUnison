@@ -91,7 +91,7 @@ public class FormLoginAuthMech implements AuthMechanism {
 	public void doPost(HttpServletRequest req, HttpServletResponse resp,AuthStep as)
 			throws ServletException, IOException {
 		
-		
+		String userDN = null;
 		
 		MyVDConnection myvd = cfgMgr.getMyVD();
 		//HttpSession session = (HttpSession) req.getAttribute(ConfigFilter.AUTOIDM_SESSION);//((HttpServletRequest) req).getSession(); //SharedSession.getSharedSession().getSession(req.getSession().getId());
@@ -167,6 +167,7 @@ public class FormLoginAuthMech implements AuthMechanism {
 			
 			if (res.hasMore()) {
 				LDAPEntry entry = res.next();
+				userDN = entry.getDN();
 				myvd.bind(entry.getDN(), req.getParameter("pwd"));
 				
 				Iterator<LDAPAttribute> it = entry.getAttributeSet().iterator();
@@ -190,7 +191,7 @@ public class FormLoginAuthMech implements AuthMechanism {
 				
 				
 			} else {
-				
+				req.setAttribute(ProxyConstants.AUTH_FAILED_USER_DN, userDN);
 				as.setSuccess(false); 
 			}
 			
@@ -199,7 +200,7 @@ public class FormLoginAuthMech implements AuthMechanism {
 				logger.error("Could not authenticate user",e);
 			} 
 			
-			
+			req.setAttribute(ProxyConstants.AUTH_FAILED_USER_DN, userDN);
 			as.setSuccess(false);
 		}
 		

@@ -43,6 +43,7 @@ public class LDAPBasicAuth implements BasicAuthImpl {
 			String userName, String password, MyVDConnection myvd,
 			AuthChainType act, AuthMechType amt,AuthStep as,ConfigManager cfgMgr) throws LDAPException {
 		
+		String userDN = null;
 		
 		if (password == null || password.trim().length() == 0) {
 			if (amt.getRequired().equals("required")) {
@@ -59,7 +60,14 @@ public class LDAPBasicAuth implements BasicAuthImpl {
 		
 		if (res.hasMore()) {
 			LDAPEntry entry = res.next();
-			myvd.bind(entry.getDN(), password);
+			userDN = entry.getDN();
+			
+			try {
+				myvd.bind(entry.getDN(), password);
+			} catch (LDAPException le) {
+				request.setAttribute(ProxyConstants.AUTH_FAILED_USER_DN, userDN);
+				throw le;
+			}
 			
 			Iterator<LDAPAttribute> it = entry.getAttributeSet().iterator();
 			AuthInfo authInfo = new AuthInfo(entry.getDN(),(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),act.getName(),act.getLevel());
@@ -90,6 +98,9 @@ public class LDAPBasicAuth implements BasicAuthImpl {
 			
 			
 		} else {
+			
+			request.setAttribute(ProxyConstants.AUTH_FAILED_USER_DN, userDN);
+			
 			as.setExecuted(true);
 			as.setSuccess(false);
 			 

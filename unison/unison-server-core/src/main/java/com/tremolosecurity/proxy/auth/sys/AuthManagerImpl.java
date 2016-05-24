@@ -31,6 +31,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.joda.time.DateTime;
+
+import com.novell.ldap.LDAPAttribute;
+import com.novell.ldap.LDAPEntry;
+import com.novell.ldap.LDAPException;
+import com.novell.ldap.LDAPSearchResult;
+import com.novell.ldap.LDAPSearchResults;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.config.xml.AuthChainType;
@@ -39,6 +46,9 @@ import com.tremolosecurity.config.xml.MechanismType;
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.log.AccessLog;
 import com.tremolosecurity.log.AccessLog.AccessEvent;
+import com.tremolosecurity.provisioning.core.ProvisioningException;
+import com.tremolosecurity.provisioning.core.ProvisioningParams;
+import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.proxy.ProxyData;
 import com.tremolosecurity.proxy.ProxyRequest;
 import com.tremolosecurity.proxy.ProxyUtil;
@@ -54,6 +64,7 @@ import com.tremolosecurity.proxy.util.NextSys;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.proxy.util.ProxyTools;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.util.NVP;
 
 public class AuthManagerImpl implements AuthManager {
@@ -208,6 +219,27 @@ public class AuthManagerImpl implements AuthManager {
 			for (AuthStep as : auths) {
 
 				if (as.isSuccess()) {
+					
+					//TODO Check to see if the user is locked out
+					if (act.getCompliance() != null && act.getCompliance().isEnabled()) {
+						Attribute lastFailed = actl.getAuthInfo().getAttribs().get(act.getCompliance().getLastFailedAttribute());
+						Attribute numFailures = actl.getAuthInfo().getAttribs().get(act.getCompliance().getNumFailedAttribute());
+						
+						
+						if (lastFailed != null && numFailures != null) {
+							DateTime lastFailedDt = new DateTime(Long.parseLong(lastFailed.getValues().get(0)));
+							if (lastFailedDt.plus(act.getCompliance().getMaxLockoutTime()).isAfter(System.currentTimeMillis()) && Integer.parseInt(numFailures.getValues().get(0)) >= act.getCompliance().getMaxFailedAttempts()) {
+								try {
+									failAuthentication(req, resp, holder, act);
+								} catch (Exception e) {
+									throw new ServletException("Could not complete authentication failure",e);
+								}
+								return false;
+							}
+						}
+						
+					}
+					
 					if (act.isFinishOnRequiredSucess()) {
 						step = -1;
 						clearAllNotRequired = true;
@@ -217,22 +249,17 @@ public class AuthManagerImpl implements AuthManager {
 					if (as.isRequired()) {
 
 						if (as.isExecuted()) {
-							AccessLog.log(AccessEvent.AuFail, holder.getApp(),
-									req, null, act.getName());
-
-							req.setAttribute(AuthMgrSys.AU_RES, new Boolean(
-									false));
-
-							AuthMgrSys ams = new AuthMgrSys(null);
+							
+							
+							//TODO update the user's account to show a failed auth
+							
+							
+							
+							
 							try {
-								ams.processAuthResp(req, resp, holder,
-										new Boolean(false));
-							} catch (InstantiationException
-									| IllegalAccessException
-									| ClassNotFoundException e) {
-								throw new ServletException(
-										"Could not initialize custom response",
-										e);
+								failAuthentication(req, resp, holder, act);
+							} catch (Exception e) {
+								throw new ServletException("Could not complete authentication failure",e);
 							}
 
 							return false;
@@ -429,6 +456,80 @@ public class AuthManagerImpl implements AuthManager {
 		}
 	}
 
+	private void failAuthentication(HttpServletRequest req, HttpServletResponse resp, UrlHolder holder,
+			AuthChainType act) throws ServletException, IOException,Exception {
+		AccessLog.log(AccessEvent.AuFail, holder.getApp(),
+				req, null, act.getName());
+
+		req.setAttribute(AuthMgrSys.AU_RES, new Boolean(
+				false));
+
+		AuthMgrSys ams = new AuthMgrSys(null);
+		try {
+			ams.processAuthResp(req, resp, holder,
+					new Boolean(false));
+		} catch (InstantiationException
+				| IllegalAccessException
+				| ClassNotFoundException e) {
+			throw new ServletException(
+					"Could not initialize custom response",
+					e);
+		}
+		
+		if (act.getCompliance() != null && act.getCompliance().isEnabled()) {
+			String dn = getFailedUserDN(req);
+			
+			
+			if (dn != null) {
+				ArrayList<String> attrsToLoad = new ArrayList<String>();
+				attrsToLoad.add(act.getCompliance().getNumFailedAttribute());
+				attrsToLoad.add(act.getCompliance().getUidAttributeName());
+				
+				
+				LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(dn, 0, "(objectClass=*)", attrsToLoad);
+				
+				res.hasMore();
+				LDAPEntry userObj = res.next();
+				String uid = userObj.getAttribute(act.getCompliance().getUidAttributeName()).getStringValue();
+				
+				LDAPAttribute numFails = userObj.getAttribute(act.getCompliance().getNumFailedAttribute());
+				
+				int fails = 0;
+				if (numFails != null) {
+					fails = Integer.parseInt(numFails.getStringValue());
+				}
+				fails++;
+				
+				User updateAttrs = new User(uid);
+				updateAttrs.getAttribs().put(act.getCompliance().getLastFailedAttribute(), new Attribute(act.getCompliance().getLastFailedAttribute(),Long.toString(System.currentTimeMillis())));
+				updateAttrs.getAttribs().put(act.getCompliance().getNumFailedAttribute(), new Attribute(act.getCompliance().getNumFailedAttribute(),Integer.toString(fails)));
+				updateAttrs.getAttribs().put(act.getCompliance().getUidAttributeName(), new Attribute(act.getCompliance().getUidAttributeName(),uid));
+				
+				HashMap<String,Object> wfReq = new HashMap<String,Object>();
+				wfReq.put(ProvisioningParams.UNISON_EXEC_TYPE, ProvisioningParams.UNISON_EXEC_SYNC);
+				
+				
+				holder.getConfig().getProvisioningEngine().getWorkFlow(act.getCompliance().getUpdateAttributesWorkflow()).executeWorkflow(updateAttrs, wfReq);
+			}
+			
+		}
+	}
+
+	private String getFailedUserDN(HttpServletRequest req) {
+		
+		String dn = (String) req.getAttribute(ProxyConstants.AUTH_FAILED_USER_DN);
+		
+		AuthController actl = (AuthController) req.getSession().getAttribute(ProxyConstants.AUTH_CTL);
+		
+		if (dn != null) {
+			return dn;
+		} else if (actl != null) {
+			return actl.getAuthInfo().getUserDN();
+		} else {
+			return null;
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see com.tremolosecurity.proxy.auth.sys.AuthManager#finishSuccessfulLogin(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, com.tremolosecurity.config.util.UrlHolder, com.tremolosecurity.config.xml.AuthChainType, com.tremolosecurity.proxy.auth.RequestHolder, com.tremolosecurity.proxy.auth.AuthController, com.tremolosecurity.proxy.util.NextSys)
 	 */
@@ -532,6 +633,27 @@ public class AuthManagerImpl implements AuthManager {
 						"Could not initialize custom response", e);
 			}
 
+			
+			if (act.getCompliance() != null && act.getCompliance().isEnabled()) {
+				String uid = actl.getAuthInfo().getAttribs().get(act.getCompliance().getUidAttributeName()).getValues().get(0);
+				User updateAttrs = new User(uid);
+				updateAttrs.getAttribs().put(act.getCompliance().getLastSucceedAttribute(), new Attribute(act.getCompliance().getLastSucceedAttribute(),Long.toString(System.currentTimeMillis())));
+				updateAttrs.getAttribs().put(act.getCompliance().getNumFailedAttribute(), new Attribute(act.getCompliance().getNumFailedAttribute(),"0"));
+				updateAttrs.getAttribs().put(act.getCompliance().getUidAttributeName(), new Attribute(act.getCompliance().getUidAttributeName(),uid));
+				
+				HashMap<String,Object> wfReq = new HashMap<String,Object>();
+				wfReq.put(ProvisioningParams.UNISON_EXEC_TYPE, ProvisioningParams.UNISON_EXEC_SYNC);
+				
+				
+				try {
+					holder.getConfig().getProvisioningEngine().getWorkFlow(act.getCompliance().getUpdateAttributesWorkflow()).executeWorkflow(updateAttrs, wfReq);
+				} catch (ProvisioningException e) {
+					throw new ServletException("Could not update successful login attribute",e);
+				}
+			}
+			
+			
+			
 			// if
 			// (redirURL.toString().equalsIgnoreCase(req.getRequestURL().toString())
 			// || ( actl.getAuthSteps().size() == 1 && !
