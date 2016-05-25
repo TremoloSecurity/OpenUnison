@@ -20,11 +20,17 @@ package com.tremolosecurity.provisioning.core;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
 
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
 import com.tremolosecurity.saml.Attribute;
 
 public class ProvisioningTargetImpl implements ProvisioningTarget  {
+	
+	static Logger logger = Logger.getLogger(ProvisioningTargetImpl.class.getName());
+	
 	String name;
 	UserStoreProvider provider;
 	MapIdentity mapper;
@@ -36,13 +42,51 @@ public class ProvisioningTargetImpl implements ProvisioningTarget  {
 		
 	}
 	
+	
+	private Set<String> buildAttributeList(User user,Map<String,Object> request) {
+		boolean userAttrsOnly = request.get(ProvisioningParams.UNISON_USER_ATTRS_ONLY) != null && ((Boolean) request.get(ProvisioningParams.UNISON_USER_ATTRS_ONLY)).booleanValue();
+		HashSet<String> explicitAttrs = (HashSet<String>) request.get(ProvisioningParams.UNISON_PROV_ATTRS);
+		
+		return buildAttributeList(userAttrsOnly,explicitAttrs,user);
+	}
+	
+	private Set<String> buildAttributeList(boolean userAttrsOnly,HashSet<String> explicitAttrs,User user) {
+		HashSet<String> attrNames = new HashSet<String>();
+		
+		if (userAttrsOnly) {
+			for (String attrName : user.getAttribs().keySet()) {
+				if (this.mapper.getAttributes().contains(attrName)) {
+					attrNames.add(attrName);
+				} else {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Attribute '" + attrName + "' is not in the target");
+					}
+				}
+			}
+		} else if (explicitAttrs != null) {
+			for (String attrName : explicitAttrs) {
+				if (this.mapper.getAttributes().contains(attrName)) {
+					attrNames.add(attrName);
+				} else {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Attribute '" + attrName + "' is not in the target");
+					}
+				}
+			}
+		} else {
+			attrNames.addAll(mapper.getAttributes());
+		}
+		
+		return attrNames;
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.tremolosecurity.provisioning.core.ProvisioningTarget#createUser(com.tremolosecurity.provisioning.core.User, java.util.HashMap)
 	 */
 	@Override
 	public void createUser(User user,Map<String,Object> request) throws ProvisioningException {
 		User localUser = mapper.mapUser(user,false);
-		this.provider.createUser(localUser, mapper.getAttributes(),request);
+		this.provider.createUser(localUser, this.buildAttributeList(localUser, request),request);
 		
 	}
 	
@@ -60,7 +104,7 @@ public class ProvisioningTargetImpl implements ProvisioningTarget  {
 		
 		//System.out.print("post-map\n" + localUser.toString());
 		
-		this.provider.syncUser(localUser, addOnly, mapper.getAttributes(),request);
+		this.provider.syncUser(localUser, addOnly, this.buildAttributeList(localUser, request),request);
 		
 		
 	}

@@ -860,33 +860,54 @@
 
 	<complexType name="provisionType">
 		<annotation>
-			<documentation>Workflow task for provisioning an account to a target
-				type, may not have children</documentation>
+			<documentation>
+				Workflow task for provisioning an account to a target
+				type, may not have children
+			</documentation>
 		</annotation>
 		<complexContent>
 			<extension base="tns:workflowTaskType">
-				<sequence></sequence>
+				<sequence>
+					<element name="attributes" type="tns:listType" minOccurs="0" maxOccurs="1">
+						<annotation>
+							<documentation>List of attributes to be examined in this step, omit or leave the list empty to allow all of the attributes specified in the target configuration</documentation>
+						</annotation>
+					</element>
+				</sequence>
 				<attribute name="sync" type="boolean">
 					<annotation>
-						<documentation>If set to true, then the target object will be made
-							to exactly match the Unison user object including deleting non
-							existent attributes. If false then only new values are sent.
+						<documentation>
+							If set to true, then the target object will
+							be made to exactly match the Unison user
+							object including deleting non existent
+							attributes. If false then only new values
+							are sent.
 						</documentation>
 					</annotation>
 				</attribute>
 				<attribute name="target" type="string">
 					<annotation>
-						<documentation>The name of the provisioning target to execute
-							against</documentation>
+						<documentation>
+							The name of the provisioning target to
+							execute against
+						</documentation>
 					</annotation>
 
 				</attribute>
-				<attribute name="setPassword" type="boolean" default="false">
+				<attribute name="setPassword" type="boolean"
+					default="false">
 					<annotation>
-						<documentation>If set to true, the task will attempt to set the
-							object's password on the remote target</documentation>
+						<documentation>
+							If set to true, the task will attempt to set
+							the object's password on the remote target
+						</documentation>
 					</annotation>
 
+				</attribute>
+				<attribute name="onlyPassedInAttributes" type="boolean" default="false">
+					<annotation>
+						<documentation>If true, then the provisioning task will ignore any attributes that are listed in the target configuration but NOT explicitly added to the user object in the workflow</documentation>
+					</annotation>
 				</attribute>
 			</extension>
 		</complexContent>

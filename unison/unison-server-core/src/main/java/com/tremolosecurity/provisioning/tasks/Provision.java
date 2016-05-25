@@ -17,12 +17,14 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.tasks;
 
+import java.util.HashSet;
 import java.util.Map;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.ProvisionType;
 import com.tremolosecurity.config.xml.WorkflowTaskType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
+import com.tremolosecurity.provisioning.core.ProvisioningParams;
 import com.tremolosecurity.provisioning.core.ProvisioningTarget;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.Workflow;
@@ -41,6 +43,8 @@ public class Provision extends WorkflowTaskImpl {
 	boolean isSync;
 	boolean setPassword;
 	String targetName;
+	private boolean onlyPassedInAttributes;
+	private HashSet<String> attributes;
 	
 	public Provision() {
 		
@@ -64,6 +68,13 @@ public class Provision extends WorkflowTaskImpl {
 		this.targetName = provTskCfg.getTarget();
 		this.isSync = provTskCfg.isSync();
 		this.setPassword = provTskCfg.isSetPassword();
+		this.onlyPassedInAttributes = provTskCfg.isOnlyPassedInAttributes();
+		this.attributes = new HashSet<String>();
+		
+		if (provTskCfg.getAttributes() != null) {
+			attributes.addAll(provTskCfg.getAttributes().getValue());
+		} 
+		
 	}
 	
 	
@@ -78,6 +89,14 @@ public class Provision extends WorkflowTaskImpl {
 		
 		
 		request.put("WORKFLOW", this.getWorkflow());
+		
+		request.put(ProvisioningParams.UNISON_USER_ATTRS_ONLY, this.onlyPassedInAttributes);
+		
+		if (this.attributes.size() > 0) {
+			request.put(ProvisioningParams.UNISON_PROV_ATTRS,this.attributes);
+		}
+		
+		
 		/*if (this.isSync) {
 			this.target.syncUser(user, false);
 		} else {

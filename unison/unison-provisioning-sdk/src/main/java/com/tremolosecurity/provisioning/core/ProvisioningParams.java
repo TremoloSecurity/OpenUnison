@@ -23,4 +23,6 @@ public class ProvisioningParams {
 	public static final String UNISON_EXEC_ASYNC = "UNISON.EXEC.ASYNC";
 	
 	public static final String UNISON_RESYNC_ROOT = "UNISON.RESYNC.ROOT";
+	public static final String UNISON_USER_ATTRS_ONLY = "UNISON.USER.ATTRS.ONLY";
+	public static final String UNISON_PROV_ATTRS = "UNISON.PROV.ATTRS";
 }
