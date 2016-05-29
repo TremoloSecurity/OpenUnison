@@ -90,23 +90,13 @@ public class ExecuteWorkflow extends HttpServlet {
 		
 		List<ApprovalData> autoApprovals = null;
 		
-		String autoApprovalsParam = req.getParameter("autoApprovals");
-		if (autoApprovalsParam != null) {
-			json.setLength(0);
-			in = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(autoApprovalsParam.getBytes("UTF-8"))));
-			while ((line = in.readLine()) != null) {
-				json.append(line).append('\n');
-			}
-			
-			Approvals approvalsHolder = gson.fromJson(json.toString(), Approvals.class);
-			autoApprovals = approvalsHolder.getList();
-		}
+		
 		
 		try {
 			
 			//TremoloContext.getContext().getConfigManager("proxy").getProvisioningEngine().getWorkFlow(wfCall.getName()).executeWorkflow(wfCall);
 			com.tremolosecurity.provisioning.workflow.ExecuteWorkflow exec = new com.tremolosecurity.provisioning.workflow.ExecuteWorkflow();
-			exec.execute(wfCall, GlobalEntries.getGlobalEntries().getConfigManager(), autoApprovals);
+			exec.execute(wfCall, GlobalEntries.getGlobalEntries().getConfigManager());
 			ProvisioningResult res = new ProvisioningResult();
 			res.setSuccess(true);
 			resp.getOutputStream().print(gson.toJson(res));

@@ -43,7 +43,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class ExecuteWorkflow {
 
-	public void execute(WFCall wfcall, ConfigManager cfgMgr, List<ApprovalData> approvals)
+	public void execute(WFCall wfcall, ConfigManager cfgMgr)
 			throws Exception {
 		Workflow wf = cfgMgr.getProvisioningEngine().getWorkFlow(wfcall.getName());
 		
@@ -75,36 +75,7 @@ public class ExecuteWorkflow {
 		
 		wf.executeWorkflow(wfcall);
 
-		if (approvals != null && approvals.size() > 0) {
-			ProvisioningEngine prov = cfgMgr.getProvisioningEngine(); // TremoloContext.getContext().getConfigManager("proxy").getProvisioningEngine();
-			String approver = approvals.get(0).getApprover();
-			String approvalReason = approvals.get(0).getReason();
-
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-
-			try {
-
-				int i = 0;
-				while (executeApprovals(wfcall, wf, prov, approvalReason, approver)) {
-					i++;
-					if (i >= approvals.size()) {
-						i = 0;
-					}
-
-					approver = approvals.get(i).getApprover();
-					approvalReason = approvals.get(i).getReason();
-				}
-			} catch (Exception e) {
-				throw new ProvisioningException("Could not complete approvals", e);
-			} finally {
-
-			}
-		}
+		
 
 	}
 

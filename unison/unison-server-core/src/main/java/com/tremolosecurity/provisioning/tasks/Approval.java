@@ -86,6 +86,8 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(Approval.class.getName());
 	
 	public static final String APPROVAL_RESULT = "APPROVAL_RESULT";
+	public static final String REASON = "APPROVAL_REASON";
+	public static final String IMMEDIATE_ACTION = "APPROVAL_IMMEDIATE_ACTION";
 
 	public enum ApproverType {
 		StaticGroup,
@@ -304,19 +306,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 	@Override
 	public boolean doTask(User user,Map<String,Object> request) throws ProvisioningException {
 		if (this.isOnHold()) {
-			this.setOnHold(false);
-			HashMap<String,Object> nrequest = new HashMap<String,Object>();
-			nrequest.putAll(request);
-			
-			nrequest.put("APPROVAL_ID", this.id);
-			
-			Boolean result = (Boolean) request.get(Approval.APPROVAL_RESULT);
-			
-			if (result != null && result.booleanValue()) {
-				return super.runSubTasks(super.getOnSuccess(),user,request);
-			} else {
-				return super.runSubTasks(super.getOnFailure(),user,request);
-			}
+			return runChildTasks(user, request);
 			
 			
 		} else {
@@ -390,6 +380,13 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				
 				session.getTransaction().commit();
 				
+				if (request.get(Approval.IMMEDIATE_ACTION) != null && request.get(Approval.REASON) != null) {
+					String reason = (String) request.get(Approval.REASON);
+					boolean action = request.get(Approval.IMMEDIATE_ACTION).equals("true");
+					GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().doApproval(this.id, this.getWorkflow().getRequester().getUserID(), action, reason);
+				}
+				
+				
 				return false;
 				
 			} catch (IOException e) {
@@ -413,6 +410,22 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 					session.close();
 				}
 			}
+		}
+	}
+
+	private boolean runChildTasks(User user, Map<String, Object> request) throws ProvisioningException {
+		this.setOnHold(false);
+		HashMap<String,Object> nrequest = new HashMap<String,Object>();
+		nrequest.putAll(request);
+		
+		nrequest.put("APPROVAL_ID", this.id);
+		
+		Boolean result = (Boolean) request.get(Approval.APPROVAL_RESULT);
+		
+		if (result != null && result.booleanValue()) {
+			return super.runSubTasks(super.getOnSuccess(),user,request);
+		} else {
+			return super.runSubTasks(super.getOnFailure(),user,request);
 		}
 	}
 
