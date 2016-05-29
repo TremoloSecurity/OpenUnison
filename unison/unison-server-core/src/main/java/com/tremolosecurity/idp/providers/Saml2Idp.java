@@ -47,7 +47,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.impl.AuthnRequestMarshaller;
@@ -112,7 +112,7 @@ public class Saml2Idp implements IdentityProvider {
 	
 	public static final String SAML2_AUTHN_REQ_URL = "SAML2_AUTHN_REQ_URL";
 
-	static Logger logger = Logger.getLogger(Saml2Idp.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(Saml2Idp.class.getName());
 	
 	private static final String TRANSACTION_DATA = "TREMOLO_SAML2_IDP_TRANSACTION_DATA";
 	String idpName;

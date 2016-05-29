@@ -17,14 +17,14 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.scheduler;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 
 import com.tremolosecurity.server.StopableThread;
 
 public class StopScheduler implements StopableThread {
-	static Logger logger = Logger.getLogger(StopScheduler.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(StopScheduler.class.getName());
 	private Scheduler scheduler;
 	
 	

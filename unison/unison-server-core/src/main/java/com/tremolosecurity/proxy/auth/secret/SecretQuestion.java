@@ -22,7 +22,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 public class SecretQuestion implements Serializable {
 	
@@ -31,7 +31,7 @@ public class SecretQuestion implements Serializable {
 	 */
 	private static final long serialVersionUID = -1738492295208319948L;
 
-	static Logger logger = Logger.getLogger(SecretQuestion.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(SecretQuestion.class.getName());
 	
 	int question;
 	byte[] answer;

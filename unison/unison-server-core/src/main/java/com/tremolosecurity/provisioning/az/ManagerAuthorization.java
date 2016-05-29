@@ -21,7 +21,7 @@ import java.util.Map;
 
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 
 import com.novell.ldap.LDAPEntry;
@@ -40,7 +40,7 @@ public class ManagerAuthorization implements CustomAuthorization {
 
 	private static final String DISTINGUISHED_NAME = "distinguishedName";
 
-	static Logger logger = Logger.getLogger(ManagerAuthorization.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ManagerAuthorization.class.getName());
 
 	
 	

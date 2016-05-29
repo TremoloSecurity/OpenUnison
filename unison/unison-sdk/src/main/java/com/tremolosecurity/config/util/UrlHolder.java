@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.AzRuleType;
@@ -40,7 +40,7 @@ import com.tremolosecurity.proxy.filter.HttpFilterConfig;
  *
  */
 public class UrlHolder {
-	static Logger logger = Logger.getLogger(UrlHolder.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UrlHolder.class);
 	ConfigManager cfg;
 	ApplicationType app;
 	UrlType url;

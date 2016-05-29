@@ -24,7 +24,7 @@ import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.config.xml.CookieConfigType;
@@ -33,7 +33,7 @@ import com.tremolosecurity.proxy.myvd.MyVDConnection;
 import com.tremolosecurity.saml.Attribute;
 
 public class ProxyTools {
-	static Logger logger = Logger.getLogger(ProxyTools.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ProxyTools.class);
 	
 	static ProxyTools instance;
 	BigInteger negone;

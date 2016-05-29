@@ -20,7 +20,7 @@ package com.tremolosecurity.provisioning.scheduler;
 import java.io.Serializable;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -39,7 +39,7 @@ import com.tremolosecurity.server.GlobalEntries;
  */
 @DisallowConcurrentExecution
 public abstract class UnisonJob implements Job {
-	static Logger logger = Logger.getLogger(UnisonJob.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonJob.class.getName());
 	
 	/**
 	 * Method called to execute the job

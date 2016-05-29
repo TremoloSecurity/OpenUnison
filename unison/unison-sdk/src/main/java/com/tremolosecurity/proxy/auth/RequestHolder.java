@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.proxy.TremoloHttpSession;
@@ -43,7 +43,7 @@ public class RequestHolder implements Serializable {
 		return isForceAuth;
 	}
 
-	static Logger logger = Logger.getLogger(RequestHolder.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(RequestHolder.class);
 	
 	/**
 	 * 

@@ -22,7 +22,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
@@ -35,7 +35,7 @@ import com.tremolosecurity.server.GlobalEntries;
 public class LoadToken implements TokenLoader {
 
 	
-	static Logger logger = Logger.getLogger(LoadToken.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(LoadToken.class.getName());
 	
 	String encryptionKey;
 	String attributeName;

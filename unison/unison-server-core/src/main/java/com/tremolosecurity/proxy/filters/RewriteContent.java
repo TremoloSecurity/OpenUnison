@@ -17,7 +17,7 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.filters;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.proxy.filter.HttpFilter;
 import com.tremolosecurity.proxy.filter.HttpFilterChain;
@@ -27,7 +27,7 @@ import com.tremolosecurity.proxy.filter.HttpFilterResponse;
 
 public class RewriteContent implements HttpFilter {
 
-	static Logger logger = Logger.getLogger(RewriteContent.class.getName()); 
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(RewriteContent.class.getName()); 
 	
 	String search;
 	String replace;

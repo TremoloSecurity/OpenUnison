@@ -34,7 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UrlHolder;
@@ -58,7 +58,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class AuthSys  {
 	
-	static Logger logger = Logger.getLogger(AuthSys.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AuthSys.class);
 	
 	@Deprecated
 	public static final String AUTH_CTL = "TREMOLO_AUTH_CTL";

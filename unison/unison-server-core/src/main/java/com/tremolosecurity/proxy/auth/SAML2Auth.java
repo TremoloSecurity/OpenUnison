@@ -57,7 +57,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.ssl.util.Hex;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.joda.time.DateTime;
 import org.opensaml.Configuration;
@@ -133,7 +133,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class SAML2Auth implements AuthMechanism {
 
-	static Logger logger = Logger.getLogger(SAML2Auth.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(SAML2Auth.class);
 
 	ConfigManager cfgMgr;
 

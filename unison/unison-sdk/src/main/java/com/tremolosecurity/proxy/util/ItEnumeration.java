@@ -20,13 +20,13 @@ package com.tremolosecurity.proxy.util;
 import java.util.Enumeration;
 import java.util.Iterator;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.proxy.myvd.MyVDConnection;
 
 public class ItEnumeration implements Enumeration<Object> {
 
-	static Logger logger = Logger.getLogger(ItEnumeration.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ItEnumeration.class);
 	
 	Iterator it;
 	

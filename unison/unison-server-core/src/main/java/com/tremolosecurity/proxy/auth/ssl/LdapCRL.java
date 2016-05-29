@@ -29,7 +29,7 @@ import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPEntry;
@@ -40,7 +40,7 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.saml.Attribute;
 
 public class LdapCRL implements CRLManager {
-	static Logger logger = Logger.getLogger(LdapCRL.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(LdapCRL.class.getName());
 	
 	String host;
 	int port;

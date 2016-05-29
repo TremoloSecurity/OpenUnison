@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.jdbc.Work;
 import org.joda.time.DateTime;
@@ -49,7 +49,7 @@ public class GenerateReport extends HttpServlet {
 	 * 
 	 */
 	private static final long serialVersionUID = -6278339738573617694L;
-	static Logger logger = Logger.getLogger(GenerateReport.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(GenerateReport.class.getName());
 	@Override
 	protected void doGet(final HttpServletRequest req, final HttpServletResponse resp)
 			throws ServletException, IOException {

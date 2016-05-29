@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.HashSet;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.ProvisioningTarget;
@@ -41,7 +41,7 @@ public class JITBasicDBCreateGroups implements CustomTask {
 	 * 
 	 */
 	private static final long serialVersionUID = -2741684082140777971L;
-	static Logger logger = Logger.getLogger(JITBasicDBCreateGroups.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(JITBasicDBCreateGroups.class.getName());
 	transient WorkflowTask task;
 	transient BasicDBInterface dbProvider;
 	String targetName;

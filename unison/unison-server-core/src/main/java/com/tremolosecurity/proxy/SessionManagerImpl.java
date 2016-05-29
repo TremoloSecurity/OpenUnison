@@ -42,7 +42,7 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.ssl.util.Hex;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.util.log.Log;
 import org.joda.time.DateTime;
 
@@ -63,7 +63,7 @@ import com.tremolosecurity.proxy.util.ProxyTools;
 
 public class SessionManagerImpl implements SessionManager {
 
-	static Logger logger = Logger.getLogger(SessionManagerImpl.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(SessionManagerImpl.class);
 
 	private static final String AUTOIDM_KEY_SESSION = "AUTOIDM_KEY_SESSION";
 

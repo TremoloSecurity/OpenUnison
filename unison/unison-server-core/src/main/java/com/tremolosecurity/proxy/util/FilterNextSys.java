@@ -24,13 +24,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.proxy.myvd.MyVDConnection;
 
 public class FilterNextSys implements NextSys {
 
-	static Logger logger = Logger.getLogger(FilterNextSys.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(FilterNextSys.class);
 	
 	FilterChain chain;
 	

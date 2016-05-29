@@ -21,7 +21,7 @@ import java.util.ArrayList;
 
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPSearchResults;
 import com.tremolosecurity.config.util.ConfigManager;
@@ -39,7 +39,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class DNBase2Attribute implements HttpFilter {
 
-	static Logger logger = Logger.getLogger(DNBase2Attribute.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(DNBase2Attribute.class.getName());
 	
 	String dn;
 	String attributeName;

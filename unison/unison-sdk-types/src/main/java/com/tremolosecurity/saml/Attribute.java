@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 
 /**
@@ -37,7 +37,7 @@ public class Attribute implements Serializable {
 	 */
 	private static final long serialVersionUID = 3652987806606284542L;
 
-	static Logger logger = Logger.getLogger(Attribute.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(Attribute.class);
 	
 
 	List<String> values;

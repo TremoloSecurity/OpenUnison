@@ -19,7 +19,7 @@ package com.tremolosecurity.proxy.filters;
 
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.config.xml.AuthChainType;
@@ -39,7 +39,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 
 public class AnonAz implements HttpFilter {
-	static Logger logger = Logger.getLogger(AnonAz.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AnonAz.class);
 	
 	private String rdn;
 	private String uidAttr;

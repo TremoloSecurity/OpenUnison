@@ -43,7 +43,7 @@ import javax.xml.ws.handler.MessageContext;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 
 import com.novell.ldap.util.Base64;
@@ -66,7 +66,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class SharePointGroups implements UserStoreProvider {
 
-	static Logger logger = Logger.getLogger(SharePointGroups.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(SharePointGroups.class.getName());
 
 	
 	private enum AuthType {

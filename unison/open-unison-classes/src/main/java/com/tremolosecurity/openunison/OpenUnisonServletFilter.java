@@ -24,8 +24,8 @@ import javax.naming.NamingException;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.Logger;
+
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.filter.UnisonServletFilter;
@@ -39,7 +39,7 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 
 	OpenUnisonConfigManager cfgMgr;
 
-	static Logger logger = Logger.getLogger(OpenUnisonServletFilter.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(OpenUnisonServletFilter.class.getName());
 
 	private SessionManager sessionManager;
 	
@@ -98,29 +98,7 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 				throw new ServletException("Could not load unisonLog4jPath",e);
 			}
 		}
-		if (logPath == null) {
-			Properties props = new Properties();
-			props.put("log4j.rootLogger", "info,console");
-			
-			//props.put("log4j.appender.console","org.apache.log4j.RollingFileAppender");
-			//props.put("log4j.appender.console.File","/home/mlb/myvd.log");
-			props.put("log4j.appender.console","org.apache.log4j.ConsoleAppender");
-			props.put("log4j.appender.console.layout","org.apache.log4j.PatternLayout");
-			props.put("log4j.appender.console.layout.ConversionPattern","[%d][%t] %-5p %c{1} - %m%n");
-			
-			
-			
-			PropertyConfigurator.configure(props);
-		} else {
-			
-			if (logPath.startsWith("WEB-INF/")) {
-				org.apache.log4j.xml.DOMConfigurator.configure("/" + filterCfg.getServletContext().getRealPath("/" + logPath));
-			} else {
-				org.apache.log4j.xml.DOMConfigurator.configure(logPath);
-			}
-			
-			
-		}
+		
 		
 		
 		

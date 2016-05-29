@@ -51,7 +51,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.cookie.BrowserCompatSpec;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.UnisonConfigManagerImpl;
 import com.tremolosecurity.config.util.UrlHolder;
@@ -69,7 +69,7 @@ import com.tremolosecurity.util.NVP;
 
 public class UriRequestProcess extends PostProcess {
 
-	static Logger logger = Logger.getLogger(UriRequestProcess.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UriRequestProcess.class);
 	
 	@Override
 	public void postProcess(HttpFilterRequest req, HttpFilterResponse resp,

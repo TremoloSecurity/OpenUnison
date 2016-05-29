@@ -37,7 +37,7 @@ import javax.xml.bind.Unmarshaller;
 
 import net.sourceforge.myvd.server.ServerCore;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.UnisonConfigManagerImpl;
 import com.tremolosecurity.config.xml.TremoloType;
@@ -46,7 +46,7 @@ import com.tremolosecurity.proxy.myvd.MyVDConnection;
 
 public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 
-	static Logger logger = Logger.getLogger(OpenUnisonConfigManager.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(OpenUnisonConfigManager.class.getName());
 	
 	TremoloType unisonConfig;
 	boolean forceToSSL;

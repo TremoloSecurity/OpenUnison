@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.novell.ldap.LDAPAttribute;
@@ -54,7 +54,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class ListPortalURLs extends HttpServlet {
 
-	static Logger logger = Logger.getLogger(ListPortalURLs.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ListPortalURLs.class.getName());
 	
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)

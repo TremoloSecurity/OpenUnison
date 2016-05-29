@@ -15,7 +15,7 @@
  *******************************************************************************/
 package com.tremolosecurity.unison.proxy.filters.s3;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
@@ -31,7 +31,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class AwsS3Proxy implements HttpFilter {
 
-	static Logger logger = Logger.getLogger(AwsS3Proxy.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AwsS3Proxy.class);
 	
 	String accessKey;
 	String secretKey;

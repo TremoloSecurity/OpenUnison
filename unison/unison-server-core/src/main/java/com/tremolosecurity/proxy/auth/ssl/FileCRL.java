@@ -25,13 +25,13 @@ import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.saml.Attribute;
 
 public class FileCRL implements CRLManager {
-	static Logger logger = Logger.getLogger(FileCRL.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(FileCRL.class.getName());
 	String path;
 	X509CRL crl;
 	long lastModified;

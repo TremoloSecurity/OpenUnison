@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 
 import com.novell.ldap.LDAPAttribute;
@@ -31,7 +31,7 @@ import com.novell.ldap.LDAPEntry;
 import com.tremolosecurity.saml.Attribute;
 
 public class User implements Serializable {
-	static Logger logger = Logger.getLogger(User.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(User.class);
 	
 	
 	String userID;

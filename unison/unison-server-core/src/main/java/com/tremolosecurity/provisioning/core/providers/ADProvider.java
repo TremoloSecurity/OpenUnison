@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
@@ -59,7 +59,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class ADProvider implements UserStoreProvider {
 
-	static Logger logger = Logger.getLogger(ADProvider.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ADProvider.class);
 	
 	LdapPool ldapPool;
 	String dnPattern;

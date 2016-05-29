@@ -39,8 +39,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.Logger;
+
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UnisonConfigManagerImpl;
@@ -63,7 +63,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public abstract class UnisonServletFilter implements Filter {
 
-static Logger logger = Logger.getLogger(UnisonServletFilter.class);
+static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonServletFilter.class);
 	
 	FilterConfig cfg;
 	boolean passOn;
@@ -295,13 +295,7 @@ static Logger logger = Logger.getLogger(UnisonServletFilter.class);
 		
 		this.ctx = filterCfg.getServletContext();
 		
-		Properties loggingProps = new Properties();
-		try {
-			loggingProps.load(filterCfg.getServletContext().getResourceAsStream("/WEB-INF/log4j.properties"));
-			PropertyConfigurator.configure(loggingProps);
-		} catch (Exception e1) {
-			//throw new ServletException(e1);
-		}
+		
 		
 		
 		//TODO This needs to be replaced with configurable code

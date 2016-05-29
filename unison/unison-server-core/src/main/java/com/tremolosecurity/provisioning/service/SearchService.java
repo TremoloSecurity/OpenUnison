@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -45,7 +45,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 
 public class SearchService extends HttpServlet {
-	static Logger logger = Logger.getLogger(SearchService.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(SearchService.class.getName());
 	
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

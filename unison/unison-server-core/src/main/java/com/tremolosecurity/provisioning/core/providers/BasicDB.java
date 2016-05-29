@@ -34,7 +34,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.dbcp.cpdsadapter.DriverAdapterCPDS;
 import org.apache.commons.dbcp.datasources.SharedPoolDataSource;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPException;
 import com.tremolosecurity.config.util.ConfigManager;
@@ -50,7 +50,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class BasicDB implements BasicDBInterface {
 
-	static Logger logger = Logger.getLogger(BasicDB.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(BasicDB.class.getName());
 	
 	String driver;
 	String url;

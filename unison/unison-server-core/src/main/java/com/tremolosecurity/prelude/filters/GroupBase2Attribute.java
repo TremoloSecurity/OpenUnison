@@ -23,7 +23,7 @@ import java.util.ArrayList;
 
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPSearchResults;
 import com.tremolosecurity.config.util.ConfigManager;
@@ -42,7 +42,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class GroupBase2Attribute implements HttpFilter {
 
-	static Logger logger = Logger.getLogger(GroupBase2Attribute.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(GroupBase2Attribute.class.getName());
 	
 	String groupDN;
 	String attributeName;

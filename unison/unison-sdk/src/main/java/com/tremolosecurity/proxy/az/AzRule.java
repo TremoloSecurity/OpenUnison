@@ -21,7 +21,7 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.UUID;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.cedarsoftware.util.io.JsonReader;
 import com.cedarsoftware.util.io.JsonWriter;
@@ -32,7 +32,7 @@ import com.tremolosecurity.provisioning.core.Workflow;
 
 
 public class AzRule  {
-	static Logger logger = Logger.getLogger(AzRule.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AzRule.class.getName());
 	private static HashSet<UUID> usedGUIDS = new HashSet<UUID>();
 	
 	public enum ScopeType {

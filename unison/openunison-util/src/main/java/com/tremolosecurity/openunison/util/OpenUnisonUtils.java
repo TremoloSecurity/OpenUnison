@@ -67,8 +67,8 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.ssl.util.Hex;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.Logger;
+
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.apache.xml.security.utils.Base64;
 import org.opensaml.Configuration;
@@ -133,21 +133,10 @@ public class OpenUnisonUtils {
 	static Logger logger;
 	
 	public static void main(String[] args) throws Exception {
-		Properties props = new Properties();
-		props.put("log4j.rootLogger", "info,console");
-		
-		//props.put("log4j.appender.console","org.apache.log4j.RollingFileAppender");
-		//props.put("log4j.appender.console.File","/home/mlb/myvd.log");
-		props.put("log4j.appender.console","org.apache.log4j.ConsoleAppender");
-		props.put("log4j.appender.console.layout","org.apache.log4j.PatternLayout");
-		props.put("log4j.appender.console.layout.ConversionPattern","[%d][%t] %-5p %c{1} - %m%n");
 		
 		
 		
-		PropertyConfigurator.configure(props);
-		
-		
-		logger = Logger.getLogger(OpenUnisonUtils.class.getName());
+		logger = org.apache.logging.log4j.LogManager.getLogger(OpenUnisonUtils.class.getName());
 		
 		Options options = new Options();
 		options.addOption("unisonXMLFile", true, "The full path to the Unison xml file");

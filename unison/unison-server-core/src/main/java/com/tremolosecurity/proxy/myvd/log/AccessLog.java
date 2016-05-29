@@ -38,12 +38,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 
-import org.apache.log4j.AsyncAppender;
-import org.apache.log4j.DailyRollingFileAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.PropertyConfigurator;
-import org.apache.log4j.RollingFileAppender;
+
+import org.apache.logging.log4j.Logger;
+
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -83,7 +80,7 @@ public class AccessLog implements Insert {
 	public static final String ACCESS_LOG_SRCH_COUNT = "ACCESS_LOG_SRCH_COUNT_";
 	
 	
-	static Logger logger = Logger.getLogger(AccessLog.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AccessLog.class.getName());
 	String name;
 	Int con;
 	

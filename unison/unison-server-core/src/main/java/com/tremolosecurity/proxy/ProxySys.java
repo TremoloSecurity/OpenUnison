@@ -30,7 +30,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.embedd.EmbPostProc;
@@ -47,7 +47,7 @@ import com.tremolosecurity.proxy.util.ProxyConstants;
 
 public class ProxySys {
 
-	static Logger logger = Logger.getLogger(ProxySys.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ProxySys.class);
 
 	public static String TREMOLO_BINARY_DATA = "TREMOLO_BINARY_DATA";
 	

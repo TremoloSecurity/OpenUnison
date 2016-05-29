@@ -19,7 +19,7 @@ package com.tremolosecurity.provisioning.customTasks;
 
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
@@ -34,7 +34,7 @@ public class PrintUserInfo implements CustomTask {
 	 */
 	private static final long serialVersionUID = 6156946704893536650L;
 
-	static Logger logger = Logger.getLogger(PrintUserInfo.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(PrintUserInfo.class.getName());
 	
 	transient WorkflowTask task;
 	String msg;

@@ -23,7 +23,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.joda.time.DateTime;
@@ -42,7 +42,7 @@ import com.tremolosecurity.provisioning.scheduler.UnisonJob;
 
 public class RemindApprovers extends UnisonJob {
 
-	static Logger logger = Logger.getLogger(RemindApprovers.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(RemindApprovers.class.getName());
 	
 	@Override
 	public void execute(ConfigManager configManager, JobExecutionContext context)

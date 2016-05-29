@@ -28,14 +28,14 @@ import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.config.xml.TremoloType;
 
 public class QueUtils {
 
-	static Logger logger = Logger.getLogger(QueUtils.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(QueUtils.class.getName());
 	
 	public static void emptyDLQ(TremoloType config,String dlqName) throws Exception {
 		

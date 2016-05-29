@@ -19,7 +19,7 @@ package com.tremolosecurity.proxy.filters;
 
 import java.net.URL;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.filter.HttpFilter;
@@ -33,7 +33,7 @@ import com.tremolosecurity.saml.Attribute;
 
 
 public class XForward implements HttpFilter {
-	static Logger logger = Logger.getLogger(XForward.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(XForward.class.getName());
 	boolean createHeaders;
 	
 	@Override

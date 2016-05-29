@@ -22,7 +22,7 @@ import java.util.Iterator;
 
 import javax.servlet.ServletContext;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.FilterConfigType;
@@ -32,7 +32,7 @@ import com.tremolosecurity.saml.*;
 
 public class HttpFilterConfig {
 
-	static Logger logger = Logger.getLogger(HttpFilterConfig.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(HttpFilterConfig.class);
 	
 	ConfigManager cfgMgr;
 	FilterConfigType cfg;

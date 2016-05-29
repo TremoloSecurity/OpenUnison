@@ -48,14 +48,14 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.params.*;
 import org.apache.http.protocol.*;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 //import com.google.appengine.api.urlfetch.*;
 import com.tremolosecurity.config.util.UnisonConfigManagerImpl;
 
 class GAEClientConnection /*implements ManagedClientConnection*/ {
 /*
-	static Logger logger = Logger.getLogger(GAEClientConnection.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(GAEClientConnection.class);
 	
 	public GAEClientConnection(ClientConnectionManager cm, HttpRoute route,
 			Object state) {

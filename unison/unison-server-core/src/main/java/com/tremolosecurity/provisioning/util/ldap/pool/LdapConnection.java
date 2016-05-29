@@ -19,7 +19,7 @@ package com.tremolosecurity.provisioning.util.ldap.pool;
 
 import java.io.UnsupportedEncodingException;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPEntry;
@@ -31,7 +31,7 @@ import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.proxy.ssl.TremoloSSLSocketFactory;
 
 public class LdapConnection {
-	static Logger logger = Logger.getLogger(LdapConnection.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(LdapConnection.class.getName());
 	private boolean inUse;
 	
 	private String host;

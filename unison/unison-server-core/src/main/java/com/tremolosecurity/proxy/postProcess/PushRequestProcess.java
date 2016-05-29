@@ -61,7 +61,7 @@ import org.apache.http.impl.cookie.BrowserCompatSpec;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.proxy.ProxySys;
@@ -75,7 +75,7 @@ import com.tremolosecurity.util.NVP;
 
 public  class PushRequestProcess extends PostProcess {
 
-	static Logger logger = Logger.getLogger(PushRequestProcess.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(PushRequestProcess.class);
 
 	@Override
 	public void postProcess(HttpFilterRequest req, HttpFilterResponse resp,UrlHolder holder,HttpFilterChain chain) throws Exception {

@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
@@ -53,7 +53,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class AmazonSimpleDBProvider implements UserStoreProvider {
 
-	static Logger logger = Logger.getLogger(AmazonSimpleDBProvider.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AmazonSimpleDBProvider.class);
 	AmazonSimpleDBClient sdb;
 	String accessKey;
 	String secretKey;

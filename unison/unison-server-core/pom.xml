@@ -60,11 +60,7 @@
 			<type>jar</type>
 		</dependency>
 
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>apache-log4j-extras</artifactId>
-			<version>${apache-log4j-extras.version}</version>
-		</dependency>
+
 
 
 

@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashSet;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 
 import com.tremolosecurity.provisioning.core.ProvisioningException;
@@ -38,7 +38,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class WordPressProvider implements CustomDB {
 
-	Logger logger = Logger.getLogger(WordPressProvider.class.getName());
+	Logger logger = org.apache.logging.log4j.LogManager.getLogger(WordPressProvider.class.getName());
 	
 	HashSet<String> wp_usersFields;
 	

@@ -38,7 +38,7 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpEntity;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UrlHolder;
@@ -66,7 +66,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class ConfigSys  {
 
-	static Logger logger = Logger.getLogger(ConfigSys.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ConfigSys.class);
 	
 	boolean fromRequest;
 	

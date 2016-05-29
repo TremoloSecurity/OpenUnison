@@ -24,13 +24,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 public class HttpProxy extends HttpServlet {
 
 	
 
-	static Logger logger = Logger.getLogger(HttpProxy.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(HttpProxy.class);
 	
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

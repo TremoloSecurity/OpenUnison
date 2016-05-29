@@ -19,7 +19,7 @@ package com.tremolosecurity.log;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.ApplicationsType;
@@ -35,7 +35,7 @@ public class AccessLog {
 		NotFound
 	}
 	
-	static Logger logger = Logger.getLogger(AccessLog.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AccessLog.class.getName());
 	
 	public static void log(AccessEvent event,ApplicationType app,HttpServletRequest request,AuthInfo user,String msg) {
 		String strevent = "";

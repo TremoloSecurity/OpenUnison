@@ -25,7 +25,7 @@ import java.util.ListIterator;
 
 import javax.servlet.http.Cookie;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.proxy.ProxyResponse;
@@ -43,7 +43,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class HideCookie implements HttpFilter {
 
-	static Logger logger = Logger.getLogger(HideCookie.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(HideCookie.class);
 
 	private static final String TREMOLO_HIDE_COOKIE_JAR = "TREMOLO_HIDE_COOKIE_JAR";
 

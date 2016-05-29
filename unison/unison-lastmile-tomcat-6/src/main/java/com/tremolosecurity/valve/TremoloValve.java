@@ -41,8 +41,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 import org.apache.catalina.valves.ValveBase;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.Logger;
+
 
 import com.tremolosecurity.filter.AutoIDMPrincipal;
 import com.tremolosecurity.lastmile.LastMile;
@@ -52,7 +52,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class TremoloValve extends ValveBase {
 
-//static Logger logger = Logger.getLogger(AutoIDMFilter.class);
+//static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AutoIDMFilter.class);
 	
 	String headerName;
 	

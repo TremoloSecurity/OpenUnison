@@ -27,7 +27,7 @@ import java.util.Vector;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.filter.AutoIDMPrincipal;
 import com.tremolosecurity.saml.Attribute;
@@ -35,7 +35,7 @@ import com.tremolosecurity.saml.Attribute;
 public class UnisonLastMileRequest extends HttpServletRequestWrapper {
 
 	
-	static Logger logger = Logger.getLogger(UnisonLastMileRequest.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonLastMileRequest.class);
 	
 	HttpServletRequest request;
 	com.tremolosecurity.lastmile.LastMile lastmile;

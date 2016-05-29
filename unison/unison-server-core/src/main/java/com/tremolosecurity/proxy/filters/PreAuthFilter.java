@@ -56,7 +56,7 @@ import org.apache.http.impl.cookie.BrowserCompatSpec;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.xml.ConfigurationException;
 
@@ -83,7 +83,7 @@ import com.tremolosecurity.saml.Saml2Assertion;
 
 public class PreAuthFilter implements HttpFilter {
 
-	static Logger logger = Logger.getLogger(PreAuthFilter.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(PreAuthFilter.class.getName());
 	
 	String url;
 	String loginAttribute;

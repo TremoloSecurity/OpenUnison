@@ -36,7 +36,7 @@ import javax.servlet.http.HttpSession;
 
 
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.bouncycastle.util.encoders.Base64;
 
 import com.google.gson.Gson;
@@ -57,7 +57,7 @@ import com.warrenstrange.googleauth.GoogleAuthenticatorConfig.GoogleAuthenticato
 
 
 public class OTPAuth implements AuthMechanism {
-	static Logger logger = Logger.getLogger(AuthMechanism.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AuthMechanism.class.getName());
 	private ConfigManager cfgMgr;
 	
 	

@@ -49,7 +49,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.cookie.BrowserCompatSpec;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.HttpParams;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.tremolosecurity.config.util.ConfigManager;
@@ -65,7 +65,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class TremoloTarget implements UserStoreProvider {
 
-	static Logger logger = Logger.getLogger(TremoloTarget.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(TremoloTarget.class.getName());
 	
 	String createUserWF;
 	String setUserPasswordWF;

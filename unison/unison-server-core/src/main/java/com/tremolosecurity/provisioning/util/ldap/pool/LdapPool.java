@@ -20,7 +20,7 @@ package com.tremolosecurity.provisioning.util.ldap.pool;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPConnection;

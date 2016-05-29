@@ -22,12 +22,12 @@ import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.server.StopableThread;
 
 public class JMSMessageCloser implements StopableThread {
-	static Logger logger = Logger.getLogger(JMSMessageCloser.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(JMSMessageCloser.class.getName());
 	Session session;
 	MessageConsumer consumer;
 	private Connection con;

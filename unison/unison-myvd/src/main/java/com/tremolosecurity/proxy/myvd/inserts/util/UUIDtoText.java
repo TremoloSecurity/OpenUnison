@@ -27,7 +27,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPConstraints;
@@ -60,7 +60,7 @@ import net.sourceforge.myvd.types.Results;
 
 public class UUIDtoText implements Insert {
 
-	static Logger logger = Logger.getLogger(UUIDtoText.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UUIDtoText.class.getName());
 	
 	String name;
 	HashMap<String,String> txt2bin;

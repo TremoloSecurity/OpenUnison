@@ -25,7 +25,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionContext;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 
 import com.tremolosecurity.proxy.util.ItEnumeration;
@@ -52,7 +52,7 @@ public class TremoloHttpSession implements HttpSession, Serializable {
 	 */
 	
 
-	static Logger logger = Logger.getLogger(TremoloHttpSession.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(TremoloHttpSession.class);
 	
 	/**
 	 * 

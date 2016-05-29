@@ -43,7 +43,7 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.ObjectMessage;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 
 import com.cedarsoftware.util.io.JsonReader;
@@ -70,7 +70,7 @@ import com.tremolosecurity.server.GlobalEntries;
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
 public class UpdateApprovalAZListener extends UnisonMessageListener {
-	static Logger logger = Logger.getLogger(UpdateApprovalAZListener.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UpdateApprovalAZListener.class.getName());
 	@Override
 	public void onMessage(ConfigManager cfg, Object payload,Message msg)
 			throws ProvisioningException {

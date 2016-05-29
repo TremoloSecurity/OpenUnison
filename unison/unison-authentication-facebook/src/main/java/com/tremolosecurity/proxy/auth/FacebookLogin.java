@@ -36,7 +36,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.restfb.DefaultFacebookClient;
 import com.restfb.FacebookClient;
@@ -53,7 +53,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class FacebookLogin implements AuthMechanism {
 
-	static Logger logger = Logger.getLogger(FacebookLogin.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(FacebookLogin.class);
 	
 	public static final String FB_APP_ID = "faceBookAppID";
 	public static final String FB_APP_SECRET = "faceBookAppSecret";

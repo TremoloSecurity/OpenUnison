@@ -25,7 +25,7 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
@@ -36,7 +36,7 @@ import com.tremolosecurity.provisioning.util.CustomTask;
 import com.tremolosecurity.saml.Attribute;
 
 public class Drupal7GetSequence implements CustomTask {
-	static Logger logger = Logger.getLogger(Drupal7GetSequence.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(Drupal7GetSequence.class.getName());
 	
 	transient WorkflowTask task;
 	String targetName;

@@ -19,7 +19,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.provisioning.service.util.TremoloUser;
 import com.tremolosecurity.provisioning.service.util.WFCall;
@@ -29,7 +29,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class ResetUserPasswordOnLogout implements LogoutHandler {
 
-	static Logger logger = Logger.getLogger(ResetUserPasswordOnLogout.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ResetUserPasswordOnLogout.class.getName());
 	
 	String workflow;
 	String userID;

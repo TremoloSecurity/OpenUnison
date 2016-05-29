@@ -26,7 +26,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.Session;
 
@@ -47,7 +47,7 @@ import com.tremolosecurity.proxy.az.CustomAuthorization;
 
 
 public class AzUtils {
-	static Logger logger = Logger.getLogger(AzUtils.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AzUtils.class);
 	
 	
 	

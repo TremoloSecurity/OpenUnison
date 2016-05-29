@@ -46,7 +46,7 @@ import net.sourceforge.spnego.SpnegoHttpServletResponse;
 import net.sourceforge.spnego.SpnegoPrincipal;
 import net.sourceforge.spnego.SpnegoHttpFilter.Constants;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.bouncycastle.util.encoders.Base64;
 import org.ietf.jgss.GSSException;
 
@@ -68,7 +68,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class IWAAuth implements AuthMechanism {
 	
-	static Logger logger = Logger.getLogger(IWAAuth.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(IWAAuth.class.getName());
 	HashMap<String,SpnegoAuthenticator> domains;
 	
 	HashMap<String,String> spnegoCfg;

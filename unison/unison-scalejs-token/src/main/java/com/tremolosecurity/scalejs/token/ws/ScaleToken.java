@@ -17,7 +17,7 @@ package com.tremolosecurity.scalejs.token.ws;
 
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.tremolosecurity.proxy.auth.AuthController;
@@ -35,7 +35,7 @@ import com.tremolosecurity.scalejs.token.data.ScaleTokenUser;
 import com.tremolosecurity.scalejs.token.sdk.TokenLoader;
 
 public class ScaleToken implements HttpFilter {
-	static Logger logger = Logger.getLogger(ScaleToken.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ScaleToken.class.getName());
 	ScaleTokenConfig scaleConfig;
 	TokenLoader tokenLoader;
 	

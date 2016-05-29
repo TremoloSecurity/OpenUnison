@@ -22,14 +22,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
 import com.tremolosecurity.saml.Attribute;
 
 public class ProvisioningTargetImpl implements ProvisioningTarget  {
 	
-	static Logger logger = Logger.getLogger(ProvisioningTargetImpl.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ProvisioningTargetImpl.class.getName());
 	
 	String name;
 	UserStoreProvider provider;

@@ -22,7 +22,7 @@ import java.util.Iterator;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.proxy.HttpProxy;
@@ -31,7 +31,7 @@ import com.tremolosecurity.proxy.auth.RequestHolder.HTTPMethod;
 
 public class HttpFilterChainImpl implements HttpFilterChain {
 	
-	static Logger logger = Logger.getLogger(HttpFilterChainImpl.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(HttpFilterChainImpl.class);
 	
 	Iterator<HttpFilter> chain;
 	//HttpProxy proxy;

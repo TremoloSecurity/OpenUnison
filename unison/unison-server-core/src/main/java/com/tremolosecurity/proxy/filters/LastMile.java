@@ -22,7 +22,7 @@ import java.util.Iterator;
 
 import javax.crypto.SecretKey;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 
 import com.tremolosecurity.config.util.ConfigManager;
@@ -42,7 +42,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class LastMile implements HttpFilter {
 
-	static Logger logger = Logger.getLogger(LastMile.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(LastMile.class);
 	
 	ConfigManager cfgMgr;
 	SecretKey sigKey;

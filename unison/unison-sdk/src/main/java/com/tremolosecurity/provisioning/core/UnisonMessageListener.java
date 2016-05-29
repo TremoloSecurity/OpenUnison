@@ -25,7 +25,7 @@ import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.tremolosecurity.config.util.ConfigManager;
@@ -35,7 +35,7 @@ import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 
 public abstract class UnisonMessageListener implements MessageListener {
-	static Logger logger = Logger.getLogger(UnisonMessageListener.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonMessageListener.class.getName());
 	
 	
 	@Override

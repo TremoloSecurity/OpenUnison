@@ -26,7 +26,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.ConfigManager;
 
@@ -46,7 +46,7 @@ import com.tremolosecurity.proxy.util.ProxyConstants;
 
 public class NextEmbSys implements NextSys {
 	
-	static Logger logger = Logger.getLogger(NextEmbSys.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(NextEmbSys.class);
 
 	
 	ConfigSys cfgSys;

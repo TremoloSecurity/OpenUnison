@@ -51,7 +51,7 @@ public class UnisonLastmileHandler implements HttpHandler {
 
 	private volatile HttpHandler defaultHandler = ResponseCodeHandler.HANDLE_403;
 	
-	protected static Logger log = Logger.getLogger(UnisonLastmileHandler.class.getName());
+	protected static Logger log = org.apache.logging.log4j.LogManager.getLogger(UnisonLastmileHandler.class.getName());
 
 	String headerName;
 

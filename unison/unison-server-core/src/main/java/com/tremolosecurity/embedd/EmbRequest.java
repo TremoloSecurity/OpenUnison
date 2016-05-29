@@ -36,7 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -52,7 +52,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class EmbRequest extends HttpServletRequestWrapper {
 
-	static Logger logger = Logger.getLogger(EmbRequest.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(EmbRequest.class);
 
 	private static final DateTimeFormatter RFC1123_DATE_TIME_FORMATTER = 
 		    DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'")

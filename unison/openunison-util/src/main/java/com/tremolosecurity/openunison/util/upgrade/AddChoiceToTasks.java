@@ -34,8 +34,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.Logger;
+
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -43,7 +43,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public class AddChoiceToTasks {
-	static Logger logger = Logger.getLogger(AddChoiceToTasks.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AddChoiceToTasks.class);
 	
 	static HashSet<String> checkTags;
 	static HashSet<String> ignoreTags;

@@ -30,7 +30,7 @@ import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.ocsp.OCSPObjectIdentifiers;
 import org.bouncycastle.asn1.x509.Extension;
@@ -54,7 +54,7 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.saml.Attribute;
 
 public class OCSP implements CRLManager {
-	static Logger logger = Logger.getLogger(OCSP.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(OCSP.class.getName());
 	String url;
 	
 	

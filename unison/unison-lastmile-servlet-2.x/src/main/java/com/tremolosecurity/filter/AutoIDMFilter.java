@@ -44,8 +44,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.Logger;
+
 
 
 
@@ -54,7 +54,7 @@ import com.tremolosecurity.lastmile.custom.CustomLastMile;
 
 public class AutoIDMFilter implements Filter {
 
-	//static Logger logger = Logger.getLogger(AutoIDMFilter.class);
+	//static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AutoIDMFilter.class);
 	
 	String headerName;
 	String userAttribute;

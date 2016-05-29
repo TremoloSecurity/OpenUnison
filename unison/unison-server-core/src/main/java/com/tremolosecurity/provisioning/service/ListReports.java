@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.novell.ldap.LDAPAttribute;
@@ -66,7 +66,7 @@ public class ListReports extends HttpServlet {
 	 * 
 	 */
 	private static final long serialVersionUID = -6421832979913478507L;
-	static Logger logger = Logger.getLogger(ListReports.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ListReports.class.getName());
 	
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)

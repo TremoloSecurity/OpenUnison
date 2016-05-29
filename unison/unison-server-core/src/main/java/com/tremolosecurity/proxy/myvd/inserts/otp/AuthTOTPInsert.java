@@ -24,7 +24,7 @@ import java.util.Properties;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.bouncycastle.util.encoders.Base64;
 
 
@@ -79,7 +79,7 @@ import net.sourceforge.myvd.types.Results;
 
 public class AuthTOTPInsert implements Insert {
 
-	static Logger logger = Logger.getLogger(AuthTOTPInsert.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AuthTOTPInsert.class.getName());
 	
 	String name;
 	String encyrptionKey;

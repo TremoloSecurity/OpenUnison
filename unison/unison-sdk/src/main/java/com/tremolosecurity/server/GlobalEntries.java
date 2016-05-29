@@ -19,13 +19,13 @@ package com.tremolosecurity.server;
 
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 
 public class GlobalEntries {
-	static Logger logger = Logger.getLogger(GlobalEntries.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(GlobalEntries.class.getName());
 	
 	static GlobalEntries ge = new GlobalEntries();
 	

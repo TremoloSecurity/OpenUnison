@@ -35,7 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
@@ -58,7 +58,7 @@ import com.tremolosecurity.saml.*;
 
 public class FormLoginAuthMech implements AuthMechanism {
 	
-	static Logger logger = Logger.getLogger(FormLoginAuthMech.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(FormLoginAuthMech.class);
 	
 	public static final String LOGIN_JSP = "FORMLOGIN_JSP";
 	

@@ -24,7 +24,7 @@ import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.quartz.JobExecutionContext;
 
 import com.google.gson.Gson;
@@ -39,7 +39,7 @@ import com.tremolosecurity.provisioning.util.EncryptedMessage;
 
 public class AutoFail extends UnisonJob {
 
-	static Logger logger = Logger.getLogger(AutoFail.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AutoFail.class.getName());
 
 	@Override
 	public void execute(ConfigManager configManager, JobExecutionContext context)

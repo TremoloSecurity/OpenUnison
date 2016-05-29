@@ -28,7 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.bouncycastle.util.encoders.Base64;
 
 import com.novell.ldap.LDAPAttribute;
@@ -50,7 +50,7 @@ import com.tremolosecurity.proxy.auth.util.AuthStep;
 
 public class BasicAuth implements AuthMechanism {
 
-	static Logger logger = Logger.getLogger(BasicAuth.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(BasicAuth.class.getName());
 
 	ConfigManager cfgMgr;
 

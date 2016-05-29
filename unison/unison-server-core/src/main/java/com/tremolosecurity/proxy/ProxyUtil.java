@@ -22,13 +22,13 @@ import java.util.HashMap;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.saml.Attribute;
 
 public class ProxyUtil {
 
-	static Logger logger = Logger.getLogger(ProxyUtil.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ProxyUtil.class);
 	
 	public static void loadParams(HttpServletRequest request,HashMap<String,Attribute> params) {
 		Enumeration enumer = request.getParameterNames();

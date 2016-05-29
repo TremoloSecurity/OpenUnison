@@ -44,13 +44,13 @@ import org.apache.http.conn.*;
 import org.apache.http.params.*;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.*;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.UnisonConfigManagerImpl;
 
 public class GAEConnectionManager implements ClientConnectionManager {
 
-	static Logger logger = Logger.getLogger(GAEConnectionManager.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(GAEConnectionManager.class);
 	
 	public GAEConnectionManager() {
 		SocketFactory no_socket_factory = new SocketFactory() {

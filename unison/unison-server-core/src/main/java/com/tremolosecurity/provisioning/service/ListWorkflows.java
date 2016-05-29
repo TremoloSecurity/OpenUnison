@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 import org.stringtemplate.v4.ST;
 
@@ -50,7 +50,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class ListWorkflows extends HttpServlet {
 
-	static Logger logger = Logger.getLogger(ListWorkflows.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ListWorkflows.class.getName());
 	
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)

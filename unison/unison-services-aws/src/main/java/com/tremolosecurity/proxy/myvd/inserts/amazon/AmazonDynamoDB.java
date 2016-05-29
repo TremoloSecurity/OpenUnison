@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
@@ -61,7 +61,7 @@ import net.sourceforge.myvd.util.EntryUtil;
 
 public class AmazonDynamoDB implements Insert {
 	
-	static Logger logger = Logger.getLogger(AmazonDynamoDB.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AmazonDynamoDB.class.getName());
 	
 	String accessKey;
 	String secretKey;

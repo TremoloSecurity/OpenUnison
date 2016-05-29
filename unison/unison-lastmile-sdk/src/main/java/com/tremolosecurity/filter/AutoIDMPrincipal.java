@@ -20,11 +20,11 @@ package com.tremolosecurity.filter;
 import java.security.Principal;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 public class AutoIDMPrincipal implements Principal {
 
-	static Logger logger = Logger.getLogger(AutoIDMPrincipal.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AutoIDMPrincipal.class);
 	
 	String name;
 	

@@ -35,7 +35,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.saml.Attribute;
 
@@ -46,7 +46,7 @@ import com.tremolosecurity.saml.Attribute;
  */
 public class AutoIDMRequest implements HttpServletRequest {
 
-	static Logger logger = Logger.getLogger(AutoIDMRequest.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AutoIDMRequest.class);
 	
 	@Override
 	public String getLocalAddr() {

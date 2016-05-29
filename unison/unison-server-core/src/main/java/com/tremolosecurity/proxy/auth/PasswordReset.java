@@ -52,7 +52,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.dbcp.cpdsadapter.DriverAdapterCPDS;
 import org.apache.commons.dbcp.datasources.SharedPoolDataSource;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 
 import com.novell.ldap.LDAPAttribute;
@@ -83,7 +83,7 @@ import com.tremolosecurity.server.StopableThread;
 public class PasswordReset implements AuthMechanism {
 	
 	
-	static Logger logger = Logger.getLogger(PasswordReset.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(PasswordReset.class.getName());
 	
 	ConfigManager cfgMgr;
 	
@@ -790,7 +790,7 @@ class SmtpMessage {
 }
 
 class SendMessageThread implements StopableThread {
-	static Logger logger = Logger.getLogger(SendMessageThread.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(SendMessageThread.class.getName());
 	
 	
 	

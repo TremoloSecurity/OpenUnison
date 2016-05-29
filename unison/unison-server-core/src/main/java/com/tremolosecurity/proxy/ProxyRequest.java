@@ -46,13 +46,13 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.util.NVP;
 
 public class ProxyRequest extends HttpServletRequestWrapper {
 	
-	static Logger logger = Logger.getLogger(ProxyRequest.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ProxyRequest.class);
 
 	
 	HttpSession session;

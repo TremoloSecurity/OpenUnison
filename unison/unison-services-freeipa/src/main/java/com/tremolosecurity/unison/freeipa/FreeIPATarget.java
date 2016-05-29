@@ -42,7 +42,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.tremolosecurity.config.util.ConfigManager;
@@ -63,7 +63,7 @@ import com.tremolosecurity.unison.freeipa.util.IPAException;
 
 public class FreeIPATarget implements UserStoreProvider{
 
-	static Logger logger = Logger.getLogger(FreeIPATarget.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(FreeIPATarget.class.getName());
 	
 	SecureRandom random;
 	

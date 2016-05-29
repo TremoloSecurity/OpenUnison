@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -65,7 +65,7 @@ import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 
 public class WorkflowImpl implements  Workflow {
-	static Logger logger = Logger.getLogger(WorkflowImpl.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(WorkflowImpl.class.getName());
 	String name;
 	ArrayList<WorkflowTask> tasks;
 	

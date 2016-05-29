@@ -36,7 +36,7 @@ import javax.net.ssl.X509TrustManager;
 import javax.security.auth.x500.X500Principal;
 import javax.security.cert.Certificate;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.server.GlobalEntries;
@@ -44,7 +44,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class TremoloTrustManager implements X509TrustManager {
 
-	static Logger logger = Logger.getLogger(TremoloTrustManager.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(TremoloTrustManager.class.getName());
 	
 	
 	KeyStore gks;

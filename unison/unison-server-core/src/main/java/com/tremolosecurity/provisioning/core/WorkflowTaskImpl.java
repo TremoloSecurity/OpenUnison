@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.stringtemplate.v4.ST;
 
 import com.tremolosecurity.config.util.ConfigManager;
@@ -36,7 +36,7 @@ import com.tremolosecurity.provisioning.util.TaskHolder;
 
 public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 	
-	transient static Logger logger = Logger.getLogger(WorkflowTaskImpl.class.getName());
+	transient static Logger logger = org.apache.logging.log4j.LogManager.getLogger(WorkflowTaskImpl.class.getName());
 
 	private ArrayList<WorkflowTask> onSuccess;
 	private ArrayList<WorkflowTask> onFailure;

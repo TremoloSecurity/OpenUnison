@@ -21,7 +21,7 @@ import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
@@ -37,7 +37,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class MyVDFilter implements HttpFilter {
 
-	static Logger logger = Logger.getLogger(MyVDFilter.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(MyVDFilter.class);
 	
 	@Override
 	public void doFilter(HttpFilterRequest request,

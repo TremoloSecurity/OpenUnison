@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
@@ -38,7 +38,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class DrupalProvider implements CustomDB {
 	
-	static Logger logger = Logger.getLogger(DrupalProvider.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(DrupalProvider.class.getName());
 	
 	static Set<String> primaryFields;
 	static Map<String,Integer> fieldIDs;

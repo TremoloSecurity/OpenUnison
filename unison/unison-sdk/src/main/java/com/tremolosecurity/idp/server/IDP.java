@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.ReloadNotification;
@@ -44,7 +44,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class IDP extends HttpServlet  implements ReloadNotification {
 	public static final String ACTION_NAME = "TREMOLO_IDP_ACTION";
-	static Logger logger = Logger.getLogger(IDP.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(IDP.class.getName());
 	HashMap<String,IdpHolder> idps;
 	private ConfigManager cfgMgr;
 	private ServletConfig config;

@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
@@ -30,7 +30,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class LDAPDynaicWorkflows implements DynamicWorkflow {
 	
-	static Logger logger = Logger.getLogger(LDAPDynaicWorkflows.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(LDAPDynaicWorkflows.class.getName());
 	
 	@Override
 	public List<Map<String, String>> generateWorkflows(WorkflowType wf, ConfigManager cfg,

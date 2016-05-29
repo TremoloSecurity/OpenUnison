@@ -32,10 +32,10 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 public class TremoloX509KeyManager extends X509ExtendedKeyManager  {
-	static Logger logger = Logger.getLogger(TremoloX509KeyManager.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(TremoloX509KeyManager.class.getName());
 	X509ExtendedKeyManager keyMgr;
 	
 	HashMap<String,X509Certificate[]> chains; 

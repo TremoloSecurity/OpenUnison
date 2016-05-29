@@ -31,7 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.ssl.util.Hex;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.LogoutRequest;
@@ -55,7 +55,7 @@ import com.tremolosecurity.proxy.util.ProxyConstants;
 
 public class Saml2SingleLogout implements LogoutHandler {
 
-	static Logger logger = Logger.getLogger(Saml2SingleLogout.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(Saml2SingleLogout.class.getName());
 	
 	String logoutURL;
 	String sessionIndex;

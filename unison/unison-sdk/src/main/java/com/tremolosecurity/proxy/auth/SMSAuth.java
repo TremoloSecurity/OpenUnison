@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UrlHolder;
@@ -43,7 +43,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public abstract class SMSAuth implements AuthMechanism {
 
-	static Logger logger = Logger.getLogger(SMSAuth.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(SMSAuth.class.getName());
 
 	ConfigManager cfgMgr;
 	

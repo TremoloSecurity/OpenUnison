@@ -19,7 +19,7 @@ package com.tremolosecurity.provisioning.tasks;
 
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.MappingType;
@@ -32,7 +32,7 @@ import com.tremolosecurity.provisioning.mapping.MapIdentity;
 import com.tremolosecurity.saml.Attribute;
 
 public class Mapping extends WorkflowTaskImpl {
-	static Logger logger = Logger.getLogger(Mapping.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(Mapping.class.getName());
 	/**
 	 * 
 	 */

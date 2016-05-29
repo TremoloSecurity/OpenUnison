@@ -21,7 +21,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Iterator;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.proxy.filter.HttpFilter;
 import com.tremolosecurity.proxy.filter.HttpFilterChain;
@@ -31,7 +31,7 @@ import com.tremolosecurity.proxy.filter.HttpFilterResponse;
 
 public class RedirectSharepointDelete implements HttpFilter {
 
-	static Logger logger = Logger.getLogger(RedirectSharepointDelete.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(RedirectSharepointDelete.class.getName());
 	@Override
 	public void doFilter(HttpFilterRequest request,
 			HttpFilterResponse response, HttpFilterChain chain)

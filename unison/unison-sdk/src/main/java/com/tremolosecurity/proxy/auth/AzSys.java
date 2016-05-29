@@ -38,7 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 import org.stringtemplate.v4.ST;
 
@@ -71,7 +71,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class AzSys {
 	
-	static Logger logger = Logger.getLogger(AzSys.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AzSys.class);
 
 	public static final String AUTO_IDM_HTTP_HEADERS = "AUTO_IDM_HTTP_HEADERS";
 

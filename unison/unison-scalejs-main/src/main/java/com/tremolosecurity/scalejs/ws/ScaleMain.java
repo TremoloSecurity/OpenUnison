@@ -40,7 +40,7 @@ import java.util.regex.Matcher;
 
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.RichTextString;
@@ -117,7 +117,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class ScaleMain implements HttpFilter {
 
-	static Logger logger = Logger.getLogger(ScaleMain.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ScaleMain.class.getName());
 	
 	ScaleConfig scaleConfig;
 	ApplicationType appType;

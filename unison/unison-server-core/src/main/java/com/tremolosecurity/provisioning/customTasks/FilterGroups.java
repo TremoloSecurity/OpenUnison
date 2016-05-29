@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashSet;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
@@ -31,7 +31,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class FilterGroups implements CustomTask {
 
-	static Logger logger = Logger.getLogger(FilterGroups.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(FilterGroups.class.getName());
 	HashSet<String> allowedGroups;
 	
 	@Override

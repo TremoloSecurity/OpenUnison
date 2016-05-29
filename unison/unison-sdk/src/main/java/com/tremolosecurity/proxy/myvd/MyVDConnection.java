@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import net.sourceforge.myvd.chain.BindInterceptorChain;
 import net.sourceforge.myvd.chain.SearchInterceptorChain;
@@ -62,7 +62,7 @@ import com.novell.ldap.LDAPUnsolicitedNotificationListener;
  */
 public class MyVDConnection  {
 
-	static Logger logger = Logger.getLogger(MyVDConnection.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(MyVDConnection.class);
 	
 	ServerCore core;
 	

@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
@@ -53,7 +53,7 @@ import com.tremolosecurity.saml.*;
 
 public class UserOnlyAuthMech implements AuthMechanism {
 	
-	static Logger logger = Logger.getLogger(UserOnlyAuthMech.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UserOnlyAuthMech.class);
 	
 	public static final String LOGIN_JSP = "loginJSP";
 	

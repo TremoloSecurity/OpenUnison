@@ -39,7 +39,7 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.joda.time.DateTime;
@@ -83,7 +83,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 	 */
 	
 	public static final String SEND_NOTIFICATION = "APPROVAL_SEND_NOTIFICATION";
-	static Logger logger = Logger.getLogger(Approval.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(Approval.class.getName());
 	
 	public static final String APPROVAL_RESULT = "APPROVAL_RESULT";
 

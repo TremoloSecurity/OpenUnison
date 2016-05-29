@@ -36,7 +36,7 @@ import javax.servlet.http.HttpServletResponseWrapper;
 
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.message.BasicHeader;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.UnisonConfigManagerImpl;
 import com.tremolosecurity.config.util.UrlHolder;
@@ -50,7 +50,7 @@ import com.tremolosecurity.proxy.filter.PostProcess;
 import com.tremolosecurity.saml.Attribute;
 
 public class EmbPostProc extends PostProcess {
-	static Logger logger = Logger.getLogger(EmbPostProc.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(EmbPostProc.class);
 	
 	FilterChain chain;
 	

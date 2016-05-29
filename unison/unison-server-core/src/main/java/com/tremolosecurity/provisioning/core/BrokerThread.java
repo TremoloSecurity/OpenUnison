@@ -19,12 +19,12 @@ package com.tremolosecurity.provisioning.core;
 
 
 import org.apache.activemq.broker.BrokerService;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.server.StopableThread;
 
 public class BrokerThread implements StopableThread {
-	static Logger logger = Logger.getLogger(BrokerThread.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(BrokerThread.class.getName());
 	BrokerService broker;
 	ProvisioningEngineImpl engine;
 	

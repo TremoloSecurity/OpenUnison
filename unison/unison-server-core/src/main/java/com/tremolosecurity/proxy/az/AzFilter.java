@@ -37,7 +37,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import net.sourceforge.myvd.types.FilterNode;
 
@@ -67,7 +67,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class AzFilter implements Filter {
 
-	static Logger logger = Logger.getLogger(AzFilter.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AzFilter.class);
 	
 	AzSys azSys;
 	

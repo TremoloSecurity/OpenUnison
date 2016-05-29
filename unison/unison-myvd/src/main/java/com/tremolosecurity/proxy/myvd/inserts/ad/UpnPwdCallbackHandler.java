@@ -26,12 +26,12 @@ import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.TextOutputCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 
 public class UpnPwdCallbackHandler implements CallbackHandler {
 
-	static Logger logger = Logger.getLogger(UpnPwdCallbackHandler.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UpnPwdCallbackHandler.class.getName());
 	
 	String upn;
 	String password;

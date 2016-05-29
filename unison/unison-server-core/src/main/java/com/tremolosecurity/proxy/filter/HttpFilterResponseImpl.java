@@ -27,7 +27,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.proxy.ProxyResponse;
 import com.tremolosecurity.proxy.TremoloHttpSession;
@@ -35,7 +35,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class HttpFilterResponseImpl implements HttpFilterResponse {
 
-	static Logger logger = Logger.getLogger(HttpFilterResponseImpl.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(HttpFilterResponseImpl.class);
 	
 	ProxyResponse response;
 	

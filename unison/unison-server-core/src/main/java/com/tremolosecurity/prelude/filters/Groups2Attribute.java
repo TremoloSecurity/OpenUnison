@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPSearchResults;
@@ -45,7 +45,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class Groups2Attribute implements HttpFilter {
 
-	static Logger logger = Logger.getLogger(Groups2Attribute.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(Groups2Attribute.class.getName());
 	
 	String base;
 	String attrName;

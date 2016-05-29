@@ -20,7 +20,7 @@ package com.tremolosecurity.proxy.auth;
 import java.io.Serializable;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 
 import com.tremolosecurity.saml.Attribute;
@@ -41,7 +41,7 @@ public class AuthInfo implements Serializable {
 
 
 
-	static Logger logger = Logger.getLogger(AuthInfo.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AuthInfo.class);
 	
 	
 	String userDN;

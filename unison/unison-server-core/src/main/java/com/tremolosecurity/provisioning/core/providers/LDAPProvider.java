@@ -26,7 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
@@ -54,7 +54,7 @@ import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
 public class LDAPProvider implements UserStoreProvider {
 
-	static Logger logger = Logger.getLogger(LDAPProvider.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(LDAPProvider.class);
 	LdapPool ldapPool;
 	
 	String dnPattern;

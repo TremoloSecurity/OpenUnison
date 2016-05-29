@@ -62,7 +62,7 @@ import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UnisonConfigManagerImpl;
@@ -77,7 +77,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public abstract class PostProcess {
 	
-	static Logger logger = Logger.getLogger(PostProcess.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(PostProcess.class);
 	
 	
 	

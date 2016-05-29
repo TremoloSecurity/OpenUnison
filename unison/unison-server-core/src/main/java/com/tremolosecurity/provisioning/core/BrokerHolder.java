@@ -32,7 +32,7 @@ import javax.jms.Session;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.store.kahadb.KahaDBPersistenceAdapter;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.openunison.OpenUnisonConstants;
@@ -41,7 +41,7 @@ import com.tremolosecurity.server.StopableThread;
 
 public class BrokerHolder {
 	
-	static Logger logger = Logger.getLogger(BrokerHolder.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(BrokerHolder.class.getName());
 	
 	BrokerService broker;
 	private ConfigManager cfgMgr;

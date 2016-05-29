@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
@@ -50,7 +50,7 @@ import com.tremolosecurity.saml.*;
 
 public class AcknowledgeAuthMech implements AuthMechanism {
 	
-	static Logger logger = Logger.getLogger(AcknowledgeAuthMech.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AcknowledgeAuthMech.class);
 	
 	public static final String ACK_JSP = "loginJSP";
 

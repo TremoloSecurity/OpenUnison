@@ -28,7 +28,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
@@ -42,7 +42,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class ExecuteWorkflow extends HttpServlet {
 
-	static Logger logger = Logger.getLogger(ExecuteWorkflow.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ExecuteWorkflow.class.getName());
 	
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)

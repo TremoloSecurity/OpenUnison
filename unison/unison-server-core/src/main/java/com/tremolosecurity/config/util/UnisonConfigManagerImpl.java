@@ -75,8 +75,8 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.Logger;
+
 
 import net.sourceforge.myvd.chain.InterceptorChain;
 import net.sourceforge.myvd.server.Server;
@@ -110,7 +110,7 @@ import com.tremolosecurity.server.StopableThread;
 
 public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonConfigManager {
 	
-	static Logger logger = Logger.getLogger(UnisonConfigManagerImpl.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonConfigManagerImpl.class);
 	
 	private String authPath;
 	private String authForms;

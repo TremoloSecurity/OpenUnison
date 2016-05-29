@@ -15,7 +15,7 @@
  *******************************************************************************/
 package com.tremolosecurity.proxy.filters.custom;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.auth.AuthInfo;
@@ -29,7 +29,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class CreateAWSRoleAttribute implements HttpFilter {
 
-	static Logger logger = Logger.getLogger(CreateAWSRoleAttribute.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(CreateAWSRoleAttribute.class.getName());
 	
 	String sourceAttribute;
 	String accountNumber;

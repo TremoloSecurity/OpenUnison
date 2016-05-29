@@ -19,7 +19,7 @@ package com.tremolosecurity.proxy.filters;
 
 import java.util.HashSet;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.proxy.filter.HttpFilter;
 import com.tremolosecurity.proxy.filter.HttpFilterChain;
@@ -33,7 +33,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class CookieFilter implements HttpFilter {
 
-	static Logger logger = Logger.getLogger(CookieFilter.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(CookieFilter.class.getName());
 	
 	HashSet<String> toIgnore;
 	boolean supportRegex;

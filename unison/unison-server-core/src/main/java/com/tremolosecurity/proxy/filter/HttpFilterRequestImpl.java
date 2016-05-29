@@ -41,7 +41,7 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.http.message.BasicHeader;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.filter.AutoIDMPrincipal;
 import com.tremolosecurity.proxy.ProxyRequest;
@@ -56,7 +56,7 @@ import com.tremolosecurity.util.NVP;
 
 public class HttpFilterRequestImpl implements HttpFilterRequest  {
 
-	static Logger logger = Logger.getLogger(HttpFilterRequestImpl.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(HttpFilterRequestImpl.class);
 	
 	HttpServletRequest request;
 	

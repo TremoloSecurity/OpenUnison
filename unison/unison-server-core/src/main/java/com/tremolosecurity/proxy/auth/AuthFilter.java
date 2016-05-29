@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.config.xml.AuthChainType;
@@ -45,7 +45,7 @@ import com.tremolosecurity.proxy.util.NextSys;
 public class AuthFilter implements Filter {
 
 	
-	static Logger logger = Logger.getLogger(AuthFilter.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AuthFilter.class);
 	
 	static String authFilterURI;
 	AuthSys authMgr;

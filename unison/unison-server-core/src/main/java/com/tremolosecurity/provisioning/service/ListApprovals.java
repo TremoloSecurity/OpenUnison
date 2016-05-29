@@ -39,7 +39,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 
 import com.cedarsoftware.util.io.JsonReader;
@@ -59,7 +59,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class ListApprovals extends HttpServlet {
 
-	static Logger logger = Logger.getLogger(ListApprovals.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ListApprovals.class.getName());
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {

@@ -25,7 +25,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UrlHolder;
@@ -42,7 +42,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class EmbForward {
 
-	static Logger logger = Logger.getLogger(EmbForward.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(EmbForward.class);
 	
 	public EmbForward() {
 	

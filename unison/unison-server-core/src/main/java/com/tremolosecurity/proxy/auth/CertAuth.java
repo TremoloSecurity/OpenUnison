@@ -41,7 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -74,7 +74,7 @@ import com.tremolosecurity.server.StopableThread;
 
 public class CertAuth implements AuthMechanism {
 
-	static Logger logger = Logger.getLogger(CertAuth.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(CertAuth.class);
 	
 	ConfigManager cfgMgr;
 

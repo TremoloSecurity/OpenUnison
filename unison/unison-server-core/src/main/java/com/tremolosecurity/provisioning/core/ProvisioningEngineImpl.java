@@ -83,7 +83,7 @@ import org.apache.commons.dbcp.cpdsadapter.DriverAdapterCPDS;
 import org.apache.commons.dbcp.datasources.SharedPoolDataSource;
 import org.apache.commons.net.smtp.SMTP;
 import org.apache.commons.pool2.impl.GenericObjectPool;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
@@ -240,7 +240,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 
 	private Scheduler scheduler;
 	
-	static Logger logger = Logger.getLogger(ProvisioningEngineImpl.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ProvisioningEngineImpl.class.getName());
 
 
 
@@ -1827,7 +1827,7 @@ class SmtpAuthenticator extends Authenticator {
 }
 
 class SendMessageThread implements MessageListener {
-	static Logger logger = Logger.getLogger(SendMessageThread.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(SendMessageThread.class.getName());
 	
 	
 	
