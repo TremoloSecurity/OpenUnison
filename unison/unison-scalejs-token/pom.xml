@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.tremolosecurity.unison</groupId>
-    <artifactId>unison-scalejs</artifactId>
+    <artifactId>unison</artifactId>
     <version>1.0.7</version>
   </parent>
   <artifactId>unison-scalejs-token</artifactId>
