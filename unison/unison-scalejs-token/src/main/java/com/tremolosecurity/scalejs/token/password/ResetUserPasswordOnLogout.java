@@ -56,7 +56,7 @@ public class ResetUserPasswordOnLogout implements LogoutHandler {
 		
 		try {
 			com.tremolosecurity.provisioning.workflow.ExecuteWorkflow exec = new com.tremolosecurity.provisioning.workflow.ExecuteWorkflow();
-			exec.execute(wfCall, GlobalEntries.getGlobalEntries().getConfigManager(), null);
+			exec.execute(wfCall, GlobalEntries.getGlobalEntries().getConfigManager());
 			
 		} catch (Exception e) {
 			logger.error("Could not update user",e);

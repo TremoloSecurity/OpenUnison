@@ -797,7 +797,7 @@ public class ScaleMain implements HttpFilter {
 					
 					try {
 						com.tremolosecurity.provisioning.workflow.ExecuteWorkflow exec = new com.tremolosecurity.provisioning.workflow.ExecuteWorkflow();
-						exec.execute(wfCall, GlobalEntries.getGlobalEntries().getConfigManager(), null);
+						exec.execute(wfCall, GlobalEntries.getGlobalEntries().getConfigManager());
 						results.put(req.getUuid(), "success");
 					} catch (Exception e) {
 						logger.error("Could not update user",e);
@@ -1081,7 +1081,7 @@ public class ScaleMain implements HttpFilter {
 			
 			try {
 				com.tremolosecurity.provisioning.workflow.ExecuteWorkflow exec = new com.tremolosecurity.provisioning.workflow.ExecuteWorkflow();
-				exec.execute(wfCall, GlobalEntries.getGlobalEntries().getConfigManager(), null);
+				exec.execute(wfCall, GlobalEntries.getGlobalEntries().getConfigManager());
 				lookupUser(request, response, gson);
 			} catch (Exception e) {
 				logger.error("Could not update user",e);
