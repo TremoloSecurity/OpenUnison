@@ -157,7 +157,7 @@ public class WorkflowImpl implements  Workflow {
 		request = new HashMap<String,Object>();
 		
 		if (params != null) {
-			request.putAll(params);
+			request = (HashMap<String, Object>) params;
 		}
 		
 		this.user = user;
@@ -554,7 +554,7 @@ public class WorkflowImpl implements  Workflow {
 						root = act.getRoot();
 					}
 					if (root == null) {
-						root = "o=Tremolo";
+						root = this.cfgMgr.getCfg().getLdapRoot();
 					}
 				}
 				

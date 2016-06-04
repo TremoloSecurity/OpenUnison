@@ -319,11 +319,12 @@ public class FreeIPATarget implements UserStoreProvider{
 			}
 		}
 		
-		for (Object o : ((List) results.get("memberof_group"))) {
-			String groupName = (String) o;
-			user.getGroups().add(groupName);
+		if (results != null && results.get("memberof_group") != null) {
+			for (Object o : ((List) results.get("memberof_group"))) {
+				String groupName = (String) o;
+				user.getGroups().add(groupName);
+			}
 		}
-		
 		return user;
 	}
 	

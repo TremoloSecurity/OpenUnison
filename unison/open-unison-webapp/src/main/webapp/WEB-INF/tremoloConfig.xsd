@@ -1126,23 +1126,30 @@
 
 	<complexType name="resyncType">
 		<annotation>
-			<documentation>Determines if the workflow should reload the Unison
-				user object after the workflow is executed. This is useful for
-				Unison policies that rely on the
-				outcome of the workflow
+			<documentation>
+				Determines if the workflow should reload the Unison user
+				object after the workflow is executed. This is useful
+				for Unison policies that rely on the outcome of the
+				workflow
 			</documentation>
 		</annotation>
 		<complexContent>
 			<extension base="tns:workflowTaskType">
 				<attribute name="keepExternalAttrs" type="boolean">
 					<annotation>
-						<documentation>If set to true, any attributes from an external
-							source (such as an assertion) will be maintained even if they are
-							not present on the user's object in the
-							virtual directory
+						<documentation>
+							If set to true, any attributes from an
+							external source (such as an assertion) will
+							be maintained even if they are not present
+							on the user's object in the virtual
+							directory
 						</documentation>
 					</annotation>
 				</attribute>
+				<attribute name="changeRoot" type="boolean"
+					default="false">
+				</attribute>
+				<attribute name="newRoot" type="string"></attribute>
 			</extension>
 		</complexContent>
 	</complexType>

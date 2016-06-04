@@ -23,17 +23,17 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.ResyncType;
 import com.tremolosecurity.config.xml.WorkflowTaskType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
+import com.tremolosecurity.provisioning.core.ProvisioningParams;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.WorkflowTaskImpl;
 
 public class Resync extends WorkflowTaskImpl {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -5660367388385727168L;
 	boolean keepExternalAttrs;
+	boolean changeRoot;
+	String newRoot;
+	
 	
 	public Resync() {
 		
@@ -49,7 +49,8 @@ public class Resync extends WorkflowTaskImpl {
 	public void init(WorkflowTaskType taskConfig) throws ProvisioningException {
 		ResyncType resync = (ResyncType) taskConfig;
 		this.keepExternalAttrs = resync.isKeepExternalAttrs();
-
+		this.changeRoot = resync.isChangeRoot();
+		this.newRoot = resync.getNewRoot();
 	}
 
 	@Override
@@ -57,6 +58,10 @@ public class Resync extends WorkflowTaskImpl {
 		user.setResync(true);
 		user.setKeepExternalAttrs(this.keepExternalAttrs);
 
+		if (this.changeRoot) {
+			request.put(ProvisioningParams.UNISON_RESYNC_ROOT, this.newRoot);
+		}
+		
 		return true;
 	}
 
