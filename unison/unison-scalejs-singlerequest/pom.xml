@@ -1,0 +1,32 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.tremolosecurity.unison</groupId>
+		<artifactId>unison</artifactId>
+		<version>1.0.7</version>
+	</parent>
+	<artifactId>unison-scalejs-singlerequest</artifactId>
+	<name>com.tremolosecurity.unison</name>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-server-core</artifactId>
+			<version>${openunison.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<!-- Provided by Tomcat, but needed for compilation -->
+			<groupId>javax</groupId>
+			<artifactId>javaee-web-api</artifactId>
+			<version>${javaee.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-scalejs-common</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+	</dependencies>
+</project>
