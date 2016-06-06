@@ -133,7 +133,7 @@ public class MapIdentity implements Serializable {
 			} else if (mapper.getSourceType().equalsIgnoreCase("custom")) {
 				entry.type = MappingType.custom;
 				try {
-					entry.mapping = (CustomMapping) Class.forName(mapper.getSourceType()).newInstance();
+					entry.mapping = (CustomMapping) Class.forName(mapper.getTargetAttributeSource()).newInstance();
 				} catch (Exception e) {
 					throw new ProvisioningException("Could not load custom mapping",e);
 				}
