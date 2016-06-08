@@ -2276,7 +2276,7 @@
 			<documentation>Configuration for making sure brute force attacks can't be used</documentation>
 		</annotation>
 		
-		<attribute name="enabled" type="boolean">
+		<attribute name="enabled" type="boolean" default="false">
 			<annotation><documentation>If true, enable lockout compliance</documentation></annotation>
 		</attribute>
 		
