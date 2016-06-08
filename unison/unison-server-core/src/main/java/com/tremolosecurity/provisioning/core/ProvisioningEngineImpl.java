@@ -828,7 +828,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			
 			
-			LDAPSearchResults res = this.cfgMgr.getMyVD().search("o=Tremolo", 2, equal(this.userIDAttributeName,userID).toString(), new ArrayList<String>());
+			LDAPSearchResults res = this.cfgMgr.getMyVD().search(this.cfgMgr.getCfg().getLdapRoot(), 2, equal(this.userIDAttributeName,userID).toString(), new ArrayList<String>());
 			if (! res.hasMore()) {
 				throw new ProvisioningException("Could not locate approver '" + userID + "'");
 			}

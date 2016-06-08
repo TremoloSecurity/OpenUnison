@@ -277,7 +277,7 @@ public class WorkflowImpl implements  Workflow {
 		
 		
 		
-		LDAPSearchResults res = cfgMgr.getMyVD().search("o=Tremolo", 2, equal(cfgMgr.getProvisioningEngine().getUserIDAttribute(),requestorID).toString(), new ArrayList<String>());
+		LDAPSearchResults res = cfgMgr.getMyVD().search(cfgMgr.getCfg().getLdapRoot(), 2, equal(cfgMgr.getProvisioningEngine().getUserIDAttribute(),requestorID).toString(), new ArrayList<String>());
 		LDAPEntry fromLDAP = null;
 		if (res.hasMore()) {
 			fromLDAP = res.next();
