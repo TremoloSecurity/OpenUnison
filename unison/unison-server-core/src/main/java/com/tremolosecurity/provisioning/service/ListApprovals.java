@@ -76,7 +76,7 @@ public class ListApprovals extends HttpServlet {
 				
 				ProvisioningResult pres = new ProvisioningResult();
 				pres.setSuccess(true);
-				pres.setSummaries(ServiceActions.listOpenApprovals(approver));
+				pres.setSummaries(ServiceActions.listOpenApprovals(approver,GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getApprovalDB().getUserIdAttribute(),GlobalEntries.getGlobalEntries().getConfigManager()));
 				resp.getOutputStream().print(gson.toJson(pres));
 				
 				

@@ -168,7 +168,7 @@ limitations under the License.
 
 			<div class="row" ng-show="scale.saveUserSuccess">
 				<div class="alert alert-success" >
-					<b>{{ scale.displayName() }}'s changes saved successfuly.  The changes may not be reflected in your account immediately.</b>
+					<b>{{ scale.displayName() }}'s changes saved successfully.  The changes may not be reflected in your account immediately.</b>
 
 				</div>
 			</div>
@@ -347,7 +347,7 @@ limitations under the License.
 			</div>
 			<div class="row"  ng-repeat="approval in scale.approvals" ng-class-odd="'row-odd'" ng-class-even="'row-even'">
 				<div class="col-md-2"><input type="button" class="btn btn-primary" value="Review" ng-click="scale.reviewApproval(approval)"/></div>
-				<div class="col-md-2"><span  ng-show="! scale.isMobile()"><b>Subject : </b></span>{{ approval.user }}</div>
+				<div class="col-md-2"><span  ng-show="! scale.isMobile()"><b>Subject : </b></span>{{ approval.displayName }}</div>
 				<div class="col-md-3"><span  ng-show="! scale.isMobile()"><b>{{ scale.config.workflowName }} : </b></span>{{ approval.wfLabel }}</div>
 				<div class="col-md-3"><span  ng-show="! scale.isMobile()"><b>Request : </b></span>{{ approval.label }}</div>
 				<div class="col-md-2"><span  ng-show="! scale.isMobile()"><b>Date Opened : </b></span>{{ approval.approvalStart | date : 'short' }}</div>

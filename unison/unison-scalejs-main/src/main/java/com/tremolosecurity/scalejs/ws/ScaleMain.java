@@ -157,7 +157,7 @@ public class ScaleMain implements HttpFilter {
 			AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
 			String uid = userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0); 			
 			response.setContentType("application/json");
-			response.getWriter().println(gson.toJson(ServiceActions.listOpenApprovals(uid)).trim());			
+			response.getWriter().println(gson.toJson(ServiceActions.listOpenApprovals(uid,this.scaleConfig.getDisplayNameAttribute(),GlobalEntries.getGlobalEntries().getConfigManager())).trim());			
 		} else if (request.getMethod().equalsIgnoreCase("GET") && request.getRequestURI().contains("/main/approvals/")) {
 			loadApproval(request, response, gson);
 			
@@ -167,7 +167,7 @@ public class ScaleMain implements HttpFilter {
 			AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
 			String uid = userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0);
 			boolean ok = false;
-			ApprovalSummaries summaries = ServiceActions.listOpenApprovals(uid);
+			ApprovalSummaries summaries = ServiceActions.listOpenApprovals(uid,this.scaleConfig.getDisplayNameAttribute(),GlobalEntries.getGlobalEntries().getConfigManager());
 			for (ApprovalSummary as : summaries.getApprovals()) {
 				if (as.getApproval() == approvalID) {
 					ok = true;
@@ -671,7 +671,7 @@ public class ScaleMain implements HttpFilter {
 		AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
 		String uid = userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0);
 		boolean ok = false;
-		ApprovalSummaries summaries = ServiceActions.listOpenApprovals(uid);
+		ApprovalSummaries summaries = ServiceActions.listOpenApprovals(uid,this.scaleConfig.getDisplayNameAttribute(),GlobalEntries.getGlobalEntries().getConfigManager());
 		for (ApprovalSummary as : summaries.getApprovals()) {
 			if (as.getApproval() == approvalID) {
 				ok = true;

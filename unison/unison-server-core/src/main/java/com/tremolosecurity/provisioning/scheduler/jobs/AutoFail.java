@@ -58,7 +58,7 @@ public class AutoFail extends UnisonJob {
 				.getString("message");
 
 		ApprovalSummaries summaries = ServiceActions
-				.listOpenApprovals(approver);
+				.listOpenApprovals(approver,"",configManager);
 
 		try {
 

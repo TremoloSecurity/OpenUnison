@@ -15,6 +15,7 @@
  *******************************************************************************/
 package com.tremolosecurity.provisioning.service.util;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -31,17 +32,22 @@ import org.hibernate.Session;
 
 import com.cedarsoftware.util.io.JsonReader;
 import com.google.gson.Gson;
+import com.novell.ldap.LDAPAttribute;
+import com.novell.ldap.LDAPEntry;
+import com.novell.ldap.LDAPSearchResults;
+import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.WorkflowType;
 import com.tremolosecurity.json.Token;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.objects.Approvals;
+import com.tremolosecurity.provisioning.objects.UserAttributes;
 import com.tremolosecurity.provisioning.objects.Workflows;
 import com.tremolosecurity.server.GlobalEntries;
 
 public class ServiceActions {
 
-	public static ApprovalSummaries listOpenApprovals(String approver) throws ProvisioningException {
+	public static ApprovalSummaries listOpenApprovals(String approver,String displayNameAttribute,ConfigManager cfgMgr) throws ProvisioningException {
 		Session session = null;
 		try {
 			
@@ -73,6 +79,26 @@ public class ServiceActions {
 				sum.setWorkflow(appr.getWorkflow().getId());
 				sum.setLabel(appr.getLabel());
 				sum.setUser(appr.getWorkflow().getUsers().getUserKey());
+				
+				String filter = equal(cfgMgr.getCfg().getProvisioning().getApprovalDB().getUserIdAttribute(),appr.getWorkflow().getUsers().getUserKey()).toString();
+				ArrayList<String> attributes = new ArrayList<String>();
+				attributes.add(displayNameAttribute);
+				LDAPSearchResults res = cfgMgr.getMyVD().search(cfgMgr.getCfg().getLdapRoot(), 2, filter, attributes);
+				if (res.hasMore()) {
+					LDAPEntry entry = res.next();
+					LDAPAttribute attr = entry.getAttribute(displayNameAttribute);
+					if (attr != null) {
+						sum.setDisplayName(attr.getStringValue());
+					} else {
+						sum.setDisplayName(approver);
+					}
+					while (res.hasMore()) res.next();
+				} else {
+					sum.setDisplayName(approver);
+				}
+				
+				
+				
 				sum.setWfStart(appr.getWorkflow().getStartTs().getTime());
 				sum.setApprovalStart(appr.getCreateTs().getTime());
 				sum.setReason(appr.getWorkflow().getRequestReason());

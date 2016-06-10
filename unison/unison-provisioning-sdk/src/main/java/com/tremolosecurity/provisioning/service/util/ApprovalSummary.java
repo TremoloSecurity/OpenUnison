@@ -30,6 +30,7 @@ public class ApprovalSummary {
 	String wfDescription;
 	String wfLabel;
 	String reason;
+	String displayName;
 	
 	public ApprovalSummary() {
 		
@@ -113,6 +114,16 @@ public class ApprovalSummary {
 
 	public void setReason(String reason) {
 		this.reason = reason;
+	}
+
+
+
+	public String getDisplayName() {
+		return displayName;
+	}
+
+	public void setDisplayName(String displayName) {
+		this.displayName = displayName;
 	}
 
 	
