@@ -15,7 +15,7 @@ package com.tremolosecurity.unison.openshiftv3.model;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class Response {
+public  class Response {
 
 	String kind;
 	String apiVersion;

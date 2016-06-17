@@ -19,7 +19,7 @@ import com.tremolosecurity.unison.openshiftv3.model.Response;
 
 public class User extends Response {
 	List<String> identites;
-	
+	String fullName;
 	
 	public User() {
 		super();
@@ -45,11 +45,11 @@ public class User extends Response {
 	}
 	
 	public String getFullName() {
-		return this.getMetadata().get("fullName");
+		return this.fullName;
 	}
 	
 	public void setFullName(String val) {
-		this.getMetadata().put("fullName", val);
+		this.fullName = val;
 	}
 	
 	public String getUid() {

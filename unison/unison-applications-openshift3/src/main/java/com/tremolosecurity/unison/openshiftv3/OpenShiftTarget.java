@@ -15,6 +15,7 @@ package com.tremolosecurity.unison.openshiftv3;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,8 +29,12 @@ import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
@@ -44,8 +49,11 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.UserStoreProvider;
+import com.tremolosecurity.provisioning.core.Workflow;
+import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.unison.openshiftv3.model.Response;
 import com.tremolosecurity.unison.openshiftv3.model.groups.GroupItem;
 
 public class OpenShiftTarget implements UserStoreProvider {
@@ -63,13 +71,71 @@ public class OpenShiftTarget implements UserStoreProvider {
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
-		// TODO Auto-generated method stub
+		int approvalID = 0;
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+		
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
+		
+		com.tremolosecurity.unison.openshiftv3.model.users.User osUser = new com.tremolosecurity.unison.openshiftv3.model.users.User();
+		
+		
+		osUser.setKind("User");
+		osUser.setApiVersion("v1");
+		osUser.getMetadata().put("name", user.getUserID());
+		if (user.getAttribs().get("fullName") != null) {
+			osUser.setFullName(user.getAttribs().get("fullName").getValues().get(0));
+		}
+		
+		Gson gson  = new Gson();
+		
+		try {
+			String token = this.getAuthToken();
+			
+			
+			HttpCon con = this.createClient();
+			try {
+				String json = gson.toJson(osUser);
+				StringBuffer b = new StringBuffer();
+				b.append("/oapi/v1/users");
+				osUser = gson.fromJson(this.callWSPost(token, con, b.toString(), json),com.tremolosecurity.unison.openshiftv3.model.users.User.class);
+				
+				if (! osUser.getKind().equals("User")) {
+					throw new ProvisioningException("Could not create user " + user.getUserID() + " - " + osUser.getReason());
+				}
+				
+		
+				this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Add,  approvalID, workflow, "name", user.getUserID());
+				this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Add,  approvalID, workflow, "name", osUser.getMetadata().get("name"));
+				
+				if (user.getAttribs().get("fullName") != null) {
+					this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Add,  approvalID, workflow, "fullName", osUser.getFullName());
+				}
+				
+				
+				
+				
+				
+				for (String groupName : user.getGroups()) {
+					this.addUserToGroup(token, con, user.getUserID(), groupName, approvalID, workflow);
+				}
+				
+			} finally {
+				if (con != null) {
+					con.getBcm().shutdown();
+				}
+			}
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not create user",e);
+		}
+		
 
 	}
 
 	@Override
 	public void setUserPassword(User user, Map<String, Object> request) throws ProvisioningException {
-		// TODO Auto-generated method stub
+		throw new ProvisioningException("Not supported");
 
 	}
 
@@ -82,8 +148,42 @@ public class OpenShiftTarget implements UserStoreProvider {
 
 	@Override
 	public void deleteUser(User user, Map<String, Object> request) throws ProvisioningException {
-		// TODO Auto-generated method stub
-
+		int approvalID = 0;
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+		
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
+		
+		user = this.findUser(user.getUserID(), new HashSet<String>(), request);
+		
+		try {
+			String token = this.getAuthToken();
+			HttpCon con = this.createClient();
+			Gson gson = new Gson();
+			try {
+				StringBuffer b = new StringBuffer();
+				b.append("/oapi/v1/users/").append(user.getUserID());
+				String json = this.callWSDelete(token, con, b.toString());
+				Response resp = gson.fromJson(json, Response.class);
+				if (resp.getCode() != 200) {
+					throw new Exception("Unable to delete " + user.getUserID() + " - " + resp.getReason());
+				}
+				
+				this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Delete,  approvalID, workflow, "name", user.getUserID());
+				
+				for (String group : user.getGroups()) {
+					this.removeUserFromGroup(token, con, user.getUserID(), group, approvalID, workflow);
+				}
+			} finally {
+				if (con != null) {
+					con.getBcm().shutdown();
+					con.getHttp().close();
+				}
+			}
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not delete user " + user.getUserID());
+		} 
 	}
 
 	@Override
@@ -120,9 +220,13 @@ public class OpenShiftTarget implements UserStoreProvider {
 					user = new User(userID);
 					
 					for (String attrName : osUser.getMetadata().keySet()) {
-						if (attributes.contains(attrName)) {
+						if (! attrName.equalsIgnoreCase("fullName") && attributes.contains(attrName)) {
 							user.getAttribs().put(attrName, new Attribute(attrName,osUser.getMetadata().get(attrName)));
 						}
+					}
+					
+					if (attributes.contains("fullName") && osUser.getFullName() != null) {
+						user.getAttribs().put("fullName", new Attribute("fullName",osUser.getFullName()));
 					}
 				}
 				
@@ -163,6 +267,56 @@ public class OpenShiftTarget implements UserStoreProvider {
 		HttpResponse resp = con.getHttp().execute(get);
 		
 		String json = EntityUtils.toString(resp.getEntity());
+		return json;
+	}
+	
+	private String callWSDelete(String token, HttpCon con,String uri) throws IOException, ClientProtocolException {
+		StringBuffer b = new StringBuffer();
+		
+		b.append(this.url).append(uri);
+		HttpDelete get = new HttpDelete(b.toString());
+		b.setLength(0);
+		b.append("Bearer ").append(token);
+		get.addHeader(new BasicHeader("Authorization","Bearer " + token));
+		HttpResponse resp = con.getHttp().execute(get);
+		
+		String json = EntityUtils.toString(resp.getEntity());
+		return json;
+	}
+	
+	private String callWSPut(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
+		StringBuffer b = new StringBuffer();
+		
+		b.append(this.url).append(uri);
+		HttpPut put = new HttpPut(b.toString());
+		b.setLength(0);
+		b.append("Bearer ").append(token);
+		put.addHeader(new BasicHeader("Authorization","Bearer " + token));
+		
+		StringEntity str = new StringEntity(json,ContentType.APPLICATION_JSON);
+		put.setEntity(str);
+		
+		HttpResponse resp = con.getHttp().execute(put);
+		
+		json = EntityUtils.toString(resp.getEntity());
+		return json;
+	}
+	
+	private String callWSPost(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
+		StringBuffer b = new StringBuffer();
+		
+		b.append(this.url).append(uri);
+		HttpPost put = new HttpPost(b.toString());
+		b.setLength(0);
+		b.append("Bearer ").append(token);
+		put.addHeader(new BasicHeader("Authorization","Bearer " + token));
+		
+		StringEntity str = new StringEntity(json,ContentType.APPLICATION_JSON);
+		put.setEntity(str);
+		
+		HttpResponse resp = con.getHttp().execute(put);
+		
+		json = EntityUtils.toString(resp.getEntity());
 		return json;
 	}
 
@@ -218,7 +372,7 @@ public class OpenShiftTarget implements UserStoreProvider {
 
 	}
 
-	private String getAuthToken() throws Exception {
+	public String getAuthToken() throws Exception {
 		HttpCon con = this.createClient();
 		try {
 			StringBuffer b = new StringBuffer();
@@ -253,4 +407,49 @@ public class OpenShiftTarget implements UserStoreProvider {
 		}
 	}
 
+	public void addUserToGroup(String token,HttpCon con,String userName,String groupName,int approvalID,Workflow workflow) throws Exception {
+		Gson gson = new Gson();
+		StringBuffer b = new StringBuffer();
+		b.append("/oapi/v1/groups/").append(groupName);
+		String json = this.callWS(token, con, b.toString());
+		com.tremolosecurity.unison.openshiftv3.model.groups.Group group = gson.fromJson(json, com.tremolosecurity.unison.openshiftv3.model.groups.Group.class);
+		if (group.getUsers() == null) {
+			group.setUsers(new HashSet<String>());
+		}
+		if ( ! group.getUsers().contains(userName)) {
+			
+			group.getUsers().add(userName);
+			json = gson.toJson(group);
+			json = this.callWSPut(token, con, b.toString(), json);
+			Response resp = gson.fromJson(json, Response.class);
+			if (resp.getKind().equals("Group")) {
+				this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Add,  approvalID, workflow, "group", groupName);
+			} else {
+				throw new Exception("Could not add group " + groupName + " to " + userName + " - " + resp.getReason());
+			}
+		}
+	}
+	
+	public void removeUserFromGroup(String token,HttpCon con,String userName,String groupName,int approvalID,Workflow workflow) throws Exception {
+		Gson gson = new Gson();
+		StringBuffer b = new StringBuffer();
+		b.append("/oapi/v1/groups/").append(groupName);
+		String json = this.callWS(token, con, b.toString());
+		com.tremolosecurity.unison.openshiftv3.model.groups.Group group = gson.fromJson(json, com.tremolosecurity.unison.openshiftv3.model.groups.Group.class);
+		if (group.getUsers() == null) {
+			group.setUsers(new HashSet<String>());
+		}
+		if (group.getUsers().contains(userName)) {
+			
+			group.getUsers().remove(userName);
+			json = gson.toJson(group);
+			json = this.callWSPut(token, con, b.toString(), json);
+			Response resp = gson.fromJson(json, Response.class);
+			if (resp.getKind().equals("Group")) {
+				this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Delete,  approvalID, workflow, "group", groupName);
+			} else {
+				throw new Exception("Could not remove group " + groupName + " to " + userName + " - " + resp.getReason());
+			}
+		}
+	}
 }
