@@ -133,6 +133,7 @@
 		<module>unison-scalejs-common</module>
 		<module>unison-services-freeipa</module>
 		<module>unison-scalejs-singlerequest</module>
+		<module>unison-applications-openshift3</module>
 	</modules>
 	<build>
 		<plugins>

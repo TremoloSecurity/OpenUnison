@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2015 Tremolo Security, Inc.
+ * Copyright 2016 Tremolo Security, Inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -10,30 +10,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package com.tremolosecurity.unison.freeipa.util;
+package com.tremolosecurity.unison.openshiftv3.model.groups;
 
-import org.apache.http.HttpConnection;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import java.util.ArrayList;
+import java.util.HashSet;
 
-public class HttpCon {
+import com.tremolosecurity.unison.openshiftv3.model.Item;
+
+public class GroupItem extends Item {
+	java.util.Set<String> users;
 	
 	
-	
-	BasicHttpClientConnectionManager bcm;
-	CloseableHttpClient http;
-	
-	public BasicHttpClientConnectionManager getBcm() {
-		return bcm;
+	public GroupItem() {
+		super();
+		this.users = new HashSet<String>();
 	}
-	public void setBcm(BasicHttpClientConnectionManager bcm) {
-		this.bcm = bcm;
+
+
+	public java.util.Set<String> getUsers() {
+		return users;
 	}
-	public CloseableHttpClient getHttp() {
-		return http;
-	}
-	public void setHttp(CloseableHttpClient http) {
-		this.http = http;
+
+
+	public void setUsers(java.util.Set<String> users) {
+		this.users = users;
 	}
 	
 	
