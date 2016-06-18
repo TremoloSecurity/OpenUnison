@@ -212,30 +212,32 @@ public class ScaleMain implements HttpFilter {
 			
 			PortalURLs urls = new PortalURLs();
 			
-			for (PortalUrlType url : pt.getUrls()) {
-				if (url.getAzRules() != null && url.getAzRules().getRule().size() > 0) {
-					ArrayList<AzRule> rules = new ArrayList<AzRule>();
-					
-					for (AzRuleType art : url.getAzRules().getRule()) {
-						rules.add(new AzRule(art.getScope(),art.getConstraint(),art.getClassName(),GlobalEntries.getGlobalEntries().getConfigManager(),null));
+			if (pt != null && pt.getUrls() != null) {
+				for (PortalUrlType url : pt.getUrls()) {
+					if (url.getAzRules() != null && url.getAzRules().getRule().size() > 0) {
+						ArrayList<AzRule> rules = new ArrayList<AzRule>();
+						
+						for (AzRuleType art : url.getAzRules().getRule()) {
+							rules.add(new AzRule(art.getScope(),art.getConstraint(),art.getClassName(),GlobalEntries.getGlobalEntries().getConfigManager(),null));
+						}
+						
+						
+						if (! az.checkRules(userData, GlobalEntries.getGlobalEntries().getConfigManager(), rules,request.getSession(),this.appType,new HashMap<String,Object>())) {
+							continue;
+						}
 					}
 					
+					PortalURL purl = new PortalURL();
+					purl.setName(url.getName());
+					purl.setLabel(url.getLabel());
+					purl.setOrg(url.getOrg());
+					purl.setUrl(url.getUrl());
+					purl.setIcon(url.getIcon());
 					
-					if (! az.checkRules(userData, GlobalEntries.getGlobalEntries().getConfigManager(), rules,request.getSession(),this.appType,new HashMap<String,Object>())) {
-						continue;
-					}
+					urls.getUrls().add(purl);
+					
+					
 				}
-				
-				PortalURL purl = new PortalURL();
-				purl.setName(url.getName());
-				purl.setLabel(url.getLabel());
-				purl.setOrg(url.getOrg());
-				purl.setUrl(url.getUrl());
-				purl.setIcon(url.getIcon());
-				
-				urls.getUrls().add(purl);
-				
-				
 			}
 			
 			
@@ -947,20 +949,20 @@ public class ScaleMain implements HttpFilter {
 			ReportsList reportsList = new ReportsList();
 			reportsList.setReports(new ArrayList<ReportInformation>());
 			
-			
-			for (ReportType report : reports.getReport()) {
-				if (report.getOrgID().equals(orgid)) {
-					ReportInformation ri = new ReportInformation();
-					ri.setName(report.getName());
-					ri.setDescription(report.getDescription());
-					ri.setOrgID(report.getOrgID());
-					ri.setParameters(new ArrayList<String>());
-					ri.getParameters().addAll(report.getParamater());
-					ri.getParameters().remove("currentUser");
-					reportsList.getReports().add(ri);
+			if (reports != null && reports.getReport() != null) {
+				for (ReportType report : reports.getReport()) {
+					if (report.getOrgID().equals(orgid)) {
+						ReportInformation ri = new ReportInformation();
+						ri.setName(report.getName());
+						ri.setDescription(report.getDescription());
+						ri.setOrgID(report.getOrgID());
+						ri.setParameters(new ArrayList<String>());
+						ri.getParameters().addAll(report.getParamater());
+						ri.getParameters().remove("currentUser");
+						reportsList.getReports().add(ri);
+					}
 				}
 			}
-			
 			
 			response.setContentType("application/json");
 			response.getWriter().println(gson.toJson(reportsList).trim());

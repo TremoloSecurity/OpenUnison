@@ -18,23 +18,23 @@ import java.util.HashSet;
 import java.util.Map;
 
 public class Item {
-	Map<String,String> metadata;
+	Map<String,Object> metadata;
 	
 	
 	
 	public Item() {
-		this.metadata = new HashMap<String,String>();
+		this.metadata = new HashMap<String,Object>();
 		
 		
 	}
 
 
-	public Map<String, String> getMetadata() {
+	public Map<String, Object> getMetadata() {
 		return metadata;
 	}
 
 
-	public void setMetadata(Map<String, String> metadata) {
+	public void setMetadata(Map<String, Object> metadata) {
 		this.metadata = metadata;
 	}
 

@@ -396,7 +396,7 @@ public class OpenShiftTarget implements UserStoreProvider {
 			
 			for (GroupItem group : groupList.getItems()) {
 				if (group.getUsers().contains(userID)) {
-					groupsForUser.add(group.getMetadata().get("name"));
+					groupsForUser.add((String) group.getMetadata().get("name"));
 				}
 			}
 			
@@ -414,7 +414,7 @@ public class OpenShiftTarget implements UserStoreProvider {
 		}
 	}
 
-	private String callWS(String token, HttpCon con,String uri) throws IOException, ClientProtocolException {
+	public String callWS(String token, HttpCon con,String uri) throws IOException, ClientProtocolException {
 		StringBuffer b = new StringBuffer();
 		
 		b.append(this.url).append(uri);
@@ -506,7 +506,7 @@ public class OpenShiftTarget implements UserStoreProvider {
 
 	
 
-	private HttpCon createClient() throws Exception {
+	public HttpCon createClient() throws Exception {
 		ArrayList<Header> defheaders = new ArrayList<Header>();
 		defheaders.add(new BasicHeader("X-Csrf-Token", "1"));
 
