@@ -142,8 +142,166 @@ public class OpenShiftTarget implements UserStoreProvider {
 	@Override
 	public void syncUser(User user, boolean addOnly, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
-		// TODO Auto-generated method stub
+		
+		int approvalID = 0;
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+		
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
+		
+		Gson gson = new Gson();
+		User fromServer = this.findUser(user.getUserID(), attributes, request);
+		if (fromServer == null) {
+			this.createUser(user, attributes, request);
+		} else {
+			StringBuffer b = new StringBuffer();
+			String token = null;
+			
+			if (attributes.contains("fullName")) {
+				if (user.getAttribs().get("fullName") != null) {
+					String fullName = user.getAttribs().get("fullName").getValues().get(0);
+					String fromServerFullName = fromServer.getAttribs().get("fullName").getValues().get(0);
+					
+					if (! fromServerFullName.equalsIgnoreCase(fullName)) {
+						try {
+							token = setFullName(user, approvalID, workflow, gson, b);
+						} catch (Exception e) {
+							throw new ProvisioningException("Could not set fullName from " + user.getUserID(),e);
+						}
+					}
+				} else {
+					if (! addOnly) {
+						try {
+							token = deleteFullName(user, approvalID, workflow, gson, b);
+						} catch (Exception e) {
+							throw new ProvisioningException("Could not delete fullName from " + user.getUserID(),e);
+						}
+					}
+				}
+			}
+			
+			
+			
+			try {
+				syncGroups(user, addOnly, approvalID, workflow, fromServer, token);
+			} catch (Exception e) {
+				throw new ProvisioningException("Could not sync groups for " + user.getUserID(),e);
+			}
+			
+		}
 
+	}
+
+	private void syncGroups(User user, boolean addOnly, int approvalID, Workflow workflow, User fromServer,
+			String token) throws Exception, IOException {
+		HttpCon con = null;
+		
+		try {
+			//first see if there are groups to add
+			HashSet<String> fromServerGroups = new HashSet<String>();
+			fromServerGroups.addAll(fromServer.getGroups());
+			for (String groupName : user.getGroups()) {
+				if (! fromServerGroups.contains(groupName)) {
+					
+					if (token == null) {
+						token = this.getAuthToken();
+					}
+					
+					if (con == null) {
+						con = this.createClient();
+					}
+					
+					this.addUserToGroup(token, con, user.getUserID(), groupName, approvalID, workflow);
+				}
+			}
+			
+			if (! addOnly) {
+				//remove groups no longer present
+				HashSet<String> fromUserGroups = new HashSet<String>();
+				fromUserGroups.addAll(user.getGroups());
+				
+				for (String groupName : fromServer.getGroups()) {
+					if (! fromUserGroups.contains(groupName)) {
+						if (token == null) {
+							token = this.getAuthToken();
+						}
+						
+						if (con == null) {
+							con = this.createClient();
+						}
+						
+						this.removeUserFromGroup(token, con, user.getUserID(), groupName, approvalID, workflow);
+					}
+				}
+			}
+			
+			
+		} finally {
+			if (con != null) {
+				con.getBcm().shutdown();
+				con.getHttp().close();
+			}
+		}
+	}
+
+	private String deleteFullName(User user, int approvalID, Workflow workflow, Gson gson, StringBuffer b)
+			throws Exception, IOException, ClientProtocolException, ProvisioningException {
+		String token;
+		token = this.getAuthToken();
+		HttpCon con = this.createClient();
+		try {
+			b.append("/oapi/v1/users/").append(user.getUserID());
+			String json = callWS(token,con,b.toString());
+			com.tremolosecurity.unison.openshiftv3.model.users.User osUser = gson.fromJson(json, com.tremolosecurity.unison.openshiftv3.model.users.User.class);
+			osUser.setFullName(null);
+			json = gson.toJson(osUser);
+			json = callWSPut(token,con,b.toString(),json);
+			osUser = gson.fromJson(json, com.tremolosecurity.unison.openshiftv3.model.users.User.class);
+			
+			if (osUser.getKind().equals("User")) {
+				this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Delete,  approvalID, workflow, "fullName", osUser.getFullName());
+			} else {
+				throw new Exception("Could not unset fullName for " + user.getUserID() + " - " + osUser.getReason());
+			}
+			
+		} finally {
+			
+			con.getHttp().close();
+			con.getBcm().shutdown();
+		}
+		
+		return token;
+	}
+	
+	
+	private String setFullName(User user, int approvalID, Workflow workflow, Gson gson, StringBuffer b)
+			throws Exception, IOException, ClientProtocolException, ProvisioningException {
+		String token;
+		token = this.getAuthToken();
+		HttpCon con = this.createClient();
+		try {
+			b.append("/oapi/v1/users/").append(user.getUserID());
+			String json = callWS(token,con,b.toString());
+			com.tremolosecurity.unison.openshiftv3.model.users.User osUser = gson.fromJson(json, com.tremolosecurity.unison.openshiftv3.model.users.User.class);
+			osUser.setFullName(user.getAttribs().get("fullName").getValues().get(0));
+			json = gson.toJson(osUser);
+			json = callWSPut(token,con,b.toString(),json);
+			osUser = gson.fromJson(json, com.tremolosecurity.unison.openshiftv3.model.users.User.class);
+			
+			if (osUser.getKind().equals("User")) {
+				this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Replace,  approvalID, workflow, "fullName", osUser.getFullName());
+			} else {
+				throw new Exception("Could not set fullName for " + user.getUserID() + " - " + osUser.getReason());
+			}
+			
+		} finally {
+			
+			con.getHttp().close();
+			con.getBcm().shutdown();
+		}
+		
+		return token;
 	}
 
 	@Override
