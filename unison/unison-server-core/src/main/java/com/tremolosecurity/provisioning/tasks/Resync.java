@@ -59,7 +59,7 @@ public class Resync extends WorkflowTaskImpl {
 		user.setKeepExternalAttrs(this.keepExternalAttrs);
 
 		if (this.changeRoot) {
-			request.put(ProvisioningParams.UNISON_RESYNC_ROOT, this.newRoot);
+			request.put(ProvisioningParams.UNISON_RESYNC_ROOT, this.renderTemplate(this.newRoot, request));
 		}
 		
 		return true;
