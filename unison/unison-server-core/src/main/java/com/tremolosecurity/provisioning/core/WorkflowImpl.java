@@ -158,6 +158,7 @@ public class WorkflowImpl implements  Workflow {
 		
 		if (params != null) {
 			request.putAll(params);
+			//request = (HashMap<String, Object>) params;
 		}
 		
 		this.user = user;

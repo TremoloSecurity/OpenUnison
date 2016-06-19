@@ -382,7 +382,15 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				
 				if (request.get(Approval.IMMEDIATE_ACTION) != null && request.get(Approval.REASON) != null) {
 					String reason = (String) request.get(Approval.REASON);
-					boolean action = request.get(Approval.IMMEDIATE_ACTION).equals("true");
+					boolean action = false;
+					Object tmp = request.get(Approval.IMMEDIATE_ACTION);
+					if (tmp instanceof String) {
+						action = tmp.equals("true");
+					} else {
+						action = (boolean) tmp;
+					}
+					
+					 
 					GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().doApproval(this.id, this.getWorkflow().getRequester().getUserID(), action, reason);
 				}
 				
