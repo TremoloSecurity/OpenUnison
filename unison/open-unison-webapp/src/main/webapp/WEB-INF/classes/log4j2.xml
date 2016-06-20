@@ -1,41 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
-	<Appenders>
-		<RollingFile name="server-log" fileName="${serverHome}/logs/tremolo-service.log"
-			append="true" filePattern="${serverHome}/logs/tremolo-service.log.%d">
-			<PatternLayout pattern="[%d][%t] %-5p %c{1} - %m%n" />
-			<Policies>
-				<TimeBasedTriggeringPolicy />
-			</Policies>
-		</RollingFile>
-		<RollingFile name="access-log" fileName="${serverHome}/logs/access.log"
-			append="true" filePattern="${serverHome}/logs/access.log.%d">
-			<PatternLayout pattern="[%d] %m%n" />
-			<Policies>
-				<TimeBasedTriggeringPolicy />
-			</Policies>
-		</RollingFile>
-		<RollingFile name="ldap-access-log" fileName="${serverHome}/logs/ldap-access.log"
-			append="true" filePattern="${serverHome}/logs/ldap-access.log.%d">
-			<PatternLayout pattern="[%d] %m%n" />
-			<Policies>
-				<TimeBasedTriggeringPolicy />
-			</Policies>
-		</RollingFile>
-	</Appenders>
-	<Loggers>
-		
-		<Root level="info">
-			<AppenderRef ref="server-log" />
-		</Root>
-		<Logger name="com.tremolosecurity.log" additivity="false" level="warn">
-			<AppenderRef ref="server-log" />
-		</Logger>
-		<Logger name="com.tremolosecurity.log.AccessLog" additivity="false" level="info">
-			<AppenderRef ref="access-log" />
-		</Logger>
-		<Logger name="com.tremolosecurity.proxy.myvd.log.AccessLog" additivity="false" level="info">
-			<AppenderRef ref="ldap-access-log" />
-		</Logger>
-	</Loggers>
+  <Appenders>
+    <Console name="STDOUT" target="SYSTEM_OUT">
+      <PatternLayout pattern="[%d][%t] %-5p %c{1} - %m%n"/>
+    </Console>
+  </Appenders>
+  <Loggers>
+    
+    <Root level="info">
+      <AppenderRef ref="STDOUT"/>
+    </Root>
+  </Loggers>
 </Configuration>
