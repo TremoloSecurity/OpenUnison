@@ -17,36 +17,45 @@ import com.tremolosecurity.proxy.filter.HttpFilterChain;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;
 import com.tremolosecurity.proxy.filter.HttpFilterRequest;
 import com.tremolosecurity.proxy.filter.HttpFilterResponse;
+import com.tremolosecurity.saml.Attribute;
 
-public class SetNoCacheHeaders implements HttpFilter {
+public class AddHttpsToRedirect implements HttpFilter {
 
 	@Override
-	public void doFilter(HttpFilterRequest req, HttpFilterResponse resp, HttpFilterChain chain) throws Exception {
-		chain.nextFilter(req, resp, chain);
+	public void doFilter(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain)
+			throws Exception {
+		chain.nextFilter(request, response, chain);
 		
-		resp.addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-		resp.addHeader("Pragma", "no-cache");
-		resp.addHeader("Expires", "0");
+		Attribute redir = response.getHeader("Location");
+		if (redir != null) {
+			String curVal = redir.getValues().get(0);
+			if (curVal.startsWith("http:")) {
+				StringBuffer b = new StringBuffer();
+				b.append("https").append(curVal.substring(curVal.indexOf(':')));
+				redir.getValues().clear();
+				redir.getValues().add(b.toString());
+			}
+		}
 
 	}
 
 	@Override
-	public void filterResponseBinary(HttpFilterRequest arg0, HttpFilterResponse arg1, HttpFilterChain arg2, byte[] arg3,
-			int arg4) throws Exception {
-		
+	public void filterResponseText(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain,
+			StringBuffer data) throws Exception {
+		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void filterResponseText(HttpFilterRequest arg0, HttpFilterResponse arg1, HttpFilterChain arg2,
-			StringBuffer arg3) throws Exception {
-		
+	public void filterResponseBinary(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain,
+			byte[] data, int length) throws Exception {
+		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void initFilter(HttpFilterConfig arg0) throws Exception {
-		
+	public void initFilter(HttpFilterConfig config) throws Exception {
+		// TODO Auto-generated method stub
 
 	}
 
