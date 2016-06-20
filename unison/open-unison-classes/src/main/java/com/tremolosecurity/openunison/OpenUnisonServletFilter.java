@@ -85,26 +85,7 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 	
 	@Override
 	public void init(FilterConfig filterCfg) throws ServletException {
-		
-		
-		String logPath = null;
-		
-		try {
-			logPath = InitialContext.doLookup("java:comp/env/unisonLog4jPath");
-		} catch (NamingException ne) {
-			try {
-				logPath = InitialContext.doLookup("java:/env/unisonLog4jPath");
-			} catch (NamingException e) {
-				throw new ServletException("Could not load unisonLog4jPath",e);
-			}
-		}
-		
-		
-		
-		
-		
 		super.init(filterCfg);
-		
 	}
 
 	@Override
