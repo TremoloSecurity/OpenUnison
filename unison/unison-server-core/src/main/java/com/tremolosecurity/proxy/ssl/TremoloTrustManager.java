@@ -114,13 +114,17 @@ public class TremoloTrustManager implements X509TrustManager {
 		boolean trusted = false;
 		for (X509Certificate cert : chain) {
 			try {
+				
+				cert.checkValidity();
+				
+				
 				String alias = ks.getCertificateAlias(cert);
 				if (alias != null) {
 					trusted = true;
 					break;
 				}
 			} catch (KeyStoreException e) {
-				e.printStackTrace();
+				logger.error("Error processing chain",e);
 				throw new CertificateException(e);
 			}
 			
@@ -129,6 +133,7 @@ public class TremoloTrustManager implements X509TrustManager {
 		if (! trusted) {
 			
 			X509Certificate last = chain[chain.length-1];
+			
 			if (last.getIssuerX500Principal().equals(last.getSubjectX500Principal())) {
 				//self signed, no point in continuing
 				throw new CertificateException("Could not validated certificate chain");
@@ -144,6 +149,7 @@ public class TremoloTrustManager implements X509TrustManager {
 						X509Certificate ca = (X509Certificate) cert;
 						if (ca.getSubjectX500Principal().equals(last.getIssuerX500Principal())) {
 							try {
+								last.checkValidity();
 								last.verify(ca.getPublicKey());
 								trusted = true;
 								
