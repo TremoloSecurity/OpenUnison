@@ -17,15 +17,21 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.filters;
 
+import java.net.CookieManager;
+import java.net.HttpCookie;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 
 import javax.servlet.http.Cookie;
 
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.logging.log4j.Logger;
+
 
 import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.proxy.ProxyResponse;
@@ -81,108 +87,78 @@ public class HideCookie implements HttpFilter {
 		
 		URL url = new URL(proxyToURL.toString());
 		
-
+		CookieManager cookieJar = (CookieManager) request.getSession().getAttribute(TREMOLO_HIDE_COOKIE_JAR);
 		
-		HashMap<String, SerialCookie> cookieJar = (HashMap<String, SerialCookie>) request
-				.getSession().getAttribute(TREMOLO_HIDE_COOKIE_JAR);
 		if (cookieJar == null) {
-			cookieJar = new HashMap<String, SerialCookie>();
+			cookieJar = new CookieManager();
 			request.getSession().setAttribute(TREMOLO_HIDE_COOKIE_JAR,
 					cookieJar);
 		}
 
-		Iterator<String> itc = cookieJar.keySet().iterator();
-		ArrayList<String> toremove = new ArrayList<String>();
-
-		StringBuffer periodDomain = new StringBuffer();
 		
-		while (itc.hasNext()) {
-
-			String key = itc.next();
-			SerialCookie cookie = cookieJar.get(key);
-			
-			periodDomain.setLength(0);
-			periodDomain.append('.').append(url.getHost());
-			
-			if (logger.isDebugEnabled()) {
-				logger.debug("Cookie Domain : '" + cookie.getDomain() + "', URL Host : '" + url.getHost() + "'");
-			}
-			
-			if (cookie.getDomain() == null
-					|| url.getHost().endsWith(cookie.getDomain()) || periodDomain.toString().endsWith(cookie.getDomain()) ) {
-
-				
-				if (logger.isDebugEnabled()) {
-					logger.debug("Cookie Path : '" + cookie.getPath() + "', URL Path : '" + request.getRequestURI() + "'");
+		
+		
+		
+		
+		Map<String,List<String>> cookies = cookieJar.get(url.toURI(), new HashMap<String,List<String>>());
+		
+		for (String headerName : cookies.keySet()) {
+			for (String val : cookies.get(headerName)) {
+				if (headerName.equalsIgnoreCase("cookie")) {
+					String name = val.substring(0,val.indexOf('='));
+					String value = val.substring(val.indexOf('=') + 1);
+					request.addCookie(new Cookie(name,value));
 				}
 				
-				if (cookie.getPath() == null
-					
-						|| request.getRequestURI().startsWith(cookie.getPath())) {
-
-					logger.debug("Cookie Secure : '" + cookie.getSecure() + "', URL secure : '" + request.isSecure() + "'");
-					
-					if ((!cookie.getSecure())
-							|| (cookie.getSecure() && request.isSecure())) {
-
-						logger.debug("Cookie valid : '" + cookie.isValid() + "'");
-						
-						if (cookie.isValid()) {
-							if (logger.isDebugEnabled()) {
-								logger.debug("Adding cookie to request : '" + cookie.getName() + "'");
-							}
-							request.addCookie(cookie.genCookie());
-
-						} else {
-							if (logger.isDebugEnabled()) {
-								logger.debug("Deleting Cookie : '" + key + "'");
-							}
-							toremove.add(key);
-						}
-
-					}
-
-				}
-
+				
+				
+				
 			}
+			
+			
 		}
-
-		itc = toremove.iterator();
-		while (itc.hasNext()) {
-			cookieJar.remove(itc.next());
-		}
+		
+		
+		
+		
+		
 
 		chain.nextFilter(request, response, chain);
 
-		ArrayList<Cookie> cookies = response.getCookies();
-		Iterator<Cookie> it = cookies.iterator();
-
-		// logger.info("adding cookies to the jar");
-
-		while (it.hasNext()) {
-			Cookie c = it.next();
-			if (logger.isDebugEnabled()) {
-				logger.debug("Response Cookie : '" + c.getName() + "=" + c.getValue()
-						+ "'");
-			}
-			StringBuffer b = new StringBuffer();
-			b.append(c.getName()).append(c.getDomain()).append(c.getPath());
+		StringBuffer b = new StringBuffer();
+		ArrayList<String> cookieHeaders = new ArrayList<String>();
+		
+		for (Cookie cookie : response.getCookies()) {
+			HttpCookie httpCookie = new HttpCookie(cookie.getName(), cookie.getValue());
 			
-			//logger.info("Cookie : '" + b + "'='" + c.getValue() + "' - max age : '" + c.getMaxAge() + "'");
-			
-			if (c.getMaxAge() == 0) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Removing response cookie : '" + c.getName() + "'");
-				}
-				cookieJar.remove(b.toString());
-			} else {
-				logger.debug("Adding response cookie : '" + c.getName() + "'");
-				cookieJar.put(b.toString(), new SerialCookie(c));
+			if (cookie.getSecure()) {
+				httpCookie.setSecure(true);
 			}
 			
+			if (cookie.getComment() != null) {
+				httpCookie.setComment(cookie.getComment());
+			}
+			
+			if (cookie.getMaxAge() >= 0) {
+				httpCookie.setMaxAge(cookie.getMaxAge());
+			}
+			
+			if (cookie.getPath() != null) {
+				httpCookie.setPath(cookie.getPath());
+			}
+			
+			httpCookie.setVersion(cookie.getVersion());
+			
+			cookieHeaders.add(httpCookie.toString());
 			
 		}
-		cookies.clear();
+		
+		Map<String,List<String>> respHeaders = new HashMap<String,List<String>>();
+		respHeaders.put("Set-Cookie", cookieHeaders);
+		
+		cookieJar.put(url.toURI(),respHeaders);
+		
+		response.getCookies().clear();
 
 	}
 
