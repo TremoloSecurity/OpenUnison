@@ -116,10 +116,11 @@ public class ScaleToken implements HttpFilter {
 		scaleConfig.getFrontPage().setText(this.loadAttributeValue("frontPage.text", "Front Page Text", config));
 		scaleConfig.setHomeURL(this.loadAttributeValue("homeURL", "Home URL", config));
 		scaleConfig.setLogoutURL(this.loadAttributeValue("logoutURL", "Logout URL", config));
+		scaleConfig.setQrCodeAttribute(this.loadOptionalAttributeValue("qrCodeAttribute", "QR Code Attribute", config));
 		
 		String tokenClassName = this.loadAttributeValue("tokenClassName", "Token Class Name", config);
 		this.tokenLoader = (TokenLoader) Class.forName(tokenClassName).newInstance();
-		this.tokenLoader.init(config);
+		this.tokenLoader.init(config,scaleConfig);
 		
 		
 		

@@ -22,6 +22,7 @@ import javax.servlet.http.HttpSession;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.scalejs.token.cfg.ScaleTokenConfig;
 
 public interface TokenLoader {
 
@@ -30,7 +31,7 @@ public interface TokenLoader {
 	 * @param params
 	 * @throws Exception
 	 */
-	public void init(HttpFilterConfig config) throws Exception;
+	public void init(HttpFilterConfig config,ScaleTokenConfig scaleTokenConfig) throws Exception;
 	
 	
 	/**

@@ -121,19 +121,26 @@ limitations under the License.
 
         $http.get('singlerequest/config').then(
           function(response) {
+        	  
+	    	  try {
+	          	JSON.parse(JSON.stringify(response.data));
+	          } catch (e) {
+	          	location.reload(true);
+	          }
+        	  
             $scope.scale.config = response.data.config;
             $scope.scale.displayName = response.data.displayName;
 
             $scope.scale.setSessionLoadedComplete();
             $scope.scale.appIsError = false;
-            $scope.$apply();
+            //$scope.$apply();
 
 
 
           },
           function(response) {
             $scope.scale.appIsError = true;
-            $scope.$apply();
+            //$scope.$apply();
           }
 
         );

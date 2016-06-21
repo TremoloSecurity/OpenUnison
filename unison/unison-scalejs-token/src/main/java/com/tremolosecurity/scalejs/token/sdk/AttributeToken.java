@@ -24,12 +24,13 @@ import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;
 import com.tremolosecurity.saml.Attribute;
 
+
 public class AttributeToken implements TokenLoader {
 
 	ArrayList<String> attributes;
 	
 	@Override
-	public void init(HttpFilterConfig config) throws Exception {
+	public void init(HttpFilterConfig config,com.tremolosecurity.scalejs.token.cfg.ScaleTokenConfig scaleTokenConfig) throws Exception {
 		this.attributes = new ArrayList<String>();
 		this.attributes.addAll(config.getAttribute("attributes").getValues());
 
@@ -48,5 +49,7 @@ public class AttributeToken implements TokenLoader {
 		
 		return attrs;
 	}
+
+
 
 }

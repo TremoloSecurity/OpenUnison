@@ -149,7 +149,12 @@ limitations under the License.
 				<div class="col-md-4"><label>{{name}}</label></div>
 				<div class="col-md-8">{{value}}</div>
 			</div>
-
+			
+			<div class="row" ng-show="scale.config.qrCodeAttribute && scale.token[scale.config.qrCodeAttribute]">
+				<div class="col-md-4"><label>QR Code</label></div>
+				<div class="col-md-8"><qrcode version="10" error-correction-level="H" size="200" data="{{ scale.token[scale.config.qrCodeAttribute] }}"></qrcode></div>
+			</div>
+			
 		</div>
 
 
@@ -174,7 +179,9 @@ limitations under the License.
 
 	<script type="text/javascript" src="js/angular-tree-control.js"></script>
 
-
+<script type="text/javascript" src="js/qrcode.js"></script>
+<script type="text/javascript" src="js/qrcode_UTF8.js"></script>
+<script type="text/javascript" src="js/angular-qrcode.js"></script>
 <script src="js/scale.js"></script>
 
 </body>

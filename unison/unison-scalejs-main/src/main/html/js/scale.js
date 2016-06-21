@@ -799,6 +799,12 @@ limitations under the License.
         $http.get('main/config').
           then(function(response){
             $scope.scale.config = response.data;
+            
+            try {
+            	JSON.parse(JSON.stringify(response.data));
+            } catch (e) {
+            	location.reload(true);
+            }
 
             $http.get('main/user').
               then(function(response) {
@@ -836,23 +842,23 @@ limitations under the License.
                                 $scope.scale.portalURLs = response.data;
 
                                 $scope.scale.setSessionLoadedComplete();
-                                $scope.$apply();
+                                //$scope.$apply();
 
                               },
                               function(response) {
                                 $scope.scale.setSessionLoadedComplete();
-                                $scope.$apply();
+                                //$scope.$apply();
                               }
                             );
                           } else {
                             $scope.scale.setSessionLoadedComplete();
-                            $scope.$apply();
+                            //$scope.$apply();
                           }
 
                       },
                       function(response) {
                         $scope.scale.appIsError = true;
-                        $scope.$apply();
+                        //$scope.$apply();
                       }
                     );
 
@@ -860,18 +866,18 @@ limitations under the License.
                   },
                   function(response) {
                     $scope.scale.appIsError = true;
-                    $scope.$apply();
+                    //$scope.$apply();
                   }
                 )
 
 
               },function(response){
                 $scope.scale.appIsError = true;
-                $scope.$apply();
+                //$scope.$apply();
               });
           },function(response){
             $scope.scale.appIsError = true;
-            $scope.$apply();
+            //$scope.$apply();
           });
 
 

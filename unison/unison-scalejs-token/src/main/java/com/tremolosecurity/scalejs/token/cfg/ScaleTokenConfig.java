@@ -25,6 +25,7 @@ public class ScaleTokenConfig {
 	ScaleFrontPage frontPage;
 	String logoutURL;
 	String homeURL;
+	String qrCodeAttribute;
 	
 	public ScaleTokenConfig() {
 		this.frontPage = new ScaleFrontPage();
@@ -63,6 +64,18 @@ public class ScaleTokenConfig {
 
 	public void setHomeURL(String homeURL) {
 		this.homeURL = homeURL;
+	}
+
+
+
+	public String getQrCodeAttribute() {
+		return qrCodeAttribute;
+	}
+
+
+
+	public void setQrCodeAttribute(String qrCodeAttribute) {
+		this.qrCodeAttribute = qrCodeAttribute;
 	}
 	
 	

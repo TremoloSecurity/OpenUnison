@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 (function(){
-  var app = angular.module('scale',['treeControl']);
+  var app = angular.module('scale',['treeControl','monospaced.qrcode']);
 
 
 
@@ -92,18 +92,28 @@ limitations under the License.
         $http.get('token/config').then(
           function(response) {
             $scope.scale.config = response.data;
-
+            
+            try {
+            	JSON.parse(JSON.stringify(response.data));
+            } catch (e) {
+            	location.reload(true);
+            }
+            
             $http.get('token/user').then(
               function(response) {
                 $scope.scale.displayName = response.data.displayName;
                 $scope.scale.token = response.data.token;
+                
+                
+                
+                
                 $scope.scale.setSessionLoadedComplete();
                 $scope.scale.appIsError = false;
-                $scope.$apply();
+                //$scope.$apply();
               },
               function(response) {
                 $scope.scale.appIsError = true;
-                $scope.$apply();
+                //$scope.$apply();
               }
             );
 
@@ -111,7 +121,7 @@ limitations under the License.
           },
           function(response) {
             $scope.scale.appIsError = true;
-            $scope.$apply();
+            //$scope.$apply();
           }
 
         );
