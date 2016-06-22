@@ -161,6 +161,13 @@
 		
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-scalejs-token</artifactId>
+			<version>${openunison.version}</version>
+			<type>jar</type>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-scalejs-singlerequest</artifactId>
 			<version>${openunison.version}</version>
 			<type>jar</type>

@@ -39,6 +39,8 @@ public class TOTPToken implements TokenLoader {
 	String encryptionKey;
 	String attributeName;
 	
+	
+	
 	private String loadAttributeValue(String name,String label,HttpFilterConfig config) throws Exception {
 		Attribute attr = config.getAttribute(name);
 		if (attr == null) {
