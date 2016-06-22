@@ -134,6 +134,7 @@
 		<module>unison-services-freeipa</module>
 		<module>unison-scalejs-singlerequest</module>
 		<module>unison-applications-openshift3</module>
+		<module>unison-scalejs-register</module>
 	</modules>
 	<build>
 		<plugins>

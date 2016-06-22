@@ -357,15 +357,16 @@ public class WorkflowImpl implements  Workflow {
 		StringBuffer filter = new StringBuffer();
 		
 		
-		
-		
-		LDAPSearchResults res = cfgMgr.getMyVD().search(cfgMgr.getCfg().getLdapRoot(), 2, and(equal(cfgMgr.getProvisioningEngine().getUserIDAttribute(),user.getAttribs().get(cfgMgr.getProvisioningEngine().getUserIDAttribute()).getValues().get(0)),equal("objectClass",cfgMgr.getCfg().getUserObjectClass())).toString(), new ArrayList<String>());
 		LDAPEntry fromLDAP = null;
-		if (res.hasMore()) {
-			fromLDAP = res.next();
+		if (user.getAttribs().get(cfgMgr.getProvisioningEngine().getUserIDAttribute()) != null) {
+			LDAPSearchResults res = cfgMgr.getMyVD().search(cfgMgr.getCfg().getLdapRoot(), 2, and(equal(cfgMgr.getProvisioningEngine().getUserIDAttribute(),user.getAttribs().get(cfgMgr.getProvisioningEngine().getUserIDAttribute()).getValues().get(0)),equal("objectClass",cfgMgr.getCfg().getUserObjectClass())).toString(), new ArrayList<String>());
+			
+			if (res.hasMore()) {
+				fromLDAP = res.next();
+			}
+			
+			while (res.hasMore()) res.next();
 		}
-		
-		while (res.hasMore()) res.next();
 		
 		
 		
