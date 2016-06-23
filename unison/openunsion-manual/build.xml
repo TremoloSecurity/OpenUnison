@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!-- ====================================================================== 
+     Oct 12, 2005 3:59:40 PM                                                        
+
+     project    
+     description
+                   
+     mlb                                                                
+     ====================================================================== -->
+<project name="project">
+	<description>
+            description
+    </description>
+
+	
+
+
+	
+
+	<target name="build-docs" depends="">
+		<mkdir dir="target/openunison/images" />
+
+		<copy todir="target/openunison/images">
+			<fileset dir="src/main/manual/images">
+				<include name="**/*.png" />
+			</fileset>
+		</copy>
+		
+
+		
+		<exec dir="${basedir}/src/main/manual" executable="asciidoc">
+			<arg value="--theme"/>
+			<arg value="flask"/>
+			<!-- <arg value="-a"/>
+			<arg value="data-uri"/> -->
+			<arg value="-a"/>
+			<arg value="toc2"/>
+			<arg value="-o"/>
+			<arg value="${basedir}/target/openunison/openunison-manual.html"/>
+			<arg value="./openunison.asc"/>
+		</exec>
+		
+		
+	</target>
+</project>

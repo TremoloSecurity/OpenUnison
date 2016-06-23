@@ -23,4 +23,31 @@ limitations under the License.
   <artifactId>openunsion-manual</artifactId>
   <packaging>pom</packaging>
   <name>openunison-manual</name>
+  
+  
+    <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <configuration>
+              <tasks>
+
+                <exec executable="ant">
+                	<arg value="build-docs" />
+                </exec>
+
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>  
+    </plugins>
+  </build>
 </project>
