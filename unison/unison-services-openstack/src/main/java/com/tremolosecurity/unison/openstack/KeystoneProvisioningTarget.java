@@ -47,7 +47,9 @@ import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.UserStoreProvider;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.unison.openstack.model.GroupLookupResponse;
 import com.tremolosecurity.unison.openstack.model.KSDomain;
+import com.tremolosecurity.unison.openstack.model.KSGroup;
 import com.tremolosecurity.unison.openstack.model.KSUser;
 import com.tremolosecurity.unison.openstack.model.TokenRequest;
 import com.tremolosecurity.unison.openstack.model.TokenResponse;
@@ -169,6 +171,17 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 				
 				if (attributes.contains("enabled")) {
 					user.getAttribs().put("enabled", new Attribute("enabled",Boolean.toString(fromKS.getEnabled())));
+				}
+				
+				
+				b.setLength(0);
+				b.append(this.url).append("/users/").append(fromKS.getId()).append("/groups");
+				json = this.callWS(token.getAuthToken(), con, b.toString());
+				
+				GroupLookupResponse gresp = gson.fromJson(json, GroupLookupResponse.class);
+				
+				for (KSGroup group : gresp.getGroups()) {
+					user.getGroups().add(group.getName());
 				}
 				
 				return user;
