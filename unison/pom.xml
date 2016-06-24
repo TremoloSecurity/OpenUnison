@@ -66,7 +66,7 @@
 		<hibernate.version>5.1.0.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
 		<org.apache.poi.version>3.12</org.apache.poi.version>
-		<openstack4j.version>3.0.0</openstack4j.version>
+		
 	</properties>
 
 	<repositories>

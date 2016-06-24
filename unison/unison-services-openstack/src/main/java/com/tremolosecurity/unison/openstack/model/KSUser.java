@@ -19,6 +19,9 @@ public class KSUser {
 	String id;
 	Boolean enabled;
 	String email;
+	String description;
+	String domain_id;
+	
 	
 	
 	public KSUser() {
@@ -66,6 +69,22 @@ public class KSUser {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getDomain_id() {
+		return domain_id;
+	}
+
+	public void setDomain_id(String domain_id) {
+		this.domain_id = domain_id;
 	}
 	
 	
