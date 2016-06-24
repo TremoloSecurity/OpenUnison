@@ -102,6 +102,12 @@
 			<artifactId>unison-applications-openshift3</artifactId>
 			<version>${openunison.version}</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-openstack</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
