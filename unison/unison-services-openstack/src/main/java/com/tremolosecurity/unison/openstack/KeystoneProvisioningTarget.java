@@ -274,6 +274,14 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 
 	@Override
 	public void deleteUser(User user, Map<String, Object> request) throws ProvisioningException {
+		
+		int approvalID = 0;
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+		
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
+		
 		HttpCon con = null;
 		KSUser fromKS = null;
 		try {
@@ -292,6 +300,9 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 			
 			StringBuffer b = new StringBuffer(this.url).append("/users/").append(id);
 			this.callWSDelete(token.getAuthToken(), con, b.toString());
+			
+			this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),true, ActionType.Delete,  approvalID, workflow, "name", user.getUserID());
+			
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not work with keystone",e);
 		} finally {
@@ -524,8 +535,12 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 		HttpDelete del = new HttpDelete(uri);
 		del.addHeader(new BasicHeader("X-Auth-Token",token));
 		HttpResponse resp = con.getHttp().execute(del);
-		String json = EntityUtils.toString(resp.getEntity());
-		return json;
+		if (resp.getEntity() != null) {
+			String json = EntityUtils.toString(resp.getEntity());
+			return json;
+		} else {
+			return null;
+		}
 	}
 	
 	private String callWSPost(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
