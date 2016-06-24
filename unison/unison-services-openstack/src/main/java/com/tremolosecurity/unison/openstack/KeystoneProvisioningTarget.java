@@ -86,6 +86,7 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 	String projectName;
 	String projectDomainName;
 	String usersDomain;
+	boolean rolesOnly;
 
 	private ConfigManager cfgMgr;
 	
@@ -93,6 +94,10 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
+		
+		if (rolesOnly) {
+			throw new ProvisioningException("Unsupported");
+		}
 		
 		int approvalID = 0;
 		if (request.containsKey("APPROVAL_ID")) {
@@ -123,7 +128,7 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 			UserHolder userHolder = new UserHolder();
 			userHolder.setUser(newUser);
 			String json = gson.toJson(userHolder);
-			System.err.println(json);
+			
 			StringBuffer b = new StringBuffer();
 			b.append(this.url).append("/users");
 			json = this.callWSPost(token.getAuthToken(), con,b.toString() , json);
@@ -226,6 +231,10 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 
 	@Override
 	public void setUserPassword(User user, Map<String, Object> request) throws ProvisioningException {
+		if (rolesOnly) {
+			throw new ProvisioningException("Unsupported");
+		}
+		
 		int approvalID = 0;
 		if (request.containsKey("APPROVAL_ID")) {
 			approvalID = (Integer) request.get("APPROVAL_ID");
@@ -300,115 +309,116 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 				HashMap<String,String> attrsUpdate = new HashMap<String,String>();
 				KSUser toPatch = new KSUser();
 				
-				if (attributes.contains("email")) {
-					String fromKSVal = null;
-					String newVal = null;
-					
-					if (fromKS.getUser().getAttribs().get("email") != null) {
-						fromKSVal = fromKS.getUser().getAttribs().get("email").getValues().get(0);
-					}
-					
-					if (user.getAttribs().get("email") != null) {
-						newVal = user.getAttribs().get("email").getValues().get(0);
-					}
-					
-					if (newVal != null && (fromKSVal == null || ! fromKSVal.equalsIgnoreCase(newVal))) {
-						toPatch.setEmail(newVal);
-						attrsUpdate.put("email", newVal);
-					} else if (! addOnly && newVal == null && fromKSVal != null) {
-						toPatch.setEmail("");
-						attrsUpdate.put("email", "");
-					}
-				}
-				
-				if (attributes.contains("enabled")) {
-					String fromKSVal = null;
-					String newVal = null;
-					
-					if (fromKS.getUser().getAttribs().get("enabled") != null) {
-						fromKSVal = fromKS.getUser().getAttribs().get("enabled").getValues().get(0);
-					}
-					
-					if (user.getAttribs().get("enabled") != null) {
-						newVal = user.getAttribs().get("enabled").getValues().get(0);
-					}
-					
-					if (newVal != null && (fromKSVal == null || ! fromKSVal.equalsIgnoreCase(newVal))) {
-						toPatch.setName(newVal);
-						attrsUpdate.put("enabled", newVal);
-					} else if (! addOnly && newVal == null && fromKSVal != null) {
-						toPatch.setEnabled(false);
-						attrsUpdate.put("enabled", "");
-					}
-					
-					
-				}
-				
-				if (attributes.contains("description")) {
-					String fromKSVal = null;
-					String newVal = null;
-					
-					if (fromKS.getUser().getAttribs().get("description") != null) {
-						fromKSVal = fromKS.getUser().getAttribs().get("description").getValues().get(0);
-					}
-					
-					if (user.getAttribs().get("description") != null) {
-						newVal = user.getAttribs().get("description").getValues().get(0);
-					}
-					
-					if (newVal != null && (fromKSVal == null || ! fromKSVal.equalsIgnoreCase(newVal))) {
-						toPatch.setDescription(newVal);
-						attrsUpdate.put("description", newVal);
-					} else if (! addOnly && newVal == null && fromKSVal != null) {
-						toPatch.setDescription("");
-						attrsUpdate.put("description", "");
-					}
-					
-					
-				}
-				
-				if (! attrsUpdate.isEmpty()) {
-					UserHolder holder = new UserHolder();
-					holder.setUser(toPatch);
-					String json = gson.toJson(holder);
-					StringBuffer b = new StringBuffer();
-					b.append(this.url).append("/users/").append(fromKS.getId());
-					json = this.callWSPotch(token.getAuthToken(), con, b.toString(), json);
-					
-					for (String attr : attrsUpdate.keySet()) {
-						String val = attrsUpdate.get(attr);
-						this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Replace,  approvalID, workflow, attr,val);
-					}
-					
-					
-				}
-				
-				for (String group : user.getGroups()) {
-					if (! fromKS.getUser().getGroups().contains(group)) {
-						String groupID = this.getGroupID(token.getAuthToken(), con, group);
-						StringBuffer b = new StringBuffer();
-						b.append(this.url).append("/groups/").append(groupID).append("/users/").append(fromKS.getId());
-						if (this.callWSPutNoData(token.getAuthToken(), con, b.toString())) {
-							this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Add,  approvalID, workflow, "group", group);
-							
-						} else {
-							throw new ProvisioningException("Could not add group " + group);
+				if (! rolesOnly) {
+					if (attributes.contains("email")) {
+						String fromKSVal = null;
+						String newVal = null;
+						
+						if (fromKS.getUser().getAttribs().get("email") != null) {
+							fromKSVal = fromKS.getUser().getAttribs().get("email").getValues().get(0);
+						}
+						
+						if (user.getAttribs().get("email") != null) {
+							newVal = user.getAttribs().get("email").getValues().get(0);
+						}
+						
+						if (newVal != null && (fromKSVal == null || ! fromKSVal.equalsIgnoreCase(newVal))) {
+							toPatch.setEmail(newVal);
+							attrsUpdate.put("email", newVal);
+						} else if (! addOnly && newVal == null && fromKSVal != null) {
+							toPatch.setEmail("");
+							attrsUpdate.put("email", "");
 						}
 					}
-				}
-				
-				if (! addOnly) {
-					for (String group : fromKS.getUser().getGroups()) {
-						if (! user.getGroups().contains(group)) {
+					
+					if (attributes.contains("enabled")) {
+						String fromKSVal = null;
+						String newVal = null;
+						
+						if (fromKS.getUser().getAttribs().get("enabled") != null) {
+							fromKSVal = fromKS.getUser().getAttribs().get("enabled").getValues().get(0);
+						}
+						
+						if (user.getAttribs().get("enabled") != null) {
+							newVal = user.getAttribs().get("enabled").getValues().get(0);
+						}
+						
+						if (newVal != null && (fromKSVal == null || ! fromKSVal.equalsIgnoreCase(newVal))) {
+							toPatch.setName(newVal);
+							attrsUpdate.put("enabled", newVal);
+						} else if (! addOnly && newVal == null && fromKSVal != null) {
+							toPatch.setEnabled(false);
+							attrsUpdate.put("enabled", "");
+						}
+						
+						
+					}
+					
+					if (attributes.contains("description")) {
+						String fromKSVal = null;
+						String newVal = null;
+						
+						if (fromKS.getUser().getAttribs().get("description") != null) {
+							fromKSVal = fromKS.getUser().getAttribs().get("description").getValues().get(0);
+						}
+						
+						if (user.getAttribs().get("description") != null) {
+							newVal = user.getAttribs().get("description").getValues().get(0);
+						}
+						
+						if (newVal != null && (fromKSVal == null || ! fromKSVal.equalsIgnoreCase(newVal))) {
+							toPatch.setDescription(newVal);
+							attrsUpdate.put("description", newVal);
+						} else if (! addOnly && newVal == null && fromKSVal != null) {
+							toPatch.setDescription("");
+							attrsUpdate.put("description", "");
+						}
+						
+						
+					}
+					
+					if (! attrsUpdate.isEmpty()) {
+						UserHolder holder = new UserHolder();
+						holder.setUser(toPatch);
+						String json = gson.toJson(holder);
+						StringBuffer b = new StringBuffer();
+						b.append(this.url).append("/users/").append(fromKS.getId());
+						json = this.callWSPotch(token.getAuthToken(), con, b.toString(), json);
+						
+						for (String attr : attrsUpdate.keySet()) {
+							String val = attrsUpdate.get(attr);
+							this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Replace,  approvalID, workflow, attr,val);
+						}
+						
+						
+					}
+					
+					for (String group : user.getGroups()) {
+						if (! fromKS.getUser().getGroups().contains(group)) {
 							String groupID = this.getGroupID(token.getAuthToken(), con, group);
 							StringBuffer b = new StringBuffer();
 							b.append(this.url).append("/groups/").append(groupID).append("/users/").append(fromKS.getId());
-							this.callWSDelete(token.getAuthToken(), con, b.toString());
-							this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Delete,  approvalID, workflow, "group", group);
+							if (this.callWSPutNoData(token.getAuthToken(), con, b.toString())) {
+								this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Add,  approvalID, workflow, "group", group);
+								
+							} else {
+								throw new ProvisioningException("Could not add group " + group);
+							}
+						}
+					}
+					
+					if (! addOnly) {
+						for (String group : fromKS.getUser().getGroups()) {
+							if (! user.getGroups().contains(group)) {
+								String groupID = this.getGroupID(token.getAuthToken(), con, group);
+								StringBuffer b = new StringBuffer();
+								b.append(this.url).append("/groups/").append(groupID).append("/users/").append(fromKS.getId());
+								this.callWSDelete(token.getAuthToken(), con, b.toString());
+								this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Delete,  approvalID, workflow, "group", group);
+							}
 						}
 					}
 				}
-				
 				
 				if (attributes.contains("roles")) {
 					HashSet<Role> currentRoles = new HashSet<Role>();
@@ -545,6 +555,10 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 	@Override
 	public void deleteUser(User user, Map<String, Object> request) throws ProvisioningException {
 		
+		if (rolesOnly) {
+			throw new ProvisioningException("Unsupported");
+		}
+		
 		int approvalID = 0;
 		if (request.containsKey("APPROVAL_ID")) {
 			approvalID = (Integer) request.get("APPROVAL_ID");
@@ -597,6 +611,9 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 			b.append(this.url).append("/users?").append(URLEncodedUtils.format(qparams, "UTF-8"));
 			String fullURL = b.toString();
 			String json = this.callWS(token.getAuthToken(), con, fullURL);
+			
+			System.err.println(json);
+			
 			Gson gson = new Gson();
 			UserLookupResponse resp = gson.fromJson(json, UserLookupResponse.class);
 			
@@ -630,14 +647,16 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 				}
 				
 				
-				b.setLength(0);
-				b.append(this.url).append("/users/").append(fromKS.getId()).append("/groups");
-				json = this.callWS(token.getAuthToken(), con, b.toString());
-				
-				GroupLookupResponse gresp = gson.fromJson(json, GroupLookupResponse.class);
-				
-				for (KSGroup group : gresp.getGroups()) {
-					user.getGroups().add(group.getName());
+				if (! rolesOnly) { 
+					b.setLength(0);
+					b.append(this.url).append("/users/").append(fromKS.getId()).append("/groups");
+					json = this.callWS(token.getAuthToken(), con, b.toString());
+					
+					GroupLookupResponse gresp = gson.fromJson(json, GroupLookupResponse.class);
+					
+					for (KSGroup group : gresp.getGroups()) {
+						user.getGroups().add(group.getName());
+					}
 				}
 				
 				
@@ -656,7 +675,9 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 						}
 					}
 					
-					user.getAttribs().put("roles", attr);
+					if (! attr.getValues().isEmpty()) {
+						user.getAttribs().put("roles", attr);
+					}
 				
 				}
 				
@@ -725,7 +746,7 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 		this.projectDomainName = this.loadOption("projectDomainName", cfg, false);
 		this.projectName = this.loadOption("projectName", cfg, false);
 		this.usersDomain = this.loadOption("usersDomain", cfg, false);
-		
+		this.rolesOnly = this.loadOption("rolesOnly", cfg, false).equalsIgnoreCase("true");
 		this.cfgMgr = cfgMgr;
 	}
 	
