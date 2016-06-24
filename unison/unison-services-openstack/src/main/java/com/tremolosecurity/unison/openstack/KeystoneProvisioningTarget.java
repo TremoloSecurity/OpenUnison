@@ -65,6 +65,7 @@ import com.tremolosecurity.unison.openstack.model.Role;
 import com.tremolosecurity.unison.openstack.model.RoleAssignmentResponse;
 import com.tremolosecurity.unison.openstack.model.TokenRequest;
 import com.tremolosecurity.unison.openstack.model.TokenResponse;
+import com.tremolosecurity.unison.openstack.model.UserAndID;
 import com.tremolosecurity.unison.openstack.model.UserHolder;
 import com.tremolosecurity.unison.openstack.model.UserLookupResponse;
 import com.tremolosecurity.unison.openstack.model.token.Identity;
@@ -132,6 +133,11 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 			
 			
 			UserHolder createdUser = gson.fromJson(json, UserHolder.class);
+			
+			if (createdUser.getUser() == null) {
+				throw new ProvisioningException("Could not create user :" + json);
+			}
+			
 			
 			this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),true, ActionType.Add,  approvalID, workflow, "name", user.getUserID());
 			this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Add,  approvalID, workflow, "name", user.getUserID());
@@ -268,7 +274,31 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 	@Override
 	public void syncUser(User user, boolean addOnly, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
-		// TODO Auto-generated method stub
+		
+		HttpCon con = null;
+		Gson gson = new Gson();
+		
+		
+		
+		try {
+			con = this.createClient();
+			KSToken token = this.getToken(con);
+			
+			UserAndID fromKS = this.lookupUser(user.getUserID(), attributes, request, token, con);
+			
+			if (fromKS == null) {
+				this.createUser(user, attributes, request);
+			} else {
+				
+			}
+			
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not work with keystone",e);
+		} finally {
+			if (con != null) {
+				con.getBcm().shutdown();
+			}
+		}	
 
 	}
 
@@ -312,16 +342,12 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 		}
 	}
 
-	@Override
-	public User findUser(String userID, Set<String> attributes, Map<String, Object> request)
-			throws ProvisioningException {
+	
+	public UserAndID lookupUser(String userID, Set<String> attributes, Map<String, Object> request,KSToken token,HttpCon con)
+			throws Exception {
 		
-		
-		HttpCon con = null;
 		KSUser fromKS = null;
-		try {
-			con = this.createClient();
-			KSToken token = this.getToken(con);
+		
 			
 			List<NameValuePair> qparams = new ArrayList<NameValuePair>();
 			qparams.add(new BasicNameValuePair("domain_id",this.usersDomain));
@@ -394,13 +420,34 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 				
 				}
 				
+				UserAndID userAndId = new UserAndID();
+				userAndId.setUser(user);
+				userAndId.setId(fromKS.getId());
 				
-				return user;
+				return userAndId;
 			}
 			
 			
 			
 			
+		
+	}
+	
+	@Override
+	public User findUser(String userID, Set<String> attributes, Map<String, Object> request)
+			throws ProvisioningException {
+		HttpCon con = null;
+		try {
+			con = this.createClient();
+			KSToken token = this.getToken(con);
+			
+			UserAndID found = this.lookupUser(userID, attributes, request, token, con);
+			if (found != null) {
+				return found.getUser();
+			} else {
+				return null;
+			}
+		
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not work with keystone",e);
 		} finally {
@@ -408,8 +455,6 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 				con.getBcm().shutdown();
 			}
 		}
-		
-		
 		
 	}
 
