@@ -50,7 +50,10 @@ import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.unison.openstack.model.GroupLookupResponse;
 import com.tremolosecurity.unison.openstack.model.KSDomain;
 import com.tremolosecurity.unison.openstack.model.KSGroup;
+import com.tremolosecurity.unison.openstack.model.KSRoleAssignment;
 import com.tremolosecurity.unison.openstack.model.KSUser;
+import com.tremolosecurity.unison.openstack.model.Role;
+import com.tremolosecurity.unison.openstack.model.RoleAssignmentResponse;
 import com.tremolosecurity.unison.openstack.model.TokenRequest;
 import com.tremolosecurity.unison.openstack.model.TokenResponse;
 import com.tremolosecurity.unison.openstack.model.UserLookupResponse;
@@ -183,6 +186,27 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 				for (KSGroup group : gresp.getGroups()) {
 					user.getGroups().add(group.getName());
 				}
+				
+				
+				if (attributes.contains("roles")) {
+					b.setLength(0);
+					b.append(this.url).append("/role_assignments?user.id=").append(fromKS.getId()).append("&include_names=true");
+					json = this.callWS(token.getAuthToken(), con, b.toString());
+					
+					RoleAssignmentResponse rar = gson.fromJson(json, RoleAssignmentResponse.class);
+					Attribute attr = new Attribute("roles");
+					for (KSRoleAssignment role : rar.getRole_assignments()) {
+						if (role.getScope().getProject() != null) {
+							attr.getValues().add(gson.toJson(new Role(role.getRole().getName(),"project",role.getScope().getProject().getDomain().getName(),role.getScope().getProject().getName())));
+						} else {
+							attr.getValues().add(gson.toJson(new Role(role.getRole().getName(),"domain",role.getScope().getDomain().getName())));
+						}
+					}
+					
+					user.getAttribs().put("roles", attr);
+				
+				}
+				
 				
 				return user;
 			}
