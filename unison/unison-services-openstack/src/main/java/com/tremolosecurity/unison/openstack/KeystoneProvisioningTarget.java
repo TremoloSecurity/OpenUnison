@@ -28,6 +28,7 @@ import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -66,7 +67,9 @@ import com.tremolosecurity.unison.openstack.model.TokenRequest;
 import com.tremolosecurity.unison.openstack.model.TokenResponse;
 import com.tremolosecurity.unison.openstack.model.UserHolder;
 import com.tremolosecurity.unison.openstack.model.UserLookupResponse;
+import com.tremolosecurity.unison.openstack.model.token.Identity;
 import com.tremolosecurity.unison.openstack.model.token.Project;
+import com.tremolosecurity.unison.openstack.model.token.Scope;
 import com.tremolosecurity.unison.openstack.model.token.Token;
 import com.tremolosecurity.unison.openstack.util.KSToken;
 
@@ -216,7 +219,49 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 
 	@Override
 	public void setUserPassword(User user, Map<String, Object> request) throws ProvisioningException {
-		// TODO Auto-generated method stub
+		int approvalID = 0;
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+		
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
+		
+		HttpCon con = null;
+		
+		String id;
+		if (user.getAttribs().get("id") != null) {
+			id = user.getAttribs().get("id").getValues().get(0);
+		} else {
+			HashSet<String> attrs = new HashSet<String>();
+			attrs.add("id");
+			User userFromKS = this.findUser(user.getUserID(), attrs, request);
+			id = userFromKS.getAttribs().get("id").getValues().get(0);
+		}
+		
+		UserHolder holder = new UserHolder();
+		holder.setUser(new KSUser());
+		
+		holder.getUser().setPassword(user.getPassword());
+		
+		Gson gson = new Gson();
+		
+		
+		KSUser fromKS = null;
+		try {
+			con = this.createClient();
+			KSToken token = this.getToken(con);
+			String json = gson.toJson(holder);
+			StringBuffer b = new StringBuffer();
+			b.append(this.url).append("/users/").append(id);
+			json = this.callWSPotch(token.getAuthToken(), con, b.toString(), json);
+			this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Replace,  approvalID, workflow, "password", "***********");
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not work with keystone",e);
+		} finally {
+			if (con != null) {
+				con.getBcm().shutdown();
+			}
+		}	
 
 	}
 
@@ -396,7 +441,10 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 		HttpPost put = new HttpPost(b.toString());
 		
 		TokenRequest req = new TokenRequest();
+		req.getAuth().setIdentity(new Identity());
+		req.getAuth().setScope(new Scope());
 		req.getAuth().getIdentity().getMethods().add("password");
+		req.getAuth().getIdentity().getPassword().getUser().setDomain(new KSDomain());
 		req.getAuth().getIdentity().getPassword().getUser().getDomain().setName(this.domain);
 		req.getAuth().getIdentity().getPassword().getUser().setName(this.userName);
 		req.getAuth().getIdentity().getPassword().getUser().setPassword(this.password);
@@ -483,6 +531,21 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 	private String callWSPost(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
 		
 		HttpPost put = new HttpPost(uri);
+		
+		put.addHeader(new BasicHeader("X-Auth-Token",token));
+		
+		StringEntity str = new StringEntity(json,ContentType.APPLICATION_JSON);
+		put.setEntity(str);
+		
+		HttpResponse resp = con.getHttp().execute(put);
+		
+		json = EntityUtils.toString(resp.getEntity());
+		return json;
+	}
+	
+	private String callWSPotch(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
+		
+		HttpPatch put = new HttpPatch(uri);
 		
 		put.addHeader(new BasicHeader("X-Auth-Token",token));
 		

@@ -17,8 +17,7 @@ public class Auth {
 	Scope scope;
 	
 	public Auth() {
-		this.identity = new Identity();
-		this.scope = new Scope();
+		
 	}
 	
 	

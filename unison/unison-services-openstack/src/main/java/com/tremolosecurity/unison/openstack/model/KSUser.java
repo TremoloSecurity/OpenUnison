@@ -25,7 +25,7 @@ public class KSUser {
 	
 	
 	public KSUser() {
-		this.domain = new KSDomain();
+		
 	}
 	
 	public KSDomain getDomain() {
