@@ -12,28 +12,18 @@
  *******************************************************************************/
 package com.tremolosecurity.unison.openstack.model;
 
-public class KSRole {
-	String id;
-	String name;
-	String domain_id;
+import java.util.List;
+
+public class LoadRoleResponse {
+	List<KSRole> roles;
+
+	public List<KSRole> getRoles() {
+		return roles;
+	}
+
+	public void setRoles(List<KSRole> roles) {
+		this.roles = roles;
+	}
 	
-	public String getId() {
-		return id;
-	}
-	public void setId(String id) {
-		this.id = id;
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	public String getDomain_id() {
-		return domain_id;
-	}
-	public void setDomain_id(String domain_id) {
-		this.domain_id = domain_id;
-	}
 	
 }

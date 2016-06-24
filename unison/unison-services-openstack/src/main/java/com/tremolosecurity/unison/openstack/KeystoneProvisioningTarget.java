@@ -47,14 +47,19 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.UserStoreProvider;
+import com.tremolosecurity.provisioning.core.Workflow;
+import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.unison.openstack.model.DomainsResponse;
 import com.tremolosecurity.unison.openstack.model.GroupLookupResponse;
 import com.tremolosecurity.unison.openstack.model.GroupResponse;
 import com.tremolosecurity.unison.openstack.model.KSDomain;
 import com.tremolosecurity.unison.openstack.model.KSGroup;
 import com.tremolosecurity.unison.openstack.model.KSRoleAssignment;
 import com.tremolosecurity.unison.openstack.model.KSUser;
+import com.tremolosecurity.unison.openstack.model.LoadRoleResponse;
+import com.tremolosecurity.unison.openstack.model.ProjectsResponse;
 import com.tremolosecurity.unison.openstack.model.Role;
 import com.tremolosecurity.unison.openstack.model.RoleAssignmentResponse;
 import com.tremolosecurity.unison.openstack.model.TokenRequest;
@@ -83,6 +88,14 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
+		
+		int approvalID = 0;
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+		
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
+		
 		KSUser newUser = new KSUser();
 		newUser.setDomain_id(this.usersDomain);
 		newUser.setName(user.getUserID());
@@ -113,15 +126,84 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 				throw new Exception("Could not create user");
 			}
 			
+			
+			
 			UserHolder createdUser = gson.fromJson(json, UserHolder.class);
+			
+			this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),true, ActionType.Add,  approvalID, workflow, "name", user.getUserID());
+			this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Add,  approvalID, workflow, "name", user.getUserID());
+			this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Add,  approvalID, workflow, "domain_id", this.usersDomain);
+			this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Add,  approvalID, workflow, "enabled", "true");
+			if (attributes.contains("email")) {
+				this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Add,  approvalID, workflow, "email", user.getAttribs().get("email").getValues().get(0));
+			}
+			if (attributes.contains("description")) {
+				this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Add,  approvalID, workflow, "description", user.getAttribs().get("description").getValues().get(0));
+			}
+			
+			
+			
+			
 			
 			for (String group : user.getGroups()) {
 				String groupID = this.getGroupID(token.getAuthToken(), con, group);
 				b.setLength(0);
 				b.append(this.url).append("/groups/").append(groupID).append("/users/").append(createdUser.getUser().getId());
-				this.callWSPutNoData(token.getAuthToken(), con, b.toString());
-			
+				if (this.callWSPutNoData(token.getAuthToken(), con, b.toString())) {
+					this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Add,  approvalID, workflow, "group", group);
+					
+				} else {
+					throw new ProvisioningException("Could not add group " + group);
+				}
+				
 			}
+			
+			if (attributes.contains("roles")) {
+				Attribute roles = user.getAttribs().get("roles");
+				for (String roleJSON : roles.getValues()) {
+					Role role = gson.fromJson(roleJSON, Role.class);
+					if (role.getScope().equalsIgnoreCase("project")) {
+						String projectid = this.getProjectID(token.getAuthToken(), con, role.getProject());
+						if (projectid == null) {
+							throw new ProvisioningException("Project " + role.getDomain() + " does not exist");
+						}
+						
+						String roleid = this.getRoleID(token.getAuthToken(), con, role.getName());
+						if (roleid == null) {
+							throw new ProvisioningException("Role " + role.getName() + " does not exist");
+						}
+						
+						b.setLength(0);
+						b.append(this.url).append("/projects/").append(projectid).append("/users/").append(createdUser.getUser().getId()).append("/roles/").append(roleid);
+						
+						if (this.callWSPutNoData(token.getAuthToken(), con, b.toString())) {
+							this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Add,  approvalID, workflow, "role", roleJSON);
+						} else {
+							throw new ProvisioningException("Could not add role " + roleJSON);
+						} 
+					} else {
+						String domainid = this.getDomainID(token.getAuthToken(), con, role.getDomain());
+						if (domainid == null) {
+							throw new ProvisioningException("Domain " + role.getDomain() + " does not exist");
+						}
+						
+						String roleid = this.getRoleID(token.getAuthToken(), con, role.getName());
+						if (roleid == null) {
+							throw new ProvisioningException("Role " + role.getName() + " does not exist");
+						}
+						
+						b.setLength(0);
+						b.append(this.url).append("/domains/").append(domainid).append("/users/").append(createdUser.getUser().getId()).append("/roles/").append(roleid);
+						
+						if (this.callWSPutNoData(token.getAuthToken(), con, b.toString())) {
+							this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Add,  approvalID, workflow, "role", roleJSON);
+						} else {
+							throw new ProvisioningException("Could not add role " + roleJSON);
+						}
+					}
+				}
+			}
+				
 			
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not work with keystone",e);
@@ -426,4 +508,42 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 		}
 	}
 
+	private String getRoleID(String token,HttpCon con,String name) throws Exception {
+		StringBuffer b = new StringBuffer();
+		b.append(this.url).append("/roles?name=").append(URLEncoder.encode(name, "UTF-8"));
+		String json = this.callWS(token, con, b.toString());
+		Gson gson = new Gson();
+		LoadRoleResponse resp = gson.fromJson(json, LoadRoleResponse.class);
+		if (resp.getRoles().isEmpty()) {
+			return null;
+		} else {
+			return resp.getRoles().get(0).getId();
+		}
+	} 
+	
+	private String getProjectID(String token,HttpCon con,String name) throws Exception {
+		StringBuffer b = new StringBuffer();
+		b.append(this.url).append("/projects?name=").append(URLEncoder.encode(name, "UTF-8"));
+		String json = this.callWS(token, con, b.toString());
+		Gson gson = new Gson();
+		ProjectsResponse res = gson.fromJson(json, ProjectsResponse.class);
+		if (res.getProjects().isEmpty()) {
+			return null;
+		} else {
+			return res.getProjects().get(0).getId();
+		}
+	}
+	
+	private String getDomainID(String token,HttpCon con,String name) throws Exception {
+		StringBuffer b = new StringBuffer();
+		b.append(this.url).append("/domains?name=").append(URLEncoder.encode(name, "UTF-8"));
+		String json = this.callWS(token, con, b.toString());
+		Gson gson = new Gson();
+		DomainsResponse resp = gson.fromJson(json, DomainsResponse.class);
+		if (resp.getDomains().isEmpty()) {
+			return null;
+		} else {
+			return resp.getDomains().get(0).getId();
+		}
+	}
 }
