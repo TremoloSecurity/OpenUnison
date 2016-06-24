@@ -12,6 +12,8 @@
  *******************************************************************************/
 package com.tremolosecurity.unison.openstack.model;
 
+import com.google.gson.Gson;
+
 public class Role {
 	String name;
 	String scope;
@@ -115,6 +117,14 @@ public class Role {
 		return b.toString().hashCode();
 		
 	}
+
+	@Override
+	public String toString() {
+		Gson gson = new Gson();
+		return gson.toJson(this);
+	}
+	
+	
 	
 	
 }

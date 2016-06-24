@@ -15,6 +15,7 @@ package com.tremolosecurity.unison.openstack;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -274,6 +275,12 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 	@Override
 	public void syncUser(User user, boolean addOnly, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
+		int approvalID = 0;
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+		
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
 		
 		HttpCon con = null;
 		Gson gson = new Gson();
@@ -289,6 +296,239 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 			if (fromKS == null) {
 				this.createUser(user, attributes, request);
 			} else {
+				//check attributes
+				HashMap<String,String> attrsUpdate = new HashMap<String,String>();
+				KSUser toPatch = new KSUser();
+				
+				if (attributes.contains("email")) {
+					String fromKSVal = null;
+					String newVal = null;
+					
+					if (fromKS.getUser().getAttribs().get("email") != null) {
+						fromKSVal = fromKS.getUser().getAttribs().get("email").getValues().get(0);
+					}
+					
+					if (user.getAttribs().get("email") != null) {
+						newVal = user.getAttribs().get("email").getValues().get(0);
+					}
+					
+					if (newVal != null && (fromKSVal == null || ! fromKSVal.equalsIgnoreCase(newVal))) {
+						toPatch.setEmail(newVal);
+						attrsUpdate.put("email", newVal);
+					} else if (! addOnly && newVal == null && fromKSVal != null) {
+						toPatch.setEmail("");
+						attrsUpdate.put("email", "");
+					}
+				}
+				
+				if (attributes.contains("enabled")) {
+					String fromKSVal = null;
+					String newVal = null;
+					
+					if (fromKS.getUser().getAttribs().get("enabled") != null) {
+						fromKSVal = fromKS.getUser().getAttribs().get("enabled").getValues().get(0);
+					}
+					
+					if (user.getAttribs().get("enabled") != null) {
+						newVal = user.getAttribs().get("enabled").getValues().get(0);
+					}
+					
+					if (newVal != null && (fromKSVal == null || ! fromKSVal.equalsIgnoreCase(newVal))) {
+						toPatch.setName(newVal);
+						attrsUpdate.put("enabled", newVal);
+					} else if (! addOnly && newVal == null && fromKSVal != null) {
+						toPatch.setEnabled(false);
+						attrsUpdate.put("enabled", "");
+					}
+					
+					
+				}
+				
+				if (attributes.contains("description")) {
+					String fromKSVal = null;
+					String newVal = null;
+					
+					if (fromKS.getUser().getAttribs().get("description") != null) {
+						fromKSVal = fromKS.getUser().getAttribs().get("description").getValues().get(0);
+					}
+					
+					if (user.getAttribs().get("description") != null) {
+						newVal = user.getAttribs().get("description").getValues().get(0);
+					}
+					
+					if (newVal != null && (fromKSVal == null || ! fromKSVal.equalsIgnoreCase(newVal))) {
+						toPatch.setDescription(newVal);
+						attrsUpdate.put("description", newVal);
+					} else if (! addOnly && newVal == null && fromKSVal != null) {
+						toPatch.setDescription("");
+						attrsUpdate.put("description", "");
+					}
+					
+					
+				}
+				
+				if (! attrsUpdate.isEmpty()) {
+					UserHolder holder = new UserHolder();
+					holder.setUser(toPatch);
+					String json = gson.toJson(holder);
+					StringBuffer b = new StringBuffer();
+					b.append(this.url).append("/users/").append(fromKS.getId());
+					json = this.callWSPotch(token.getAuthToken(), con, b.toString(), json);
+					
+					for (String attr : attrsUpdate.keySet()) {
+						String val = attrsUpdate.get(attr);
+						this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Replace,  approvalID, workflow, attr,val);
+					}
+					
+					
+				}
+				
+				for (String group : user.getGroups()) {
+					if (! fromKS.getUser().getGroups().contains(group)) {
+						String groupID = this.getGroupID(token.getAuthToken(), con, group);
+						StringBuffer b = new StringBuffer();
+						b.append(this.url).append("/groups/").append(groupID).append("/users/").append(fromKS.getId());
+						if (this.callWSPutNoData(token.getAuthToken(), con, b.toString())) {
+							this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Add,  approvalID, workflow, "group", group);
+							
+						} else {
+							throw new ProvisioningException("Could not add group " + group);
+						}
+					}
+				}
+				
+				if (! addOnly) {
+					for (String group : fromKS.getUser().getGroups()) {
+						if (! user.getGroups().contains(group)) {
+							String groupID = this.getGroupID(token.getAuthToken(), con, group);
+							StringBuffer b = new StringBuffer();
+							b.append(this.url).append("/groups/").append(groupID).append("/users/").append(fromKS.getId());
+							this.callWSDelete(token.getAuthToken(), con, b.toString());
+							this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Delete,  approvalID, workflow, "group", group);
+						}
+					}
+				}
+				
+				
+				if (attributes.contains("roles")) {
+					HashSet<Role> currentRoles = new HashSet<Role>();
+					if (fromKS.getUser().getAttribs().get("roles") != null) {
+						Attribute attr = fromKS.getUser().getAttribs().get("roles");
+						for (String jsonRole : attr.getValues()) {
+							currentRoles.add(gson.fromJson(jsonRole, Role.class));
+						}
+					}
+					
+					if (user.getAttribs().containsKey("roles")) {
+						StringBuffer b = new StringBuffer();
+						Attribute attr = user.getAttribs().get("roles");
+						for (String jsonRole : attr.getValues()) {
+							Role role = gson.fromJson(jsonRole, Role.class);
+							if (! currentRoles.contains(role)) {
+								
+								if (role.getScope().equalsIgnoreCase("project")) {
+									String projectid = this.getProjectID(token.getAuthToken(), con, role.getProject());
+									if (projectid == null) {
+										throw new ProvisioningException("Project " + role.getDomain() + " does not exist");
+									}
+									
+									String roleid = this.getRoleID(token.getAuthToken(), con, role.getName());
+									if (roleid == null) {
+										throw new ProvisioningException("Role " + role.getName() + " does not exist");
+									}
+									
+									b.setLength(0);
+									b.append(this.url).append("/projects/").append(projectid).append("/users/").append(fromKS.getId()).append("/roles/").append(roleid);
+									
+									if (this.callWSPutNoData(token.getAuthToken(), con, b.toString())) {
+										this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Add,  approvalID, workflow, "role", jsonRole);
+									} else {
+										throw new ProvisioningException("Could not add role " + jsonRole);
+									} 
+								} else {
+									String domainid = this.getDomainID(token.getAuthToken(), con, role.getDomain());
+									if (domainid == null) {
+										throw new ProvisioningException("Domain " + role.getDomain() + " does not exist");
+									}
+									
+									String roleid = this.getRoleID(token.getAuthToken(), con, role.getName());
+									if (roleid == null) {
+										throw new ProvisioningException("Role " + role.getName() + " does not exist");
+									}
+									
+									b.setLength(0);
+									b.append(this.url).append("/domains/").append(domainid).append("/users/").append(fromKS.getId()).append("/roles/").append(roleid);
+									
+									if (this.callWSPutNoData(token.getAuthToken(), con, b.toString())) {
+										this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Add,  approvalID, workflow, "role", jsonRole);
+									} else {
+										throw new ProvisioningException("Could not add role " + jsonRole);
+									}
+								}
+							}
+						}
+					}
+				}
+				
+				
+				
+				if (! addOnly) {
+					if (attributes.contains("roles")) {
+						HashSet<Role> currentRoles = new HashSet<Role>();
+						if (user.getAttribs().get("roles") != null) {
+							Attribute attr = user.getAttribs().get("roles");
+							for (String jsonRole : attr.getValues()) {
+								currentRoles.add(gson.fromJson(jsonRole, Role.class));
+							}
+						}
+						
+						if (fromKS.getUser().getAttribs().containsKey("roles")) {
+							StringBuffer b = new StringBuffer();
+							Attribute attr = fromKS.getUser().getAttribs().get("roles");
+							for (String jsonRole : attr.getValues()) {
+								Role role = gson.fromJson(jsonRole, Role.class);
+								if (! currentRoles.contains(role)) {
+									
+									if (role.getScope().equalsIgnoreCase("project")) {
+										String projectid = this.getProjectID(token.getAuthToken(), con, role.getProject());
+										if (projectid == null) {
+											throw new ProvisioningException("Project " + role.getDomain() + " does not exist");
+										}
+										
+										String roleid = this.getRoleID(token.getAuthToken(), con, role.getName());
+										if (roleid == null) {
+											throw new ProvisioningException("Role " + role.getName() + " does not exist");
+										}
+										
+										b.setLength(0);
+										b.append(this.url).append("/projects/").append(projectid).append("/users/").append(fromKS.getId()).append("/roles/").append(roleid);
+										
+										this.callWSDelete(token.getAuthToken(), con, b.toString());
+										this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Delete,  approvalID, workflow, "role", jsonRole);
+										 
+									} else {
+										String domainid = this.getDomainID(token.getAuthToken(), con, role.getDomain());
+										if (domainid == null) {
+											throw new ProvisioningException("Domain " + role.getDomain() + " does not exist");
+										}
+										
+										String roleid = this.getRoleID(token.getAuthToken(), con, role.getName());
+										if (roleid == null) {
+											throw new ProvisioningException("Role " + role.getName() + " does not exist");
+										}
+										
+										b.setLength(0);
+										b.append(this.url).append("/domains/").append(domainid).append("/users/").append(fromKS.getId()).append("/roles/").append(roleid);
+										
+										this.callWSDelete(token.getAuthToken(), con, b.toString());
+										this.cfgMgr.getProvisioningEngine().logAction(user.getUserID(),false, ActionType.Delete,  approvalID, workflow, "role", jsonRole);
+										
+									}
+								}
+							}
+						} 
+					}
+				}
 				
 			}
 			
