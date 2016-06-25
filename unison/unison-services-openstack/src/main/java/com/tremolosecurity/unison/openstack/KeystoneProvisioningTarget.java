@@ -612,7 +612,7 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 			String fullURL = b.toString();
 			String json = this.callWS(token.getAuthToken(), con, fullURL);
 			
-			System.err.println(json);
+			
 			
 			Gson gson = new Gson();
 			UserLookupResponse resp = gson.fromJson(json, UserLookupResponse.class);
