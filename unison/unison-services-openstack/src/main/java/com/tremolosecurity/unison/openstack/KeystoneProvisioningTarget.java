@@ -45,6 +45,8 @@ import org.apache.logging.log4j.Logger;
 
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.internal.LinkedTreeMap;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
@@ -58,12 +60,14 @@ import com.tremolosecurity.unison.openstack.model.GroupLookupResponse;
 import com.tremolosecurity.unison.openstack.model.GroupResponse;
 import com.tremolosecurity.unison.openstack.model.KSDomain;
 import com.tremolosecurity.unison.openstack.model.KSGroup;
+import com.tremolosecurity.unison.openstack.model.KSRole;
 import com.tremolosecurity.unison.openstack.model.KSRoleAssignment;
 import com.tremolosecurity.unison.openstack.model.KSUser;
 import com.tremolosecurity.unison.openstack.model.LoadRoleResponse;
 import com.tremolosecurity.unison.openstack.model.ProjectsResponse;
 import com.tremolosecurity.unison.openstack.model.Role;
 import com.tremolosecurity.unison.openstack.model.RoleAssignmentResponse;
+import com.tremolosecurity.unison.openstack.model.RoleResponse;
 import com.tremolosecurity.unison.openstack.model.TokenRequest;
 import com.tremolosecurity.unison.openstack.model.TokenResponse;
 import com.tremolosecurity.unison.openstack.model.UserAndID;
@@ -928,6 +932,84 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 			return null;
 		} else {
 			return resp.getDomains().get(0).getId();
+		}
+	}
+	
+	public List<Map<Object,Object>> listDomains() throws ProvisioningException {
+		HttpCon con = null;
+		try {
+			con = this.createClient();
+			KSToken token = this.getToken(con);
+			
+			StringBuffer b = new StringBuffer();
+			b.append(this.url).append("/domains?enabled");
+			String json = this.callWS(token.getAuthToken(), con, b.toString());
+			
+			GsonBuilder builder = new GsonBuilder();
+			Object o = builder.create().fromJson(json, Object.class);
+			
+			List<Map<Object,Object>> roles = (List<Map<Object,Object>>) ((Map<Object,Object>) o).get("domains");
+			
+			return roles;
+			
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not work with keystone",e);
+		} finally {
+			if (con != null) {
+				con.getBcm().shutdown();
+			}
+		}
+	}
+	
+	public List<Map<Object,Object>> listProjects() throws ProvisioningException {
+		HttpCon con = null;
+		try {
+			con = this.createClient();
+			KSToken token = this.getToken(con);
+			
+			StringBuffer b = new StringBuffer();
+			b.append(this.url).append("/projects?enabled");
+			String json = this.callWS(token.getAuthToken(), con, b.toString());
+			Gson gson = new Gson();
+			
+			GsonBuilder builder = new GsonBuilder();
+			Object o = builder.create().fromJson(json, Object.class);
+			
+			List<Map<Object,Object>> roles = (List<Map<Object,Object>>) ((Map<Object,Object>) o).get("projects");
+			
+			return roles;
+			
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not work with keystone",e);
+		} finally {
+			if (con != null) {
+				con.getBcm().shutdown();
+			}
+		}
+	}
+	
+	public List<Map<Object,Object>> listRoles() throws ProvisioningException {
+		HttpCon con = null;
+		try {
+			con = this.createClient();
+			KSToken token = this.getToken(con);
+			
+			StringBuffer b = new StringBuffer();
+			b.append(this.url).append("/roles");
+			String json = this.callWS(token.getAuthToken(), con, b.toString());
+			GsonBuilder builder = new GsonBuilder();
+			Object o = builder.create().fromJson(json, Object.class);
+			
+			List<Map<Object,Object>> roles = (List<Map<Object,Object>>) ((Map<Object,Object>) o).get("roles");
+			
+			return roles;
+			
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not work with keystone",e);
+		} finally {
+			if (con != null) {
+				con.getBcm().shutdown();
+			}
 		}
 	}
 }
