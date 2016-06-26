@@ -107,7 +107,7 @@ public class KeystoneDynamicWorkflow implements DynamicWorkflow {
 					if (role.get(key) != null) {
 						val = role.get(key).toString();
 					}
-					wfParams.put(b.toString(), val);
+					wfParams.put(b.toString().replace("-", "_").replace(".", "_"), val);
 				}
 				
 				boolean addWF = true;
@@ -166,7 +166,8 @@ public class KeystoneDynamicWorkflow implements DynamicWorkflow {
 					if (domain.get(key) != null) {
 						val = domain.get(key).toString();
 					}
-					wfParamsLocal.put(b.toString(), val);
+					wfParamsLocal.put(b.toString().replace("-", "_").replace(".", "_"), val);
+					
 				}
 				
 				workflows.add(wfParamsLocal);
@@ -202,7 +203,7 @@ public class KeystoneDynamicWorkflow implements DynamicWorkflow {
 					if (project.get(key) != null) {
 						val = project.get(key).toString();
 					}
-					wfParamsLocal.put(b.toString(), val);
+					wfParamsLocal.put(b.toString().replace("-", "_").replace(".", "_"), val);
 				}
 				
 				workflows.add(wfParamsLocal);
