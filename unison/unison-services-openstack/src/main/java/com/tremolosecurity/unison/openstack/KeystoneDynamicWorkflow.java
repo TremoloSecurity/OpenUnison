@@ -145,7 +145,7 @@ public class KeystoneDynamicWorkflow implements DynamicWorkflow {
 			for (Map<Object,Object> domain : domains) {
 				
 				if (doFilterTargets) {
-					String name = (String) domain.get("name");
+					String name = (String) domain.get("id");
 					if (targetFilterExclude && targetFilter.contains(name)) {
 						continue;
 					} else if (!targetFilterExclude && !targetFilter.contains(name))  {
@@ -182,7 +182,7 @@ public class KeystoneDynamicWorkflow implements DynamicWorkflow {
 			for (Map<Object,Object> project : projects) {
 				
 				if (doFilterTargets) {
-					String name = (String) project.get("name");
+					String name = (String) project.get("id");
 					if (targetFilterExclude && targetFilter.contains(name)) {
 						continue;
 					} else if (!targetFilterExclude && !targetFilter.contains(name))  {

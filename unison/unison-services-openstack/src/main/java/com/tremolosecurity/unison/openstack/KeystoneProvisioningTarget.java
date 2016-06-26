@@ -1012,4 +1012,70 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 			}
 		}
 	}
+	
+	public List<KSDomain> listDomainObjs() throws ProvisioningException {
+		HttpCon con = null;
+		try {
+			con = this.createClient();
+			KSToken token = this.getToken(con);
+			
+			StringBuffer b = new StringBuffer();
+			b.append(this.url).append("/domains?enabled");
+			String json = this.callWS(token.getAuthToken(), con, b.toString());
+			
+			Gson gson = new Gson();
+			return gson.fromJson(json, DomainsResponse.class).getDomains();
+			
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not work with keystone",e);
+		} finally {
+			if (con != null) {
+				con.getBcm().shutdown();
+			}
+		}
+	}
+	
+	public List<Project> listProjectObjs() throws ProvisioningException {
+		HttpCon con = null;
+		try {
+			con = this.createClient();
+			KSToken token = this.getToken(con);
+			
+			StringBuffer b = new StringBuffer();
+			b.append(this.url).append("/projects?enabled");
+			String json = this.callWS(token.getAuthToken(), con, b.toString());
+			Gson gson = new Gson();
+			
+			return gson.fromJson(json, ProjectsResponse.class).getProjects();
+			
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not work with keystone",e);
+		} finally {
+			if (con != null) {
+				con.getBcm().shutdown();
+			}
+		}
+	}
+	
+	public List<KSRole> listRoleObjs() throws ProvisioningException {
+		HttpCon con = null;
+		try {
+			con = this.createClient();
+			KSToken token = this.getToken(con);
+			
+			StringBuffer b = new StringBuffer();
+			b.append(this.url).append("/roles");
+			String json = this.callWS(token.getAuthToken(), con, b.toString());
+			Gson gson = new Gson();
+			
+			return gson.fromJson(json, RoleResponse.class).getRoles();
+			
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not work with keystone",e);
+		} finally {
+			if (con != null) {
+				con.getBcm().shutdown();
+			}
+		}
+	}
 }
