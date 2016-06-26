@@ -23,6 +23,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.ApplicationsType;
+import com.tremolosecurity.openunison.OpenUnisonConstants;
+
 import com.tremolosecurity.proxy.auth.AuthInfo;
 
 public class AccessLog {
@@ -67,6 +69,7 @@ public class AccessLog {
 		logLine.append(request.getRequestURL()).append(" - ");
 		logLine.append(struser).append(" - ");
 		logLine.append(msg);
+		logLine.append(" [").append(request.getRemoteAddr()).append("] - [").append(request.getSession().getAttribute(OpenUnisonConstants.TREMOLO_SESSION_ID)).append("]");
 		
 		logger.info(logLine.toString());
 		

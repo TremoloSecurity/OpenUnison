@@ -52,6 +52,7 @@ import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.json.Token;
+import com.tremolosecurity.openunison.OpenUnisonConstants;
 import com.tremolosecurity.proxy.auth.AnonAuth;
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.auth.AuthInfo;
@@ -66,8 +67,6 @@ public class SessionManagerImpl implements SessionManager {
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(SessionManagerImpl.class);
 
 	private static final String AUTOIDM_KEY_SESSION = "AUTOIDM_KEY_SESSION";
-
-	private static final String TREMOLO_SESSION_ID = "TREMOLO_SESSION_ID";
 
 	static final String TREMOLO_SESSION_LAST_ACCESSED = "TREMOLO_SESSION_LAST_ACCESSED";
 
@@ -301,7 +300,7 @@ public class SessionManagerImpl implements SessionManager {
 					}
 
 					String fromSessionID = (String) tsession
-							.getAttribute(SessionManagerImpl.TREMOLO_SESSION_ID);
+							.getAttribute(OpenUnisonConstants.TREMOLO_SESSION_ID);
 
 					if (app.getCookieConfig().getTimeout() > 0) {
 						DateTime lastAccessed = (DateTime) tsession
@@ -375,7 +374,7 @@ public class SessionManagerImpl implements SessionManager {
 		// session.setAttribute(app.getCookieConfig().getSessionCookieName(),
 		// tsession);
 
-		tsession.setAttribute(SessionManagerImpl.TREMOLO_SESSION_ID, id);
+		tsession.setAttribute(OpenUnisonConstants.TREMOLO_SESSION_ID, id);
 		tsession.setMaxInactiveInterval(app.getCookieConfig().getTimeout());
 
 		Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -457,7 +456,7 @@ public class SessionManagerImpl implements SessionManager {
 		// session.setAttribute(app.getCookieConfig().getSessionCookieName(),
 		// tsession);
 
-		tsession.setAttribute(SessionManagerImpl.TREMOLO_SESSION_ID, id);
+		tsession.setAttribute(OpenUnisonConstants.TREMOLO_SESSION_ID, id);
 
 		// TODO add global session timeout
 		// tsession.setMaxInactiveInterval(app.getCookieConfig().getTimeout());
