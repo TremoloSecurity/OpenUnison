@@ -144,15 +144,15 @@ public class WorkflowImpl implements  Workflow {
 	 * @see com.tremolosecurity.provisioning.core.Workflow#executeWorkflow(com.tremolosecurity.provisioning.core.User, java.util.Map)
 	 */
 	@Override
-	public void executeWorkflow(User user,Map<String,Object> params) throws ProvisioningException {
-		this.executeWorkflow(user, params, null);
+	public Map<String,Object> executeWorkflow(User user,Map<String,Object> params) throws ProvisioningException {
+		return this.executeWorkflow(user, params, null);
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.tremolosecurity.provisioning.core.Workflow#executeWorkflow(com.tremolosecurity.provisioning.core.User, java.util.Map)
 	 */
 	@Override
-	public void executeWorkflow(User user,Map<String,Object> params, String requesterUID) throws ProvisioningException {
+	public Map<String,Object> executeWorkflow(User user,Map<String,Object> params, String requesterUID) throws ProvisioningException {
 		
 		request = new HashMap<String,Object>();
 		
@@ -253,7 +253,7 @@ public class WorkflowImpl implements  Workflow {
 				
 				boolean doContinue = it.next().doTask(user,request);
 				if (! doContinue) {
-					return;
+					return request;
 				}
 			}
 			
@@ -268,6 +268,7 @@ public class WorkflowImpl implements  Workflow {
 			((ProvisioningEngineImpl) this.cfgMgr.getProvisioningEngine()).enqueue(wfHolder);
 		}
 		
+		return request;
 		
 	}
 
@@ -525,7 +526,7 @@ public class WorkflowImpl implements  Workflow {
 	 * @see com.tremolosecurity.provisioning.core.Workflow#executeWorkflow(com.tremolosecurity.proxy.auth.AuthInfo, java.lang.String)
 	 */
 	@Override
-	public void executeWorkflow(AuthInfo authInfo,String uidAttr) throws ProvisioningException {
+	public Map<String,Object> executeWorkflow(AuthInfo authInfo,String uidAttr) throws ProvisioningException {
 		Attribute uid = authInfo.getAttribs().get(uidAttr);
 		if (uid == null) {
 			throw new ProvisioningException("No uid attribute " + uidAttr);
@@ -534,10 +535,10 @@ public class WorkflowImpl implements  Workflow {
 		User user = new User(uid.getValues().get(0));
 		user.getAttribs().putAll(authInfo.getAttribs());
 		
-		HashMap<String,Object> params = new HashMap<String,Object>();
+		Map<String,Object> params = new HashMap<String,Object>();
 		params.put(ProvisioningParams.UNISON_EXEC_TYPE, ProvisioningParams.UNISON_EXEC_SYNC);
 		
-		this.executeWorkflow(user,params);
+		params = this.executeWorkflow(user,params);
 		
 		try {
 			if (user.isResync()) {
@@ -597,13 +598,15 @@ public class WorkflowImpl implements  Workflow {
 			throw new ProvisioningException("Could not reload user",e);
 		}
 		
+		return params;
+		
 	} 
 	
 	/* (non-Javadoc)
 	 * @see com.tremolosecurity.provisioning.core.Workflow#executeWorkflow(com.tremolosecurity.provisioning.service.util.WFCall)
 	 */
 	@Override
-	public void executeWorkflow(WFCall call) throws ProvisioningException {
+	public Map<String,Object> executeWorkflow(WFCall call) throws ProvisioningException {
 		TremoloUser userFromCall = call.getUser();
 		String uidAttr = call.getUidAttributeName();
 		
@@ -631,7 +634,7 @@ public class WorkflowImpl implements  Workflow {
 		
 		
 		
-		this.executeWorkflow(user,call.getRequestParams(),call.getRequestor());
+		return this.executeWorkflow(user,call.getRequestParams(),call.getRequestor());
 		
 	} 
 	

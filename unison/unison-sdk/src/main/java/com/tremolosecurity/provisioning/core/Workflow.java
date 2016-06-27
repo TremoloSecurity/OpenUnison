@@ -37,17 +37,17 @@ public interface Workflow extends Serializable {
 	public abstract void reInit(ConfigManager cfgMgr)
 			throws ProvisioningException;
 
-	public abstract void executeWorkflow(User user, Map<String, Object> params)
+	public abstract Map<String,Object> executeWorkflow(User user, Map<String, Object> params)
 			throws ProvisioningException;
 	
-	public abstract void executeWorkflow(User user, Map<String, Object> params,String requesterID)
+	public abstract Map<String,Object> executeWorkflow(User user, Map<String, Object> params,String requesterID)
 			throws ProvisioningException;
 	
 
-	public abstract void executeWorkflow(AuthInfo authInfo, String uidAttr)
+	public abstract Map<String,Object> executeWorkflow(AuthInfo authInfo, String uidAttr)
 			throws ProvisioningException;
 
-	public abstract void executeWorkflow(WFCall call)
+	public abstract Map<String,Object> executeWorkflow(WFCall call)
 			throws ProvisioningException;
 
 	public abstract void init() throws ProvisioningException;
