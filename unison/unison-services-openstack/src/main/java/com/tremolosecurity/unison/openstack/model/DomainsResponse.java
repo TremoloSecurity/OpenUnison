@@ -16,13 +16,22 @@ import java.util.List;
 
 public class DomainsResponse {
 	List<KSDomain> domains;
-
+	KSDomain domain;
+	
 	public List<KSDomain> getDomains() {
 		return domains;
 	}
 
 	public void setDomains(List<KSDomain> domains) {
 		this.domains = domains;
+	}
+
+	public KSDomain getDomain() {
+		return domain;
+	}
+
+	public void setDomain(KSDomain domain) {
+		this.domain = domain;
 	}
 	
 	

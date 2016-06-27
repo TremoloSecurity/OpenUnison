@@ -922,7 +922,7 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 		}
 	}
 	
-	private String getDomainID(String token,HttpCon con,String name) throws Exception {
+	public String getDomainID(String token,HttpCon con,String name) throws Exception {
 		StringBuffer b = new StringBuffer();
 		b.append(this.url).append("/domains?name=").append(URLEncoder.encode(name, "UTF-8"));
 		String json = this.callWS(token, con, b.toString());
@@ -932,6 +932,30 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 			return null;
 		} else {
 			return resp.getDomains().get(0).getId();
+		}
+	}
+	
+	public String getDomainName(String id) throws ProvisioningException {
+		HttpCon con = null;
+		try {
+			con = this.createClient();
+			KSToken token = this.getToken(con);
+			StringBuffer b = new StringBuffer();
+			b.append(this.url).append("/domains/").append(id);
+			String json = this.callWS(token.getAuthToken(), con, b.toString());
+			Gson gson = new Gson();
+			DomainsResponse resp = gson.fromJson(json, DomainsResponse.class);
+			if (resp.getDomain() == null) {
+				return null;
+			} else {
+				return resp.getDomain().getName();
+			}
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not work with keystone",e);
+		} finally {
+			if (con != null) {
+				con.getBcm().shutdown();
+			}
 		}
 	}
 	

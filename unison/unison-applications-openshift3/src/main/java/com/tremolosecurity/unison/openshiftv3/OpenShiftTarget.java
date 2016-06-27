@@ -395,7 +395,7 @@ public class OpenShiftTarget implements UserStoreProvider {
 			}
 			
 			for (GroupItem group : groupList.getItems()) {
-				if (group.getUsers().contains(userID)) {
+				if (group.getUsers() != null && group.getUsers().contains(userID)) {
 					groupsForUser.add((String) group.getMetadata().get("name"));
 				}
 			}
@@ -534,13 +534,13 @@ public class OpenShiftTarget implements UserStoreProvider {
 		HttpCon con = this.createClient();
 		try {
 			StringBuffer b = new StringBuffer();
-			b.append(this.url).append("/oauth/authorize?client_id=openshift-challenging-client&response_type=token");
+			b.append(this.url).append("/oauth/authorize?response_type=token&client_id=openshift-challenging-client");
 			HttpGet get = new HttpGet(b.toString());
 			b.setLength(0);
 			b.append(this.userName).append(':').append(this.password);
 			String b64 = Base64.encodeBase64String(b.toString().getBytes("UTF-8"));
 			b.setLength(0);
-			b.append("Basic ").append(b64.substring(0, b64.length() - 1));
+			b.append("Basic ").append(b64.substring(0, b64.length() - 2));
 			get.addHeader(new BasicHeader("Authorization",b.toString()));
 			
 			HttpResponse resp = con.getHttp().execute(get);

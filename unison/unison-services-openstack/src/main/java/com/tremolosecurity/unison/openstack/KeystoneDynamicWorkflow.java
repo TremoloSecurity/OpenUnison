@@ -117,7 +117,7 @@ public class KeystoneDynamicWorkflow implements DynamicWorkflow {
 					addWF = false;
 				}
 				
-				if (!addProjectParams(workflows, projects, b, wfParams, addWF,doFilterTargets,targetFilterExclude,targetFilter)) {
+				if (!addProjectParams(workflows, projects, b, wfParams, addWF,doFilterTargets,targetFilterExclude,targetFilter,target)) {
 					addWF = false;
 				}
 				
@@ -131,7 +131,7 @@ public class KeystoneDynamicWorkflow implements DynamicWorkflow {
 			
 		} else {
 			addDomainParams(workflows, domains, b, null, false,doFilterTargets,targetFilterExclude,targetFilter);
-			addProjectParams(workflows, projects, b, null, false,doFilterTargets,targetFilterExclude,targetFilter);
+			addProjectParams(workflows, projects, b, null, false,doFilterTargets,targetFilterExclude,targetFilter,target);
 		}
 		
 		return workflows;
@@ -177,7 +177,10 @@ public class KeystoneDynamicWorkflow implements DynamicWorkflow {
 	}
 
 	private boolean addProjectParams(ArrayList<Map<String, String>> workflows, List<Map<Object, Object>> projects,
-			StringBuffer b, HashMap<String, String> wfParams, boolean addWF,boolean doFilterTargets,boolean targetFilterExclude,HashSet<String> targetFilter) {
+			StringBuffer b, HashMap<String, String> wfParams, boolean addWF,boolean doFilterTargets,boolean targetFilterExclude,HashSet<String> targetFilter, KeystoneProvisioningTarget target) throws ProvisioningException {
+		
+		HashMap<String,String> domainId2Name = new HashMap<String,String>();
+		
 		if (projects != null) {
 			addWF = false;
 			for (Map<Object,Object> project : projects) {
@@ -205,6 +208,15 @@ public class KeystoneDynamicWorkflow implements DynamicWorkflow {
 					}
 					wfParamsLocal.put(b.toString().replace("-", "_").replace(".", "_"), val);
 				}
+				
+				String domainID = wfParamsLocal.get("project_domain_id");
+				String domainName = domainId2Name.get(domainID);
+				if (domainName == null) {
+					domainName = target.getDomainName(domainID);
+					domainId2Name.put(domainID, domainName);
+				}
+				
+				wfParamsLocal.put("project_domain_name", domainName);
 				
 				workflows.add(wfParamsLocal);
 			}
