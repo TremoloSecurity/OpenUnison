@@ -50,6 +50,12 @@ limitations under the License.
 
 </head>
 <body ng-controller="ScaleController as scale">
+	<script type="text/javascript">
+	captchaloaded = false;
+      var onloadCallback = function() {
+    	  captchaloaded=true;
+      };
+    </script>
 	<div class="container">
 		<div ng-show="! scale.isSessionLoaded() && scale.appIsError">
 			<div class="navbar navbar-default" role="navigation">
@@ -165,7 +171,12 @@ limitations under the License.
 				<form name="saveUserForm">
 					<div class="row" ng-repeat="attributeConfig in scale.config.attributes">
 							<div class="col-md-4">{{ attributeConfig.displayName}}</div>
-							<div class="col-md-8"><input type="text" ng-model="scale.newUser.attributes[attributeConfig.name]"  aria-label="{{ attributeConfig.displayName }}"></input></div>
+							<div class="col-md-8">
+
+								<input type="text" ng-show="attributeConfig.type == 'text'" ng-model="scale.newUser.attributes[attributeConfig.name]"  aria-label="{{ attributeConfig.displayName }}" />
+								<select ng-show="attributeConfig.type == 'list'" ng-model="scale.newUser.attributes[attributeConfig.name]"  aria-label="{{ attributeConfig.displayName }}" ng-options="option.name for option in attributeConfig.values track by option.value" convert-to-string></select>
+
+							</div>
 					</div>
 					<div class="row" ng-hide="! scale.config.requireReason">
 						<div class="col-md-4">Reason</div>
@@ -179,6 +190,21 @@ limitations under the License.
 						<div class="col-md-4">Verify Password</div>
 						<div class="col-md-8"><input type="password" ng-model="scale.newUser.password2"  aria-label="Verify Password"></input></div>
 					</div>
+					<div class="row" ng-hide="! scale.config.requireTermsAndConditions">
+						<div class="col-md-4">Terms and Conditions</div>
+						<div class="col-md-8">I accept the below terms and conditions <input type="checkbox" ng-model="scale.newUser.checkedTermsAndConditions"></input></div>
+					</div>
+
+					<div class="row" ng-hide="! scale.config.requireTermsAndConditions">
+						<div ng-bind-html="scale.config.termsAndConditionsText"></div>
+						</div>
+					</div>
+
+					<div class="row" ng-hide="! scale.config.requireReCaptcha">
+						<div class="col-md-4">Prove You are Not a Robot</div>
+						<div class="col-md-8"><div id="recaptcha" ></div></div>
+					</div>
+
 					<div  class="row">
 						<input type="button" ng-disabled="scale.saveUserDisabled" class="btn btn-lg btn-primary" value="Save" ng-click="scale.saveUser()" />
 					</div>
@@ -209,7 +235,9 @@ limitations under the License.
 	<script src="js/angular.min.js"></script>
 
 	<script type="text/javascript" src="js/angular-tree-control.js"></script>
+	<script type="text/javascript" src="js/angular-sanitize.min.js"></script>
 
+	<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
 
 <script src="js/scale.js"></script>
 

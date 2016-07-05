@@ -15,8 +15,12 @@
  *******************************************************************************/
 package com.tremolosecurity.scalejs.cfg;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.tremolosecurity.util.NVP;
 
 public class ScaleAttribute {
 	String name;
@@ -27,12 +31,15 @@ public class ScaleAttribute {
 	String regExFailedMsg;
 	int minChars;
 	int maxChars;
+	boolean unique;
+	String type;
+	List<NVP> values;
 	
 	
 	private transient Pattern pattern;
 	
 	public ScaleAttribute() {
-		
+		this.values = new ArrayList<NVP>();
 	}
 
 	public String getName() {
@@ -103,6 +110,31 @@ public class ScaleAttribute {
 	public void setMaxChars(int maxChars) {
 		this.maxChars = maxChars;
 	}
+
+	public boolean isUnique() {
+		return unique;
+	}
+
+	public void setUnique(boolean unique) {
+		this.unique = unique;
+	}
+
+	public List<NVP> getValues() {
+		return values;
+	}
+
+	public void setValues(List<NVP> values) {
+		this.values = values;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+	
 	
 	
 	

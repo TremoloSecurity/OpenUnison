@@ -12,13 +12,28 @@
  *******************************************************************************/
 package com.tremolosecurity.scalejs.register.ws;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
+import com.novell.ldap.LDAPSearchResults;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.service.util.TremoloUser;
 import com.tremolosecurity.provisioning.service.util.WFCall;
@@ -39,12 +54,16 @@ import com.tremolosecurity.scalejs.cfg.ScaleAttribute;
 import com.tremolosecurity.scalejs.data.ScaleError;
 import com.tremolosecurity.scalejs.register.cfg.ScaleJSRegisterConfig;
 import com.tremolosecurity.scalejs.register.data.NewUserRequest;
+import com.tremolosecurity.scalejs.register.data.ReCaptchaResponse;
+import com.tremolosecurity.scalejs.register.sdk.CreateRegisterUser;
 import com.tremolosecurity.server.GlobalEntries;
+import com.tremolosecurity.util.NVP;
 
 
 public class ScaleRegister implements HttpFilter {
 	static Logger logger = Logger.getLogger(ScaleRegister.class.getName());
 	private ScaleJSRegisterConfig scaleConfig;
+	private CreateRegisterUser cru;
 
 	@Override
 	public void doFilter(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain)
@@ -59,6 +78,44 @@ public class ScaleRegister implements HttpFilter {
 			ScaleError errors = new ScaleError();
 			String json = new String( (byte[]) request.getAttribute(ProxySys.MSG_BODY));
 			NewUserRequest newUser = gson.fromJson(json, NewUserRequest.class);
+			
+			if (scaleConfig.isRequireReCaptcha()) {
+				if (newUser.getReCaptchaCode() == null || newUser.getReCaptchaCode().isEmpty()) {
+					errors.getErrors().add("Please verify you are not a robot");
+				} else {
+					BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(GlobalEntries.getGlobalEntries().getConfigManager().getHttpClientSocketRegistry());
+					RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
+					CloseableHttpClient http = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(rc).build();
+					HttpPost httppost = new HttpPost("https://www.google.com/recaptcha/api/siteverify");
+					
+					List<NameValuePair> formparams = new ArrayList<NameValuePair>();
+					formparams.add(new BasicNameValuePair("secret", scaleConfig.getRcSecretKey()));
+					formparams.add(new BasicNameValuePair("response", newUser.getReCaptchaCode()));
+					UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, "UTF-8");
+
+					
+					httppost.setEntity(entity);
+					
+					CloseableHttpResponse resp = http.execute(httppost);
+					
+					
+					
+					ReCaptchaResponse res = gson.fromJson(EntityUtils.toString(resp.getEntity()), ReCaptchaResponse.class);
+					
+					if (! res.isSuccess()) {
+						errors.getErrors().add("Human validation failed");
+					}
+					
+					http.close();
+					bhcm.close();
+					
+				}
+			}
+			
+			if (scaleConfig.isRequireTermsAndConditions() && ! newUser.isCheckedTermsAndConditions()) {
+				errors.getErrors().add("You must accept the terms and conditions to register");
+			}
+			
 			
 			if (this.scaleConfig.isRequireReason() && (newUser.getReason() == null || newUser.getReason().isEmpty())) {
 				errors.getErrors().add("Reason is required");
@@ -78,19 +135,42 @@ public class ScaleRegister implements HttpFilter {
 				if (this.scaleConfig.getAttributes().get(attributeName) == null) {
 					errors.getErrors().add("Invalid attribute : '" + attributeName + "'");
 					
-				} else if (this.scaleConfig.getAttributes().get(attributeName).isReadOnly()) {
+				}
+				
+				if (this.scaleConfig.getAttributes().get(attributeName).isReadOnly()) {
 					errors.getErrors().add("Attribute is read only : '" + this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + "'");
 					
-				} else if (this.scaleConfig.getAttributes().get(attributeName).isRequired() && value.length() == 0) {
+				} 
+				
+				if (this.scaleConfig.getAttributes().get(attributeName).isRequired() && (value == null || value.length() == 0)) {
 					errors.getErrors().add("Attribute is required : '" + this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + "'");
 					
-				} else if (this.scaleConfig.getAttributes().get(attributeName).getMinChars() > 0 && this.scaleConfig.getAttributes().get(attributeName).getMinChars() <= value.length()) {
+				} 
+				
+				if (this.scaleConfig.getAttributes().get(attributeName).getMinChars() > 0 && this.scaleConfig.getAttributes().get(attributeName).getMinChars() <= value.length()) {
 					errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " must have at least " + this.scaleConfig.getAttributes().get(attributeName).getMinChars() + " characters");
 					
-				} else if (this.scaleConfig.getAttributes().get(attributeName).getMaxChars() > 0 && this.scaleConfig.getAttributes().get(attributeName).getMaxChars() >= value.length()) {
+				} 
+				
+				if (this.scaleConfig.getAttributes().get(attributeName).getMaxChars() > 0 && this.scaleConfig.getAttributes().get(attributeName).getMaxChars() >= value.length()) {
 					errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " must have at most " + this.scaleConfig.getAttributes().get(attributeName).getMaxChars() + " characters");
 					
-				} else if (this.scaleConfig.getAttributes().get(attributeName).getPattern() != null) {
+				} 
+				
+				if (this.scaleConfig.getAttributes().get(attributeName).getType().equalsIgnoreCase("list")) {
+					boolean found = false;
+					for (NVP nvp : this.scaleConfig.getAttributes().get(attributeName).getValues()) {
+						if (nvp.getValue().equalsIgnoreCase(value)) {
+							found = true;
+						}
+					}
+					
+					if (! found) {
+						errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " has an invalid value");
+					}
+				}
+				
+				if (this.scaleConfig.getAttributes().get(attributeName).getPattern() != null) {
 					boolean ok = true;
 					try {
 						Matcher m = this.scaleConfig.getAttributes().get(attributeName).getPattern().matcher(value);
@@ -105,7 +185,28 @@ public class ScaleRegister implements HttpFilter {
 						errors.getErrors().add("Attribute value not valid : '" + this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + "' - " + this.scaleConfig.getAttributes().get(attributeName).getRegExFailedMsg());
 					}
 				}
+				
+				if (this.scaleConfig.getAttributes().get(attributeName).isUnique()) {
+					String filter = equal(attributeName,value).toString();
+					
+					LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, filter, new ArrayList<String>());
+					if (res.hasMore()) {
+						errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " is not available");
+					}
+					while (res.hasMore()) res.next();
+				}
 			}
+			
+			
+			WFCall wfcall = null;
+			String wfName = this.scaleConfig.getWorkflowName();
+			if (errors.getErrors().isEmpty()) {
+				if (scaleConfig.isUseCustomSubmission()) {
+					wfName = cru.createTremoloUser(newUser, errors.getErrors());
+				}
+			}
+			
+			
 			
 			
 			if (errors.getErrors().isEmpty()) {
@@ -122,26 +223,28 @@ public class ScaleRegister implements HttpFilter {
 					
 				}
 				
-				WFCall wfcall = new WFCall();
+				wfcall = new WFCall();
 				wfcall.setUidAttributeName(this.scaleConfig.getUidAttributeName());
 				wfcall.setReason(newUser.getReason());
-				wfcall.setName(this.scaleConfig.getWorkflowName());
+				wfcall.setName(wfName);
 				wfcall.setUser(user);
-				wfcall.setRequestor(userData.getAttribs().get(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getApprovalDB().getUserIdAttribute()).getValues().get(0));
+				
 				HashMap<String,Object> params = new HashMap<String,Object>();
 				wfcall.setRequestParams(params);
 				
 				
 				
-				if (scaleConfig.isRequireReason()) {
+				
 					
-					
+				if (userData.getAuthLevel() != 0) {
+					wfcall.setRequestor(userData.getAttribs().get(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getApprovalDB().getUserIdAttribute()).getValues().get(0));
 					wfcall.getRequestParams().put(Approval.SEND_NOTIFICATION, "false");
 					wfcall.getRequestParams().put(Approval.REASON, newUser.getReason());
 					wfcall.getRequestParams().put(Approval.IMMEDIATE_ACTION, "true");
+				} 
+				
 					
-					
-				}
+				
 				
 				ExecuteWorkflow exec = new ExecuteWorkflow();
 				
@@ -228,6 +331,25 @@ public class ScaleRegister implements HttpFilter {
 			throw new Exception("Attribute names not found");
 		}
 		
+		val = this.loadOptionalAttributeValue("requireReCaptcha", "ReCaptcha Required", config);
+		if (val == null) {
+			val = "false";
+		}
+		
+		scaleConfig.setRequireReCaptcha(val.equalsIgnoreCase("true"));
+		if (scaleConfig.isRequireReCaptcha()) {
+			scaleConfig.setRcSiteKey(this.loadAttributeValue("rcSiteKey", "ReCaptcha Site Key", config));
+			scaleConfig.setRcSecretKey(this.loadAttributeValue("rcSecret", "ReCaptcha Secret Key", config));
+		}
+		
+		val = this.loadOptionalAttributeValue("requireTermsAndConditions", "Require Terms and Conditions", config);
+		if (val == null) {
+			val = "false";
+		}
+		scaleConfig.setRequireTermsAndConditions(val.equalsIgnoreCase("true"));
+		if (scaleConfig.isRequireTermsAndConditions()) {
+			scaleConfig.setTermsAndConditionsText(this.loadAttributeValue("termsAndConditionsText", "Terms and Conditions", config));
+		}
 		
 		for (String attributeName : attr.getValues()) {
 			ScaleAttribute scaleAttr = new ScaleAttribute();
@@ -257,7 +379,58 @@ public class ScaleRegister implements HttpFilter {
 			}
 			
 			
+			val = this.loadOptionalAttributeValue(attributeName + ".unique", attributeName + " Attribute Value Must Be Unique", config);
+			if (val != null) {
+				scaleAttr.setUnique(val.equalsIgnoreCase("true"));
+			}
+			
+			val = this.loadOptionalAttributeValue(attributeName + ".type", attributeName + " Attribute Type", config);
+			if (val != null) {
+				scaleAttr.setType(val);
+			}
+			
+			Attribute attrVals = config.getAttribute(attributeName + ".values");
+			if (attrVals != null) {
+				for (String attrVal : attrVals.getValues()) {
+					String valLabel = attrVal.substring(0,attrVal.indexOf('='));
+					String valValue = attrVal.substring(attrVal.indexOf('=') + 1);
+					scaleAttr.getValues().add(new NVP(valLabel,valValue));
+				}
+			}
+			
+			
+			
 			scaleConfig.getAttributes().put(attributeName, scaleAttr);
+		}
+		
+		val = loadOptionalAttributeValue("useCallWorkflowClass", "Use Custom Submission", config);
+		if (val == null) {
+			val = "false";
+		}
+		
+		scaleConfig.setUseCustomSubmission(val.equalsIgnoreCase("true"));
+		
+		if (scaleConfig.isUseCustomSubmission()) {
+			scaleConfig.setCustomSubmissionClassName(this.loadAttributeValue("callWorkflowClassName", "Custom Submission Class", config));
+			Attribute tattr = config.getAttribute("callWorkflowInit");
+			scaleConfig.setCustomSubmissionConfig(new HashMap<String,Attribute>());
+			if (tattr != null) {
+				for (String value : tattr.getValues()) {
+					String n = value.substring(0,value.indexOf('='));
+					String v = value.substring(value.indexOf('=') + 1);
+					
+					Attribute tmpa = scaleConfig.getCustomSubmissionConfig().get(n);
+					if (tmpa == null) {
+						tmpa = new Attribute(n);
+						scaleConfig.getCustomSubmissionConfig().put(n, tmpa);
+					}
+					tmpa.getValues().add(v);
+					
+				} 
+			}
+			
+			this.cru = (CreateRegisterUser) Class.forName(scaleConfig.getCustomSubmissionClassName()).newInstance();
+			this.cru.init(this.scaleConfig);
 		}
 	}
 

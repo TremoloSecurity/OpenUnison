@@ -14,13 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 (function(){
-  var app = angular.module('scale',['treeControl']);
+  var app = angular.module('scale',['treeControl','ngSanitize']);
 
 
 
 
 
-    app.controller('ScaleController',['$compile', '$scope','$window','$http',function($compile, $scope, $window, $http){
+    app.controller('ScaleController',['$compile', '$scope','$window','$http','$interval',function($compile, $scope, $window, $http,$interval){
 
 
       this.appIsError = false;
@@ -52,6 +52,24 @@ limitations under the License.
         this.showModal = true;
         $scope.scale.saveUserDisabled = true;
         $scope.scale.saveUserSuccess = false;
+
+        if ($scope.scale.config.requireReCaptcha) {
+        	$scope.scale.newUser.reCaptchaCode = grecaptcha.getResponse();
+        	grecaptcha.reset();
+        }
+
+        for (var i in $scope.scale.config.attributes) {
+          if ($scope.scale.config.attributes[i].type == 'list') {
+
+              if (typeof $scope.scale.newUser.attributes[$scope.scale.config.attributes[i].name] == 'undefined') {
+                $scope.scale.newUser.attributes[$scope.scale.config.attributes[i].name] = "";
+              } else {
+                $scope.scale.newUser.attributes[$scope.scale.config.attributes[i].name] = $scope.scale.newUser.attributes[$scope.scale.config.attributes[i].name].value;
+              }
+
+
+          }
+        }
 
         $http.post('register/submit',this.newUser).then(
           function(response) {
@@ -129,7 +147,32 @@ limitations under the License.
 
             $scope.scale.setSessionLoadedComplete();
             $scope.scale.appIsError = false;
-            //$scope.$apply();
+
+
+            if ($scope.scale.config.requireReCaptcha) {
+            	if (typeof grecaptcha != "undefined") {
+	            	grecaptcha.render('recaptcha', {
+	                    'sitekey' : $scope.scale.config.rcSiteKey
+	                  });
+            	} else {
+
+
+            		$interval(function() {
+            			if (captchaloaded == true) {
+
+            				grecaptcha.render('recaptcha', {
+        	                    'sitekey' : $scope.scale.config.rcSiteKey
+        	                  });
+
+            				captchaloaded = false;
+            			}
+            		},1000,10);
+
+
+
+
+            	}
+            }
 
 
 

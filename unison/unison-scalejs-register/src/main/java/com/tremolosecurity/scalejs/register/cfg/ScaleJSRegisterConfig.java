@@ -15,6 +15,7 @@ package com.tremolosecurity.scalejs.register.cfg;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.scalejs.cfg.ScaleAttribute;
 import com.tremolosecurity.scalejs.cfg.ScaleFrontPage;
 
@@ -26,6 +27,14 @@ public class ScaleJSRegisterConfig {
 	boolean requireReason;
 	boolean preSetPassword;
 	transient String uidAttributeName;
+	boolean requireReCaptcha;
+	String rcSiteKey;
+	transient String rcSecretKey;
+	boolean requireTermsAndConditions;
+	String termsAndConditionsText;
+	transient boolean useCustomSubmission;
+	transient HashMap<String,Attribute> customSubmissionConfig;
+	transient String customSubmissionClassName;
 	
 	public ScaleJSRegisterConfig() {
 		this.attributes = new HashMap<String,ScaleAttribute>();
@@ -101,6 +110,87 @@ public class ScaleJSRegisterConfig {
 	public void setUidAttributeName(String uidAttributeName) {
 		this.uidAttributeName = uidAttributeName;
 	}
+
+
+	public boolean isRequireReCaptcha() {
+		return requireReCaptcha;
+	}
+
+
+	public void setRequireReCaptcha(boolean requireReCaptcha) {
+		this.requireReCaptcha = requireReCaptcha;
+	}
+
+
+	public String getRcSiteKey() {
+		return rcSiteKey;
+	}
+
+
+	public void setRcSiteKey(String rcSiteKey) {
+		this.rcSiteKey = rcSiteKey;
+	}
+
+
+	public String getRcSecretKey() {
+		return rcSecretKey;
+	}
+
+
+	public void setRcSecretKey(String rcSecretKey) {
+		this.rcSecretKey = rcSecretKey;
+	}
+
+
+	public boolean isRequireTermsAndConditions() {
+		return requireTermsAndConditions;
+	}
+
+
+	public void setRequireTermsAndConditions(boolean requireTermsAndConditions) {
+		this.requireTermsAndConditions = requireTermsAndConditions;
+	}
+
+
+	public String getTermsAndConditionsText() {
+		return termsAndConditionsText;
+	}
+
+
+	public void setTermsAndConditionsText(String termsAndConditionsText) {
+		this.termsAndConditionsText = termsAndConditionsText;
+	}
+
+
+	public boolean isUseCustomSubmission() {
+		return useCustomSubmission;
+	}
+
+
+	public void setUseCustomSubmission(boolean useCustomSubmission) {
+		this.useCustomSubmission = useCustomSubmission;
+	}
+
+
+	public HashMap<String, Attribute> getCustomSubmissionConfig() {
+		return customSubmissionConfig;
+	}
+
+
+	public void setCustomSubmissionConfig(HashMap<String, Attribute> customSubmissionConfig) {
+		this.customSubmissionConfig = customSubmissionConfig;
+	}
+
+
+	public String getCustomSubmissionClassName() {
+		return customSubmissionClassName;
+	}
+
+
+	public void setCustomSubmissionClassName(String customSubmissionClassName) {
+		this.customSubmissionClassName = customSubmissionClassName;
+	}
+	
 	
 	
 }

@@ -20,6 +20,8 @@ public class NewUserRequest {
 	String reason;
 	String password;
 	String password2;
+	String reCaptchaCode;
+	boolean checkedTermsAndConditions;
 	
 	public NewUserRequest() {
 		this.attributes = new HashMap<String,String>();
@@ -55,6 +57,22 @@ public class NewUserRequest {
 
 	public void setPassword2(String password2) {
 		this.password2 = password2;
+	}
+
+	public String getReCaptchaCode() {
+		return reCaptchaCode;
+	}
+
+	public void setReCaptchaCode(String reCaptchaCode) {
+		this.reCaptchaCode = reCaptchaCode;
+	}
+
+	public boolean isCheckedTermsAndConditions() {
+		return checkedTermsAndConditions;
+	}
+
+	public void setCheckedTermsAndConditions(boolean checkedTermsAndConditions) {
+		this.checkedTermsAndConditions = checkedTermsAndConditions;
 	}
 	
 	

@@ -440,7 +440,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			ApprovalDBType adbt = cfgMgr.getCfg().getProvisioning().getApprovalDB();
 			
-			this.initializeHibernate(adbt);
+			if (cfgMgr.getCfg().getProvisioning().getApprovalDB().isEnabled()) {
+				this.initializeHibernate(adbt);
+			}
 			
 			this.smtpHost = adbt.getSmtpHost();
 	        this.smtpPort = adbt.getSmtpPort();

@@ -7,4 +7,12 @@
   </parent>
   <artifactId>unison-scalejs-common</artifactId>
   <name>com.tremolosecurity.unison</name>
+  <dependencies>
+  	<dependency>
+  		<groupId>com.tremolosecurity.unison</groupId>
+  		<artifactId>unison-sdk-types</artifactId>
+  		<version>${openunison.version}</version>
+  	</dependency>
+  	
+  </dependencies>
 </project>
