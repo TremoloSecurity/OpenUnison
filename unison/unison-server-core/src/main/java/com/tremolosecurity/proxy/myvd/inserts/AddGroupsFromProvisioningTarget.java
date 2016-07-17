@@ -56,6 +56,7 @@ public class AddGroupsFromProvisioningTarget implements Insert {
 	String attributeName;
 	String targetName;
 	String uidAttribute;
+	String label;
 	
 	public String getName() {
 		return this.name;
@@ -71,6 +72,9 @@ public class AddGroupsFromProvisioningTarget implements Insert {
 		
 		this.uidAttribute = props.getProperty("uidAttribute");
 		logger.info("For '" + name + "' - uidAttribute='" + uidAttribute + "'");
+		
+		this.label =  props.getProperty("label");
+		logger.info("For '" + name + "' - label='" + this.label + "'");
 
 	}
 
@@ -177,10 +181,10 @@ public class AddGroupsFromProvisioningTarget implements Insert {
 		}
 		
 		if (addAttr) {
-			LDAPAttribute attr = new LDAPAttribute(this.attributeName);
+			//LDAPAttribute attr = new LDAPAttribute(this.attributeName);
 			try {
 				
-				
+				StringBuffer b = new StringBuffer();
 				LDAPAttribute userID = entry.getEntry().getAttribute(this.uidAttribute);
 				if (logger.isDebugEnabled()) {
 					logger.debug("Looking up user : '" + userID + "'");
@@ -199,11 +203,20 @@ public class AddGroupsFromProvisioningTarget implements Insert {
 						}
 						
 						if (user.getGroups().size() > 0) {
+							
+							LDAPAttribute attr = entry.getEntry().getAttributeSet().getAttribute(this.attributeName);
+							if (attr == null) {
+								attr = new LDAPAttribute(this.attributeName);
+								entry.getEntry().getAttributeSet().add(attr);
+							}
+							
 							for (String groupName : user.getGroups()) {
-								attr.addValue(groupName);
+								b.setLength(0);
+								b.append(this.label).append(" - ").append(groupName);
+								attr.addValue(b.toString());
 							}
 						
-							entry.getEntry().getAttributeSet().add(attr);
+							
 						}
 						
 						

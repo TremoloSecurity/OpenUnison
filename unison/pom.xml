@@ -137,6 +137,7 @@
 		<module>unison-applications-openshift3</module>
 		<module>unison-scalejs-register</module>
 		<module>unison-services-openstack</module>
+		<module>unison-scalejs-password</module>
 	</modules>
 	<build>
 		<plugins>

@@ -10,25 +10,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package com.tremolosecurity.scalejs.singlerequest.data;
+package com.tremolosecurity.scalejs.password.data;
 
-import com.tremolosecurity.scalejs.singlerequest.cfg.ScaleSingleRequestConfig;
+import com.tremolosecurity.scalejs.password.cfg.ScalePasswordResetConfig;
 
-public class ScaleSingleRequestUser {
-	ScaleSingleRequestConfig config;
+public class ScalePasswordUser {
+	ScalePasswordResetConfig config;
 	String displayName;
 	String logoutURL;
 	String homeURL;
 	
-	public ScaleSingleRequestUser() {
+	public ScalePasswordUser() {
 		
 	}
 
-	public ScaleSingleRequestConfig getConfig() {
+	public ScalePasswordResetConfig getConfig() {
 		return config;
 	}
 
-	public void setConfig(ScaleSingleRequestConfig config) {
+	public void setConfig(ScalePasswordResetConfig config) {
 		this.config = config;
 	}
 
@@ -56,7 +56,6 @@ public class ScaleSingleRequestUser {
 	public void setHomeURL(String homeURL) {
 		this.homeURL = homeURL;
 	}
-	
 	
 	
 }
