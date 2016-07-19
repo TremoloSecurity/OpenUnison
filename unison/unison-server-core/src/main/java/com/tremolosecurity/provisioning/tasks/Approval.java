@@ -579,7 +579,9 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 		boolean foundApprovers = false;
 		
 		Approvals approval = session.load(Approvals.class, this.id);
-		session.beginTransaction();
+		if (! session.isJoinedToTransaction()) {
+			session.beginTransaction();
+		}
 		for (Approver approver : this.approvers) {
 			String constraintRendered = this.renderTemplate(approver.constraint, request);
 			switch (approver.type) {

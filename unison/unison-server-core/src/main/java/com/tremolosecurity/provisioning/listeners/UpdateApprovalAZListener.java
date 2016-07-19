@@ -194,6 +194,8 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 					session.getTransaction().rollback();
 				} 
 			} catch (Throwable tx) {};
+			
+			throw t;
 		} finally {
 			if (session != null) {
 				session.close();
