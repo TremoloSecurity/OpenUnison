@@ -1305,7 +1305,7 @@ public class ScaleMain implements HttpFilter {
 		}
 		
 		val = this.loadOptionalAttributeValue("uiHelperClassName", "UI Helper Class Name", config);
-		if (val != null) {
+		if (val != null && ! val.isEmpty()) {
 			UiDecisions dec = (UiDecisions) Class.forName(val).newInstance();
 			attr  = config.getAttribute("uihelper.params");
 			HashMap<String,Attribute> decCfg = new HashMap<String,Attribute>();
