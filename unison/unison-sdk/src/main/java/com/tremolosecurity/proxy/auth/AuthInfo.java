@@ -22,7 +22,9 @@ import java.util.HashMap;
 
 import org.apache.logging.log4j.Logger;
 
-
+import com.novell.ldap.LDAPAttribute;
+import com.novell.ldap.LDAPAttributeSet;
+import com.novell.ldap.LDAPEntry;
 import com.tremolosecurity.saml.Attribute;
 
 public class AuthInfo implements Serializable {
@@ -126,5 +128,21 @@ public class AuthInfo implements Serializable {
 
 	public void setAuthComplete(boolean authComplete) {
 		this.authComplete = authComplete;
+	}
+	
+	public LDAPEntry createLDAPEntry() {
+		LDAPAttributeSet attrs = new LDAPAttributeSet();
+		
+		for (String name : this.attribs.keySet()) {
+			Attribute attr = this.attribs.get(name);
+			LDAPAttribute ldap = new LDAPAttribute(name);
+			for (String val : attr.getValues()) {
+				ldap.addValue(val);
+			}
+			attrs.add(ldap);
+		}
+		
+		LDAPEntry entry = new LDAPEntry(this.userDN,attrs);
+		return entry;
 	}
 }

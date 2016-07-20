@@ -80,7 +80,9 @@ public class ScaleAttribute {
 
 	public void setRegEx(String regEx) {
 		this.regEx = regEx;
-		this.pattern = Pattern.compile(regEx);
+		if (regEx != null && ! regEx.isEmpty()) {
+			this.pattern = Pattern.compile(regEx);
+		}
 	}
 
 	public String getRegExFailedMsg() {

@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 
@@ -113,6 +114,7 @@ import com.tremolosecurity.scalejs.data.ScaleApprovalData;
 import com.tremolosecurity.scalejs.data.ScaleError;
 import com.tremolosecurity.scalejs.data.UserData;
 import com.tremolosecurity.scalejs.data.WorkflowRequest;
+import com.tremolosecurity.scalejs.sdk.UiDecisions;
 import com.tremolosecurity.server.GlobalEntries;
 
 public class ScaleMain implements HttpFilter {
@@ -133,8 +135,30 @@ public class ScaleMain implements HttpFilter {
 		try {
 		
 		if (request.getRequestURI().endsWith("/main/config")) {
-			response.setContentType("application/json");
-			response.getWriter().println(gson.toJson(scaleConfig).trim());
+			
+			if (scaleConfig.getUiDecisions() != null) {
+				AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+				Set<String> allowedAttrs = this.scaleConfig.getUiDecisions().availableAttributes(userData, request.getServletRequest());
+				ScaleConfig local = new ScaleConfig(this.scaleConfig);
+				if (allowedAttrs != null) {
+					
+					for (String attrName : this.scaleConfig.getAttributes().keySet()) {
+						if (! allowedAttrs.contains(attrName)) {
+							local.getAttributes().remove(attrName);
+						}
+					}
+				}
+				
+				local.setCanEditUser(this.scaleConfig.getUiDecisions().canEditUser(userData, request.getServletRequest()));
+				
+				
+				response.setContentType("application/json");
+				response.getWriter().println(gson.toJson(local).trim());
+				
+			} else {
+				response.setContentType("application/json");
+				response.getWriter().println(gson.toJson(scaleConfig).trim());
+			}
 		} else if (request.getMethod().equalsIgnoreCase("GET") && request.getRequestURI().endsWith("/main/user")) {
 			lookupUser(request, response, gson);
 		} else if (request.getMethod().equalsIgnoreCase("PUT") && request.getRequestURI().endsWith("/main/user")) {
@@ -1007,8 +1031,12 @@ public class ScaleMain implements HttpFilter {
 		ScaleError errors = new ScaleError();
 		String json = new String( (byte[]) request.getAttribute(ProxySys.MSG_BODY));
 		
-		
+		AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+		Set<String> allowedAttrs = null;
 
+		if (this.scaleConfig.getUiDecisions() != null) {
+			allowedAttrs = this.scaleConfig.getUiDecisions().availableAttributes(userData, request.getServletRequest());
+		}
 		
 		JsonElement root = new JsonParser().parse(json);
 		JsonObject jo = root.getAsJsonObject();
@@ -1016,54 +1044,59 @@ public class ScaleMain implements HttpFilter {
 		HashMap<String,String> values = new HashMap<String,String>();
 		boolean ok = true;
 		
+		
+		
 		for (Entry<String,JsonElement> entry : jo.entrySet()) {
 			String attributeName = entry.getKey();
-			String value = entry.getValue().getAsJsonObject().get("value").getAsString();
 			
+			if (allowedAttrs == null || allowedAttrs.contains(attributeName)) {
 			
-			
-			if (this.scaleConfig.getAttributes().get(attributeName) == null) {
-				errors.getErrors().add("Invalid attribute : '" + attributeName + "'");
-				ok = false;
-			} else if (this.scaleConfig.getAttributes().get(attributeName).isReadOnly()) {
-				errors.getErrors().add("Attribute is read only : '" + this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + "'");
-				ok = false;
-			} else if (this.scaleConfig.getAttributes().get(attributeName).isRequired() && value.length() == 0) {
-				errors.getErrors().add("Attribute is required : '" + this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + "'");
-				ok = false;
-			} else if (this.scaleConfig.getAttributes().get(attributeName).getMinChars() > 0 && this.scaleConfig.getAttributes().get(attributeName).getMinChars() <= value.length()) {
-				errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " must have at least " + this.scaleConfig.getAttributes().get(attributeName).getMinChars() + " characters");
-				ok = false;
-			} else if (this.scaleConfig.getAttributes().get(attributeName).getMaxChars() > 0 && this.scaleConfig.getAttributes().get(attributeName).getMaxChars() >= value.length()) {
-				errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " must have at most " + this.scaleConfig.getAttributes().get(attributeName).getMaxChars() + " characters");
-				ok = false;
-			} else if (this.scaleConfig.getAttributes().get(attributeName).getPattern() != null) {
-				try {
-					Matcher m = this.scaleConfig.getAttributes().get(attributeName).getPattern().matcher(value);
-					if (m == null || ! m.matches()) {
+				String value = entry.getValue().getAsJsonObject().get("value").getAsString();
+				
+				
+				
+				if (this.scaleConfig.getAttributes().get(attributeName) == null) {
+					errors.getErrors().add("Invalid attribute : '" + attributeName + "'");
+					ok = false;
+				} else if (this.scaleConfig.getAttributes().get(attributeName).isReadOnly()) {
+					errors.getErrors().add("Attribute is read only : '" + this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + "'");
+					ok = false;
+				} else if (this.scaleConfig.getAttributes().get(attributeName).isRequired() && value.length() == 0) {
+					errors.getErrors().add("Attribute is required : '" + this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + "'");
+					ok = false;
+				} else if (this.scaleConfig.getAttributes().get(attributeName).getMinChars() > 0 && this.scaleConfig.getAttributes().get(attributeName).getMinChars() > value.length()) {
+					errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " must have at least " + this.scaleConfig.getAttributes().get(attributeName).getMinChars() + " characters");
+					ok = false;
+				} else if (this.scaleConfig.getAttributes().get(attributeName).getMaxChars() > 0 && this.scaleConfig.getAttributes().get(attributeName).getMaxChars() < value.length()) {
+					errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " must have at most " + this.scaleConfig.getAttributes().get(attributeName).getMaxChars() + " characters");
+					ok = false;
+				} else if (this.scaleConfig.getAttributes().get(attributeName).getPattern() != null) {
+					try {
+						Matcher m = this.scaleConfig.getAttributes().get(attributeName).getPattern().matcher(value);
+						if (m == null || ! m.matches()) {
+							ok = false;
+						}
+					} catch (Exception e) {
 						ok = false;
 					}
-				} catch (Exception e) {
-					ok = false;
+					
+					if (!ok) {
+						errors.getErrors().add("Attribute value not valid : '" + this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + "' - " + this.scaleConfig.getAttributes().get(attributeName).getRegExFailedMsg());
+					}
 				}
 				
-				if (!ok) {
-					errors.getErrors().add("Attribute value not valid : '" + this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + "' - " + this.scaleConfig.getAttributes().get(attributeName).getRegExFailedMsg());
-				}
+				values.put(attributeName, value);
 			}
-			
-			values.put(attributeName, value);
 		}
 
 		for (String attrName : this.scaleConfig.getAttributes().keySet()) {
-			if (this.scaleConfig.getAttributes().get(attrName).isRequired() && ! values.containsKey(attrName)) {
+			if (this.scaleConfig.getAttributes().get(attrName).isRequired() && ! values.containsKey(attrName) && (allowedAttrs == null || allowedAttrs.contains(attrName) )) {
 				errors.getErrors().add("Attribute is required : '" + this.scaleConfig.getAttributes().get(attrName).getDisplayName() + "'");
 				ok = false;
 			}
 		}
 		
 		if (ok) {
-			AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
 			
 			ConfigManager cfgMgr = GlobalEntries.getGlobalEntries().getConfigManager();
 			WFCall wfCall = new WFCall();
@@ -1109,22 +1142,29 @@ public class ScaleMain implements HttpFilter {
 		
 		AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
 		
+		Set<String> allowedAttrs = null;
+		
+		if (scaleConfig.getUiDecisions() != null) {
+			allowedAttrs = this.scaleConfig.getUiDecisions().availableAttributes(userData, request.getServletRequest());
+		}
+		
 		UserData userToSend = new UserData();
 		userToSend.setDn(userData.getUserDN());
 		
 		for (String attrName : this.scaleConfig.getAttributes().keySet()) {
 			
-			
-			Attribute attr = new Attribute(attrName);
-			Attribute fromUser = userData.getAttribs().get(attrName);
-			if (fromUser != null) {
-				attr.getValues().addAll(fromUser.getValues());
-				
-				if (attrName.equalsIgnoreCase(this.scaleConfig.getUidAttributeName())) {
-					userToSend.setUid(fromUser.getValues().get(0));
+			if (allowedAttrs == null || allowedAttrs.contains(attrName)) {
+				Attribute attr = new Attribute(attrName);
+				Attribute fromUser = userData.getAttribs().get(attrName);
+				if (fromUser != null) {
+					attr.getValues().addAll(fromUser.getValues());
+					
+					if (attrName.equalsIgnoreCase(this.scaleConfig.getUidAttributeName())) {
+						userToSend.setUid(fromUser.getValues().get(0));
+					}
 				}
+				userToSend.getAttributes().add(attr);
 			}
-			userToSend.getAttributes().add(attr);
 		}
 		
 		if (this.scaleConfig.getRoleAttribute() != null && ! this.scaleConfig.getRoleAttribute().isEmpty()) {
@@ -1262,6 +1302,30 @@ public class ScaleMain implements HttpFilter {
 			scaleAttr.setName(attributeName);
 			scaleAttr.setDisplayName(this.loadAttributeValue("approvals." + attributeName, "Approvals attribute " + attributeName + " Display Name", config));
 			scaleConfig.getApprovalAttributes().put(attributeName, scaleAttr);
+		}
+		
+		val = this.loadOptionalAttributeValue("uiHelperClassName", "UI Helper Class Name", config);
+		if (val != null) {
+			UiDecisions dec = (UiDecisions) Class.forName(val).newInstance();
+			attr  = config.getAttribute("uihelper.params");
+			HashMap<String,Attribute> decCfg = new HashMap<String,Attribute>();
+			if (attr != null) {
+				for (String v : attr.getValues()) {
+					String name = v.substring(0,v.indexOf('='));
+					String value = v.substring(v.indexOf('=') + 1);
+					Attribute param = decCfg.get(name);
+					if (param == null) {
+						param = new Attribute(name);
+						decCfg.put(name, param);
+					}
+					param.getValues().add(value);
+					
+				}
+			}
+			
+			dec.init(decCfg);
+			scaleConfig.setUiDecisions(dec);
+			
 		}
 		
 	}

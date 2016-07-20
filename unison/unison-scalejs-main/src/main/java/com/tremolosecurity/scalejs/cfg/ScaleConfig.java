@@ -18,6 +18,8 @@ package com.tremolosecurity.scalejs.cfg;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.tremolosecurity.scalejs.sdk.UiDecisions;
+
 public class ScaleConfig {
 	String displayNameAttribute;
 	String uidAttributeName;
@@ -30,6 +32,24 @@ public class ScaleConfig {
 	Map<String,ScaleAttribute> attributes;
 	transient Map<String,ScaleAttribute> approvalAttributes;
 	String roleAttribute;
+	transient UiDecisions uiDecisions;
+	
+	
+	public ScaleConfig(ScaleConfig from) {
+		this.displayNameAttribute = from.displayNameAttribute;
+		this.uidAttributeName = from.uidAttributeName;
+		this.frontPage = from.frontPage;
+		this.canEditUser = from.canEditUser;
+		this.showPortalOrgs = from.showPortalOrgs;
+		this.logoutURL = from.logoutURL;
+		this.workflowName = from.workflowName;
+		this.attributes = new HashMap<String,ScaleAttribute>();
+		this.attributes.putAll(from.attributes);
+		this.approvalAttributes = new HashMap<String,ScaleAttribute>();
+		this.approvalAttributes.putAll(from.approvalAttributes);
+		this.roleAttribute = from.roleAttribute;
+		this.uiDecisions = from.uiDecisions;
+	}
 	
 	public ScaleConfig() {
 		this.attributes = new HashMap<String,ScaleAttribute>();
@@ -111,6 +131,14 @@ public class ScaleConfig {
 
 	public void setLogoutURL(String logoutURL) {
 		this.logoutURL = logoutURL;
+	}
+
+	public UiDecisions getUiDecisions() {
+		return uiDecisions;
+	}
+
+	public void setUiDecisions(UiDecisions uiDecisions) {
+		this.uiDecisions = uiDecisions;
 	}
 	
 	
