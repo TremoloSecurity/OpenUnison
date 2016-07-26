@@ -100,7 +100,7 @@ public class ScalePassword implements HttpFilter {
 					TremoloUser tu = new TremoloUser();
 					tu.setUid(userData.getAttribs().get(this.scaleConfig.getUidAttribute()).getValues().get(0));
 					tu.getAttributes().add(new Attribute(this.scaleConfig.getUidAttribute(),userData.getAttribs().get(this.scaleConfig.getUidAttribute()).getValues().get(0)));
-					
+					tu.setUserPassword(sr.getPassword1());
 					wfCall.setUser(tu);
 					
 					try {
