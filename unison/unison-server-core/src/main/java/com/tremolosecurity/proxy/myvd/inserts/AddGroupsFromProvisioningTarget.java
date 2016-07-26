@@ -57,6 +57,7 @@ public class AddGroupsFromProvisioningTarget implements Insert {
 	String targetName;
 	String uidAttribute;
 	String label;
+	String targetRoleAttribute;
 	
 	public String getName() {
 		return this.name;
@@ -75,6 +76,11 @@ public class AddGroupsFromProvisioningTarget implements Insert {
 		
 		this.label =  props.getProperty("label");
 		logger.info("For '" + name + "' - label='" + this.label + "'");
+		
+		this.targetRoleAttribute = props.getProperty("targetRoleAttribute");
+		if (this.targetRoleAttribute != null && ! this.targetRoleAttribute.isEmpty()) {
+			logger.info("For '" + name + "' - targetRoleAttribute='" + this.targetRoleAttribute + "'");
+		}
 
 	}
 
@@ -210,10 +216,21 @@ public class AddGroupsFromProvisioningTarget implements Insert {
 								entry.getEntry().getAttributeSet().add(attr);
 							}
 							
-							for (String groupName : user.getGroups()) {
-								b.setLength(0);
-								b.append(this.label).append(" - ").append(groupName);
-								attr.addValue(b.toString());
+							if (this.targetRoleAttribute == null || this.targetRoleAttribute.isEmpty()) {
+								for (String groupName : user.getGroups()) {
+									b.setLength(0);
+									b.append(this.label).append(" - ").append(groupName);
+									attr.addValue(b.toString());
+								}
+							} else {
+								com.tremolosecurity.saml.Attribute targetAttr = user.getAttribs().get(this.targetRoleAttribute);
+								if (targetAttr != null) {
+									for (String val : targetAttr.getValues()) {
+										b.setLength(0);
+										b.append(this.label).append(" - ").append(val);
+										attr.addValue(b.toString());
+									}
+								}
 							}
 						
 							
