@@ -551,22 +551,40 @@ public class ADProvider implements UserStoreProvider {
 				
 				
 				for (int i=0;i<ldapVals.length;i++) {
-					String val = ldapVals[i];
+					String ldapVal = ldapVals[i];
 					boolean found = false;
-					for (String v : vals) {
-						if (v.equalsIgnoreCase(val)) {
+					for (String objVal : vals) {
+						if (logger.isDebugEnabled()) {
+							logger.debug("From LDAP : '" + ldapVal + "' / From UserObject : '" + objVal + "'");
+						}
+						if (objVal.equalsIgnoreCase(ldapVal)) {
 							found = true;
-							val = v;
+							ldapVal = objVal;
+							
+							if (logger.isDebugEnabled()) {
+								logger.debug("matched, need to remove");
+							}
+							
+							
 							break;
 						}
 					}
 					
 					if (found) {
-						vals.remove(val);
+						
+						if (logger.isDebugEnabled()) {
+							logger.debug("found match, removing : '" + ldapVal + "' - vals pre - '" + vals + "'");
+						}
+						
+						vals.remove(ldapVal);
+						
+						if (logger.isDebugEnabled()) {
+							logger.debug("After remove : '" + vals + "'");
+						}
 					} else {
 						if (! fromUserOnly ) {
 							LDAPAttribute todel = new LDAPAttribute(userAttr.getName());
-							todel.addValue(val);
+							todel.addValue(ldapVal);
 							mods.add(new LDAPModification(LDAPModification.DELETE,todel));
 						}
 					}
@@ -590,7 +608,14 @@ public class ADProvider implements UserStoreProvider {
 		Iterator<String> itattr = user.getAttribs().keySet().iterator();
 		while (itattr.hasNext()) {
 			String name = itattr.next();
+			if (logger.isDebugEnabled()) {
+				logger.debug("post sync checking '" + name + "' / done : '" + done + "'");
+			}
+			
 			if (attributes.contains(name) && ! done.contains(name))  {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Not added yet, adding");
+				}
 				Attribute attrib = user.getAttribs().get(name);
 				LDAPAttribute attr = new LDAPAttribute(name);
 				for (String val : attrib.getValues()) {
