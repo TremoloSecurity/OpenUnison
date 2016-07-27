@@ -545,7 +545,18 @@ public class ADProvider implements UserStoreProvider {
 				}
 			} else {
 				HashSet<String> vals = new HashSet<String>();
-				vals.addAll(userAttr.getValues());
+				HashSet<String> valslcase = new HashSet<String>();
+				
+				for (String v : userAttr.getValues()) {
+					String vlcase = v.toLowerCase();
+					if (! valslcase.contains(vlcase)) {
+						vals.add(v);
+						valslcase.add(vlcase);
+					}
+				}
+				
+				
+				
 				
 				String[] ldapVals = ldapAttr.getStringValueArray();
 				
