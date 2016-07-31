@@ -33,6 +33,7 @@ public class ScaleConfig {
 	transient Map<String,ScaleAttribute> approvalAttributes;
 	String roleAttribute;
 	transient UiDecisions uiDecisions;
+	int warnMinutesLeft;
 	
 	
 	public ScaleConfig(ScaleConfig from) {
@@ -49,12 +50,23 @@ public class ScaleConfig {
 		this.approvalAttributes.putAll(from.approvalAttributes);
 		this.roleAttribute = from.roleAttribute;
 		this.uiDecisions = from.uiDecisions;
+		this.warnMinutesLeft = from.warnMinutesLeft;
 	}
 	
 	public ScaleConfig() {
 		this.attributes = new HashMap<String,ScaleAttribute>();
 		this.approvalAttributes = new HashMap<String,ScaleAttribute>();
 		this.frontPage = new ScaleFrontPage();
+	}
+
+	
+	
+	public int getWarnMinutesLeft() {
+		return warnMinutesLeft;
+	}
+
+	public void setWarnMinutesLeft(int warnMinutesLeft) {
+		this.warnMinutesLeft = warnMinutesLeft;
 	}
 
 	public String getDisplayNameAttribute() {

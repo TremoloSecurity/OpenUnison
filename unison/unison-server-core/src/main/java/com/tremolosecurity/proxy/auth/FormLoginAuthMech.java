@@ -48,7 +48,6 @@ import com.tremolosecurity.config.xml.AuthMechType;
 import com.tremolosecurity.proxy.auth.util.AuthStep;
 import com.tremolosecurity.proxy.auth.util.AuthUtil;
 import com.tremolosecurity.proxy.ProxyRequest;
-import com.tremolosecurity.proxy.SharedSession;
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import com.tremolosecurity.proxy.myvd.MyVDConnection;
 import com.tremolosecurity.proxy.util.ProxyConstants;

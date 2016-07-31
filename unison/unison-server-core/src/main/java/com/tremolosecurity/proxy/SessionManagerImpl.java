@@ -20,7 +20,10 @@ package com.tremolosecurity.proxy;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -30,7 +33,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.GZIPOutputStream;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.servlet.ServletContext;
@@ -68,7 +74,7 @@ public class SessionManagerImpl implements SessionManager {
 
 	private static final String AUTOIDM_KEY_SESSION = "AUTOIDM_KEY_SESSION";
 
-	static final String TREMOLO_SESSION_LAST_ACCESSED = "TREMOLO_SESSION_LAST_ACCESSED";
+	public static final String TREMOLO_SESSION_LAST_ACCESSED = "TREMOLO_SESSION_LAST_ACCESSED";
 
 	SecureRandom random;
 
@@ -275,25 +281,7 @@ public class SessionManagerImpl implements SessionManager {
 
 				try {
 
-					String tokenHeader = new String(
-							org.bouncycastle.util.encoders.Base64
-									.decode(sessionCookie.getValue().getBytes(
-											"UTF-8")));
-					Gson gson = new Gson();
-					Token token = gson.fromJson(tokenHeader, Token.class);
-					byte[] iv = org.bouncycastle.util.encoders.Base64
-							.decode(token.getIv());
-
-					IvParameterSpec spec = new IvParameterSpec(iv);
-					Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-					cipher.init(Cipher.DECRYPT_MODE, encKey, spec);
-
-					byte[] encBytes = org.bouncycastle.util.encoders.Base64
-							.decode(token.getEncryptedRequest());
-					String requestToken = new String(cipher.doFinal(encBytes));
-
-					TremoloHttpSession tsession = this.sessions
-							.get(requestToken);
+					TremoloHttpSession tsession = findSessionFromCookie(sessionCookie, encKey,this);
 
 					if (tsession == null) {
 						return createSession(app, request, resp, ctx, encKey);
@@ -345,6 +333,32 @@ public class SessionManagerImpl implements SessionManager {
 			return session;
 
 		}
+	}
+
+
+
+	public static TremoloHttpSession findSessionFromCookie(Cookie sessionCookie, SecretKey encKey,SessionManagerImpl sessionMgr)
+			throws UnsupportedEncodingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
+			InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
+		String tokenHeader = new String(
+				org.bouncycastle.util.encoders.Base64
+						.decode(sessionCookie.getValue().getBytes(
+								"UTF-8")));
+		Gson gson = new Gson();
+		Token token = gson.fromJson(tokenHeader, Token.class);
+		byte[] iv = org.bouncycastle.util.encoders.Base64
+				.decode(token.getIv());
+
+		IvParameterSpec spec = new IvParameterSpec(iv);
+		Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+		cipher.init(Cipher.DECRYPT_MODE, encKey, spec);
+
+		byte[] encBytes = org.bouncycastle.util.encoders.Base64
+				.decode(token.getEncryptedRequest());
+		String requestToken = new String(cipher.doFinal(encBytes));
+
+		TremoloHttpSession tsession = sessionMgr.getSessions().get(requestToken);
+		return tsession;
 	}
 
 	private HttpSession createSession(ApplicationType app,

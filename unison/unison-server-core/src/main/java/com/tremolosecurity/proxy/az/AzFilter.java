@@ -55,7 +55,7 @@ import com.tremolosecurity.config.xml.AzRuleType;
 import com.tremolosecurity.config.xml.ResultGroupType;
 import com.tremolosecurity.config.xml.ResultType;
 
-import com.tremolosecurity.proxy.SharedSession;
+
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.AuthSys;

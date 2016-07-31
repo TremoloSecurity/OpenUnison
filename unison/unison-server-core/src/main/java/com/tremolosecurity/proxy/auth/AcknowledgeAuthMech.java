@@ -39,7 +39,7 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.AuthMechType;
-import com.tremolosecurity.proxy.SharedSession;
+
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import com.tremolosecurity.proxy.auth.util.AuthStep;
 import com.tremolosecurity.proxy.myvd.MyVDConnection;

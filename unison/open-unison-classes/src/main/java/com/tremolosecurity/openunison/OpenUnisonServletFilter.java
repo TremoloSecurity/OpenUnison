@@ -78,7 +78,7 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 			String registryName, ConfigManager cfgMgr) {
 		
 		sessionManager = new SessionManagerImpl(cfgMgr,filterCfg.getServletContext());
-		
+		GlobalEntries.getGlobalEntries().set(ProxyConstants.TREMOLO_SESSION_MANAGER, sessionManager);
 		filterCfg.getServletContext().setAttribute(ProxyConstants.TREMOLO_SESSION_MANAGER, sessionManager);
 
 	}

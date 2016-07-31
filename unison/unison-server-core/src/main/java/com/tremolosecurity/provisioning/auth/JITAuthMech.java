@@ -44,7 +44,6 @@ import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.AuthMechType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.proxy.ProxyUtil;
-import com.tremolosecurity.proxy.SharedSession;
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.auth.AuthInfo;

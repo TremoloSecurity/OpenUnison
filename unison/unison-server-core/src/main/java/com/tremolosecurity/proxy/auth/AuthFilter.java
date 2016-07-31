@@ -35,7 +35,7 @@ import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.MechanismType;
 
-import com.tremolosecurity.proxy.SharedSession;
+
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import com.tremolosecurity.proxy.auth.RequestHolder.HTTPMethod;
 import com.tremolosecurity.proxy.filter.HttpFilterRequestImpl;
