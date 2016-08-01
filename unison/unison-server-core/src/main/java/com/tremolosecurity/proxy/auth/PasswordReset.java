@@ -32,6 +32,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 import java.util.Queue;
 
@@ -53,6 +54,16 @@ import javax.sql.DataSource;
 import org.apache.commons.dbcp.cpdsadapter.DriverAdapterCPDS;
 import org.apache.commons.dbcp.datasources.SharedPoolDataSource;
 import org.apache.logging.log4j.Logger;
+import org.hibernate.Query;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.cfgxml.spi.LoadedConfig;
+import org.hibernate.boot.jaxb.cfg.spi.JaxbCfgHibernateConfiguration;
+import org.hibernate.boot.jaxb.cfg.spi.JaxbCfgMappingReferenceType;
+import org.hibernate.boot.jaxb.cfg.spi.JaxbCfgHibernateConfiguration.JaxbCfgSessionFactory;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Configuration;
 import org.joda.time.DateTime;
 
 import com.novell.ldap.LDAPAttribute;
@@ -61,16 +72,20 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UrlHolder;
+import com.tremolosecurity.config.xml.ApprovalDBType;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.AuthMechType;
+import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.provisioning.core.ProvisioningEngineImpl;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.ProvisioningTargetImpl;
 import com.tremolosecurity.provisioning.core.User;
+import com.tremolosecurity.provisioning.objects.AllowedApprovers;
 import com.tremolosecurity.provisioning.util.GenPasswd;
 import com.tremolosecurity.proxy.ProxyRequest;
 import com.tremolosecurity.proxy.ProxyUtil;
 import com.tremolosecurity.proxy.auth.RequestHolder.HTTPMethod;
+import com.tremolosecurity.proxy.auth.passwordreset.PasswordResetRequest;
 import com.tremolosecurity.proxy.auth.ssl.CRLManager;
 import com.tremolosecurity.proxy.auth.util.AuthStep;
 import com.tremolosecurity.proxy.auth.util.AuthUtil;
@@ -87,7 +102,8 @@ public class PasswordReset implements AuthMechanism {
 	
 	ConfigManager cfgMgr;
 	
-	DataSource ds;
+	private SessionFactory sessionFactory;
+	
 	int minValidKey;
 	String passwordResetURL;
 	
@@ -108,6 +124,85 @@ public class PasswordReset implements AuthMechanism {
 	boolean enabled;
 	
 	Queue<SmtpMessage> msgQ;
+	
+	
+	private void initializeHibernate(String driver, String user,String password,String url,String dialect,int maxCons,int maxIdleCons,String validationQuery) {
+		StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder();
+		
+		
+		Configuration config = new Configuration();
+		config.setProperty("hibernate.connection.driver_class", driver);
+		config.setProperty("hibernate.connection.password", password);
+		config.setProperty("hibernate.connection.url", url);
+		config.setProperty("hibernate.connection.username", user);
+		config.setProperty("hibernate.dialect", dialect);
+		config.setProperty("hibernate.hbm2ddl.auto", "update");
+		config.setProperty("show_sql", "true");
+		config.setProperty("hibernate.current_session_context_class", "thread");
+		
+		config.setProperty("hibernate.c3p0.max_size", Integer.toString(maxCons));
+		config.setProperty("hibernate.c3p0.maxIdleTimeExcessConnections", Integer.toString(maxIdleCons));
+		
+		if (validationQuery != null && ! validationQuery.isEmpty()) {
+			config.setProperty("hibernate.c3p0.testConnectionOnCheckout", "true");
+		}
+		config.setProperty("hibernate.c3p0.autoCommitOnClose", "true");
+		
+
+		
+		//config.setProperty("hibernate.c3p0.debugUnreturnedConnectionStackTraces", "true");
+		//config.setProperty("hibernate.c3p0.unreturnedConnectionTimeout", "30");
+		
+		
+		
+		if (validationQuery == null) {
+			validationQuery = "SELECT 1";
+		}
+		config.setProperty("hibernate.c3p0.preferredTestQuery", validationQuery);
+		
+		
+
+		
+		JaxbCfgHibernateConfiguration jaxbCfg = new JaxbCfgHibernateConfiguration();
+		jaxbCfg.setSessionFactory(new JaxbCfgSessionFactory());
+		
+		JaxbCfgMappingReferenceType mrt = new JaxbCfgMappingReferenceType();
+		mrt.setClazz(PasswordResetRequest.class.getName());
+		jaxbCfg.getSessionFactory().getMapping().add(mrt);
+		
+		LoadedConfig lc = LoadedConfig.consume(jaxbCfg);
+		
+		
+		
+		StandardServiceRegistry registry = builder.configure(lc).applySettings(config.getProperties()).build();
+		try {
+			sessionFactory = new MetadataSources( registry ).buildMetadata().buildSessionFactory();
+			
+			this.cfgMgr.addThread(new StopableThread() {
+
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					
+				}
+
+				@Override
+				public void stop() {
+					logger.info("Stopping hibernate");
+					sessionFactory.close();
+					
+				}
+				
+			});
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			// The registry would be destroyed by the SessionFactory, but we had trouble building the SessionFactory
+			// so destroy it manually.
+			StandardServiceRegistryBuilder.destroy( registry );
+		}
+	}
+	
 	
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response,AuthStep as)
@@ -164,12 +259,10 @@ public class PasswordReset implements AuthMechanism {
 			return;
 		} else {
 			String key = request.getParameter("key");
-			Connection con = null;
+			org.hibernate.Session con = null;
 			try {
-				con = ds.getConnection();
-			} catch (SQLException e) {
-				throw new ServletException("Could not generate connection",e);
-			}
+				con = this.sessionFactory.openSession();
+			
 			
 			String urlChain = holder.getUrl().getAuthChain();
 			
@@ -201,19 +294,17 @@ public class PasswordReset implements AuthMechanism {
 			
 			AuthMechType amt = act.getAuthMech().get(as.getId());
 			
-			try {
+			
 				finishLogin(request, response, session, act, as.getId(), amt,
 						minValidKey, key, con,reqHolder,as);
 			} catch (SQLException e) {
 				throw new ServletException("Could not complete login",e);
 			} finally {
-				try {
+				
 					if (con != null) {
 						con.close();
 					}
-				} catch (SQLException e) {
-					//do nothing
-				}
+				
 				
 			}
 		}
@@ -226,7 +317,7 @@ public class PasswordReset implements AuthMechanism {
 	private void finishLogin(HttpServletRequest request,
 			HttpServletResponse response, HttpSession session,
 			AuthChainType act, int step, AuthMechType amt, int minValidKey,
-			String key, Connection con,RequestHolder reqHolder,AuthStep as) throws SQLException, ServletException,
+			String key, org.hibernate.Session con,RequestHolder reqHolder,AuthStep as) throws SQLException, ServletException,
 			IOException {
 		
 		if (! this.enabled) {
@@ -238,22 +329,24 @@ public class PasswordReset implements AuthMechanism {
 		DateTime now = new DateTime().minusMinutes(minValidKey);
 		
 		
-		PreparedStatement ps = con.prepareStatement("SELECT email FROM ResetRequests WHERE resetkey=? AND ts>?");
-		ps.setString(1, key);
+		Query query = con.createQuery("FROM PasswordResetRequest r WHERE r.resetKey = :resetkey AND r.ts > :ts");
+		query.setParameter("resetkey", key);
+		query.setParameter("ts", new Timestamp(now.getMillis()));
 		
-		ps.setTimestamp(2, new Timestamp(now.getMillis()));
-		ResultSet rs = ps.executeQuery();
+		List<PasswordResetRequest> resetRequests = query.list();
 		
-		if (! rs.next()) {
+		
+		
+		
+		if (resetRequests == null || resetRequests.isEmpty()) {
 			
-			rs.close();
-			ps.close();
+			
 		
 			as.setSuccess(false);
 			
 		} else {
-			
-			String email = rs.getString("email");
+			PasswordResetRequest req = resetRequests.get(0);
+			String email = req.getEmail();
 			
 			
 			
@@ -297,13 +390,11 @@ public class PasswordReset implements AuthMechanism {
 				as.setSuccess(false);
 			}
 			
-			rs.close();
-			ps.close();
+			con.beginTransaction();
+			con.delete(req);
+			con.getTransaction().commit();
 			
-			ps = con.prepareStatement("DELETE FROM ResetRequests WHERE resetkey=?");
-			ps.setString(1, key);
-			ps.executeUpdate();
-			ps.close();
+			
 		}
 		
 		String redirectToURL = null;
@@ -362,17 +453,13 @@ public class PasswordReset implements AuthMechanism {
 		
 			String key = request.getParameter("key");
 		
-			Connection con = null;
-		
+			org.hibernate.Session con = null;
 			try {
-				con = ds.getConnection();
+				con = this.sessionFactory.openSession();
 		
-			} catch (SQLException e) {
-		
-				throw new ServletException("Could not generate connection",e);
-			}
 			
-			try {
+			
+			
 				
 		
 				finishLogin(request, response, session, act, as.getId(), amt,
@@ -382,13 +469,11 @@ public class PasswordReset implements AuthMechanism {
 		
 				throw new ServletException("Could not complete login",e);
 			} finally {
-				try {
+				
 					if (con != null) {
 						con.close();
 					}
-				} catch (SQLException e) {
-					//do nothing
-				}
+				
 				
 			}
 			
@@ -401,12 +486,9 @@ public class PasswordReset implements AuthMechanism {
 	private void generateResetKey(HttpServletRequest request,
 			HttpServletResponse response, String splashRedirect, String noUserSplash,AuthStep as, AuthChainType act)
 			throws ServletException, IOException {
-		Connection con = null;
+		org.hibernate.Session con = null;
 		try {
-			con = ds.getConnection();
-		} catch (SQLException e) {
-			throw new ServletException("Could not generate connection",e);
-		}
+			con = this.sessionFactory.openSession();
 		
 		
 		String emailAddress = request.getParameter("email");
@@ -417,7 +499,7 @@ public class PasswordReset implements AuthMechanism {
 		
 		
 		
-		try {
+		
 			
 			LDAPSearchResults res = this.cfgMgr.getMyVD().search(AuthUtil.getChainRoot(cfgMgr,act), 2, equal("mail",emailAddress).toString(), attrs);
 			
@@ -441,23 +523,20 @@ public class PasswordReset implements AuthMechanism {
 			throw new ServletException("Could not set password key",e);
 		} finally {
 			if (con != null) {
-				try {
+				
 					con.close();
-				} catch (SQLException e) {
-					//DO NOTHING
-				}
+				
 			}
 		}
 	}
 
 	
 	public void sendPasswordReset(String emailAddress) throws Exception {
-		Connection con = null;
+		org.hibernate.Session con = null;
 		try {
-			con = ds.getConnection();
+			con = this.sessionFactory.openSession();
 			this.sendPasswordReset(con, emailAddress);
-		} catch (SQLException e) {
-			throw new ServletException("Could not generate connection",e);
+		
 		} finally {
 			if (con != null) {
 				con.close();
@@ -465,18 +544,21 @@ public class PasswordReset implements AuthMechanism {
 		}
 	}
 	
-	private void sendPasswordReset(Connection con, String emailAddress)
+	private void sendPasswordReset(org.hibernate.Session con, String emailAddress)
 			throws SQLException, Exception {
 		GenPasswd gp = new GenPasswd(30);
 		String key = gp.getPassword();
 		DateTime now = new DateTime();
 		
-		PreparedStatement ps = con.prepareStatement("INSERT INTO ResetRequests (email,resetkey,ts) VALUES (?,?,?)");
-		ps.setString(1, emailAddress);
-		ps.setString(2, key);
-		ps.setTimestamp(3, new Timestamp(now.getMillis()));
-		ps.executeUpdate();
-		ps.close();
+		
+		PasswordResetRequest req = new PasswordResetRequest();
+		req.setEmail(emailAddress);
+		req.setResetKey(key);
+		req.setTs(new Timestamp(now.getMillis()));
+		
+		con.beginTransaction();
+		con.save(req);
+		con.getTransaction().commit();
 		
 		this.sendEmail(emailAddress, key);
 	}
@@ -558,31 +640,18 @@ public class PasswordReset implements AuthMechanism {
 			int maxIdleCons = Integer.parseInt(init.get("maxIdleCons").getValues().get(0));
 			logger.info("maxIdleCons : " + maxIdleCons);
 			
-			DriverAdapterCPDS pool = new DriverAdapterCPDS();
+			String dialect = init.get("dialect").getValues().get(0);
+			logger.info("Hibernate Dialect : '" + dialect + "'");
 			
-			try {
-				pool.setDriver(driver);
-			} catch (ClassNotFoundException e) {
-				logger.error("Could not load JDBC Driver",e);
-				return;
-			}
-			pool.setUrl(url);
-			pool.setUser(user);
-			pool.setPassword(pwd);
-			pool.setMaxActive(maxCons);
-			pool.setMaxIdle(maxIdleCons);
-			
-			SharedPoolDataSource tds = new SharedPoolDataSource();
-	        tds.setConnectionPoolDataSource(pool);
-	        tds.setMaxActive(maxCons);
-	        tds.setMaxWait(50);
+			String validationQuery = init.get("validationQuery").getValues().get(0);
+			logger.info("Validation Query : '" + validationQuery + "'");
 	        
-	        this.ds = tds;
+	        this.initializeHibernate(driver, user, pwd, url, dialect, maxCons, maxIdleCons, validationQuery);
 	        
 	        this.passwordResetURL = init.get("passwordResetURI").getValues().get(0);
 	        this.minValidKey = Integer.parseInt(init.get("minValidKey").getValues().get(0));
 	        
-	        StopableThread tokenClean = new TokenCleanup(this.ds,this.minValidKey);
+	        StopableThread tokenClean = new TokenCleanup(this.sessionFactory,this.minValidKey);
 			t = new Thread(tokenClean);
 			
 			this.cfgMgr.addThread(tokenClean);
@@ -705,10 +774,11 @@ public class PasswordReset implements AuthMechanism {
 class TokenCleanup implements StopableThread {
 	boolean running = true;
 	int minutes;
-	DataSource ds;
+	private SessionFactory sessionFactory;
 	
-	public TokenCleanup(DataSource ds,int minutes) {
-		this.ds = ds;
+	
+	public TokenCleanup(SessionFactory sessionFactory,int minutes) {
+		this.sessionFactory = sessionFactory;
 		this.minutes = minutes;
 	}
 	
@@ -717,25 +787,22 @@ class TokenCleanup implements StopableThread {
 		while (this.running) {
 			PasswordReset.logger.info("Clearing Expired Tokens");
 			
-			Connection con = null;
+			org.hibernate.Session con = null;
 			try {
-				con = ds.getConnection();
+				con = this.sessionFactory.openSession();
 				DateTime expires = new DateTime().minusMinutes(this.minutes);
+				con.beginTransaction();
+				Query delq = con.createQuery("DELETE FROM PasswordResetRequest r WHERE r.ts <= :ts");
+				delq.setParameter("ts", new Timestamp(expires.getMillis()));
+				delq.executeUpdate();
+				con.getTransaction().commit();
 				
-				PreparedStatement ps = con.prepareStatement("DELETE FROM ResetRequests WHERE ts <= ?");
-				ps.setTimestamp(1, new Timestamp(expires.getMillis()));
-				ps.executeUpdate();
-				ps.close();
-				
-			} catch (SQLException e) {
-				PasswordReset.logger.error("Could not clear expired tokens",e);
+			
 			} finally {
 				if (con != null) {
-					try {
+					
 						con.close();
-					} catch (SQLException e) {
-						//do nothing
-					}
+					
 				}
 			}
 			
