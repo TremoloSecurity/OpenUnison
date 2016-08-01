@@ -29,7 +29,7 @@ import com.novell.ldap.LDAPJSSESecureSocketFactory;
 import com.novell.ldap.LDAPSearchResults;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
-import com.tremolosecurity.proxy.ssl.TremoloSSLSocketFactory;
+
 
 public class LdapPool {
 

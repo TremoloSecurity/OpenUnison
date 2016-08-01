@@ -52,7 +52,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
-public class LDAPProvider implements UserStoreProvider {
+public class LDAPProvider implements UserStoreProvider,LDAPInterface {
 
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(LDAPProvider.class);
 	LdapPool ldapPool;
@@ -74,6 +74,11 @@ public class LDAPProvider implements UserStoreProvider {
 	private String lcLDAPBase;
 	private String ldapBase;
 	private HashMap<String,String> unison2ldap;
+	
+	@Override
+	public LdapConnection getLocalConnection() throws ProvisioningException {
+		return this.ldapPool.getConnection();
+	}
 	
 	@Override
 	public void createUser(User user,Set<String> attributes,Map<String,Object> request) throws ProvisioningException {
