@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
 package com.tremolosecurity.provisioning.customTasks;
 
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
@@ -41,27 +40,21 @@ import com.tremolosecurity.server.GlobalEntries;
 public class LoadGroups implements CustomTask {
 
 	static transient Logger logger = org.apache.logging.log4j.LogManager.getLogger(LoadGroups.class.getName());
-	
+
 	String nameAttr;
 	boolean inverse;
 	transient ConfigManager cfg;
-	
+
 	@Override
-	public void init(WorkflowTask task, Map<String, Attribute> params)
-			throws ProvisioningException {
-		
-		
-		
-		
-		
-		
+	public void init(WorkflowTask task, Map<String, Attribute> params) throws ProvisioningException {
+
 		this.nameAttr = params.get("nameAttr").getValues().get(0);
-		this.inverse = params.get("inverse") != null && params.get("inverse").getValues().get(0).equalsIgnoreCase("true"); 
-		
+		this.inverse = params.get("inverse") != null
+				&& params.get("inverse").getValues().get(0).equalsIgnoreCase("true");
+
 		logger.info("Name Attribute : '" + this.nameAttr + "'");
 		logger.info("Inverse : '" + this.inverse + "'");
-		
-		
+
 		this.cfg = task.getConfigManager();
 
 	}
@@ -73,80 +66,81 @@ public class LoadGroups implements CustomTask {
 	}
 
 	@Override
-	public boolean doTask(User user, Map<String, Object> request)
-			throws ProvisioningException {
-		
-		
-		
-		
-		String filter = equal(this.nameAttr,user.getUserID()).toString();
-		
+	public boolean doTask(User user, Map<String, Object> request) throws ProvisioningException {
+
+		String filter = equal(this.nameAttr, user.getUserID()).toString();
+
 		ArrayList<String> params = new ArrayList<String>();
 		params.add("1.1");
-		
-		
+
 		try {
-			
+
 			HashSet<String> currentGroups = new HashSet<String>();
 			currentGroups.addAll(user.getGroups());
 			if (logger.isDebugEnabled()) {
 				logger.debug("Current Groups : '" + currentGroups + "'");
 			}
-			
+
 			if (inverse) {
 				user.getGroups().clear();
 			}
-			
-			LDAPSearchResults res = this.cfg.getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, filter.toString(), params);
-			res.hasMore();
-			LDAPEntry entry = res.next();
-			
-			String dn = entry.getDN();
-			while (res.hasMore()) res.next();
-			
-			
-			filter = equal(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),dn).toString();
-			
-			params.clear();
-			params.add("cn");
-			
-			res = this.cfg.getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, filter.toString(), params);
-			
-			
-			
-			while (res.hasMore()) {
-				entry = res.next();
-				String name = entry.getAttribute("cn").getStringValue();
-				if (logger.isDebugEnabled()) {
-					logger.debug("Group - " + name);
-				}
-				
-				if (inverse) {
-					if (! currentGroups.contains(name)) {
+
+			LDAPSearchResults res = this.cfg.getMyVD().search(
+					GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, filter.toString(),
+					params);
+
+			if (res.hasMore()) {
+				LDAPEntry entry = res.next();
+
+				String dn = entry.getDN();
+				while (res.hasMore())
+					res.next();
+
+				filter = equal(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),
+						dn).toString();
+
+				params.clear();
+				params.add("cn");
+
+				res = this.cfg.getMyVD().search(
+						GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2,
+						filter.toString(), params);
+
+				while (res.hasMore()) {
+					entry = res.next();
+					String name = entry.getAttribute("cn").getStringValue();
+					if (logger.isDebugEnabled()) {
+						logger.debug("Group - " + name);
+					}
+
+					if (inverse) {
+						if (!currentGroups.contains(name)) {
+							if (logger.isDebugEnabled()) {
+								logger.debug("Adding " + name);
+							}
+							user.getGroups().add(name);
+						}
+					} else {
 						if (logger.isDebugEnabled()) {
 							logger.debug("Adding " + name);
 						}
 						user.getGroups().add(name);
 					}
-				} else {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Adding " + name);
-					}
-					user.getGroups().add(name);
+
 				}
-				
+
+				if (logger.isDebugEnabled()) {
+					logger.debug("New Groups : '" + user.getGroups() + "'");
+				}
+
 			}
-			
-			if (logger.isDebugEnabled()) {
-				logger.debug("New Groups : '" + user.getGroups() + "'");
-			}
-			
-			
+
 		} catch (LDAPException e) {
-			throw new ProvisioningException("Could not load user : " + user.getUserID(),e);
+			if (e.getResultCode() != LDAPException.NO_SUCH_OBJECT) {
+				throw new ProvisioningException("Could not load user : " + user.getUserID(), e);
+			}
 		}
-		
-		
+
 		return true;
 	}
 
