@@ -719,13 +719,13 @@ public class ScaleMain implements HttpFilter {
 			
 			String filter = equal(this.scaleConfig.getUidAttributeName(),details.getUserObj().getUserID()).toString();
 			ArrayList<String> attrs = new ArrayList<String>();
-			for (String attrName : this.scaleConfig.getApprovalAttributes().keySet()) {
+			/*for (String attrName : this.scaleConfig.getApprovalAttributes().keySet()) {
 				attrs.add(attrName);
 			}
 			
 			if (this.scaleConfig.getRoleAttribute() != null && ! this.scaleConfig.getRoleAttribute().isEmpty()) {
 				attrs.add(this.scaleConfig.getRoleAttribute());
-			}
+			}*/
 			
 			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, filter, attrs);
 			
