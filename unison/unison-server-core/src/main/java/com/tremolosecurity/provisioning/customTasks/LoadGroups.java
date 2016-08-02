@@ -97,52 +97,54 @@ public class LoadGroups implements CustomTask {
 			}
 			
 			LDAPSearchResults res = this.cfg.getMyVD().search("o=Tremolo", 2, filter.toString(), params);
-			res.hasMore();
-			LDAPEntry entry = res.next();
-			
-			String dn = entry.getDN();
-			while (res.hasMore()) res.next();
-			
-			
-			filter = equal("uniqueMember",dn).toString();
-			
-			params.clear();
-			params.add("cn");
-			
-			res = this.cfg.getMyVD().search("o=Tremolo", 2, filter.toString(), params);
-			
-			
-			
-			while (res.hasMore()) {
-				entry = res.next();
-				String name = entry.getAttribute("cn").getStringValue();
-				if (logger.isDebugEnabled()) {
-					logger.debug("Group - " + name);
-				}
+			if (res.hasMore()) {
+				LDAPEntry entry = res.next();
 				
-				if (inverse) {
-					if (! currentGroups.contains(name)) {
+				String dn = entry.getDN();
+				while (res.hasMore()) res.next();
+				
+				
+				filter = equal("uniqueMember",dn).toString();
+				
+				params.clear();
+				params.add("cn");
+				
+				res = this.cfg.getMyVD().search("o=Tremolo", 2, filter.toString(), params);
+				
+				
+				
+				while (res.hasMore()) {
+					entry = res.next();
+					String name = entry.getAttribute("cn").getStringValue();
+					if (logger.isDebugEnabled()) {
+						logger.debug("Group - " + name);
+					}
+					
+					if (inverse) {
+						if (! currentGroups.contains(name)) {
+							if (logger.isDebugEnabled()) {
+								logger.debug("Adding " + name);
+							}
+							user.getGroups().add(name);
+						}
+					} else {
 						if (logger.isDebugEnabled()) {
 							logger.debug("Adding " + name);
 						}
 						user.getGroups().add(name);
 					}
-				} else {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Adding " + name);
-					}
-					user.getGroups().add(name);
+					
 				}
 				
+				if (logger.isDebugEnabled()) {
+					logger.debug("New Groups : '" + user.getGroups() + "'");
+				}
 			}
-			
-			if (logger.isDebugEnabled()) {
-				logger.debug("New Groups : '" + user.getGroups() + "'");
-			}
-			
 			
 		} catch (LDAPException e) {
-			throw new ProvisioningException("Could not load user : " + user.getUserID(),e);
+			if (e.getResultCode() != LDAPException.NO_SUCH_OBJECT) {
+				throw new ProvisioningException("Could not load user : " + user.getUserID(),e);
+			}
 		}
 		
 		
