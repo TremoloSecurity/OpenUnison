@@ -52,6 +52,7 @@ import com.tremolosecurity.provisioning.core.UserStoreProvider;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.util.HttpCon;
+import com.tremolosecurity.proxy.filter.HttpFilterConfig;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.unison.openshiftv3.model.Response;
 import com.tremolosecurity.unison.openshiftv3.model.groups.GroupItem;
@@ -67,6 +68,10 @@ public class OpenShiftTarget implements UserStoreProvider {
 	private ConfigManager cfgMgr;
 
 	private String name;
+
+	private boolean useToken;
+
+	private String osToken;
 
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
@@ -481,12 +486,36 @@ public class OpenShiftTarget implements UserStoreProvider {
 	@Override
 	public void init(Map<String, Attribute> cfg, ConfigManager cfgMgr, String name) throws ProvisioningException {
 		this.url = this.loadOption("url", cfg, false);
-		this.userName = this.loadOption("userName", cfg, false);
-		this.password = this.loadOption("password", cfg, true);
+		
+		
+		String tmpUseToken = this.loadOptionalAttributeValue("useToken", "Use Token", cfg);
+		this.useToken = tmpUseToken != null && tmpUseToken.equalsIgnoreCase("true");
+		
+		if (! useToken) {
+			this.userName = this.loadOption("userName", cfg, false);
+			this.password = this.loadOption("password", cfg, true);
+		} else {
+			this.osToken = this.loadOption("token", cfg, true);
+		}
 
+		
+		
 		this.cfgMgr = cfgMgr;
 		this.name = name;
 
+	}
+	
+	private String loadOptionalAttributeValue(String name,String label,Map<String, Attribute> config) throws ProvisioningException {
+		Attribute attr = config.get(name);
+		if (attr == null) {
+			logger.warn(label + " not found");
+			return null;
+		}
+		
+		String val = attr.getValues().get(0);
+		logger.info(label + ": '" + val + "'");
+		
+		return val;
 	}
 
 	private String loadOption(String name, Map<String, Attribute> cfg, boolean mask) throws ProvisioningException {
@@ -533,31 +562,37 @@ public class OpenShiftTarget implements UserStoreProvider {
 	public String getAuthToken() throws Exception {
 		HttpCon con = this.createClient();
 		try {
-			StringBuffer b = new StringBuffer();
-			b.append(this.url).append("/oauth/authorize?response_type=token&client_id=openshift-challenging-client");
-			HttpGet get = new HttpGet(b.toString());
-			b.setLength(0);
-			b.append(this.userName).append(':').append(this.password);
-			String b64 = Base64.encodeBase64String(b.toString().getBytes("UTF-8"));
-			b.setLength(0);
-			b.append("Basic ").append(b64.substring(0, b64.length() - 2));
-			get.addHeader(new BasicHeader("Authorization",b.toString()));
 			
-			HttpResponse resp = con.getHttp().execute(get);
-			String token = "";
-			if (resp.getStatusLine().getStatusCode() == 302) {
-				String url = resp.getFirstHeader("Location").getValue();
-				int start = url.indexOf("access_token") + "access_token=".length();
-				int end = url.indexOf("&",start + 1);
-				token = url.substring(start, end);
+			if (! this.useToken) {
+			
+				StringBuffer b = new StringBuffer();
+				b.append(this.url).append("/oauth/authorize?response_type=token&client_id=openshift-challenging-client");
+				HttpGet get = new HttpGet(b.toString());
+				b.setLength(0);
+				b.append(this.userName).append(':').append(this.password);
+				String b64 = Base64.encodeBase64String(b.toString().getBytes("UTF-8"));
+				b.setLength(0);
+				b.append("Basic ").append(b64.substring(0, b64.length() - 2));
+				get.addHeader(new BasicHeader("Authorization",b.toString()));
 				
+				HttpResponse resp = con.getHttp().execute(get);
+				String token = "";
+				if (resp.getStatusLine().getStatusCode() == 302) {
+					String url = resp.getFirstHeader("Location").getValue();
+					int start = url.indexOf("access_token") + "access_token=".length();
+					int end = url.indexOf("&",start + 1);
+					token = url.substring(start, end);
+					
+				} else {
+					throw new Exception("Unable to obtain token : " + resp.getStatusLine().toString());
+				}
+				
+				
+				
+				return token;
 			} else {
-				throw new Exception("Unable to obtain token : " + resp.getStatusLine().toString());
+				return this.osToken;
 			}
-			
-			
-			
-			return token;
 		} finally {
 			if (con != null) {
 				con.getBcm().shutdown();
