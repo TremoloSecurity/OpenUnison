@@ -44,7 +44,7 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 	private SessionManager sessionManager;
 	
 
-	public static final String version = "1.0.7-2016080202";
+	public static final String version = "1.0.7-2016080401";
 
 	
 	@Override
