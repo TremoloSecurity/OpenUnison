@@ -11,4 +11,5 @@ applications including:
 OpenUnison can run on any J2EE container (such as Tomcat or JBoss).  See OpenUnison's
 documentation for specific deployment instructions:
 
-https://www.tremolosecurity.com/docs/tremolosecurity-docs/1.0.6/openunison/openunison.html
+* OpenUnison - https://www.tremolosecurity.com/docs/tremolosecurity-docs/1.0.7/openunison/openunison-manual.html
+* ScaleJS - https://www.tremolosecurity.com/docs/tremolosecurity-docs/1.0.7/openunison-scalejs/scalejs-openunison-manual.html
