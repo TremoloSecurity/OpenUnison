@@ -48,6 +48,11 @@ public class CompleteLogin implements HttpFilter {
 		
 		ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
 		
+		
+		redirURL = cfg.getAuthManager().getGetRedirectURL(reqHolder);
+		
+		
+		/*
 		switch (reqHolder.getMethod()) {
 		
 			case GET :  redirURL = cfg.getAuthManager().getGetRedirectURL(reqHolder);
@@ -57,7 +62,7 @@ public class CompleteLogin implements HttpFilter {
 						break;
 						
 			default : redirURL = new StringBuffer(reqHolder.getURL());
-		}
+		}*/
 	
 	
 		response.sendRedirect(redirURL.toString());
