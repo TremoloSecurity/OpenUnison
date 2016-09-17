@@ -73,8 +73,13 @@ public class AddAttribute extends WorkflowTaskImpl {
 				}
 			}
 		} else {
-			Attribute attr = new Attribute(localName,localVal);
-			user.getAttribs().put(localName, attr);
+			Attribute attr = user.getAttribs().get(localName);
+			if (attr == null) {
+				attr = new Attribute(localName);
+				user.getAttribs().put(localName, attr);
+			}
+			attr.getValues().add(localVal);
+			
 		}
 		
 		
