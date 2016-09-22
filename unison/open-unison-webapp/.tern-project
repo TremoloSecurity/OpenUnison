@@ -1,8 +1,4 @@
 {
-  "libs": [
-    "ecma5",
-    "browser"
-  ],
   "plugins": {
     "guess-types": {
       
@@ -13,5 +9,9 @@
     "angular1": {
       
     }
-  }
+  },
+  "libs": [
+    "ecma5",
+    "browser"
+  ]
 }

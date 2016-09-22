@@ -219,7 +219,12 @@ public class AddGroupsFromProvisioningTarget implements Insert {
 							if (this.targetRoleAttribute == null || this.targetRoleAttribute.isEmpty()) {
 								for (String groupName : user.getGroups()) {
 									b.setLength(0);
-									b.append(this.label).append(" - ").append(groupName);
+									if (this.label.isEmpty()) {
+										b.append(groupName);
+									} else {
+										b.append(this.label).append(" - ").append(groupName);
+									}
+									
 									attr.addValue(b.toString());
 								}
 							} else {
