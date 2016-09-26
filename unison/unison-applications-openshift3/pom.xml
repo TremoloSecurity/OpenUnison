@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.tremolosecurity.unison</groupId>
     <artifactId>unison</artifactId>
-    <version>1.0.7</version>
+    <version>1.0.8</version>
   </parent>
   <artifactId>unison-applications-openshift3</artifactId>
   <name>unison-applications-openshift3</name>
