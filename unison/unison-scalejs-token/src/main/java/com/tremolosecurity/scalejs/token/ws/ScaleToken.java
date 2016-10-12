@@ -33,6 +33,7 @@ import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.scalejs.token.cfg.ScaleTokenConfig;
 import com.tremolosecurity.scalejs.token.data.ScaleTokenUser;
 import com.tremolosecurity.scalejs.token.sdk.TokenLoader;
+import com.tremolosecurity.scalejs.util.ScaleJSUtils;
 
 public class ScaleToken implements HttpFilter {
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ScaleToken.class.getName());
@@ -50,6 +51,7 @@ public class ScaleToken implements HttpFilter {
 		
 		if (request.getRequestURI().endsWith("/token/config")) {
 			response.setContentType("application/json");
+			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().println(gson.toJson(scaleConfig).trim());
 		} else if (request.getMethod().equalsIgnoreCase("GET") && request.getRequestURI().endsWith("/token/user")) {
 			AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
@@ -62,7 +64,7 @@ public class ScaleToken implements HttpFilter {
 			}
 			
 			stu.setToken(this.tokenLoader.loadToken(userData, request.getSession()));
-			
+			ScaleJSUtils.addCacheHeaders(response);
 			response.setContentType("application/json");
 			response.getWriter().println(gson.toJson(stu).trim());
 		}

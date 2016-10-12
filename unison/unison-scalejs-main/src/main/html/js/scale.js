@@ -764,7 +764,7 @@ limitations under the License.
         var payload = {};
 
         for (var attrName in this.userToSave) {
-          if (! this.config.attributes[attrName].readOnly) {
+          if (attrName in this.config.attributes &&  ! this.config.attributes[attrName].readOnly) {
             payload[attrName] = this.userToSave[attrName];
           }
         }

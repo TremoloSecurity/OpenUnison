@@ -27,6 +27,7 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.servlet.ServletException;
 
+import org.apache.logging.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.Session;
 
@@ -46,16 +47,24 @@ import com.tremolosecurity.provisioning.objects.Workflows;
 import com.tremolosecurity.server.GlobalEntries;
 
 public class ServiceActions {
+	
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ServiceActions.class.getName());
 
 	public static ApprovalSummaries listOpenApprovals(String approver,String displayNameAttribute,ConfigManager cfgMgr) throws ProvisioningException {
 		Session session = null;
+		
+		
+		
 		try {
 			
 			//PreparedStatement ps = con.prepareStatement("SELECT workflows.requestReason AS wfreason, workflows.name AS wfName,workflows.id AS workflow, workflows.startTS AS wfStart, approvals.id AS approval,approvals.label AS label,approvals.createTS AS approvalTS, users.userKey AS userid   FROM approvals INNER JOIN workflows ON approvals.workflow=workflows.id INNER JOIN allowedApprovers ON allowedApprovers.approval=approvals.id INNER JOIN approvers ON approvers.id=allowedApprovers.approver INNER JOIN users ON users.id=workflows.userid WHERE approvers.userKey=? AND approvals.approved IS NULL");
 			
+			
 			session = GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getHibernateSessionFactory().openSession();
 			
+			
 			Query query = session.createQuery("SELECT aprv FROM Approvals aprv JOIN aprv.allowedApproverses allowed JOIN allowed.approvers apprv  WHERE aprv.approved IS  NULL AND apprv.userKey = :user_key");
+			
 			query.setParameter("user_key", approver);
 			List<com.tremolosecurity.provisioning.objects.Approvals> approvals = query.list();
 			
@@ -69,6 +78,7 @@ public class ServiceActions {
 			
 			
 			for (Approvals appr : approvals) {
+				
 				ApprovalSummary sum = new ApprovalSummary();
 				
 				
@@ -83,6 +93,7 @@ public class ServiceActions {
 				String filter = equal(cfgMgr.getCfg().getProvisioning().getApprovalDB().getUserIdAttribute(),appr.getWorkflow().getUsers().getUserKey()).toString();
 				ArrayList<String> attributes = new ArrayList<String>();
 				attributes.add(displayNameAttribute);
+				
 				LDAPSearchResults res = cfgMgr.getMyVD().search(cfgMgr.getCfg().getLdapRoot(), 2, filter, attributes);
 				if (res.hasMore()) {
 					LDAPEntry entry = res.next();
@@ -111,13 +122,19 @@ public class ServiceActions {
 				
 				
 				summaries.add(sum);
+				
+				
 			}
 			
 			
 			Gson gson = new Gson();
 			ApprovalSummaries sums = new ApprovalSummaries();
 			
+			
+			
 			sums.setApprovals(summaries);
+			
+			
 			
 			return sums;
 		} catch (Throwable t) {

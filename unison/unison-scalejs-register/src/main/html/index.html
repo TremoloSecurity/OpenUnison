@@ -79,9 +79,9 @@ limitations under the License.
 			  </div><!--/.container-fluid -->
 			</div>
 			<div class="jumbotron">
-				<div class="alert alert-danger" >
-					<center><h3>Could not contact Unison</h3>
-					<b>Please try again later or contact your system administrator</b></center>
+				<div class="alert alert-info" >
+					<center><h3>Contacting Unison</h3>
+					<b>If this screen does not disapear please contact your system administrator</b></center>
 				</div>
 			</div>
 		</div>
@@ -107,7 +107,7 @@ limitations under the License.
 			  </div><!--/.container-fluid -->
 			</div>
 			<div class="jumbotron">
-				<center><h1>Logging In</h1></center>
+				<center><h1>Loading Registration Form</h1></center>
 				<center><h1><i class="fa fa-refresh fa-spin block"></i></h1></center>
 			</div>
 		</div>
@@ -160,16 +160,20 @@ limitations under the License.
 			</div>
 
 			<div class="row" ng-show="scale.saveUserSuccess">
-				<div class="alert alert-success" >
+				<div class="alert alert-success" ng-show="scale.showForm">
 					<b>The user has been registered, you may create a new user</b>
+
+				</div>
+				<div class="alert alert-success" ng-hide="scale.showForm">
+					<b>Thank you for registering, your request has been submitted and you will be notified once approved</b>
 
 				</div>
 			</div>
 
 			<!-- For users that can be edited -->
-			<div  >
+			<div ng-show="scale.showForm" >
 				<form name="saveUserForm">
-					<div class="row" ng-repeat="attributeConfig in scale.config.attributes">
+					<div class="row" ng-repeat="attributeConfig in scale.attributeConfigs">
 							<div class="col-md-4">{{ attributeConfig.displayName}}</div>
 							<div class="col-md-8">
 
@@ -190,23 +194,33 @@ limitations under the License.
 						<div class="col-md-4">Verify Password</div>
 						<div class="col-md-8"><input type="password" ng-model="scale.newUser.password2"  aria-label="Verify Password"></input></div>
 					</div>
+					
 					<div class="row" ng-hide="! scale.config.requireTermsAndConditions">
 						<div class="col-md-4">Terms and Conditions</div>
-						<div class="col-md-8">I accept the below terms and conditions <input type="checkbox" ng-model="scale.newUser.checkedTermsAndConditions"></input></div>
 					</div>
-
+					
 					<div class="row" ng-hide="! scale.config.requireTermsAndConditions">
 						<div ng-bind-html="scale.config.termsAndConditionsText"></div>
 						</div>
 					</div>
+					
+					<div class="row" ng-hide="! scale.config.requireTermsAndConditions">
+						<div class="col-md-12">I accept the above terms and conditions <input type="checkbox" ng-model="scale.newUser.checkedTermsAndConditions"></input></div>
+					</div>
 
-					<div class="row" ng-hide="! scale.config.requireReCaptcha">
+					
+
+					<div class="row" ng-hide="! scale.config.requireReCaptcha || ! scale.showForm">
 						<div class="col-md-4">Prove You are Not a Robot</div>
 						<div class="col-md-8"><div id="recaptcha" ></div></div>
 					</div>
 
 					<div  class="row">
-						<input type="button" ng-disabled="scale.saveUserDisabled" class="btn btn-lg btn-primary" value="Save" ng-click="scale.saveUser()" />
+					<div class="col-md-3">
+					</div>
+						<div class="col-md-6">
+							<input type="button" ng-disabled="scale.saveUserDisabled" class="btn btn-lg btn-primary btn-block" value="Submit Registration" ng-click="scale.saveUser()" />
+						</div>
 					</div>
 				</form>
 			</div>

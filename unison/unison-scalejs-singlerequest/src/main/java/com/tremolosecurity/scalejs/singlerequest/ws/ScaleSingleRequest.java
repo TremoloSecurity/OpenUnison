@@ -37,6 +37,7 @@ import com.tremolosecurity.scalejs.data.ScaleError;
 import com.tremolosecurity.scalejs.singlerequest.cfg.ScaleSingleRequestConfig;
 import com.tremolosecurity.scalejs.singlerequest.data.ScaleSingleRequestUser;
 import com.tremolosecurity.scalejs.singlerequest.data.SingleRequest;
+import com.tremolosecurity.scalejs.util.ScaleJSUtils;
 import com.tremolosecurity.server.GlobalEntries;
 
 
@@ -70,6 +71,7 @@ public class ScaleSingleRequest implements HttpFilter {
 				ssru.setDisplayName("Unknown");
 			}
 			
+			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().println(gson.toJson(ssru).trim());
 		} else if (request.getMethod().equalsIgnoreCase("POST") && request.getRequestURI().endsWith("/singlerequest/submit")) {
 			AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();

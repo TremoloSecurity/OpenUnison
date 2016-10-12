@@ -39,6 +39,7 @@ import com.tremolosecurity.scalejs.password.cfg.ScalePasswordResetConfig;
 import com.tremolosecurity.scalejs.password.data.ScaleJSPasswordRequest;
 import com.tremolosecurity.scalejs.password.data.ScalePasswordUser;
 import com.tremolosecurity.scalejs.password.sdk.PasswordValidator;
+import com.tremolosecurity.scalejs.util.ScaleJSUtils;
 import com.tremolosecurity.server.GlobalEntries;
 
 
@@ -71,7 +72,7 @@ public class ScalePassword implements HttpFilter {
 			} else {
 				ssru.setDisplayName("Unknown");
 			}
-			
+			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().println(gson.toJson(ssru).trim());
 		} else if (request.getMethod().equalsIgnoreCase("POST") && request.getRequestURI().endsWith("/password/submit")) {
 			AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();

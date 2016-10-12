@@ -34,7 +34,8 @@ limitations under the License.
       this.modalMessage;
 
       this.newUser = {};
-
+      this.attributeConfigs = [];
+      this.showForm = true;
 
 
 
@@ -84,12 +85,16 @@ limitations under the License.
 
             $scope.scale.saveUserSuccess = true;
             $scope.scale.saveUserErrors = [];
+            
+            $scope.scale.showForm = response.addNewUsers;
+            
           },
           function(response) {
             $scope.scale.saveUserErrors = response.data.errors;
             $scope.scale.showModal = false;
             $scope.scale.saveUserDisabled = false;
             $scope.scale.saveUserSuccess = false;
+            $scope.scale.showForm = true;
           }
         );
       };
@@ -141,8 +146,12 @@ limitations under the License.
             $scope.scale.displayName = '';
             $scope.scale.newUser.attributes = {};
 
-            for (var i in $scope.scale.config.attributes) {
-              $scope.scale.newUser.attributes[$scope.scale.config.attributes[i].name] = '';
+            $scope.scale.attributeConfigs = [];
+            
+            
+            for (var i in $scope.scale.config.attributeNameList) {
+              $scope.scale.newUser.attributes[$scope.scale.config.attributeNameList[i]] = '';
+              $scope.scale.attributeConfigs.push($scope.scale.config.attributes[$scope.scale.config.attributeNameList[i]]);
             };
 
             $scope.scale.setSessionLoadedComplete();
