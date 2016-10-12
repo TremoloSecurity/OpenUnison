@@ -165,14 +165,20 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 			
 			return true;
 		} else {
-			WorkflowHolder holder = (WorkflowHolder) request.get(WorkflowHolder.WF_HOLDER_REQUEST);
-			TaskHolder th = new TaskHolder();
-			th.setPosition(0);
-			th.setParent(subs);
-			th.setCurrentUser(user);
-			holder.getWfStack().push(th);
-			((ProvisioningEngineImpl) this.cfgMgr.getProvisioningEngine()).enqueue(holder);
-			return false;
+			
+			if (subs.isEmpty()) {
+				return true;
+			} else {
+			
+				WorkflowHolder holder = (WorkflowHolder) request.get(WorkflowHolder.WF_HOLDER_REQUEST);
+				TaskHolder th = new TaskHolder();
+				th.setPosition(0);
+				th.setParent(subs);
+				th.setCurrentUser(user);
+				holder.getWfStack().push(th);
+				((ProvisioningEngineImpl) this.cfgMgr.getProvisioningEngine()).enqueue(holder);
+				return false;
+			}
 		}
 	}
 	
