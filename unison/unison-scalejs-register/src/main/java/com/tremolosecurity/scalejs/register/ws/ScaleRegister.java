@@ -34,6 +34,7 @@ import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.novell.ldap.LDAPSearchResults;
+import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.service.util.TremoloUser;
 import com.tremolosecurity.provisioning.service.util.WFCall;
@@ -55,7 +56,9 @@ import com.tremolosecurity.scalejs.data.ScaleError;
 import com.tremolosecurity.scalejs.register.cfg.ScaleJSRegisterConfig;
 import com.tremolosecurity.scalejs.register.data.NewUserRequest;
 import com.tremolosecurity.scalejs.register.data.ReCaptchaResponse;
+import com.tremolosecurity.scalejs.register.data.SubmitResponse;
 import com.tremolosecurity.scalejs.register.sdk.CreateRegisterUser;
+import com.tremolosecurity.scalejs.util.ScaleJSUtils;
 import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.util.NVP;
 
@@ -72,6 +75,7 @@ public class ScaleRegister implements HttpFilter {
 		
 		if (request.getRequestURI().endsWith("/register/config")) {
 			response.setContentType("application/json");
+			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().println(gson.toJson(scaleConfig).trim());
 			
 		} else if (request.getRequestURI().endsWith("/register/submit")) {
@@ -213,7 +217,7 @@ public class ScaleRegister implements HttpFilter {
 				TremoloUser user = new TremoloUser();
 				user.setUid(newUser.getAttributes().get(this.scaleConfig.getUidAttributeName()));
 				AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
-				String uid = userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0);
+				
 				for (String attrName : newUser.getAttributes().keySet()) {
 					user.getAttributes().add(new Attribute(attrName,newUser.getAttributes().get(attrName)));	
 				}
@@ -251,11 +255,18 @@ public class ScaleRegister implements HttpFilter {
 				try {
 					exec.execute(wfcall, GlobalEntries.getGlobalEntries().getConfigManager());
 				} catch(Exception e) {
-					logger.error("Could register",e);
+					throw new ProvisioningException("Could not complete registration",e);
 				}
+				
+				SubmitResponse res = new SubmitResponse();
+				res.setAddNewUsers(userData.getAuthLevel() != 0);
+				ScaleJSUtils.addCacheHeaders(response);
+				response.getWriter().print(gson.toJson(res));
+				response.getWriter().flush();
+				
 			} else {
 				response.setStatus(500);
-				
+				ScaleJSUtils.addCacheHeaders(response);
 				response.getWriter().print(gson.toJson(errors).trim());
 				response.getWriter().flush();
 			}
@@ -263,6 +274,7 @@ public class ScaleRegister implements HttpFilter {
 			
 		} else {
 			response.setStatus(500);
+			ScaleJSUtils.addCacheHeaders(response);
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Operation not supported");
 			response.getWriter().print(gson.toJson(error).trim());
@@ -316,6 +328,7 @@ public class ScaleRegister implements HttpFilter {
 		this.scaleConfig = new ScaleJSRegisterConfig();
 		scaleConfig.getFrontPage().setTitle(this.loadAttributeValue("frontPage.title", "Front Page Title", config));
 		scaleConfig.getFrontPage().setText(this.loadAttributeValue("frontPage.text", "Front Page Text", config));
+		scaleConfig.setHomeURL(this.loadAttributeValue("homeURL", "Home URL", config));
 		scaleConfig.setLogoutURL(this.loadAttributeValue("logoutURL", "Logout URL", config));
 		scaleConfig.setUidAttributeName(this.loadAttributeValue("uidAttributeName", "UID Attribute Name", config));
 		scaleConfig.setWorkflowName(this.loadAttributeValue("workflowName", "Workflow Name", config));
@@ -352,6 +365,9 @@ public class ScaleRegister implements HttpFilter {
 		}
 		
 		for (String attributeName : attr.getValues()) {
+			
+			scaleConfig.getAttributeNameList().add(attributeName);
+			
 			ScaleAttribute scaleAttr = new ScaleAttribute();
 			scaleAttr.setName(attributeName);
 			scaleAttr.setDisplayName(this.loadAttributeValue(attributeName + ".displayName", attributeName + " Display Name", config));

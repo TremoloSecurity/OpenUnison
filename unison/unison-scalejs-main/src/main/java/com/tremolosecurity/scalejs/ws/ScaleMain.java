@@ -115,6 +115,7 @@ import com.tremolosecurity.scalejs.data.ScaleError;
 import com.tremolosecurity.scalejs.data.UserData;
 import com.tremolosecurity.scalejs.data.WorkflowRequest;
 import com.tremolosecurity.scalejs.sdk.UiDecisions;
+import com.tremolosecurity.scalejs.util.ScaleJSUtils;
 import com.tremolosecurity.server.GlobalEntries;
 
 public class ScaleMain implements HttpFilter {
@@ -151,11 +152,13 @@ public class ScaleMain implements HttpFilter {
 				
 				local.setCanEditUser(this.scaleConfig.getUiDecisions().canEditUser(userData, request.getServletRequest()));
 				
-				
+				ScaleJSUtils.addCacheHeaders(response);
 				response.setContentType("application/json");
+				
 				response.getWriter().println(gson.toJson(local).trim());
 				
 			} else {
+				ScaleJSUtils.addCacheHeaders(response);
 				response.setContentType("application/json");
 				response.getWriter().println(gson.toJson(scaleConfig).trim());
 			}
@@ -169,6 +172,7 @@ public class ScaleMain implements HttpFilter {
 			OrgType ot = GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getOrg();
 			Organization org = new Organization();
 			copyOrg(org,ot,az,userData);
+			ScaleJSUtils.addCacheHeaders(response);
 			response.setContentType("application/json");
 			response.getWriter().println(gson.toJson(org).trim());
 			
@@ -181,6 +185,7 @@ public class ScaleMain implements HttpFilter {
 			AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
 			String uid = userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0); 			
 			response.setContentType("application/json");
+			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().println(gson.toJson(ServiceActions.listOpenApprovals(uid,this.scaleConfig.getDisplayNameAttribute(),GlobalEntries.getGlobalEntries().getConfigManager())).trim());			
 		} else if (request.getMethod().equalsIgnoreCase("GET") && request.getRequestURI().contains("/main/approvals/")) {
 			loadApproval(request, response, gson);
@@ -201,6 +206,7 @@ public class ScaleMain implements HttpFilter {
 			if (! ok) {
 				response.setStatus(401);
 				response.setContentType("application/json");
+				ScaleJSUtils.addCacheHeaders(response);
 				ScaleError error = new ScaleError();
 				error.getErrors().add("Unauthorized");
 				response.getWriter().print(gson.toJson(error).trim());
@@ -214,6 +220,7 @@ public class ScaleMain implements HttpFilter {
 					response.setStatus(500);
 					ScaleError error = new ScaleError();
 					error.getErrors().add("There was a problem completeding your request, please contact your system administrator");
+					ScaleJSUtils.addCacheHeaders(response);
 					response.getWriter().print(gson.toJson(error).trim());
 					response.getWriter().flush();
 				}
@@ -266,7 +273,7 @@ public class ScaleMain implements HttpFilter {
 			
 			
 			
-			
+			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().print(gson.toJson(urls.getUrls()).trim());
 			response.getWriter().flush();
 		} else if (request.getMethod().equalsIgnoreCase("GET") && request.getRequestURI().contains("/main/urls/org")) {
@@ -309,7 +316,7 @@ public class ScaleMain implements HttpFilter {
 			
 			
 			
-			
+			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().print(gson.toJson(urls.getUrls()).trim());
 			response.getWriter().flush();
 		}
@@ -319,6 +326,7 @@ public class ScaleMain implements HttpFilter {
 			response.setStatus(500);
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Operation not supported");
+			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().print(gson.toJson(error).trim());
 			response.getWriter().flush();
 		}
@@ -329,6 +337,7 @@ public class ScaleMain implements HttpFilter {
 			response.setStatus(500);
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Operation not supported");
+			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().print(gson.toJson(error).trim());
 			response.getWriter().flush();
 			
@@ -348,6 +357,7 @@ public class ScaleMain implements HttpFilter {
 			response.setStatus(404);
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Report no longer available");
+			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().print(gson.toJson(error).trim());
 			response.getWriter().flush();
 		} else {
@@ -477,6 +487,7 @@ public class ScaleMain implements HttpFilter {
 			response.setStatus(404);
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Report not found");
+			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().print(gson.toJson(error).trim());
 			response.getWriter().flush();
 		} else {
@@ -515,6 +526,7 @@ public class ScaleMain implements HttpFilter {
 				response.setStatus(401);
 				ScaleError error = new ScaleError();
 				error.getErrors().add("Unauthorized");
+				ScaleJSUtils.addCacheHeaders(response);
 				response.getWriter().print(gson.toJson(error).trim());
 				response.getWriter().flush();
 			}
@@ -647,6 +659,7 @@ public class ScaleMain implements HttpFilter {
 					logger.debug("JSON : " + json);
 				}
 				response.setContentType("application/json");
+				ScaleJSUtils.addCacheHeaders(response);
 				response.getWriter().print(json);
 				response.getWriter().flush();
 			} else {
@@ -660,6 +673,7 @@ public class ScaleMain implements HttpFilter {
 					logger.debug("JSON : " + json);
 				}
 				response.setContentType("application/json");
+				ScaleJSUtils.addCacheHeaders(response);
 				response.getWriter().print(json);
 				response.getWriter().flush();
 			}
@@ -709,6 +723,7 @@ public class ScaleMain implements HttpFilter {
 			response.setContentType("application/json");
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Unauthorized");
+			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().print(gson.toJson(error).trim());
 			response.getWriter().flush();
 		} else {
@@ -768,7 +783,7 @@ public class ScaleMain implements HttpFilter {
 			
 			while (res.hasMore()) res.next();
 			
-					
+			ScaleJSUtils.addCacheHeaders(response);		
 			response.getWriter().println(gson.toJson(details).trim());
 			response.getWriter().flush();
 		}
@@ -834,7 +849,7 @@ public class ScaleMain implements HttpFilter {
 				
 			}
 		}
-		
+		ScaleJSUtils.addCacheHeaders(response);
 		response.setContentType("application/json");
 		response.getWriter().println(gson.toJson(results).trim());
 	}
@@ -855,6 +870,7 @@ public class ScaleMain implements HttpFilter {
 			response.setContentType("application/json");
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Unauthorized");
+			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().print(gson.toJson(error).trim());
 			response.getWriter().flush();
 		} else {
@@ -942,7 +958,7 @@ public class ScaleMain implements HttpFilter {
 				}
 				
 			}
-			
+			ScaleJSUtils.addCacheHeaders(response);
 			response.setContentType("application/json");
 			response.getWriter().println(gson.toJson(workflows).trim());
 			response.getWriter().flush();
@@ -964,6 +980,7 @@ public class ScaleMain implements HttpFilter {
 			response.setContentType("application/json");
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Unauthorized");
+			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().print(gson.toJson(error).trim());
 			response.getWriter().flush();
 		} else {
@@ -989,6 +1006,7 @@ public class ScaleMain implements HttpFilter {
 			}
 			
 			response.setContentType("application/json");
+			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().println(gson.toJson(reportsList).trim());
 			response.getWriter().flush();
 		}
@@ -1123,6 +1141,7 @@ public class ScaleMain implements HttpFilter {
 				response.setStatus(500);
 				ScaleError error = new ScaleError();
 				error.getErrors().add("Please contact your system administrator");
+				ScaleJSUtils.addCacheHeaders(response);
 				response.getWriter().print(gson.toJson(error).trim());
 				response.getWriter().flush();
 			}
@@ -1130,7 +1149,7 @@ public class ScaleMain implements HttpFilter {
 			
 		} else {
 			response.setStatus(500);
-			
+			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().print(gson.toJson(errors).trim());
 			response.getWriter().flush();
 		}
@@ -1138,9 +1157,15 @@ public class ScaleMain implements HttpFilter {
 
 	private void lookupUser(HttpFilterRequest request, HttpFilterResponse response, Gson gson)
 			throws LDAPException, IOException {
+		
+		
+		
+		
 		response.setContentType("application/json");
 		
 		AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+		
+		
 		
 		Set<String> allowedAttrs = null;
 		
@@ -1148,8 +1173,12 @@ public class ScaleMain implements HttpFilter {
 			allowedAttrs = this.scaleConfig.getUiDecisions().availableAttributes(userData, request.getServletRequest());
 		}
 		
+		
+		
 		UserData userToSend = new UserData();
 		userToSend.setDn(userData.getUserDN());
+		
+		
 		
 		for (String attrName : this.scaleConfig.getAttributes().keySet()) {
 			
@@ -1167,6 +1196,7 @@ public class ScaleMain implements HttpFilter {
 			}
 		}
 		
+		
 		if (this.scaleConfig.getRoleAttribute() != null && ! this.scaleConfig.getRoleAttribute().isEmpty()) {
 			Attribute fromUser = userData.getAttribs().get(this.scaleConfig.getRoleAttribute());
 			Attribute attr = new Attribute(this.scaleConfig.getRoleAttribute());
@@ -1176,6 +1206,7 @@ public class ScaleMain implements HttpFilter {
 			
 			userToSend.getAttributes().add(attr);
 		}
+		
 		
 		ArrayList<String> attrNames = new ArrayList<String>();
 		attrNames.add("cn");
@@ -1189,7 +1220,10 @@ public class ScaleMain implements HttpFilter {
 			}
 		}
 		
+		ScaleJSUtils.addCacheHeaders(response);
 		response.getWriter().println(gson.toJson(userToSend).trim());
+		
+		
 	}
 
 	@Override

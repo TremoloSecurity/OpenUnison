@@ -12,7 +12,9 @@
  *******************************************************************************/
 package com.tremolosecurity.scalejs.register.cfg;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.tremolosecurity.saml.Attribute;
@@ -21,9 +23,11 @@ import com.tremolosecurity.scalejs.cfg.ScaleFrontPage;
 
 public class ScaleJSRegisterConfig {
 	ScaleFrontPage frontPage;
+	String homeURL;
 	String logoutURL;
 	transient String workflowName;
 	Map<String,ScaleAttribute> attributes;
+	List<String> attributeNameList;
 	boolean requireReason;
 	boolean preSetPassword;
 	transient String uidAttributeName;
@@ -39,9 +43,14 @@ public class ScaleJSRegisterConfig {
 	public ScaleJSRegisterConfig() {
 		this.attributes = new HashMap<String,ScaleAttribute>();
 		this.frontPage = new ScaleFrontPage();
+		this.attributeNameList = new ArrayList<String>();
 	}
 
 
+	public List<String> getAttributeNameList() {
+		return this.attributeNameList;
+	}
+	
 	public ScaleFrontPage getFrontPage() {
 		return frontPage;
 	}
@@ -189,6 +198,16 @@ public class ScaleJSRegisterConfig {
 
 	public void setCustomSubmissionClassName(String customSubmissionClassName) {
 		this.customSubmissionClassName = customSubmissionClassName;
+	}
+
+
+	public String getHomeURL() {
+		return homeURL;
+	}
+
+
+	public void setHomeURL(String homeURL) {
+		this.homeURL = homeURL;
 	}
 	
 	
