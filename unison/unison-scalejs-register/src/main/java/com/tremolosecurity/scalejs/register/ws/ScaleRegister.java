@@ -328,6 +328,7 @@ public class ScaleRegister implements HttpFilter {
 		this.scaleConfig = new ScaleJSRegisterConfig();
 		scaleConfig.getFrontPage().setTitle(this.loadAttributeValue("frontPage.title", "Front Page Title", config));
 		scaleConfig.getFrontPage().setText(this.loadAttributeValue("frontPage.text", "Front Page Text", config));
+		scaleConfig.setHomeURL(this.loadAttributeValue("homeURL", "Home URL", config));
 		scaleConfig.setLogoutURL(this.loadAttributeValue("logoutURL", "Logout URL", config));
 		scaleConfig.setUidAttributeName(this.loadAttributeValue("uidAttributeName", "UID Attribute Name", config));
 		scaleConfig.setWorkflowName(this.loadAttributeValue("workflowName", "Workflow Name", config));
