@@ -73,6 +73,8 @@ public class MongoInsert implements Insert {
 	public String getName() {
 		return this.name;
 	}
+	
+	
 
 	public void configure(String name, Properties props, NameSpace nameSpace) throws LDAPException {
 		this.name = name;
