@@ -187,6 +187,11 @@
 			<type>jar</type>
 		</dependency>
 		 
+        <dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-services-mongodb</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
 	</dependencies>
 
 

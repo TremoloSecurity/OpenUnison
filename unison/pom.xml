@@ -138,6 +138,7 @@
 		<module>unison-scalejs-register</module>
 		<module>unison-services-openstack</module>
 		<module>unison-scalejs-password</module>
+		<module>unison-services-mongodb</module>
 	</modules>
 	<build>
 		<plugins>
