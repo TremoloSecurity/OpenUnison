@@ -66,6 +66,7 @@
 		<hibernate.version>5.2.1.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
 		<org.apache.poi.version>3.14</org.apache.poi.version>
+		<jose4j.version>0.4.4</jose4j.version>
 		
 	</properties>
 
@@ -139,6 +140,7 @@
 		<module>unison-services-openstack</module>
 		<module>unison-scalejs-password</module>
 		<module>unison-services-mongodb</module>
+		<module>unison-auth-openidconnect</module>
 	</modules>
 	<build>
 		<plugins>
