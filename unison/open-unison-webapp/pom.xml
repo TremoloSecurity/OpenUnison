@@ -192,6 +192,12 @@
 			<artifactId>unison-services-mongodb</artifactId>
 			<version>${openunison.version}</version>
 		</dependency>
+		
+		 <dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-auth-openidconnect</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
 	</dependencies>
 
 
