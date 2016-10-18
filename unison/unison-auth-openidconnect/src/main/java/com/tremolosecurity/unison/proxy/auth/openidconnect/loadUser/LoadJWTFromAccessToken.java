@@ -37,6 +37,10 @@ public class LoadJWTFromAccessToken implements LoadUserData {
 		
 		String hd = authParams.get("hd").getValues().get(0);
 		
+		if (logger.isDebugEnabled()) {
+			logger.debug("access token : '" + accessToken + "'");
+		}
+		
 		//"id_token"
 		String jwt = (String) accessToken.get(tokenName);
 		
@@ -49,7 +53,9 @@ public class LoadJWTFromAccessToken implements LoadUserData {
 
 		String json = new String(Base64.decodeBase64(jwt.substring(firstPeriod + 1,lastPeriod)));
 		
-		logger.info("json : '" + json + "'");
+		if (logger.isDebugEnabled()) {
+			logger.info("json : '" + json + "'");
+		}
 		
 		jwtNVP = com.cedarsoftware.util.io.JsonReader.jsonToMaps(json);
 

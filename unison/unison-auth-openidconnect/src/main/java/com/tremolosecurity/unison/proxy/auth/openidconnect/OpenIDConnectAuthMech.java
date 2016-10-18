@@ -110,6 +110,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 		String lookupFilter = authParams.get("lookupFilter").getValues().get(0);
 		String userLookupClassName = authParams.get("userLookupClassName").getValues().get(0);
 		
+		String defaultObjectClass = authParams.get("defaultObjectClass").getValues().get(0);
 		
 		
 		
@@ -235,13 +236,13 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 				as.setSuccess(false);
 			} else {
 				if (! linkToDirectory) {
-					loadUnlinkedUser(session, noMatchOU, uidAttr, act, jwtNVP);
+					loadUnlinkedUser(session, noMatchOU, uidAttr, act, jwtNVP,defaultObjectClass);
 					
 					as.setSuccess(true);
 
 					
 				} else {
-					lookupUser(as, session, myvd, noMatchOU, uidAttr, lookupFilter, act, jwtNVP);
+					lookupUser(as, session, myvd, noMatchOU, uidAttr, lookupFilter, act, jwtNVP,defaultObjectClass);
 				}
 				
 				
@@ -269,7 +270,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 	}
 
 	public static void lookupUser(AuthStep as, HttpSession session, MyVDConnection myvd, String noMatchOU, String uidAttr,
-			String lookupFilter, AuthChainType act, Map jwtNVP) {
+			String lookupFilter, AuthChainType act, Map jwtNVP,String defaultObjectClass) {
 		boolean uidIsFilter = ! lookupFilter.isEmpty();
 		
 		
@@ -370,7 +371,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 				
 			} else {
 				
-				loadUnlinkedUser(session, noMatchOU, uidAttr, act, jwtNVP);
+				loadUnlinkedUser(session, noMatchOU, uidAttr, act, jwtNVP,defaultObjectClass);
 				
 				as.setSuccess(true);
 			}
@@ -386,7 +387,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 	}
 
 	public static void loadUnlinkedUser(HttpSession session, String noMatchOU, String uidAttr, AuthChainType act,
-			Map jwtNVP) {
+			Map jwtNVP,String defaultObjectClass) {
 		String uid = (String) jwtNVP.get(uidAttr);
 		StringBuffer dn = new StringBuffer();
 		dn.append(uidAttr).append('=').append(uid).append(",ou=").append(noMatchOU).append(",").append(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot());
@@ -400,6 +401,8 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			authInfo.getAttribs().put(attr.getName(), attr);
 			
 		}
+		
+		authInfo.getAttribs().put("objectClass", new Attribute("objectClass",defaultObjectClass));
 	}
 
 	public void doPost(HttpServletRequest request, HttpServletResponse response, AuthStep as)
