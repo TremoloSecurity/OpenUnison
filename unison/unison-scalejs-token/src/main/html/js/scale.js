@@ -20,7 +20,7 @@ limitations under the License.
 
 
 
-    app.controller('ScaleController',['$compile', '$scope','$window','$http',function($compile, $scope, $window, $http){
+    app.controller('ScaleController',['$compile', '$scope','$window','$http','$interval',function($compile, $scope, $window, $http,$interval){
 
 
       this.appIsError = false;
@@ -47,7 +47,17 @@ limitations under the License.
 
 
 
-
+      this.reloadSession = function() {
+    	  $scope.scale.modalTitle = "Session Expired";
+			$scope.scale.modalMessage = "Your session has expired.  Click OK to login again or refresh your page";
+			$scope.scale.modalOKFunction = function() {
+				location.reload(true);
+			};
+			$scope.scale.modalShowFooter = true;
+			$scope.scale.showModal = true;
+			$scope.scale.showModal = true;
+			
+      };
 
 
 
@@ -87,7 +97,61 @@ limitations under the License.
 
       angular.element(document).ready(function () {
 
-
+    	  $http.get('sessioncheck').
+	  	  	then(function(response) {
+	  	  		
+	  	  	},
+	  	  	
+	  	  	function(response) {
+	  	  		location.reload(true);
+	  	  	}
+	  	  	
+	  	  );
+    	  
+    	  $interval(
+      			function() {
+      				$http.get('sessioncheck')
+      					.then(
+      						function(response) {
+      							$scope.scale.minsLeft = response.data.minsLeft;
+      							
+      							
+      							if ($scope.scale.minsLeft <= $scope.scale.config.warnMinutesLeft) {
+  	    							$scope.scale.modalTitle = "Inactive Session";
+  	    							$scope.scale.modalMessage = response.data.minsLeft + " minutes until your session ends.  Click OK to continue your session.";
+  	    							$scope.scale.modalOKFunction = function() {
+  	    								$http.get('sessioncheck').then(
+  	    										function(response) {
+  	    											$http.get('token/config').then(
+  	    		    										function(response) {
+  	    		    											$scope.scale.showModal = false;
+  	    		    										},
+  	    		    										function(response) {
+  	    		    											$scope.scale.showModal = false;
+  	    		    											$scope.scale.reloadSession();
+  	    		    										}
+  	    		    								);
+  	    										},
+  	    										function(response) {
+  	    											$scope.scale.showModal = false;
+  	    											$scope.scale.reloadSession();
+  	    										}
+  	    								
+  	    								);
+  	    								
+  	    							};
+  	    							$scope.scale.showModal = true;
+  	    							$scope.scale.modalShowFooter = true;
+      							}   
+      						},
+      						function(response) {
+      							$scope.scale.showModal = false;
+  								$scope.scale.reloadSession();
+      						}
+      					
+      					);
+      			}, 1000 * 60
+      	);
 
         $http.get('token/config').then(
           function(response) {
@@ -151,6 +215,9 @@ limitations under the License.
                     '<h4 class="modal-title">{{ title }}</h4>' +
                   '</div>' +
                   '<div class="modal-body" ng-transclude></div>' +
+'<div class="modal-footer" ng-show="scale.modalShowFooter">' + 
+                  
+                  '<button type="button" class="btn-primary btn-lg" ng-click="scale.modalOKFunction()" >OK</button>' +
                 '</div>' +
               '</div>' +
             '</div>',
