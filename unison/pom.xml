@@ -142,6 +142,7 @@
 		<module>unison-services-mongodb</module>
 		<module>unison-auth-openidconnect</module>
 		<module>unison-idp-openidconnect</module>
+		<module>unison-applications-k8s</module>
 	</modules>
 	<build>
 		<plugins>
