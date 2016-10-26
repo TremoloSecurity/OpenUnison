@@ -141,6 +141,7 @@
 		<module>unison-scalejs-password</module>
 		<module>unison-services-mongodb</module>
 		<module>unison-auth-openidconnect</module>
+		<module>unison-idp-openidconnect</module>
 	</modules>
 	<build>
 		<plugins>
