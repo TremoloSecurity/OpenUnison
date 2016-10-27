@@ -34,25 +34,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-
-				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<descriptors>
-						<descriptor>${project.basedir}/src/main/xml/create-distro.xml</descriptor>
-					</descriptors>
-
-				</configuration>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-
-					</execution>
-				</executions>
-			</plugin>
+			
 		</plugins>
 	</build>
 	<dependencies>
