@@ -198,6 +198,18 @@
 			<artifactId>unison-auth-openidconnect</artifactId>
 			<version>${openunison.version}</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-idp-openidconnect</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-k8s</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
 	</dependencies>
 
 
