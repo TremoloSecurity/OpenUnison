@@ -65,7 +65,10 @@ public class LoginService implements AuthMechanism {
 		
 		request.getSession().setAttribute(LoginService.CHAINS, chainMap);
 		
-		if (request.getParameter("chain") != null) {
+		if (chainMap.keySet().size() == 1) {
+			String chainLabel = chainMap.keySet().iterator().next();
+			startLogin(request,response, session, chainMap, chainLabel,cookieName,days);
+		} else if (request.getParameter("chain") != null) {
 			String chainLabel = request.getParameter("chain");
 			startLogin(request,response, session, chainMap, chainLabel,cookieName,days);
 			
@@ -100,9 +103,11 @@ public class LoginService implements AuthMechanism {
 		((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).setHolder(null);
 		
 		boolean found = false;
-		for (Cookie cookie : request.getCookies()) {
-			if (cookie.getName().equalsIgnoreCase(cookieName)) {
-				found = true;
+		if (request.getCookies() != null) {
+			for (Cookie cookie : request.getCookies()) {
+				if (cookie.getName().equalsIgnoreCase(cookieName)) {
+					found = true;
+				}
 			}
 		}
 		

@@ -281,16 +281,16 @@ public class Saml2Idp implements IdentityProvider {
 			throws ServletException {
 		try {
 			String saml = new String(Base64.decodeBase64(request.getParameter("SAMLRequest")));
-			//if (logger.isDebugEnabled()) {
+			if (logger.isDebugEnabled()) {
 				logger.debug(saml);
-			//}
+			}
 			
 			Enumeration enumer = request.getParameterNames();
 			while (enumer.hasMoreElements()) {
 				String name = (String) enumer.nextElement();
-				//if (logger.isDebugEnabled()) {
+				if (logger.isDebugEnabled()) {
 					logger.debug(name + "=" + request.getParameter(name));
-				//}
+				}
 			}
 			
 			String relayState = request.getParameter("RelayState");
@@ -494,7 +494,7 @@ public class Saml2Idp implements IdentityProvider {
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws IOException, ServletException {
 		
-		logger.info("Entering post");
+		
 		
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware(true);
