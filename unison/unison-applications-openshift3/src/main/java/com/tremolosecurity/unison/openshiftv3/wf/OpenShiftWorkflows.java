@@ -14,6 +14,7 @@ package com.tremolosecurity.unison.openshiftv3.wf;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +38,13 @@ public class OpenShiftWorkflows implements DynamicWorkflow {
 		ArrayList<Map<String,String>> wfData = new ArrayList<Map<String,String>>();
 		
 		String targetName = params.get("target").getValues().get(0);
+		
+		HashSet<String> nameFilter = new HashSet<String>();
+		Attribute attr = params.get("filter");
+		if (attr != null) {
+			nameFilter.addAll(attr.getValues());
+		}
+		
 		OpenShiftTarget target = (OpenShiftTarget) cfg.getProvisioningEngine().getTarget(targetName).getProvider();
 		
 		String kind = params.get("kind").getValues().get(0);
@@ -57,7 +65,13 @@ public class OpenShiftWorkflows implements DynamicWorkflow {
 				
 				for (Item item : list.getItems()) {
 					HashMap<String,String> wfParams = new HashMap<String,String>();
-					wfParams.put("name", (String) item.getMetadata().get("name"));
+					String name = (String) item.getMetadata().get("name");
+					
+					if (nameFilter.contains(name)) {
+						continue;
+					}
+					
+					wfParams.put("name", name);
 					if (item.getMetadata().containsKey("annotations")) {
 						com.google.gson.internal.LinkedTreeMap annotations = (com.google.gson.internal.LinkedTreeMap) item.getMetadata().get("annotations");
 						for (Object key : annotations.keySet()) {
