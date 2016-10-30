@@ -466,11 +466,7 @@ public class SAML2Auth implements AuthMechanism {
 	public void doPost(HttpServletRequest req, HttpServletResponse resp,AuthStep as)
 			throws ServletException, IOException {
 
-		String redirTo = (String) req.getAttribute("TREMOLO_AUTH_REDIR_URI");
-		if (redirTo != null) {
-			resp.sendRedirect(redirTo);
-			return;
-		}
+		
 		
 		MyVDConnection myvd = cfgMgr.getMyVD();
 		// HttpSession session = (HttpSession)
