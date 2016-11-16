@@ -87,6 +87,8 @@ import com.tremolosecurity.idp.providers.oidc.session.ClearOidcSessionOnLogout;
 import com.tremolosecurity.idp.server.IDP;
 import com.tremolosecurity.idp.server.IdentityProvider;
 import com.tremolosecurity.json.Token;
+import com.tremolosecurity.log.AccessLog;
+import com.tremolosecurity.log.AccessLog.AccessEvent;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
@@ -135,12 +137,24 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 		String action = (String) request.getAttribute(IDP.ACTION_NAME);
 		
+		UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
+		if (holder == null) {
+			throw new ServletException("Holder is null");
+		}
+		
+		AuthController ac = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL));
+		
+		
 		if (action.equalsIgnoreCase(".well-known/openid-configuration")) {
 			
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 			String json = gson.toJson(new OpenIDConnectConfig(this.idpName,request,mapper));
 			response.setContentType("application/json");
 			response.getWriter().print(json);
+			
+			
+			AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() , "NONE");
+			
 			return;
 		
 		} else if (action.equalsIgnoreCase("certs")) {
@@ -149,13 +163,15 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				JsonWebKey jwk = JsonWebKey.Factory.newJwk(cert.getPublicKey());
 				
 				
-				StringBuffer b = new StringBuffer();
-				b.append(cert.getSubjectDN().getName()).append('-').append(cert.getIssuerDN().getName()).append('-').append(cert.getSerialNumber().toString());
-				jwk.setKeyId(b.toString());
+				String keyID = buildKID(cert);
+				jwk.setKeyId(keyID);
 				jwk.setUse("sig");
 				jwk.setAlgorithm("RS256");
 				response.setContentType("application/json");
 				response.getWriter().print(new JsonWebKeySet(jwk).toJson());
+				
+				AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() , "NONE");
+				
 				return;
 			} catch (JoseException e) {
 				throw new ServletException("Could not generate jwt",e);
@@ -198,6 +214,10 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				StringBuffer b = new StringBuffer();
 				b.append(trust.getRedirectURI()).append("?error=unauthorized_client");
 				logger.warn("Invalid redirect");
+				
+				
+				AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() , "NONE");
+				
 				response.sendRedirect(b.toString());
 				return;
 			}
@@ -206,6 +226,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				StringBuffer b = new StringBuffer();
 				b.append(trust.getRedirectURI()).append("?error=invalid_scope");
 				logger.warn("First scope not openid");
+				AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() , "NONE");
 				response.sendRedirect(b.toString());
 				return;
 			} else {
@@ -224,7 +245,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			HttpSession session = request.getSession();
 			
 			AuthInfo authData = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
-			UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
+			
 			
 			AuthChainType act = holder.getConfig().getAuthChains().get(authChain);
 			
@@ -255,6 +276,12 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		}
 		
 
+	}
+
+	private String buildKID(X509Certificate cert) {
+		StringBuffer b = new StringBuffer();
+		b.append(cert.getSubjectDN().getName()).append('-').append(cert.getIssuerDN().getName()).append('-').append(cert.getSerialNumber().toString());
+		return b.toString();
 	}
 	
 	private boolean nextAuth(HttpServletRequest req,HttpServletResponse resp,HttpSession session,boolean jsRedirect,AuthChainType act) throws ServletException, IOException {
@@ -299,6 +326,10 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	}
 
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+		
+		
+		
+		
 		String action = (String) request.getAttribute(IDP.ACTION_NAME);
 		if (action.contentEquals("completeFed")) {
 			this.completeFederation(request, response);
@@ -319,14 +350,14 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			
 			if (refreshToken != null) {
 				try {
-					refreshToken(response, clientID, clientSecret, refreshToken);
+					refreshToken(response, clientID, clientSecret, refreshToken, holder, request, ac.getAuthInfo());
 				} catch (Exception e) {
 					throw new ServletException("Could not refresh token",e);
 				}
 				
 				
 			} else {
-				completeUserLogin(request, response, code, clientID, clientSecret, holder);
+				completeUserLogin(request, response, code, clientID, clientSecret, holder, ac.getAuthInfo());
 			}
 			
 			
@@ -334,7 +365,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 	}
 
-	private void refreshToken(HttpServletResponse response, String clientID, String clientSecret, String refreshToken)
+	private void refreshToken(HttpServletResponse response, String clientID, String clientSecret, String refreshToken, UrlHolder holder, HttpServletRequest request, AuthInfo authData)
 			throws Exception, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
 			InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, IOException,
 			JoseException, InvalidJwtException, UnsupportedEncodingException {
@@ -356,6 +387,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		if (session == null) {
 			logger.warn("Session does not exist from refresh_token");
+			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
 			response.sendError(401);
 			return;
 		}
@@ -364,6 +396,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		String clientSecretFromSession = this.decryptClientSecret(this.trusts.get(clientID).getCodeLastmileKeyName(), session.getEncryptedClientSecret());
 		if (! clientSecretFromSession.equals(clientSecret)) {
 			logger.warn("Invalid client_secret");
+			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
 			response.sendError(401);
 			return;
 		} 
@@ -374,6 +407,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		if (! jws.verifySignature()) {
 			logger.warn("id_token tampered with");
+			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
 			response.sendError(401);
 			return;
 		}
@@ -397,6 +431,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		jws.setCompactSerialization(session.getAccessToken());
 		if (! jws.verifySignature()) {
 			logger.warn("access_token tampered with");
+			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
 			response.sendError(401);
 			return;
 		}
@@ -412,7 +447,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		jws.setPayload(claims.toJson());
 		jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getPrivateKey(this.jwtSigningKeyName));
 		jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
-		
+		jws.setKeyIdHeaderValue(this.buildKID(GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.jwtSigningKeyName)));
 		session.setAccessToken(jws.getCompactSerialization());
 		
 		UUID newRefreshToken = UUID.randomUUID();
@@ -459,10 +494,13 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		response.setContentType("text/json");
 		response.getOutputStream().write(json.getBytes());
 		response.getOutputStream().flush();
+		
+		
+		AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
 	}
 
 	private void completeUserLogin(HttpServletRequest request, HttpServletResponse response, String code,
-			String clientID, String clientSecret, UrlHolder holder)
+			String clientID, String clientSecret, UrlHolder holder, AuthInfo authData)
 			throws ServletException, IOException, MalformedURLException {
 		String lastMileToken = null;
 		
@@ -476,6 +514,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		OpenIDConnectTrust trust = this.trusts.get(clientID);
 		
 		if (! clientSecret.equals(trust.getClientSecret())) {
+			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
 			response.sendError(403);
 			return;
 		}
@@ -489,6 +528,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		} catch (Exception e) {
 			logger.warn("Could not decrypt code token",e);
 			response.sendError(403);
+			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
 			return;
 		}
 		
@@ -496,6 +536,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			
 			response.sendError(403);
 			logger.warn("Could not validate code token");
+			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
 			return;
 		}
 		
@@ -581,6 +622,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		response.setContentType("text/json");
 		response.getOutputStream().write(json.getBytes());
 		response.getOutputStream().flush();
+		
+		AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
 	}
 
 	public OIDCSession storeSession(OpenIDConnectAccessToken access,ApplicationType app,String codeTokenKeyName,HttpServletRequest request) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
@@ -933,6 +976,9 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	    // facilitate a smooth key rollover process
 	    //jws.setKeyIdHeaderValue(javax.xml.bind.DatatypeConverter.printHexBinary(cfg.getCertificate(jwtSigningKeyName).getExtensionValue("2.5.29.14")));
 
+	    jws.setKeyIdHeaderValue(this.buildKID(cfg.getCertificate(this.jwtSigningKeyName)));
+	    
+	    
 	    // Set the signature algorithm on the JWT/JWS that will integrity protect the claims
 	    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
 	    
