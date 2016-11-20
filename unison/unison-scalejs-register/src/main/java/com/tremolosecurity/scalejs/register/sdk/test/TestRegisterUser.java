@@ -15,7 +15,7 @@ import com.tremolosecurity.scalejs.register.ws.ScaleRegister;
 
 public class TestRegisterUser implements CreateRegisterUser {
 	
-	static Logger logger = Logger.getLogger(TestRegisterUser.class.getName());
+	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(TestRegisterUser.class.getName());
 
 	@Override
 	public void init(ScaleJSRegisterConfig registerConfig)

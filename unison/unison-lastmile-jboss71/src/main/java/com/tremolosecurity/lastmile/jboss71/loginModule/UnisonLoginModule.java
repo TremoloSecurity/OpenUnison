@@ -34,7 +34,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class UnisonLoginModule extends UsernamePasswordLoginModule {
 
-	static Logger log = Logger.getLogger(UnisonLoginModule.class.getName());
+	static org.apache.logging.log4j.Logger log = org.apache.logging.log4j.LogManager.getLogger(UnisonLoginModule.class.getName());
 	
 	@Override
 	protected Principal getIdentity() {

@@ -115,7 +115,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 	public static final String UNISON_OPENIDCONNECT_IDPS = "unison.openidconnectidps";
 
-	static Logger logger = Logger.getLogger(OpenIDConnectIdP.class.getName());
+	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(OpenIDConnectIdP.class.getName());
 	
 	private static final String TRANSACTION_DATA = "unison.openidconnect.session";
 

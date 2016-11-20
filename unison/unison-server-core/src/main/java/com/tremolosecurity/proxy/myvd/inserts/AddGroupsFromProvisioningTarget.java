@@ -50,7 +50,7 @@ import net.sourceforge.myvd.types.Results;
 
 public class AddGroupsFromProvisioningTarget implements Insert {
 
-	static Logger logger = Logger.getLogger(AddGroupsFromProvisioningTarget.class.getName());
+	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(AddGroupsFromProvisioningTarget.class.getName());
 	
 	String name;
 	String attributeName;

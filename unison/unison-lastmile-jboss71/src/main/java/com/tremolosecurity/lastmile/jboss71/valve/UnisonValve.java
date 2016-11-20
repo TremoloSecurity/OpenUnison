@@ -56,7 +56,7 @@ import com.tremolosecurity.saml.Attribute;
 
 public class UnisonValve extends ExtendedFormAuthenticator {
 
-	protected static Logger log = Logger.getLogger(UnisonValve.class.getName());
+	protected static org.apache.logging.log4j.Logger log = org.apache.logging.log4j.LogManager.getLogger(UnisonValve.class.getName());
 
 	String headerName;
 

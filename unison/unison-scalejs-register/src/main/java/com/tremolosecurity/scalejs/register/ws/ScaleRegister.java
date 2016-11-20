@@ -64,7 +64,7 @@ import com.tremolosecurity.util.NVP;
 
 
 public class ScaleRegister implements HttpFilter {
-	static Logger logger = Logger.getLogger(ScaleRegister.class.getName());
+	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(ScaleRegister.class.getName());
 	private ScaleJSRegisterConfig scaleConfig;
 	private CreateRegisterUser cru;
 

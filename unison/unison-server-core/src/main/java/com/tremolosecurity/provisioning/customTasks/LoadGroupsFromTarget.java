@@ -22,7 +22,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class LoadGroupsFromTarget implements CustomTask {
 
-	static transient Logger logger = Logger.getLogger(LoadGroupsFromTarget.class.getName());
+	static transient org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(LoadGroupsFromTarget.class.getName());
 	
 	
 

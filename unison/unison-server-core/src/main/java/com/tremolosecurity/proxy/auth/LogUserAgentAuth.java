@@ -30,7 +30,7 @@ import com.tremolosecurity.saml.Attribute;
 public class LogUserAgentAuth implements AuthMechanism {
 
 	
-	static Logger logger = Logger.getLogger(LogUserAgentAuth.class);
+	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(LogUserAgentAuth.class);
 	
 	public void doDelete(HttpServletRequest request, HttpServletResponse response, AuthStep step)
 			throws IOException, ServletException {

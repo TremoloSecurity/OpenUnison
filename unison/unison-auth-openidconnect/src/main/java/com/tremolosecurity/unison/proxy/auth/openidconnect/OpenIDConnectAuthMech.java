@@ -75,7 +75,7 @@ import com.tremolosecurity.unison.proxy.auth.openidconnect.sdk.LoadUserData;
 
 public class OpenIDConnectAuthMech implements AuthMechanism {
 
-	static Logger logger = Logger.getLogger(OpenIDConnectAuthMech.class.getName());
+	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(OpenIDConnectAuthMech.class.getName());
 	
 	
 	
