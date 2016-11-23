@@ -36,6 +36,9 @@ public class OIDCSession {
 	private String encryptedRefreshToken;
 	private String encryptedClientSecret;
 	
+	private String userDN;
+	private String clientID;
+	
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name = "id", unique = true, nullable = false)
@@ -104,6 +107,23 @@ public class OIDCSession {
 	}
 	public void setEncryptedClientSecret(String encryptedClientSecret) {
 		this.encryptedClientSecret = encryptedClientSecret;
+	}
+	
+	@Column(name = "userDN")
+	public String getUserDN() {
+		return userDN;
+	}
+	public void setUserDN(String userDN) {
+		this.userDN = userDN;
+	}
+	
+	
+	@Column(name = "clientID")
+	public String getClientID() {
+		return clientID;
+	}
+	public void setClientID(String clientID) {
+		this.clientID = clientID;
 	}
 	
 	

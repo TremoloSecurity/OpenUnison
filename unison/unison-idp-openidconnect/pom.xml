@@ -59,13 +59,13 @@
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-server-core</artifactId>
-			<version>1.0.7</version>
+			<version>${openunison.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-sdk</artifactId>
-			<version>1.0.7</version>
+			<version>${openunison.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

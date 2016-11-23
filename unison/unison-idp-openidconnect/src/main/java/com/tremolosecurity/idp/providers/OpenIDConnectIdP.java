@@ -273,6 +273,13 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			
 		} else if (action.contentEquals("completeFed")) {
 			this.completeFederation(request, response);
+		} else if (action.equalsIgnoreCase("userinfo")) {
+			try {
+				processUserInfoRequest(request, response);
+			} catch (JoseException | InvalidJwtException e) {
+				throw new ServletException("Could not process userinfo request",e);
+			}
+			
 		}
 		
 
@@ -361,8 +368,64 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			}
 			
 			
-		}
+		} 
 
+	}
+
+	private void processUserInfoRequest(HttpServletRequest request, HttpServletResponse response)
+			throws IOException, JoseException, InvalidJwtException, UnsupportedEncodingException {
+		AuthController ac = (AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL);
+		UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
+		
+		holder.getApp().getCookieConfig().getTimeout();
+		
+		String header = request.getHeader("Authorization");
+		
+		if (header == null) {
+			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() ,  "NONE");
+			response.sendError(401);
+			return;
+		}
+		
+		String accessToken = header.substring("Bearer ".length());
+		
+		OIDCSession dbSession = this.getSessionByAccessToken(accessToken);
+		if (dbSession == null) {
+			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() ,  "NONE");
+			response.sendError(401);
+			return;
+		}
+		
+		JsonWebSignature jws = new JsonWebSignature();
+		jws.setCompactSerialization(dbSession.getIdToken());
+		jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.jwtSigningKeyName).getPublicKey());
+		
+		if (! jws.verifySignature()) {
+			logger.warn("id_token tampered with");
+			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() ,  "NONE");
+			response.sendError(401);
+			return;
+		}
+		
+		JwtClaims claims = JwtClaims.parse(jws.getPayload());
+		
+		claims.setGeneratedJwtId(); // a unique identifier for the token
+		claims.setIssuedAtToNow();  // when the token was issued/created (now)
+		claims.setNotBeforeMinutesInThePast(trusts.get(dbSession.getClientID()).getAccessTokenSkewMillis() / 1000 / 60); // time before which the token is not yet valid (2 minutes ago)
+		claims.setExpirationTimeMinutesInTheFuture(trusts.get(dbSession.getClientID()).getAccessTokenTimeToLive() / 1000 / 60); // time when the token will expire (10 minutes from now)
+		
+		jws = new JsonWebSignature();
+		jws.setPayload(claims.toJson());
+		jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getPrivateKey(this.jwtSigningKeyName));
+		jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+		
+		response.setContentType("application/jwt");
+		response.getOutputStream().write(jws.getCompactSerialization().getBytes("UTF-8"));
+		
+		AuthInfo remUser = new AuthInfo();
+		remUser.setUserDN(dbSession.getUserDN());
+		
+		AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, remUser ,  "NONE");
 	}
 
 	private void refreshToken(HttpServletResponse response, String clientID, String clientSecret, String refreshToken, UrlHolder holder, HttpServletRequest request, AuthInfo authData)
@@ -466,6 +529,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			loadSession.setAccessToken(session.getAccessToken());
 			loadSession.setRefreshToken(session.getRefreshToken());
 			loadSession.setEncryptedRefreshToken(session.getEncryptedRefreshToken());
+			loadSession.setClientID(session.getClientID());
+			loadSession.setUserDN(session.getUserDN());
 			
 			db.beginTransaction();
 			db.save(loadSession);
@@ -495,8 +560,11 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		response.getOutputStream().write(json.getBytes());
 		response.getOutputStream().flush();
 		
+		AuthInfo remUser = new AuthInfo();
+		remUser.setUserDN(session.getUserDN());
 		
-		AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
+		
+		AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, remUser ,  "NONE");
 	}
 
 	private void completeUserLogin(HttpServletRequest request, HttpServletResponse response, String code,
@@ -607,7 +675,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		OIDCSession oidcSession = null;
 		
 		try {
-			oidcSession = this.storeSession(access,holder.getApp(),trust.getCodeLastmileKeyName(),request);
+			oidcSession = this.storeSession(access,holder.getApp(),trust.getCodeLastmileKeyName(),request,dn.getValues().get(0),clientID);
 		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException
 				| BadPaddingException e) {
 			throw new ServletException("Could not store session",e);
@@ -620,13 +688,21 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		String json = gson.toJson(access);
 		
 		response.setContentType("text/json");
-		response.getOutputStream().write(json.getBytes());
+		response.getOutputStream().write(json.getBytes("UTF-8"));
 		response.getOutputStream().flush();
 		
-		AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
+		if (logger.isDebugEnabled()) {
+			logger.debug("Token JSON : '" + json + "'");
+		}
+		
+		
+		AuthInfo remUser = new AuthInfo();
+		remUser.setUserDN(dn.getValues().get(0));
+		
+		AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, remUser ,  "NONE");
 	}
 
-	public OIDCSession storeSession(OpenIDConnectAccessToken access,ApplicationType app,String codeTokenKeyName,HttpServletRequest request) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
+	public OIDCSession storeSession(OpenIDConnectAccessToken access,ApplicationType app,String codeTokenKeyName,HttpServletRequest request,String userDN,String clientID) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
 		Gson gson = new Gson();
 		
 		OIDCSession session = new OIDCSession();
@@ -634,6 +710,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		session.setIdToken(access.getId_token());
 		session.setApplicationName(app.getName());
 		session.setSessionExpires(new Timestamp(new DateTime().plusSeconds(app.getCookieConfig().getTimeout()).getMillis()));
+		session.setUserDN(userDN);
+		session.setClientID(clientID);
 		UUID refreshToken = UUID.randomUUID();
 		UUID userClientSecret = UUID.randomUUID();
 		
@@ -1149,6 +1227,37 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			String hql = "FROM OIDCSession o WHERE o.refreshToken = :refresh_token";
 			Query query = db.createQuery(hql);
 			query.setParameter("refresh_token",refreshToken);
+			List<OIDCSession> results = query.list();
+			if (results == null || results.isEmpty()) {
+				return null;
+			}
+			
+			OIDCSession session = results.get(0);
+			if (new DateTime(session.getSessionExpires()).isBeforeNow()) {
+				db.beginTransaction();
+				db.delete(session);
+				db.getTransaction().commit();
+				return null;
+			} else {
+				return session;
+			}
+		} finally {
+			if (db != null) {
+				if (db.getTransaction() != null && db.getTransaction().isActive()) {
+					db.getTransaction().rollback();
+				}
+				db.close();
+			}
+		}
+	}
+	
+	public OIDCSession getSessionByAccessToken(String accessToken) {
+		Session db = null;
+		try {
+			db = this.sessionFactory.openSession();
+			String hql = "FROM OIDCSession o WHERE o.accessToken = :access_token";
+			Query query = db.createQuery(hql);
+			query.setParameter("access_token",accessToken);
 			List<OIDCSession> results = query.list();
 			if (results == null || results.isEmpty()) {
 				return null;

@@ -173,6 +173,9 @@ public class OpenIDConnectToken {
 			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, MalformedClaimException,
 			ServletException, JoseException, LDAPException, ProvisioningException, IOException {
 		this.generateToken(request.getSession());
+		
+		AuthController ac = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL));
+		
 		OpenIDConnectAccessToken access = new OpenIDConnectAccessToken();
 
 		access.setAccess_token(this.accessEncodedJSON);
@@ -185,7 +188,7 @@ public class OpenIDConnectToken {
 				.get(OpenIDConnectIdP.UNISON_OPENIDCONNECT_IDPS);
 
 		this.oidcSession = idps.get(this.idpName).storeSession(access, holder.getApp(),
-				idps.get(idpName).getTrusts().get(this.trustName).getCodeLastmileKeyName(), request);
+				idps.get(idpName).getTrusts().get(this.trustName).getCodeLastmileKeyName(), request, ac.getAuthInfo().getUserDN(), this.trustName);
 
 	}
 
