@@ -12,13 +12,13 @@
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-sdk</artifactId>
-			<version>1.0.7</version>
+			<version>${openunison.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver</artifactId>
-			<version>3.3.0</version>
+			<version>${mongodb-driver.version}</version>
 		</dependency>
 	</dependencies>
 	<build>
