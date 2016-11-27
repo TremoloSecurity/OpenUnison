@@ -1,4 +1,5 @@
 **enhancements:**
+ - Updates to support CII Best Practices [\#141](https://github.com/TremoloSecurity/OpenUnison/issues/141)
  - Move MyVD inserts to MyVD [\#139](https://github.com/TremoloSecurity/OpenUnison/issues/139)
  - Support for userinfo in oidc idp [\#140](https://github.com/TremoloSecurity/OpenUnison/issues/140)
  - Add filter to openshift dynamic workflow [\#138](https://github.com/TremoloSecurity/OpenUnison/issues/138)
