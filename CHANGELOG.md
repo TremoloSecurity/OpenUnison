@@ -1,3 +1,11 @@
+## 1.0.8-2016121601
+
+**bugs:**
+ - Correct security issues found by docker scan [\#148](https://github.com/TremoloSecurity/OpenUnison/issues/148)
+ - LoadGroups not failing on failed user lookup [\#146](https://github.com/TremoloSecurity/OpenUnison/issues/146)
+
+## 1.0.8-2016112701
+
 **enhancements:**
  - Updates to support CII Best Practices [\#141](https://github.com/TremoloSecurity/OpenUnison/issues/141)
  - Move MyVD inserts to MyVD [\#139](https://github.com/TremoloSecurity/OpenUnison/issues/139)
@@ -15,4 +23,3 @@
  - saml auth chain on saml idp fails [\#137](https://github.com/TremoloSecurity/OpenUnison/issues/137)
  - ScaleJS Register Home link [\#129](https://github.com/TremoloSecurity/OpenUnison/issues/129)
  - Approval failures not successful [\#128](https://github.com/TremoloSecurity/OpenUnison/issues/128)
-
