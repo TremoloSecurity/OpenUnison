@@ -29,7 +29,7 @@
 		<google-api-services-oauth2.version>v2-rev124-1.22.0</google-api-services-oauth2.version>
 		<google-api-services-admin-directory.version>directory_v1-rev75-1.22.0</google-api-services-admin-directory.version>
 		<json-simple.version>1.1.1</json-simple.version>
-		<twilio-java-sdk.version>6.3.0</twilio-java-sdk.version>
+		<twilio-java-sdk.version>7.3.0</twilio-java-sdk.version>
 		<restfb.version>1.34.0</restfb.version>
 		<jbosssx-bare.version>4.0.20.Final</jbosssx-bare.version>
 		<jbosssx-client.version>4.0.20.Final</jbosssx-client.version>
@@ -68,7 +68,8 @@
 		<org.apache.poi.version>3.14</org.apache.poi.version>
 		<jose4j.version>0.5.2</jose4j.version>
 		<mongodb-driver.version>3.4.0-rc1</mongodb-driver.version>
-		
+		<xalan.version>2.7.2</xalan.version>
+		<jackson.version>2.8.5</jackson.version>
 	</properties>
 
 	<repositories>

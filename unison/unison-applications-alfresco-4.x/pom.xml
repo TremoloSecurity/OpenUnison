@@ -64,6 +64,10 @@ limitations under the License.
 					<groupId>org.apache.myfaces.core</groupId>
 					<artifactId>myfaces-impl</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>xalan</groupId>
+    <artifactId>xalan</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 <dependency>
@@ -91,5 +95,10 @@ limitations under the License.
   			</exclusion>
   		</exclusions>
 		</dependency>
+		<dependency>
+    <groupId>xalan</groupId>
+    <artifactId>xalan</artifactId>
+    <version>${xalan.version}</version>
+</dependency>
 	</dependencies>
 </project>

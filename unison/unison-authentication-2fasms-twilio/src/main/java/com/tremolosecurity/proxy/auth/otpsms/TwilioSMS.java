@@ -24,11 +24,11 @@ import javax.servlet.ServletException;
 
 import com.tremolosecurity.proxy.auth.SMSAuth;
 import com.tremolosecurity.saml.Attribute;
+import com.twilio.Twilio;
+import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.type.PhoneNumber;
 
-import com.twilio.sdk.TwilioRestClient;
-import com.twilio.sdk.TwilioRestException;
-import com.twilio.sdk.resource.factory.SmsFactory;
-import com.twilio.sdk.resource.instance.Account;
+
 
 
 public class TwilioSMS extends SMSAuth {
@@ -42,20 +42,16 @@ public class TwilioSMS extends SMSAuth {
 		String accountSID = authParams.get("accountSID").getValues().get(0);
 		String authToken = authParams.get("authToken").getValues().get(0);
 		
+		Twilio.init(accountSID, authToken);
 		
-		TwilioRestClient client = new TwilioRestClient(accountSID,authToken);
-		Account account = client.getAccount();
-		SmsFactory smsFactory = account.getSmsFactory();
-		Map<String, String> smsParams = new HashMap<String, String>();
-		smsParams.put("To", to); // Replace with a valid phone number
-		smsParams.put("From", from); // Replace with a valid phone
-													// number in your account
-		smsParams.put("Body", message);
-		try {
-			smsFactory.create(smsParams);
-		} catch (TwilioRestException e) {
-			throw new ServletException("Could not send SMS",e);
-		}
+
+		
+		
+		Message smsMsg = Message
+                .creator(new PhoneNumber(to),  // to
+                         new PhoneNumber(from),  // from
+                         message)
+                .create();
 	}
 	
 }
