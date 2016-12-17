@@ -1,3 +1,8 @@
+## 1.0.8-2016121701
+
+**bugs:**
+ - Correct security issues found by docker scan [\#148](https://github.com/TremoloSecurity/OpenUnison/issues/148)
+
 ## 1.0.8-2016121601
 
 **bugs:**
