@@ -1,5 +1,7 @@
 # OpenUnison
 
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/517/badge)](https://bestpractices.coreinfrastructure.org/projects/517)
+
 OpenUnison combines the common identity management functions needed by most
 applications including:
 
