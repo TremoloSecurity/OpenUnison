@@ -124,6 +124,7 @@ public class JITAuthMech implements AuthMechanism {
 		
 		try {
 			holder.getConfig().getProvisioningEngine().getWorkFlow(workflowName).executeWorkflow(authInfo, nameAttr);
+			as.setSuccess(true);
 		} catch (ProvisioningException e) {
 			StringBuffer b = new StringBuffer();
 			b.append("Could not execute workflow '").append(workflowName).append("' on '").append(authInfo.getUserDN()).append("'");
@@ -139,11 +140,11 @@ public class JITAuthMech implements AuthMechanism {
 			}
 			
 			logger.error(b.toString() + new String(baos.toByteArray()));
-			
-			throw new ServletException(b.toString(),e);
+			as.setSuccess(false);
+			logger.warn("Could not execute workflow " + workflowName + " for " + authInfo.getUserDN());
 		}
 		
-		as.setSuccess(true);
+		
 		
 		holder.getConfig().getAuthManager().nextAuth(req, resp,session,false);
 		

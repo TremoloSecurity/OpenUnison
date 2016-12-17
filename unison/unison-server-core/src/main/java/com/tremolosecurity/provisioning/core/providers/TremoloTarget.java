@@ -57,6 +57,7 @@ import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.ProvisioningParams;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.UserStoreProvider;
+import com.tremolosecurity.provisioning.service.util.ProvisioningResult;
 import com.tremolosecurity.provisioning.service.util.TremoloUser;
 import com.tremolosecurity.provisioning.service.util.WFCall;
 import com.tremolosecurity.saml.Attribute;
@@ -277,7 +278,11 @@ public class TremoloTarget implements UserStoreProvider {
 			res.append(line).append('\n');
 		}
 		
+		ProvisioningResult provRes = gson.fromJson(res.toString(), ProvisioningResult.class);
 		
+		if (! provRes.isSuccess()) {
+			throw new ProvisioningException(provRes.getError().getError());
+		}
 		
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not execute workflow",e);
