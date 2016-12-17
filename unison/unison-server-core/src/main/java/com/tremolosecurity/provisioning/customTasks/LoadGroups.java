@@ -136,9 +136,7 @@ public class LoadGroups implements CustomTask {
 			}
 
 		} catch (LDAPException e) {
-			if (e.getResultCode() != LDAPException.NO_SUCH_OBJECT) {
-				throw new ProvisioningException("Could not load user : " + user.getUserID(), e);
-			}
+			throw new ProvisioningException("Could not load user : " + user.getUserID(), e);
 		}
 
 		return true;
