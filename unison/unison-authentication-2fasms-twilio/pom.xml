@@ -18,7 +18,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.twilio.sdk</groupId>
-			<artifactId>twilio-java-sdk</artifactId>
+			<artifactId>twilio</artifactId>
 			<version>${twilio-java-sdk.version}</version>
 		</dependency>
 		<dependency>
@@ -26,5 +26,20 @@
 			<artifactId>unison-sdk</artifactId>
 			<version>${openunison.version}</version>
 		</dependency>
+		<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-core</artifactId>
+    <version>${jackson.version}</version>
+</dependency>
+	<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-annotations</artifactId>
+    <version>${jackson.version}</version>
+</dependency>
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>${jackson.version}</version>
+</dependency>
 	</dependencies>
 </project>
