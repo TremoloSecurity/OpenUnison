@@ -93,6 +93,7 @@ import com.tremolosecurity.provisioning.service.util.ServiceActions;
 import com.tremolosecurity.provisioning.service.util.TremoloUser;
 import com.tremolosecurity.provisioning.service.util.WFCall;
 import com.tremolosecurity.provisioning.service.util.WFDescription;
+import com.tremolosecurity.provisioning.tasks.Approval;
 import com.tremolosecurity.provisioning.util.DynamicWorkflow;
 import com.tremolosecurity.provisioning.workflow.ApprovalData;
 import com.tremolosecurity.proxy.ProxySys;
@@ -828,11 +829,34 @@ public class ScaleMain implements HttpFilter {
 					wfCall.setUidAttributeName(this.scaleConfig.getUidAttributeName());
 					wfCall.setEncryptedParams(req.getEncryptedParams());	
 					
-					
-					
 					TremoloUser tu = new TremoloUser();
-					tu.setUid(userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0));
-					tu.getAttributes().add(new Attribute(this.scaleConfig.getUidAttributeName(),userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0)));
+					
+					if (req.getSubject() == null) {
+						tu.setUid(userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0));
+						tu.getAttributes().add(new Attribute(this.scaleConfig.getUidAttributeName(),userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0)));
+					} else {
+						wfCall.setRequestor(userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0));
+						
+						LDAPSearchResults searchRes = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, equal(this.scaleConfig.getUidAttributeName(),req.getSubject()).toString(), new ArrayList<String>());
+						if (searchRes.hasMore()) {
+							LDAPEntry entry = searchRes.next();
+							if (entry == null) {
+								results.put(req.getUuid(),"Error, user " + req.getSubject() + " does not exist");
+							} else {
+								tu.setUid(entry.getAttribute(this.scaleConfig.getUidAttributeName()).getStringValue());
+								tu.getAttributes().add(new Attribute(this.scaleConfig.getUidAttributeName(),entry.getAttribute(this.scaleConfig.getUidAttributeName()).getStringValue()));
+								
+								wfCall.getRequestParams().put(Approval.IMMEDIATE_ACTION, req.isApproved());
+								wfCall.getRequestParams().put(Approval.REASON, req.getApprovalReason());
+								
+							}
+						} else {
+							results.put(req.getUuid(),"Error, user " + req.getSubject() + " does not exist");
+						}
+					}
+					
+					
+					
 					
 					wfCall.setUser(tu);
 					

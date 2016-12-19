@@ -20,6 +20,9 @@ public class WorkflowRequest {
 	String reason;
 	String encryptedParams;
 	String uuid;
+	String subject;
+	boolean approved;
+	String approvalReason;
 	
 	public String getUuid() {
 		return uuid;
@@ -56,6 +59,31 @@ public class WorkflowRequest {
 	public void setEncryptedParams(String encryptedParams) {
 		this.encryptedParams = encryptedParams;
 	}
+
+	public String getSubject() {
+		return subject;
+	}
+
+	public void setSubject(String subject) {
+		this.subject = subject;
+	}
+
+	public boolean isApproved() {
+		return approved;
+	}
+
+	public void setApproved(boolean approved) {
+		this.approved = approved;
+	}
+
+	public String getApprovalReason() {
+		return approvalReason;
+	}
+
+	public void setApprovalReason(String approvalReason) {
+		this.approvalReason = approvalReason;
+	}
+	
 	
 	
 }
