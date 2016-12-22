@@ -831,43 +831,68 @@ public class ScaleMain implements HttpFilter {
 					
 					TremoloUser tu = new TremoloUser();
 					
-					if (req.getSubject() == null) {
+					if (req.getSubjects() == null || req.getSubjects().isEmpty()) {
 						tu.setUid(userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0));
 						tu.getAttributes().add(new Attribute(this.scaleConfig.getUidAttributeName(),userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0)));
-					} else {
-						wfCall.setRequestor(userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0));
 						
-						LDAPSearchResults searchRes = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, equal(this.scaleConfig.getUidAttributeName(),req.getSubject()).toString(), new ArrayList<String>());
-						if (searchRes.hasMore()) {
-							LDAPEntry entry = searchRes.next();
-							if (entry == null) {
-								results.put(req.getUuid(),"Error, user " + req.getSubject() + " does not exist");
+						wfCall.setUser(tu);
+						
+						try {
+							com.tremolosecurity.provisioning.workflow.ExecuteWorkflow exec = new com.tremolosecurity.provisioning.workflow.ExecuteWorkflow();
+							exec.execute(wfCall, GlobalEntries.getGlobalEntries().getConfigManager());
+							results.put(req.getUuid(), "success");
+						} catch (Exception e) {
+							logger.error("Could not update user",e);
+							results.put(req.getUuid(), "Error, please contact your system administrator");
+						}
+					} else {
+						
+						
+						StringBuffer errors = new StringBuffer();
+						
+						for (String subject : req.getSubjects()) {
+							//execute for each subject
+							wfCall = new WFCall();
+							wfCall.setName(req.getName());
+							wfCall.setReason(req.getReason());
+							wfCall.setUidAttributeName(this.scaleConfig.getUidAttributeName());
+							wfCall.setEncryptedParams(req.getEncryptedParams());	
+							
+						
+							wfCall.setRequestor(userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0));
+							tu = new TremoloUser();
+							wfCall.setUser(tu);
+							
+							LDAPSearchResults searchRes = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, equal(this.scaleConfig.getUidAttributeName(),subject).toString(), new ArrayList<String>());
+							
+							if (searchRes.hasMore()) {
+								LDAPEntry entry = searchRes.next();
+								if (entry == null ) {
+									errors.append("Error, user " + subject + " does not exist;");
+									
+								} else {
+									startSubjectWorkflow(errors, req, wfCall, tu, subject, entry);
+								}
 							} else {
-								tu.setUid(entry.getAttribute(this.scaleConfig.getUidAttributeName()).getStringValue());
-								tu.getAttributes().add(new Attribute(this.scaleConfig.getUidAttributeName(),entry.getAttribute(this.scaleConfig.getUidAttributeName()).getStringValue()));
 								
-								wfCall.getRequestParams().put(Approval.IMMEDIATE_ACTION, req.isApproved());
-								wfCall.getRequestParams().put(Approval.REASON, req.getApprovalReason());
+									errors.append("Error, user " + subject + " does not exist;");
 								
 							}
-						} else {
-							results.put(req.getUuid(),"Error, user " + req.getSubject() + " does not exist");
+						
 						}
+						
+						if (errors.length() == 0) {
+							results.put(req.getUuid(), "success");
+						} else {
+							results.put(req.getUuid(), errors.toString().substring(0,errors.toString().length()-1));
+						}
+						
 					}
 					
 					
 					
 					
-					wfCall.setUser(tu);
 					
-					try {
-						com.tremolosecurity.provisioning.workflow.ExecuteWorkflow exec = new com.tremolosecurity.provisioning.workflow.ExecuteWorkflow();
-						exec.execute(wfCall, GlobalEntries.getGlobalEntries().getConfigManager());
-						results.put(req.getUuid(), "success");
-					} catch (Exception e) {
-						logger.error("Could not update user",e);
-						results.put(req.getUuid(), "Error, please contact your system administrator");
-					}
 				}
 				
 				
@@ -876,6 +901,35 @@ public class ScaleMain implements HttpFilter {
 		ScaleJSUtils.addCacheHeaders(response);
 		response.setContentType("application/json");
 		response.getWriter().println(gson.toJson(results).trim());
+	}
+
+
+	private void startSubjectWorkflow(StringBuffer errors, WorkflowRequest req, WFCall wfCall,
+			TremoloUser tu, String subject, LDAPEntry entry) {
+		if (entry == null) {
+			tu.setUid(subject);
+			tu.getAttributes().add(new Attribute(this.scaleConfig.getUidAttributeName(),subject));
+		} else {
+			tu.setUid(entry.getAttribute(this.scaleConfig.getUidAttributeName()).getStringValue());
+			tu.getAttributes().add(new Attribute(this.scaleConfig.getUidAttributeName(),entry.getAttribute(this.scaleConfig.getUidAttributeName()).getStringValue()));
+		}
+		
+		
+		if (req.isDoPreApproval()) {
+			wfCall.getRequestParams().put(Approval.IMMEDIATE_ACTION, req.isApproved());
+			wfCall.getRequestParams().put(Approval.REASON, req.getApprovalReason());
+		}
+		
+		try {
+			com.tremolosecurity.provisioning.workflow.ExecuteWorkflow exec = new com.tremolosecurity.provisioning.workflow.ExecuteWorkflow();
+			exec.execute(wfCall, GlobalEntries.getGlobalEntries().getConfigManager());
+			
+		} catch (Exception e) {
+			logger.error("Could not update user",e);
+			errors.append("user " + subject + " did not get submitted, please contact your system administrator;");
+			
+			
+		}
 	}
 
 

@@ -15,15 +15,22 @@
  *******************************************************************************/
 package com.tremolosecurity.scalejs.data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class WorkflowRequest {
 	String name;
 	String reason;
 	String encryptedParams;
 	String uuid;
-	String subject;
+	List<String> subjects;
 	boolean approved;
 	String approvalReason;
+	boolean doPreApproval;
 	
+	
+
+
 	public String getUuid() {
 		return uuid;
 	}
@@ -33,7 +40,7 @@ public class WorkflowRequest {
 	}
 
 	public WorkflowRequest() {
-		
+		this.subjects = new ArrayList<String>();
 	}
 
 	public String getName() {
@@ -60,13 +67,7 @@ public class WorkflowRequest {
 		this.encryptedParams = encryptedParams;
 	}
 
-	public String getSubject() {
-		return subject;
-	}
-
-	public void setSubject(String subject) {
-		this.subject = subject;
-	}
+	
 
 	public boolean isApproved() {
 		return approved;
@@ -83,6 +84,23 @@ public class WorkflowRequest {
 	public void setApprovalReason(String approvalReason) {
 		this.approvalReason = approvalReason;
 	}
+
+	public List<String> getSubjects() {
+		return subjects;
+	}
+
+	public void setSubjects(List<String> subjects) {
+		this.subjects = subjects;
+	}
+
+	public boolean isDoPreApproval() {
+		return doPreApproval;
+	}
+
+	public void setDoPreApproval(boolean doPreApproval) {
+		this.doPreApproval = doPreApproval;
+	}
+	
 	
 	
 	

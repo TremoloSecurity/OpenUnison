@@ -372,6 +372,17 @@ limitations under the License.
           wfrequest.name = this.cart[wfuuid].name;
           wfrequest.reason = this.cart[wfuuid].reason;
           wfrequest.encryptedParams = this.cart[wfuuid].encryptedParams;
+          
+          //if this is a delegated request
+          if (this.cart[wfuuid].delegate) {
+        	  wfrequest.subject = this.cart[wfuuid].subject;
+        	  if (this.cart[wfuuid].tryPreApprove) {
+        		  wfrequest.approved = this.cart[wfuuid].approved;
+        		  wfrequest.approvalReason = this.cart[wfuuid].approvalReason;
+        	  }
+          }
+          
+          
           wfRequests.push(wfrequest);
         }
 
@@ -576,6 +587,10 @@ limitations under the License.
           workflow.inCart = true;
           this.cart[workflow.uuid] = workflow;
           this.cart[workflow.uuid].reason = "";
+          this.cart[workflow.uuid].delegate = false;
+          this.cart[workflow.uuid].tryPreApprove = false;
+          this.cart[workflow.uuid].approved = "false";
+          this.cart[workflow.uuid].approvalReason = "";
         }
       };
 
