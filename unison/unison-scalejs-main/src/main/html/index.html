@@ -338,8 +338,8 @@ limitations under the License.
 					<div class="col-md-12"> <input type="checkbox" ng-model="wf.delegate" /> Request For Someone Else</div>
 				</div>
 				<div class="row" ng-show="wf.delegate">
-					<div class="col-md-3"><b>Requesting For</b></div>
-					<div class="col-md-3"><input type="text" ng-model="wf.subject" /></div>
+					<div class="col-md-3"><b>Requesting For</b> - List each {{ scale.config.uidAttributeName }} on its own line</div>
+					<div class="col-md-3"><textarea rows="4" cols="50" ng-model="wf.subject" ></textarea></div>
 				</div>
 				<div class="row" ng-show="wf.delegate">
 					<div class="col-md-1"> </div>

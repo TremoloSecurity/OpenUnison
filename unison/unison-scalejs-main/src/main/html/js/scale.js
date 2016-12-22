@@ -375,10 +375,11 @@ limitations under the License.
           
           //if this is a delegated request
           if (this.cart[wfuuid].delegate) {
-        	  wfrequest.subject = this.cart[wfuuid].subject;
+        	  wfrequest.subjects = this.cart[wfuuid].subject.split('\n');
         	  if (this.cart[wfuuid].tryPreApprove) {
         		  wfrequest.approved = this.cart[wfuuid].approved;
         		  wfrequest.approvalReason = this.cart[wfuuid].approvalReason;
+        		  wfrequest.doPreApproval = true;
         	  }
           }
           
