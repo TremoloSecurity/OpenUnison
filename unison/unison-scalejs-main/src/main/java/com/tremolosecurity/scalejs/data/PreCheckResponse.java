@@ -15,7 +15,7 @@ package com.tremolosecurity.scalejs.data;
 public class PreCheckResponse {
 	boolean canDelegate;
 	boolean canPreApprove;
-	
+	String uuid;
 	
 	public PreCheckResponse() {
 		this.canDelegate = false;
@@ -34,6 +34,16 @@ public class PreCheckResponse {
 	}
 	public void setCanPreApprove(boolean canPreApprove) {
 		this.canPreApprove = canPreApprove;
+	}
+
+
+	public String getUuid() {
+		return uuid;
+	}
+
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
 	}
 	
 	

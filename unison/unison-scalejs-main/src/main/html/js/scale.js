@@ -592,6 +592,23 @@ limitations under the License.
           this.cart[workflow.uuid].tryPreApprove = false;
           this.cart[workflow.uuid].approved = "false";
           this.cart[workflow.uuid].approvalReason = "";
+          this.cart[workflow.uuid].canPreApprove = false;
+          this.cart[workflow.uuid].canDelegate = false;
+          
+          
+          $http.get('main/workflows/candelegate?workflowName=' + workflow.name + '&uuid=' + workflow.uuid).
+          then(function(response) {
+            $scope.scale.cart[response.data['uuid']].canPreApprove = response.data.canPreApprove;
+            $scope.scale.cart[response.data['uuid']].canDelegate = response.data.canDelegate;
+
+          },
+          function(response) {
+            //do nothing
+          }
+        );
+          
+          
+          
         }
       };
 

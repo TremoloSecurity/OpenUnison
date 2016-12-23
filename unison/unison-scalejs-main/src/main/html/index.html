@@ -333,7 +333,7 @@ limitations under the License.
 					  <input type="text" ng-model="wf.reason" placeholder="Supply Reason" required="true" aria-label="Reason for request"/>
 					</div>
 				</div>
-				<div class="row">
+				<div class="row" ng-show="wf.canDelegate">
 					
 					<div class="col-md-12"> <input type="checkbox" ng-model="wf.delegate" /> Request For Someone Else</div>
 				</div>
@@ -341,19 +341,19 @@ limitations under the License.
 					<div class="col-md-3"><b>Requesting For</b> - List each {{ scale.config.uidAttributeName }} on its own line</div>
 					<div class="col-md-3"><textarea rows="4" cols="50" ng-model="wf.subject" ></textarea></div>
 				</div>
-				<div class="row" ng-show="wf.delegate">
+				<div class="row" ng-show="wf.delegate && wf.canPreApprove">
 					<div class="col-md-1"> </div>
 					<div class="col-md-11"><input type="checkbox" ng-model="wf.tryPreApprove" /> Attempt Preapproval?</div>
 				</div>
-				<div class="row" ng-show="wf.delegate && wf.tryPreApprove">
+				<div class="row" ng-show="wf.delegate && wf.tryPreApprove && wf.canPreApprove">
 					<div class="col-md-1"> </div>
 					<div class="col-md-11"><input type="radio" ng-model="wf.approved" value="true" /> Approved</div>
 				</div>
-				<div class="row" ng-show="wf.delegate && wf.tryPreApprove">
+				<div class="row" ng-show="wf.delegate && wf.tryPreApprove && wf.canPreApprove">
 					<div class="col-md-1"> </div>
 					<div class="col-md-11"><input type="radio" ng-model="wf.approved" value="false" /> Denied</div>
 				</div>
-				<div class="row" ng-show="wf.delegate && wf.tryPreApprove">
+				<div class="row" ng-show="wf.delegate && wf.tryPreApprove && wf.canPreApprove">
 					<div class="col-md-1"> </div>
 					<div class="col-md-1"><b>Reason</b></div>
 					<div class="col-md-10"><input type="text" ng-model="wf.approvalReason" /></div>

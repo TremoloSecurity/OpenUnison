@@ -200,7 +200,9 @@ public class ScaleMain implements HttpFilter {
 				}
 				
 				PreCheckResponse preCheckResp = new PreCheckResponse();
-				
+				if (request.getParameter("uuid") != null) {
+					preCheckResp.setUuid(request.getParameter("uuid").getValues().get(0));
+				}
 				checkPreCheck(request, userData, allowedOrgs, workflowName, orgid, preCheckResp);
 				ScaleJSUtils.addCacheHeaders(response);
 				response.getWriter().print(gson.toJson(preCheckResp).trim());
