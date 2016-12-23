@@ -38,6 +38,9 @@ public class FilterHelper implements UiDecisions {
 	
 	List<String> allowedFilters;
 	
+	boolean applyToDelegation;
+	boolean applyToPreApproval;
+	
 	@Override
 	public void init(HashMap<String, Attribute> config) {
 		Attribute allowedFilters = config.get("allowedFilters");
@@ -60,6 +63,18 @@ public class FilterHelper implements UiDecisions {
 				}
 				this.attributeCheck.put(filter, attrNames);
 			}
+		}
+		
+		if (config.get("applyToDelegration") != null) {
+			this.applyToDelegation = config.get("applyToDelegration").getValues().get(0).equalsIgnoreCase("true");
+		} else {
+			this.applyToDelegation = false;
+		}
+		
+		if (config.get("applyToPreApproval") != null) {
+			this.applyToPreApproval = config.get("applyToPreApproval").getValues().get(0).equalsIgnoreCase("true");
+		} else {
+			this.applyToPreApproval = false;
 		}
 
 	}
@@ -98,6 +113,50 @@ public class FilterHelper implements UiDecisions {
 		}
 		
 		return new HashSet<String>();
+	}
+
+	@Override
+	public boolean canRequestForOthers(String workflowName, AuthInfo user, HttpServletRequest request) {
+		
+		if (this.applyToDelegation) {
+			LDAPEntry entry = user.createLDAPEntry();
+			try {
+				for (String filter : this.allowedFilters) {
+					net.sourceforge.myvd.types.Filter f = new net.sourceforge.myvd.types.Filter(filter);
+					if (f.getRoot().checkEntry(entry)) {
+						return true;
+					}
+				}
+			} catch (LDAPException e) {
+				logger.warn("Could not check user",e);
+			}
+			
+			return false;
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public boolean canPreApprove(String workflowName, AuthInfo user, HttpServletRequest request) {
+		
+		if (this.applyToPreApproval) {
+			LDAPEntry entry = user.createLDAPEntry();
+			try {
+				for (String filter : this.allowedFilters) {
+					net.sourceforge.myvd.types.Filter f = new net.sourceforge.myvd.types.Filter(filter);
+					if (f.getRoot().checkEntry(entry)) {
+						return true;
+					}
+				}
+			} catch (LDAPException e) {
+				logger.warn("Could not check user",e);
+			}
+			
+			return false;
+		} else {
+			return false;
+		}
 	}
 
 }

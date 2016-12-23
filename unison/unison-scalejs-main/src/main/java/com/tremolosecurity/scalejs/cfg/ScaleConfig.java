@@ -35,7 +35,15 @@ public class ScaleConfig {
 	transient UiDecisions uiDecisions;
 	int warnMinutesLeft;
 	
+	public enum PreCheckAllowed {
+		YES,
+		NO,
+		CUSTOM
+	}
 	
+	transient PreCheckAllowed canDelegate;
+	transient PreCheckAllowed canPreApprove;
+ 	
 	public ScaleConfig(ScaleConfig from) {
 		this.displayNameAttribute = from.displayNameAttribute;
 		this.uidAttributeName = from.uidAttributeName;
@@ -51,6 +59,8 @@ public class ScaleConfig {
 		this.roleAttribute = from.roleAttribute;
 		this.uiDecisions = from.uiDecisions;
 		this.warnMinutesLeft = from.warnMinutesLeft;
+		this.canDelegate = from.canDelegate;
+		this.canPreApprove = from.canPreApprove;
 	}
 	
 	public ScaleConfig() {
@@ -151,6 +161,22 @@ public class ScaleConfig {
 
 	public void setUiDecisions(UiDecisions uiDecisions) {
 		this.uiDecisions = uiDecisions;
+	}
+
+	public PreCheckAllowed getCanDelegate() {
+		return canDelegate;
+	}
+
+	public void setCanDelegate(PreCheckAllowed canDelegate) {
+		this.canDelegate = canDelegate;
+	}
+
+	public PreCheckAllowed getCanPreApprove() {
+		return canPreApprove;
+	}
+
+	public void setCanPreApprove(PreCheckAllowed canPreApprove) {
+		this.canPreApprove = canPreApprove;
 	}
 	
 	

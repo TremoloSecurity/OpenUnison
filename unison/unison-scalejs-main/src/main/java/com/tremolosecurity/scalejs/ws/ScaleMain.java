@@ -111,6 +111,8 @@ import com.tremolosecurity.saml.Attribute;
 
 import com.tremolosecurity.scalejs.cfg.ScaleAttribute;
 import com.tremolosecurity.scalejs.cfg.ScaleConfig;
+import com.tremolosecurity.scalejs.cfg.ScaleConfig.PreCheckAllowed;
+import com.tremolosecurity.scalejs.data.PreCheckResponse;
 import com.tremolosecurity.scalejs.data.ScaleApprovalData;
 import com.tremolosecurity.scalejs.data.ScaleError;
 import com.tremolosecurity.scalejs.data.UserData;
@@ -179,6 +181,40 @@ public class ScaleMain implements HttpFilter {
 			
 		} else if (request.getMethod().equalsIgnoreCase("GET") && request.getRequestURI().contains("/main/workflows/org/")) {
 			loadWorkflows(request, response, gson);
+			
+		} else if (request.getMethod().equalsIgnoreCase("GET") && request.getRequestURI().contains("/main/workflows/candelegate")) {
+			try {
+				AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+				OrgType ot = GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getOrg();
+				AzSys az = new AzSys();			
+				HashSet<String> allowedOrgs = new HashSet<String>();
+				this.checkOrg(allowedOrgs , ot, az, userData, request.getSession());
+				String workflowName = request.getParameter("workflowName").getValues().get(0);
+				//need to check org
+				String orgid = null;
+				for (WorkflowType wf : GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getWorkflows().getWorkflow()) {
+					if (wf.getName().equals(workflowName)) {
+						orgid = wf.getOrgid();
+						break;
+					}
+				}
+				
+				PreCheckResponse preCheckResp = new PreCheckResponse();
+				
+				checkPreCheck(request, userData, allowedOrgs, workflowName, orgid, preCheckResp);
+				ScaleJSUtils.addCacheHeaders(response);
+				response.getWriter().print(gson.toJson(preCheckResp).trim());
+				response.getWriter().flush();
+			} catch (Throwable t) {
+				logger.error("Could not check for preapproval status",t);
+				response.setStatus(500);
+				response.setContentType("application/json");
+				ScaleJSUtils.addCacheHeaders(response);
+				ScaleError error = new ScaleError();
+				error.getErrors().add("Unable to check");
+				response.getWriter().print(gson.toJson(error).trim());
+				response.getWriter().flush();
+			}
 			
 		} else if (request.getMethod().equalsIgnoreCase("PUT") && request.getRequestURI().endsWith("/main/workflows")) {
 			executeWorkflows(request, response, gson);
@@ -342,6 +378,30 @@ public class ScaleMain implements HttpFilter {
 			response.getWriter().print(gson.toJson(error).trim());
 			response.getWriter().flush();
 			
+		}
+	}
+
+
+	private void checkPreCheck(HttpFilterRequest request, AuthInfo userData, HashSet<String> allowedOrgs,
+			String workflowName, String orgid, PreCheckResponse preCheckResp) {
+		if (orgid != null && allowedOrgs.contains(orgid)) {
+		
+			switch (this.scaleConfig.getCanDelegate()) {
+				case YES : preCheckResp.setCanDelegate(true); break;
+				case NO : preCheckResp.setCanDelegate(false); break;
+				case CUSTOM : preCheckResp.setCanDelegate(this.scaleConfig.getUiDecisions().canRequestForOthers(workflowName, userData, request.getServletRequest())); break;
+			}
+			
+			switch (this.scaleConfig.getCanPreApprove()) {
+				case YES : preCheckResp.setCanPreApprove(true); break;
+				case NO : preCheckResp.setCanPreApprove(false); break;
+				case CUSTOM : preCheckResp.setCanPreApprove(this.scaleConfig.getUiDecisions().canPreApprove(workflowName, userData, request.getServletRequest())); break;
+			}
+			
+			if (preCheckResp.isCanPreApprove()) {
+				//if you can pre-approve then you can delegate
+				preCheckResp.setCanDelegate(true);
+			}
 		}
 	}
 
@@ -847,55 +907,58 @@ public class ScaleMain implements HttpFilter {
 						}
 					} else {
 						
+						PreCheckResponse preCheckResp = new PreCheckResponse();
+						
+						checkPreCheck(request, userData, allowedOrgs, req.getName(), orgid, preCheckResp);
 						
 						StringBuffer errors = new StringBuffer();
 						
-						for (String subject : req.getSubjects()) {
-							//execute for each subject
-							wfCall = new WFCall();
-							wfCall.setName(req.getName());
-							wfCall.setReason(req.getReason());
-							wfCall.setUidAttributeName(this.scaleConfig.getUidAttributeName());
-							wfCall.setEncryptedParams(req.getEncryptedParams());	
-							
+						if (preCheckResp.isCanDelegate()) {
 						
-							wfCall.setRequestor(userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0));
-							tu = new TremoloUser();
-							wfCall.setUser(tu);
+							for (String subject : req.getSubjects()) {
+								//execute for each subject
+								wfCall = new WFCall();
+								wfCall.setName(req.getName());
+								wfCall.setReason(req.getReason());
+								wfCall.setUidAttributeName(this.scaleConfig.getUidAttributeName());
+								wfCall.setEncryptedParams(req.getEncryptedParams());	
+								
 							
-							LDAPSearchResults searchRes = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, equal(this.scaleConfig.getUidAttributeName(),subject).toString(), new ArrayList<String>());
-							
-							if (searchRes.hasMore()) {
-								LDAPEntry entry = searchRes.next();
-								if (entry == null ) {
-									errors.append("Error, user " + subject + " does not exist;");
-									
+								wfCall.setRequestor(userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0));
+								tu = new TremoloUser();
+								wfCall.setUser(tu);
+								
+								LDAPSearchResults searchRes = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, equal(this.scaleConfig.getUidAttributeName(),subject).toString(), new ArrayList<String>());
+								
+								if (searchRes.hasMore()) {
+									LDAPEntry entry = searchRes.next();
+									if (entry == null ) {
+										errors.append("Error, user " + subject + " does not exist;");
+										
+									} else {
+										startSubjectWorkflow(errors, req, wfCall, tu, subject, entry,preCheckResp);
+									}
 								} else {
-									startSubjectWorkflow(errors, req, wfCall, tu, subject, entry);
+									
+										errors.append("Error, user " + subject + " does not exist;");
+									
 								}
-							} else {
-								
-									errors.append("Error, user " + subject + " does not exist;");
-								
+							
 							}
-						
-						}
-						
-						if (errors.length() == 0) {
-							results.put(req.getUuid(), "success");
-						} else {
-							results.put(req.getUuid(), errors.toString().substring(0,errors.toString().length()-1));
-						}
-						
-					}
-					
-					
-					
-					
-					
+							
+							if (errors.length() == 0) {
+								results.put(req.getUuid(), "success");
+							} else {
+								results.put(req.getUuid(), errors.toString().substring(0,errors.toString().length()-1));
+							}
+							
+							
+					} else {
+						results.put(req.getUuid(), "Unable to submit");
+						logger.warn("User '" + userData.getUserDN() + "' not allowed to request for others for '" + req.getName() + "'");
+					}		
 				}
-				
-				
+			}
 			}
 		}
 		ScaleJSUtils.addCacheHeaders(response);
@@ -905,7 +968,7 @@ public class ScaleMain implements HttpFilter {
 
 
 	private void startSubjectWorkflow(StringBuffer errors, WorkflowRequest req, WFCall wfCall,
-			TremoloUser tu, String subject, LDAPEntry entry) {
+			TremoloUser tu, String subject, LDAPEntry entry, PreCheckResponse preCheckResp) {
 		if (entry == null) {
 			tu.setUid(subject);
 			tu.getAttributes().add(new Attribute(this.scaleConfig.getUidAttributeName(),subject));
@@ -915,7 +978,7 @@ public class ScaleMain implements HttpFilter {
 		}
 		
 		
-		if (req.isDoPreApproval()) {
+		if (req.isDoPreApproval() && preCheckResp.isCanPreApprove()) {
 			wfCall.getRequestParams().put(Approval.IMMEDIATE_ACTION, req.isApproved());
 			wfCall.getRequestParams().put(Approval.REASON, req.getApprovalReason());
 		}
@@ -1356,7 +1419,23 @@ public class ScaleMain implements HttpFilter {
 		scaleConfig.setShowPortalOrgs(this.loadAttributeValue("showPortalOrgs", "Show Portal Orgs", config).equalsIgnoreCase("true"));
 		scaleConfig.setLogoutURL(this.loadAttributeValue("logoutURL", "Logout URL", config));
 		scaleConfig.setWarnMinutesLeft(Integer.parseInt(this.loadAttributeValue("warnMinutesLeft", "Warn when number of minutes left in the user's session", config)));
-		String val = this.loadOptionalAttributeValue("roleAttribute", "Role Attribute Name", config);
+		
+		String val = this.loadOptionalAttributeValue("canDelegate", "canDelegate", config);
+		if (val == null) {
+			val = "NO";
+		}
+		
+		scaleConfig.setCanDelegate(PreCheckAllowed.valueOf(val.toUpperCase()));
+		
+		val = this.loadOptionalAttributeValue("canPreApprove", "canPreApprove", config);
+		if (val == null) {
+			val = "NO";
+		}
+		
+		scaleConfig.setCanPreApprove(PreCheckAllowed.valueOf(val.toUpperCase()));
+		
+		
+		val = this.loadOptionalAttributeValue("roleAttribute", "Role Attribute Name", config);
 				
 		
 		this.appType = new ApplicationType();

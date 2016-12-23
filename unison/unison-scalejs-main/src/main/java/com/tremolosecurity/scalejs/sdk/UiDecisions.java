@@ -41,4 +41,24 @@ public interface UiDecisions {
 	 */
 	public Set<String> availableAttributes(AuthInfo user,HttpServletRequest request);
 	
+	
+	
+	/**
+	 * Return true if the current user is able to make requests for other users
+	 * @param workflowName Name of the workflow to be tested
+	 * @param user Currently logged in user
+	 * @param request Current request
+	 * @return
+	 */
+	public boolean canRequestForOthers(String workflowName,AuthInfo user, HttpServletRequest request);
+	
+	/**
+	 * Return true if the current user is able to make attempt pre-approvals
+	 * @param workflowName Name of the workflow to be tested
+	 * @param user Currently logged in user
+	 * @param request Current request
+	 * @return
+	 */
+	public boolean canPreApprove(String workflowName,AuthInfo user, HttpServletRequest request);
+	
 }
