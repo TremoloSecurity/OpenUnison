@@ -141,7 +141,7 @@ public class JITAuthMech implements AuthMechanism {
 			
 			logger.error(b.toString() + new String(baos.toByteArray()));
 			as.setSuccess(false);
-			logger.warn("Could not execute workflow " + workflowName + " for " + authInfo.getUserDN());
+			logger.warn("Could not execute workflow " + workflowName + " for " + authInfo.getUserDN(),e);
 		}
 		
 		
