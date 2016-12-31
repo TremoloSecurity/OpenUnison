@@ -1,3 +1,9 @@
+## 1.0.8-2016122901
+
+**bugs:**
+ - JIT with Tremolo Provisioning Target not failing when provisioning fails [\#147](https://github.com/TremoloSecurity/OpenUnison/issues/147)
+ - C3PO conflict from Quartz [\#150](https://github.com/TremoloSecurity/OpenUnison/issues/150)
+
 ## 1.0.8-2016121701
 
 **bugs:**
