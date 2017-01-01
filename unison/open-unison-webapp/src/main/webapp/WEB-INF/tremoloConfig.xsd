@@ -1407,17 +1407,20 @@
 				approvals</documentation>
 		</annotation>
 		<sequence>
-			<element name="driver" type="string" maxOccurs="1" minOccurs="1">
+			<element name="driver" type="string" maxOccurs="1"
+				minOccurs="1">
 				<annotation>
 					<documentation>JDBC Driver</documentation>
 				</annotation>
 			</element>
-			<element name="url" type="string" maxOccurs="1" minOccurs="1">
+			<element name="url" type="string" maxOccurs="1"
+				minOccurs="1">
 				<annotation>
 					<documentation>JDBC URL</documentation>
 				</annotation>
 			</element>
-			<element name="user" type="string" maxOccurs="1" minOccurs="1">
+			<element name="user" type="string" maxOccurs="1"
+				minOccurs="1">
 				<annotation>
 					<documentation>
 						User for connecting to the database
@@ -1432,7 +1435,8 @@
 					</documentation>
 				</annotation>
 			</element>
-			<element name="maxConns" type="int" maxOccurs="1" minOccurs="1">
+			<element name="maxConns" type="int" maxOccurs="1"
+				minOccurs="1">
 				<annotation>
 					<documentation>
 						Maximum number of connections
@@ -1442,7 +1446,9 @@
 			<element name="maxIdleConns" type="int" maxOccurs="1"
 				minOccurs="1">
 				<annotation>
-					<documentation>Maximum idle connections</documentation>
+					<documentation>
+						Maximum idle connections
+					</documentation>
 				</annotation>
 			</element>
 			<element name="userIdAttribute" type="string" maxOccurs="1"
@@ -1458,18 +1464,18 @@
 				<annotation>
 					<documentation>
 						List of approver attributes to be tracked in the
-						database. A field for each attribute should be added
-						to the approvers table.
+						database. A field for each attribute should be
+						added to the approvers table.
 					</documentation>
 				</annotation>
 			</element>
-			<element name="userAttributes" type="tns:listType" maxOccurs="1"
-				minOccurs="1">
+			<element name="userAttributes" type="tns:listType"
+				maxOccurs="1" minOccurs="1">
 				<annotation>
 					<documentation>
 						List of user attributes to be tracked in the
-						database. A field for each attribute should be added
-						to the users table.
+						database. A field for each attribute should be
+						added to the users table.
 					</documentation>
 				</annotation>
 			</element>
@@ -1477,8 +1483,8 @@
 				minOccurs="1">
 				<annotation>
 					<documentation>
-						If true, the approval database will be used to log
-						all provisioning transactions
+						If true, the approval database will be used to
+						log all provisioning transactions
 					</documentation>
 				</annotation>
 			</element>
@@ -1490,7 +1496,8 @@
 					</documentation>
 				</annotation>
 			</element>
-			<element name="smtpPort" type="int" maxOccurs="1" minOccurs="1">
+			<element name="smtpPort" type="int" maxOccurs="1"
+				minOccurs="1">
 				<annotation>
 					<documentation>
 						SMTP Port for sending emails
@@ -1500,7 +1507,9 @@
 			<element name="smtpUser" type="string" maxOccurs="1"
 				minOccurs="1">
 				<annotation>
-					<documentation>User for the SMTP server</documentation>
+					<documentation>
+						User for the SMTP server
+					</documentation>
 				</annotation>
 			</element>
 			<element name="smtpPassword" type="string" maxOccurs="1"
@@ -1514,7 +1523,9 @@
 			<element name="smtpSubject" type="string" maxOccurs="1"
 				minOccurs="1">
 				<annotation>
-					<documentation>Subject for notifications</documentation>
+					<documentation>
+						Subject for notifications
+					</documentation>
 				</annotation>
 			</element>
 			<element name="smtpFrom" type="string" maxOccurs="1"
@@ -1542,16 +1553,16 @@
 					</documentation>
 				</annotation>
 			</element>
-			<element name="smtpUseSOCKSProxy" type="boolean" maxOccurs="1"
-				minOccurs="1">
+			<element name="smtpUseSOCKSProxy" type="boolean"
+				maxOccurs="1" minOccurs="1">
 				<annotation>
 					<documentation>
 						If set to true, Unison will use a SOCKS proxy
 					</documentation>
 				</annotation>
 			</element>
-			<element name="smtpSOCKSProxyHost" type="string" maxOccurs="1"
-				minOccurs="1">
+			<element name="smtpSOCKSProxyHost" type="string"
+				maxOccurs="1" minOccurs="1">
 				<annotation>
 					<documentation>
 						If using a SOCKS proxy, the host
@@ -1570,12 +1581,13 @@
 				minOccurs="1">
 				<annotation>
 					<documentation>
-						If using a SOCKS proxy, the localhost name to send
+						If using a SOCKS proxy, the localhost name to
+						send
 					</documentation>
 				</annotation>
 			</element>
-			<element name="maskAttribute" type="string" maxOccurs="unbounded"
-				minOccurs="0">
+			<element name="maskAttribute" type="string"
+				maxOccurs="unbounded" minOccurs="0">
 				<annotation>
 					<documentation>
 						List of attributes whos values are NOT to be
@@ -1585,12 +1597,42 @@
 			</element>
 			<element name="validationQuery" type="string" minOccurs="0"
 				maxOccurs="1">
+				<annotation>
+					<documentation>
+						A query that can validate the connection is active, ie "SELECT 1"
+					</documentation>
+				</annotation>
 			</element>
 			<element name="hibernateDialect" type="string" minOccurs="1"
 				maxOccurs="1">
+				<annotation>
+					<documentation>
+						The hibernate dialect to use
+					</documentation>
+				</annotation>
 			</element>
 			<element name="hibernateProperty" type="tns:paramType"
-				minOccurs="0" maxOccurs="unbounded"></element>
+				minOccurs="0" maxOccurs="unbounded">
+				<annotation>
+					<documentation>
+						Additional properties to pass into hibernate
+					</documentation>
+				</annotation>
+			</element>
+			<element name="hibernateConfig" type="string" minOccurs="0" maxOccurs="1">
+				<annotation>
+					<documentation>
+						The mapping file (.hbx.xml) to use if the default mapping doesn't work, must be in the classpath
+					</documentation>
+				</annotation>
+			</element>
+			<element name="hibernateCreateSchema" type="boolean" minOccurs="0" maxOccurs="1" default="true">
+				<annotation>
+					<documentation>
+						If true, create tables.  After initial configuration, you may want to disable this depending on the dialect.
+					</documentation>
+				</annotation>
+			</element>
 		</sequence>
 	</complexType>
 

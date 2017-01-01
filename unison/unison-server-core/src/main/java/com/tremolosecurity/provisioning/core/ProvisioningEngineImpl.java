@@ -257,7 +257,10 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		config.setProperty("hibernate.connection.url", adbt.getUrl());
 		config.setProperty("hibernate.connection.username", adbt.getUser());
 		config.setProperty("hibernate.dialect", adbt.getHibernateDialect());
-		config.setProperty("hibernate.hbm2ddl.auto", "update");
+		
+		if (adbt.isHibernateCreateSchema() == null || adbt.isHibernateCreateSchema()) {
+			config.setProperty("hibernate.hbm2ddl.auto", "update");
+		}
 		config.setProperty("show_sql", "true");
 		config.setProperty("hibernate.current_session_context_class", "thread");
 		
@@ -285,9 +288,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		}
 		config.setProperty("hibernate.c3p0.preferredTestQuery", validationQuery);
 		
-		
+		LoadedConfig lc = null;
 
-		
+		if (adbt.getHibernateConfig() == null || adbt.getHibernateConfig().trim().isEmpty()) {
 		JaxbCfgHibernateConfiguration jaxbCfg = new JaxbCfgHibernateConfiguration();
 		jaxbCfg.setSessionFactory(new JaxbCfgSessionFactory());
 		
@@ -339,13 +342,26 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		mrt.setClazz(Workflows.class.getName());
 		jaxbCfg.getSessionFactory().getMapping().add(mrt);
 		
-		LoadedConfig lc = LoadedConfig.consume(jaxbCfg);
+		
+		
+		lc = LoadedConfig.consume(jaxbCfg);
+		} else {
+			lc = LoadedConfig.baseline();
+		}
 		
 		
 		
 		StandardServiceRegistry registry = builder.configure(lc).applySettings(config.getProperties()).build();
 		try {
-			sessionFactory = new MetadataSources( registry ).buildMetadata().buildSessionFactory();
+			sessionFactory = null;
+			
+			if (adbt.getHibernateConfig() == null || adbt.getHibernateConfig().trim().isEmpty()) {
+				sessionFactory = new MetadataSources( registry ).buildMetadata().buildSessionFactory();
+			} else {
+				
+				
+				sessionFactory = new MetadataSources( registry ).addResource(adbt.getHibernateConfig()).buildMetadata().buildSessionFactory();
+			}
 			
 			this.cfgMgr.addThread(new StopableThread() {
 
