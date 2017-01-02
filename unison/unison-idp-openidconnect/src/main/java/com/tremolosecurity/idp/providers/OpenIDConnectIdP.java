@@ -1010,8 +1010,14 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		String validationQuery = init.get("validationQuery").getValues().get(0);
 		logger.info("Validation Query : '" + validationQuery + "'");
+		
+		String hibernateConfig = init.get("hibernateConfig") != null ? init.get("hibernateConfig").getValues().get(0) : null;
+		logger.info("HIbernate mapping file : '" + hibernateConfig + "'");
+		
+		String hibernateCreateSchema = init.get("hibernateCreateSchema") != null ? init.get("hibernateCreateSchema").getValues().get(0) : null;
+		logger.info("Can create schema : '" + hibernateCreateSchema + "'");
         
-        this.initializeHibernate(driver, user, pwd, url, dialect, maxCons, maxIdleCons, validationQuery);
+        this.initializeHibernate(driver, user, pwd, url, dialect, maxCons, maxIdleCons, validationQuery,hibernateConfig,hibernateCreateSchema);
 
 	}
 
@@ -1116,7 +1122,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		return claims;
 	}
 	
-	private void initializeHibernate(String driver, String user,String password,String url,String dialect,int maxCons,int maxIdleCons,String validationQuery) {
+	private void initializeHibernate(String driver, String user,String password,String url,String dialect,int maxCons,int maxIdleCons,String validationQuery,String mappingFile,String createSchema) {
 		StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder();
 		
 		
@@ -1126,7 +1132,11 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		config.setProperty("hibernate.connection.url", url);
 		config.setProperty("hibernate.connection.username", user);
 		config.setProperty("hibernate.dialect", dialect);
-		config.setProperty("hibernate.hbm2ddl.auto", "update");
+		
+		if (createSchema == null || createSchema.equalsIgnoreCase("true")) {
+			config.setProperty("hibernate.hbm2ddl.auto", "update");
+		}
+		
 		config.setProperty("show_sql", "true");
 		config.setProperty("hibernate.current_session_context_class", "thread");
 		
@@ -1151,22 +1161,29 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		config.setProperty("hibernate.c3p0.preferredTestQuery", validationQuery);
 		
 		
-
+		LoadedConfig lc = null;
 		
-		JaxbCfgHibernateConfiguration jaxbCfg = new JaxbCfgHibernateConfiguration();
-		jaxbCfg.setSessionFactory(new JaxbCfgSessionFactory());
-		
-		JaxbCfgMappingReferenceType mrt = new JaxbCfgMappingReferenceType();
-		mrt.setClazz(OIDCSession.class.getName());
-		jaxbCfg.getSessionFactory().getMapping().add(mrt);
-		
-		LoadedConfig lc = LoadedConfig.consume(jaxbCfg);
-		
+		if (mappingFile == null || mappingFile.trim().isEmpty()) {
+			JaxbCfgHibernateConfiguration jaxbCfg = new JaxbCfgHibernateConfiguration();
+			jaxbCfg.setSessionFactory(new JaxbCfgSessionFactory());
+			
+			JaxbCfgMappingReferenceType mrt = new JaxbCfgMappingReferenceType();
+			mrt.setClazz(OIDCSession.class.getName());
+			jaxbCfg.getSessionFactory().getMapping().add(mrt);
+			
+			lc = LoadedConfig.consume(jaxbCfg);
+		} else {
+			lc = LoadedConfig.baseline(); 
+		}
 		
 		
 		StandardServiceRegistry registry = builder.configure(lc).applySettings(config.getProperties()).build();
 		try {
-			sessionFactory = new MetadataSources( registry ).buildMetadata().buildSessionFactory();
+			if (mappingFile == null || mappingFile.trim().isEmpty()) {
+				sessionFactory = new MetadataSources( registry ).buildMetadata().buildSessionFactory();
+			} else {
+				sessionFactory = new MetadataSources( registry ).addResource(mappingFile).buildMetadata().buildSessionFactory();
+			}
 			
 			GlobalEntries.getGlobalEntries().getConfigManager().addThread(new StopableThread() {
 
