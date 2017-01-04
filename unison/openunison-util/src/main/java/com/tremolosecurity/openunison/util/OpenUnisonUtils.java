@@ -66,53 +66,52 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import org.apache.commons.ssl.util.Hex;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.logging.log4j.Logger;
 
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.apache.xml.security.utils.Base64;
-import org.opensaml.Configuration;
-import org.opensaml.DefaultBootstrap;
-import org.opensaml.saml2.core.impl.AuthnRequestMarshaller;
-import org.opensaml.saml2.metadata.AssertionConsumerService;
-import org.opensaml.saml2.metadata.EntityDescriptor;
-import org.opensaml.saml2.metadata.IDPSSODescriptor;
-import org.opensaml.saml2.metadata.KeyDescriptor;
-import org.opensaml.saml2.metadata.NameIDFormat;
-import org.opensaml.saml2.metadata.SPSSODescriptor;
-import org.opensaml.saml2.metadata.SingleLogoutService;
-import org.opensaml.saml2.metadata.SingleSignOnService;
-import org.opensaml.saml2.metadata.impl.AssertionConsumerServiceBuilder;
-import org.opensaml.saml2.metadata.impl.EntityDescriptorBuilder;
-import org.opensaml.saml2.metadata.impl.EntityDescriptorImpl;
-import org.opensaml.saml2.metadata.impl.EntityDescriptorMarshaller;
-import org.opensaml.saml2.metadata.impl.IDPSSODescriptorBuilder;
-import org.opensaml.saml2.metadata.impl.KeyDescriptorBuilder;
-import org.opensaml.saml2.metadata.impl.NameIDFormatBuilder;
-import org.opensaml.saml2.metadata.impl.SPSSODescriptorBuilder;
-import org.opensaml.saml2.metadata.impl.SPSSODescriptorImpl;
-import org.opensaml.saml2.metadata.impl.SingleLogoutServiceBuilder;
-import org.opensaml.saml2.metadata.impl.SingleSignOnServiceBuilder;
-import org.opensaml.xml.ConfigurationException;
-import org.opensaml.xml.io.MarshallingException;
-import org.opensaml.xml.io.UnmarshallingException;
-import org.opensaml.xml.security.SecurityException;
-import org.opensaml.xml.security.SecurityHelper;
-import org.opensaml.xml.security.credential.BasicCredential;
-import org.opensaml.xml.security.credential.UsageType;
-import org.opensaml.xml.security.x509.BasicX509Credential;
-import org.opensaml.xml.signature.KeyInfo;
-import org.opensaml.xml.signature.Signature;
-import org.opensaml.xml.signature.SignatureConstants;
-import org.opensaml.xml.signature.SignatureException;
-import org.opensaml.xml.signature.SignatureValidator;
-import org.opensaml.xml.signature.Signer;
-import org.opensaml.xml.signature.X509Data;
-import org.opensaml.xml.signature.impl.KeyInfoBuilder;
-import org.opensaml.xml.signature.impl.X509CertificateBuilder;
-import org.opensaml.xml.signature.impl.X509DataBuilder;
-import org.opensaml.xml.util.XMLHelper;
-import org.opensaml.xml.validation.ValidationException;
+
+import org.opensaml.saml.saml2.core.impl.AuthnRequestMarshaller;
+import org.opensaml.saml.saml2.metadata.AssertionConsumerService;
+import org.opensaml.saml.saml2.metadata.EntityDescriptor;
+import org.opensaml.saml.saml2.metadata.IDPSSODescriptor;
+import org.opensaml.saml.saml2.metadata.KeyDescriptor;
+import org.opensaml.saml.saml2.metadata.NameIDFormat;
+import org.opensaml.saml.saml2.metadata.SPSSODescriptor;
+import org.opensaml.saml.saml2.metadata.SingleLogoutService;
+import org.opensaml.saml.saml2.metadata.SingleSignOnService;
+import org.opensaml.saml.saml2.metadata.impl.AssertionConsumerServiceBuilder;
+import org.opensaml.saml.saml2.metadata.impl.EntityDescriptorBuilder;
+import org.opensaml.saml.saml2.metadata.impl.EntityDescriptorImpl;
+import org.opensaml.saml.saml2.metadata.impl.EntityDescriptorMarshaller;
+import org.opensaml.saml.saml2.metadata.impl.IDPSSODescriptorBuilder;
+import org.opensaml.saml.saml2.metadata.impl.KeyDescriptorBuilder;
+import org.opensaml.saml.saml2.metadata.impl.NameIDFormatBuilder;
+import org.opensaml.saml.saml2.metadata.impl.SPSSODescriptorBuilder;
+import org.opensaml.saml.saml2.metadata.impl.SPSSODescriptorImpl;
+import org.opensaml.saml.saml2.metadata.impl.SingleLogoutServiceBuilder;
+import org.opensaml.saml.saml2.metadata.impl.SingleSignOnServiceBuilder;
+import org.opensaml.core.config.InitializationService;
+import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
+import org.opensaml.core.xml.io.MarshallingException;
+import org.opensaml.core.xml.io.UnmarshallingException;
+import org.opensaml.core.xml.util.XMLObjectSupport;
+import org.opensaml.security.SecurityException;
+
+import org.opensaml.security.credential.BasicCredential;
+import org.opensaml.security.credential.UsageType;
+import org.opensaml.security.x509.BasicX509Credential;
+import org.opensaml.xmlsec.signature.KeyInfo;
+import org.opensaml.xmlsec.signature.Signature;
+import org.opensaml.xmlsec.signature.X509Data;
+import org.opensaml.xmlsec.signature.impl.KeyInfoBuilder;
+import org.opensaml.xmlsec.signature.impl.X509CertificateBuilder;
+import org.opensaml.xmlsec.signature.impl.X509DataBuilder;
+import org.opensaml.xmlsec.signature.support.SignatureConstants;
+import org.opensaml.xmlsec.signature.support.SignatureException;
+import org.opensaml.xmlsec.signature.support.SignatureValidator;
+import org.opensaml.xmlsec.signature.support.Signer;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -127,6 +126,8 @@ import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.config.xml.TrustType;
 import com.tremolosecurity.openunison.util.queue.QueUtils;
 import com.tremolosecurity.openunison.util.upgrade.AddChoiceToTasks;
+import com.tremolosecurity.proxy.util.OpenSAMLUtils;
+
 
 public class OpenUnisonUtils {
 
@@ -253,12 +254,7 @@ public class OpenUnisonUtils {
 			throws Exception, KeyStoreException, CertificateEncodingException, NoSuchAlgorithmException,
 			UnrecoverableKeyException, SecurityException, MarshallingException, SignatureException {
 		
-		try {
-			DefaultBootstrap.bootstrap();
-		} catch (ConfigurationException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		InitializationService.initialize();
 		
 		logger.info("Finding IdP...");
 		String idpName = loadOption(cmd,"idpName",options);
@@ -285,7 +281,7 @@ public class OpenUnisonUtils {
 		random.nextBytes(idBytes);
 		
 		StringBuffer b = new StringBuffer();
-		b.append('f').append(Hex.encode(idBytes));
+		b.append('f').append(Hex.encodeHexString(idBytes));
 		String id = b.toString();
 		
 		EntityDescriptorBuilder edb = new EntityDescriptorBuilder();
@@ -318,12 +314,12 @@ public class OpenUnisonUtils {
 			KeyDescriptor kd = kdb.buildObject();
 			kd.setUse(UsageType.ENCRYPTION);
 			KeyInfoBuilder kib = new KeyInfoBuilder();
-			org.opensaml.xml.signature.KeyInfo ki = kib.buildObject();
+			KeyInfo ki = kib.buildObject();
 			
 			X509DataBuilder x509b = new X509DataBuilder();
 			X509Data x509 = x509b.buildObject();
 			X509CertificateBuilder certb = new X509CertificateBuilder();
-			org.opensaml.xml.signature.X509Certificate cert = certb.buildObject();
+			org.opensaml.xmlsec.signature.X509Certificate cert = certb.buildObject();
 			cert.setValue(Base64.encode(ks.getCertificate(params.get("encKey").get(0)).getEncoded()));
 			x509.getX509Certificates().add(cert);
 			ki.getX509Datas().add(x509);
@@ -336,12 +332,12 @@ public class OpenUnisonUtils {
 			KeyDescriptor kd = kdb.buildObject();
 			kd.setUse(UsageType.SIGNING);
 			KeyInfoBuilder kib = new KeyInfoBuilder();
-			org.opensaml.xml.signature.KeyInfo ki = kib.buildObject();
+			KeyInfo ki = kib.buildObject();
 			
 			X509DataBuilder x509b = new X509DataBuilder();
 			X509Data x509 = x509b.buildObject();
 			X509CertificateBuilder certb = new X509CertificateBuilder();
-			org.opensaml.xml.signature.X509Certificate cert = certb.buildObject();
+			org.opensaml.xmlsec.signature.X509Certificate cert = certb.buildObject();
 			cert.setValue(Base64.encode(ks.getCertificate(params.get("sigKey").get(0)).getEncoded()));
 			x509.getX509Certificates().add(cert);
 			ki.getX509Datas().add(x509);
@@ -385,13 +381,9 @@ public class OpenUnisonUtils {
 		String signingKey = loadOptional(cmd,"signMetadataWithKey",options);
 		
 		if (signingKey != null && ks.getCertificate(signingKey) != null) {
-			BasicX509Credential signingCredential = SecurityHelper.getSimpleCredential((X509Certificate) ks.getCertificate(signingKey), (PrivateKey) ks.getKey(signingKey,tt.getKeyStorePassword().toCharArray()));
+			BasicX509Credential signingCredential = new BasicX509Credential((X509Certificate) ks.getCertificate(signingKey), (PrivateKey) ks.getKey(signingKey,tt.getKeyStorePassword().toCharArray()));
 			
-			Signature signature = (Signature) Configuration.getBuilderFactory()
-		    .getBuilder(Signature.DEFAULT_ELEMENT_NAME)
-		    .buildObject(Signature.DEFAULT_ELEMENT_NAME);
-			
-			SecurityHelper.prepareSignatureParams(signature, signingCredential, null, null);
+			Signature signature = OpenSAMLUtils.buildSAMLObject(Signature.class);
 			
 			
 			signature.setSigningCredential(signingCredential);
@@ -399,7 +391,11 @@ public class OpenUnisonUtils {
 			signature.setCanonicalizationAlgorithm(SignatureConstants.ALGO_ID_C14N_EXCL_OMIT_COMMENTS);
 			
 			ed.setSignature(signature); 
-			Element e = Configuration.getMarshallerFactory().getMarshaller(ed).marshall(ed); 
+			try {
+	            XMLObjectProviderRegistrySupport.getMarshallerFactory().getMarshaller(ed).marshall(ed);
+	        } catch (MarshallingException e) {
+	            throw new RuntimeException(e);
+	        }
 			Signer.signObject(signature); 
 		}
 		 
@@ -412,7 +408,7 @@ public class OpenUnisonUtils {
 		
 		
 
-		logger.info(XMLHelper.nodeToString(assertionElement));
+		logger.info(net.shibboleth.utilities.java.support.xml.SerializeSupport.nodeToString(assertionElement));
 	}
 
 	private static void importIdpMetadata(Options options, CommandLine cmd, String unisonXMLFile, TremoloType tt,
@@ -425,12 +421,7 @@ public class OpenUnisonUtils {
 		logger.info("Loading Metadata...");
 		String metadataFile = loadOption(cmd,"pathToMetaData",options);
 		
-		try {
-			DefaultBootstrap.bootstrap();
-		} catch (ConfigurationException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		InitializationService.initialize();
 		
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware(true);
@@ -440,7 +431,7 @@ public class OpenUnisonUtils {
 		Element root = builder
 				.parse(new InputSource(new InputStreamReader(new FileInputStream(metadataFile)))).getDocumentElement();
 		
-		EntityDescriptor ed =  (EntityDescriptor) Configuration.getUnmarshallerFactory().getUnmarshaller(root).unmarshall(root);
+		EntityDescriptor ed =  (EntityDescriptor) XMLObjectSupport.getUnmarshaller(root).unmarshall(root);
 		
 		logger.info("Loading IdP...");
 		String idpName =  loadOption(cmd,"idpName",options);
@@ -660,12 +651,7 @@ public class OpenUnisonUtils {
 		}
 		
 		
-		try {
-			DefaultBootstrap.bootstrap();
-		} catch (ConfigurationException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		InitializationService.initialize();
 		
 		logger.info("loading url base");
 		
@@ -734,7 +720,7 @@ public class OpenUnisonUtils {
 			X509DataBuilder x509b = new X509DataBuilder();
 			X509Data x509 = x509b.buildObject();
 			X509CertificateBuilder certb = new X509CertificateBuilder();
-			org.opensaml.xml.signature.X509Certificate cert = certb.buildObject();
+			org.opensaml.xmlsec.signature.X509Certificate cert = certb.buildObject();
 			cert.setValue(new String(Base64.encode(certFromKS.getEncoded())));
 			x509.getX509Certificates().add(cert);
 			ki.getX509Datas().add(x509);
@@ -763,7 +749,7 @@ public class OpenUnisonUtils {
 			X509DataBuilder x509b = new X509DataBuilder();
 			X509Data x509 = x509b.buildObject();
 			X509CertificateBuilder certb = new X509CertificateBuilder();
-			org.opensaml.xml.signature.X509Certificate cert = certb.buildObject();
+			org.opensaml.xmlsec.signature.X509Certificate cert = certb.buildObject();
 			cert.setValue(new String(Base64.encode(certFromKS.getEncoded())));
 			x509.getX509Certificates().add(cert);
 			ki.getX509Datas().add(x509);
@@ -780,7 +766,7 @@ public class OpenUnisonUtils {
 		// Marshall the Subject
 		Element assertionElement = marshaller.marshall(ed);
 
-		String xml = XMLHelper.prettyPrintXML(assertionElement);
+		String xml = net.shibboleth.utilities.java.support.xml.SerializeSupport.prettyPrintXML(assertionElement);
 		
 		logger.info(xml);
 	}
@@ -963,12 +949,7 @@ public class OpenUnisonUtils {
 	
 	private static EntityDescriptor loadIdPMetaData(String pathToMetaData,KeyStore ks,TremoloType tt) throws Exception {
 		
-		try {
-			DefaultBootstrap.bootstrap();
-		} catch (ConfigurationException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		InitializationService.initialize();
 		
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware(true);
@@ -980,7 +961,7 @@ public class OpenUnisonUtils {
 		
 		
 		
-		EntityDescriptor ed =  (EntityDescriptor) Configuration.getUnmarshallerFactory().getUnmarshaller(root).unmarshall(root);
+		EntityDescriptor ed =  (EntityDescriptor) XMLObjectSupport.getUnmarshaller(root).unmarshall(root);
 		
 		
 		

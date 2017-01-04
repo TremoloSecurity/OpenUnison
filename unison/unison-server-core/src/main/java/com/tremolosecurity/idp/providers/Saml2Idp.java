@@ -48,14 +48,11 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.logging.log4j.Logger;
-import org.opensaml.DefaultBootstrap;
-import org.opensaml.saml2.core.AuthnRequest;
-import org.opensaml.saml2.core.impl.AuthnRequestMarshaller;
-import org.opensaml.saml2.core.impl.AuthnRequestUnmarshaller;
-import org.opensaml.xml.ConfigurationException;
-import org.opensaml.xml.io.Marshaller;
-import org.opensaml.xml.io.Unmarshaller;
-import org.opensaml.xml.io.UnmarshallingException;
+import org.opensaml.core.config.InitializationException;
+import org.opensaml.core.config.InitializationService;
+import org.opensaml.core.xml.io.UnmarshallingException;
+import org.opensaml.saml.saml2.core.AuthnRequest;
+import org.opensaml.saml.saml2.core.impl.AuthnRequestUnmarshaller;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -572,11 +569,11 @@ public class Saml2Idp implements IdentityProvider {
 		this.idpName = idpName;
 		this.idpSigKeyName = init.get("sigKey").getValues().get(0);
 		this.requireSignedAuthn = init.get("requireSignedAuthn") != null && Boolean.parseBoolean(init.get("requireSignedAuthn").getValues().get(0));
+		
 		try {
-			DefaultBootstrap.bootstrap();
-		} catch (ConfigurationException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			InitializationService.initialize();
+		} catch (InitializationException e) {
+			logger.warn("Could not initialize opensaml",e);
 		}
 		
 		this.trusts = new HashMap<String,Saml2Trust>();

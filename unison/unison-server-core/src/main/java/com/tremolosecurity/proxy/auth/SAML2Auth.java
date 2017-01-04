@@ -56,54 +56,45 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.ssl.util.Hex;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.logging.log4j.Logger;
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.joda.time.DateTime;
-import org.opensaml.Configuration;
-import org.opensaml.DefaultBootstrap;
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.AuthnContextClassRef;
-import org.opensaml.saml2.core.AuthnContextComparisonTypeEnumeration;
-import org.opensaml.saml2.core.AuthnRequest;
-import org.opensaml.saml2.core.EncryptedAssertion;
-import org.opensaml.saml2.core.Issuer;
-import org.opensaml.saml2.core.LogoutResponse;
-import org.opensaml.saml2.core.NameID;
-import org.opensaml.saml2.core.NameIDPolicy;
-import org.opensaml.saml2.core.RequestedAuthnContext;
-import org.opensaml.saml2.core.Response;
-import org.opensaml.saml2.core.impl.AuthnContextClassRefBuilder;
-import org.opensaml.saml2.core.impl.AuthnContextClassRefImpl;
-import org.opensaml.saml2.core.impl.AuthnRequestBuilder;
-import org.opensaml.saml2.core.impl.AuthnRequestMarshaller;
-import org.opensaml.saml2.core.impl.AuthnRequestUnmarshaller;
-import org.opensaml.saml2.core.impl.IssuerBuilder;
-import org.opensaml.saml2.core.impl.LogoutResponseUnmarshaller;
-import org.opensaml.saml2.core.impl.NameIDBuilder;
-import org.opensaml.saml2.core.impl.NameIDPolicyBuilder;
-import org.opensaml.saml2.core.impl.RequestedAuthnContextBuilder;
-import org.opensaml.saml2.core.impl.ResponseMarshaller;
-import org.opensaml.saml2.encryption.Decrypter;
-import org.opensaml.ws.transport.http.HTTPTransportUtils;
-import org.opensaml.xml.ConfigurationException;
-import org.opensaml.xml.XMLObject;
-import org.opensaml.xml.encryption.InlineEncryptedKeyResolver;
-import org.opensaml.xml.io.Marshaller;
-import org.opensaml.xml.io.UnmarshallingException;
-import org.opensaml.xml.schema.XSAny;
-import org.opensaml.xml.schema.XSString;
-import org.opensaml.xml.security.SecurityHelper;
-import org.opensaml.xml.security.credential.BasicCredential;
-import org.opensaml.xml.security.credential.Credential;
-import org.opensaml.xml.security.credential.UsageType;
-import org.opensaml.xml.security.keyinfo.StaticKeyInfoCredentialResolver;
-import org.opensaml.xml.security.x509.BasicX509Credential;
-import org.opensaml.xml.signature.Signature;
-import org.opensaml.xml.signature.SignatureConstants;
-import org.opensaml.xml.signature.SignatureValidator;
-import org.opensaml.xml.util.XMLHelper;
-import org.opensaml.xml.validation.ValidationException;
+import org.opensaml.core.config.InitializationException;
+import org.opensaml.core.config.InitializationService;
+import org.opensaml.core.xml.XMLObject;
+import org.opensaml.core.xml.io.Marshaller;
+import org.opensaml.core.xml.io.UnmarshallerFactory;
+import org.opensaml.core.xml.io.UnmarshallingException;
+import org.opensaml.core.xml.schema.XSAny;
+import org.opensaml.core.xml.schema.XSString;
+import org.opensaml.core.xml.util.XMLObjectSupport;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.AuthnContextClassRef;
+import org.opensaml.saml.saml2.core.AuthnContextComparisonTypeEnumeration;
+import org.opensaml.saml.saml2.core.AuthnRequest;
+import org.opensaml.saml.saml2.core.EncryptedAssertion;
+import org.opensaml.saml.saml2.core.Issuer;
+import org.opensaml.saml.saml2.core.LogoutResponse;
+import org.opensaml.saml.saml2.core.NameIDPolicy;
+import org.opensaml.saml.saml2.core.RequestedAuthnContext;
+import org.opensaml.saml.saml2.core.Response;
+import org.opensaml.saml.saml2.core.impl.AuthnContextClassRefBuilder;
+import org.opensaml.saml.saml2.core.impl.AuthnRequestBuilder;
+import org.opensaml.saml.saml2.core.impl.AuthnRequestMarshaller;
+import org.opensaml.saml.saml2.core.impl.IssuerBuilder;
+import org.opensaml.saml.saml2.core.impl.LogoutResponseUnmarshaller;
+import org.opensaml.saml.saml2.core.impl.NameIDPolicyBuilder;
+import org.opensaml.saml.saml2.core.impl.RequestedAuthnContextBuilder;
+import org.opensaml.saml.saml2.core.impl.ResponseMarshaller;
+import org.opensaml.saml.saml2.encryption.Decrypter;
+import org.opensaml.saml.security.impl.SAMLSignatureProfileValidator;
+import org.opensaml.security.credential.BasicCredential;
+import org.opensaml.security.credential.Credential;
+import org.opensaml.security.credential.UsageType;
+import org.opensaml.xmlsec.encryption.support.InlineEncryptedKeyResolver;
+import org.opensaml.xmlsec.keyinfo.impl.StaticKeyInfoCredentialResolver;
+import org.opensaml.xmlsec.signature.support.SignatureValidator;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -123,6 +114,7 @@ import com.tremolosecurity.proxy.auth.util.AuthStep;
 import com.tremolosecurity.proxy.auth.util.AuthUtil;
 import com.tremolosecurity.proxy.logout.LogoutUtil;
 import com.tremolosecurity.proxy.myvd.MyVDConnection;
+import com.tremolosecurity.proxy.util.OpenSAMLUtils;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.proxy.util.ProxyTools;
 import com.tremolosecurity.saml.Attribute;
@@ -310,7 +302,7 @@ public class SAML2Auth implements AuthMechanism {
 			}*/
 			
 			StringBuffer b = new StringBuffer();
-			b.append('f').append(Hex.encode(idBytes));
+			b.append('f').append(Hex.encodeHexString(idBytes));
 			
 			String id = b.toString();
 			
@@ -364,9 +356,9 @@ public class SAML2Auth implements AuthMechanism {
 				Marshaller marshaller = new AuthnRequestMarshaller();
 
 				// Marshall the Subject
-				Element assertionElement = marshaller.marshall(authn);
+				//Element assertionElement = marshaller.marshall(authn);
 
-				String xml = XMLHelper.nodeToString(assertionElement);
+				String xml = OpenSAMLUtils.xml2str(authn);
 				xml = xml.substring(xml.indexOf("?>") + 2);
 				
 				
@@ -399,7 +391,7 @@ public class SAML2Auth implements AuthMechanism {
 				random.nextBytes(idBytes);
 				
 				
-				query.append("SAMLRequest=").append(URLEncoder.encode(b64,"UTF-8")).append("&RelayState=").append(URLEncoder.encode(Hex.encode(idBytes),"UTF-8"));
+				query.append("SAMLRequest=").append(URLEncoder.encode(b64,"UTF-8")).append("&RelayState=").append(URLEncoder.encode(Hex.encodeHexString(idBytes),"UTF-8"));
 				
 				
 				if (signAuthnReq) {
@@ -578,8 +570,7 @@ public class SAML2Auth implements AuthMechanism {
 
 			
 			
-			Response samlResponse = (Response) Configuration
-					.getUnmarshallerFactory().getUnmarshaller(root)
+			Response samlResponse = (Response) XMLObjectSupport.getUnmarshaller(root)
 					.unmarshall(root);
 			
 			if (isMultiIdp) {
@@ -613,18 +604,18 @@ public class SAML2Auth implements AuthMechanism {
 			
 			if (responseSigned) {
 				if (samlResponse.getSignature() != null) {
-					BasicCredential sigCred = new BasicCredential();
-					// sigCred.setSecretKey(this.sigCert);
-					sigCred.setPublicKey(sigCert.getPublicKey());
+					BasicCredential sigCred = new BasicCredential(sigCert.getPublicKey());
 					sigCred.setUsageType(UsageType.SIGNING);
 
-					SignatureValidator sigValidator = new SignatureValidator(
-							sigCred);
 					try {
-						sigValidator.validate(samlResponse.getSignature());
-					} catch (ValidationException e) {
-						throw new ServletException("Error validating response signature", e);
+						SAMLSignatureProfileValidator profileValidator = new SAMLSignatureProfileValidator();
+			            profileValidator.validate(samlResponse.getSignature());
+			            SignatureValidator.validate(samlResponse.getSignature(), sigCred);
+					} catch (org.opensaml.xmlsec.signature.support.SignatureException se) {
+						throw new ServletException("Error validating response signature", se);
 					}
+					
+					
 
 				} else {
 					throw new Exception("Response not signed");
@@ -639,7 +630,7 @@ public class SAML2Auth implements AuthMechanism {
 					PrivateKey privKey = this.cfgMgr.getPrivateKey(spEncKey);
 					
 					PublicKey pubKey = this.cfgMgr.getCertificate(spEncKey).getPublicKey();
-					Credential credential = SecurityHelper.getSimpleCredential(pubKey, privKey);
+					Credential credential = new BasicCredential(pubKey, privKey);
 					StaticKeyInfoCredentialResolver resolver = new StaticKeyInfoCredentialResolver(credential); 
 					Decrypter decrypter = new Decrypter(null, resolver, new InlineEncryptedKeyResolver());
 					decrypter.setRootInNewDocument(true);
@@ -666,19 +657,18 @@ public class SAML2Auth implements AuthMechanism {
 			if (assertionSigned) {
 				if (assertion.getSignature() != null) {
 					
-					BasicCredential sigCred = new BasicCredential();
-					// sigCred.setSecretKey(this.sigCert);
-					sigCred.setPublicKey(sigCert.getPublicKey());
+					BasicCredential sigCred = new BasicCredential(sigCert.getPublicKey());
 					sigCred.setUsageType(UsageType.SIGNING);
-	
-					SignatureValidator sigValidator = new SignatureValidator(
-							sigCred);
+
 					try {
-						sigValidator.validate(assertion.getSignature());
-					} catch (ValidationException e) {
-						printXML(assertion);
-						throw new ServletException("Error validating assetion signature", e);
+						SAMLSignatureProfileValidator profileValidator = new SAMLSignatureProfileValidator();
+			            profileValidator.validate(assertion.getSignature());
+			            SignatureValidator.validate(assertion.getSignature(), sigCred);
+					} catch (org.opensaml.xmlsec.signature.support.SignatureException se) {
+						throw new ServletException("Error validating response signature", se);
 					}
+					
+
 	
 			
 					
@@ -784,10 +774,10 @@ public class SAML2Auth implements AuthMechanism {
 		authInfo.getAttribs().put(attrib.getName(), attrib);
 
 		if (assertion.getAttributeStatements().size() > 0) {
-			Iterator<org.opensaml.saml2.core.Attribute> samlAttribs = assertion
+			Iterator<org.opensaml.saml.saml2.core.Attribute> samlAttribs = assertion
 					.getAttributeStatements().get(0).getAttributes().iterator();
 			while (samlAttribs.hasNext()) {
-				org.opensaml.saml2.core.Attribute samlAttrib = samlAttribs
+				org.opensaml.saml.saml2.core.Attribute samlAttrib = samlAttribs
 						.next();
 				// com.tremolosecurity.saml.Attribute attrib = new
 				// com.tremolosecurity.saml.Attribute(samlAttrib.getName());
@@ -844,10 +834,10 @@ public class SAML2Auth implements AuthMechanism {
 		}
 
 		if (assertion.getAttributeStatements().size() > 0) {
-			Iterator<org.opensaml.saml2.core.Attribute> samlAttribs = assertion
+			Iterator<org.opensaml.saml.saml2.core.Attribute> samlAttribs = assertion
 					.getAttributeStatements().get(0).getAttributes().iterator();
 			while (samlAttribs.hasNext()) {
-				org.opensaml.saml2.core.Attribute samlAttrib = samlAttribs
+				org.opensaml.saml.saml2.core.Attribute samlAttrib = samlAttribs
 						.next();
 				// com.tremolosecurity.saml.Attribute attrib = new
 				// com.tremolosecurity.saml.Attribute(samlAttrib.getName());
@@ -912,10 +902,9 @@ public class SAML2Auth implements AuthMechanism {
 				.getAttribute(ProxyConstants.TREMOLO_CONFIG);
 
 		try {
-			DefaultBootstrap.bootstrap();
-		} catch (ConfigurationException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			InitializationService.initialize();
+		} catch (InitializationException e1) {
+			logger.warn("Could not initialize opensaml",e1);
 		}
 
 		try {
@@ -992,7 +981,7 @@ public class SAML2Auth implements AuthMechanism {
 		// Marshall the Subject
 		Element assertionElement = marshaller.marshall(assertion);
 
-		System.out.println( XMLHelper.nodeToString(assertionElement));
+		System.out.println( OpenSAMLUtils.xml2str(assertion));
 	}
 	
 	private String processLogoutResp(HttpServletRequest request,
@@ -1119,11 +1108,11 @@ public class SAML2Auth implements AuthMechanism {
 			StringBuffer query = new StringBuffer();
 			
 			String qs = request.getQueryString();
-			query.append(HTTPTransportUtils.getRawQueryStringParameter(qs, "SAMLResponse"));
+			query.append(OpenSAMLUtils.getRawQueryStringParameter(qs, "SAMLResponse"));
 			query.append('&');
-			query.append(HTTPTransportUtils.getRawQueryStringParameter(qs, "RelayState"));
+			query.append(OpenSAMLUtils.getRawQueryStringParameter(qs, "RelayState"));
 			query.append('&');
-			query.append(HTTPTransportUtils.getRawQueryStringParameter(qs, "SigAlg"));
+			query.append(OpenSAMLUtils.getRawQueryStringParameter(qs, "SigAlg"));
 			
 
 			

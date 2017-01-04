@@ -47,7 +47,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.ssl.util.Hex;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.util.log.Log;
 import org.joda.time.DateTime;
@@ -369,7 +369,7 @@ public class SessionManagerImpl implements SessionManager {
 		random.nextBytes(idBytes);
 
 		StringBuffer b = new StringBuffer();
-		b.append('f').append(Hex.encode(idBytes));
+		b.append('f').append(Hex.encodeHexString(idBytes));
 		String id = b.toString();
 
 		// HttpSession session = req.getSession(true);
@@ -452,7 +452,7 @@ public class SessionManagerImpl implements SessionManager {
 		byte[] idBytes = new byte[20];
 		random.nextBytes(idBytes);
 		StringBuffer b = new StringBuffer();
-		b.append('f').append(Hex.encode(idBytes));
+		b.append('f').append(Hex.encodeHexString(idBytes));
 		String id = b.toString();
 
 		// HttpSession session = req.getSession(true);

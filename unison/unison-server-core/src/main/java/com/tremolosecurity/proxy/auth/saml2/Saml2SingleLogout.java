@@ -30,20 +30,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.ssl.util.Hex;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
-import org.opensaml.saml2.core.Issuer;
-import org.opensaml.saml2.core.LogoutRequest;
-import org.opensaml.saml2.core.NameID;
-import org.opensaml.saml2.core.SessionIndex;
-import org.opensaml.saml2.core.impl.IssuerBuilder;
-import org.opensaml.saml2.core.impl.LogoutRequestBuilder;
-import org.opensaml.saml2.core.impl.LogoutRequestMarshaller;
-import org.opensaml.saml2.core.impl.NameIDBuilder;
-import org.opensaml.saml2.core.impl.SessionIndexBuilder;
-import org.opensaml.xml.io.Marshaller;
-import org.opensaml.xml.util.XMLHelper;
+import org.opensaml.core.xml.io.Marshaller;
+import org.opensaml.saml.saml2.core.Issuer;
+import org.opensaml.saml.saml2.core.LogoutRequest;
+import org.opensaml.saml.saml2.core.NameID;
+import org.opensaml.saml.saml2.core.SessionIndex;
+import org.opensaml.saml.saml2.core.impl.IssuerBuilder;
+import org.opensaml.saml.saml2.core.impl.LogoutRequestBuilder;
+import org.opensaml.saml.saml2.core.impl.LogoutRequestMarshaller;
+import org.opensaml.saml.saml2.core.impl.NameIDBuilder;
+import org.opensaml.saml.saml2.core.impl.SessionIndexBuilder;
 import org.w3c.dom.Element;
 
 import com.tremolosecurity.config.util.ConfigManager;
@@ -51,7 +50,9 @@ import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.proxy.ProxyResponse;
 import com.tremolosecurity.proxy.auth.SAML2Auth;
 import com.tremolosecurity.proxy.logout.LogoutHandler;
+import com.tremolosecurity.proxy.util.OpenSAMLUtils;
 import com.tremolosecurity.proxy.util.ProxyConstants;
+import com.tremolosecurity.proxy.util.ProxyTools;
 
 public class Saml2SingleLogout implements LogoutHandler {
 
@@ -119,7 +120,7 @@ public class Saml2SingleLogout implements LogoutHandler {
 		byte[] idBytes = new byte[20];
 		random.nextBytes(idBytes);
 		
-		String id = "f" + Hex.encode(idBytes);
+		String id = "f" + Hex.encodeHexString(idBytes);
 		lr.setID(id);
 		
 		IssuerBuilder ib = new IssuerBuilder();
@@ -146,9 +147,9 @@ public class Saml2SingleLogout implements LogoutHandler {
 			Marshaller marshaller = new LogoutRequestMarshaller();
 
 			// Marshall the Subject
-			Element assertionElement = marshaller.marshall(lr);
+			//Element assertionElement = marshaller.marshall(lr);
 
-			String xml = XMLHelper.nodeToString(assertionElement);
+			String xml = OpenSAMLUtils.xml2str(lr);
 			xml = xml.substring(xml.indexOf("?>") + 2);
 			
 			
@@ -178,7 +179,7 @@ public class Saml2SingleLogout implements LogoutHandler {
 			idBytes = new byte[20];
 			random.nextBytes(idBytes);
 			
-			query.append("SAMLRequest=").append(URLEncoder.encode(b64,"UTF-8")).append("&RelayState=").append(URLEncoder.encode(Hex.encode(idBytes),"UTF-8"));
+			query.append("SAMLRequest=").append(URLEncoder.encode(b64,"UTF-8")).append("&RelayState=").append(URLEncoder.encode(Hex.encodeHexString(idBytes),"UTF-8"));
 			
 			query.append("&SigAlg=").append(URLEncoder.encode(xmlAlg,"UTF-8"));
 			//http://www.w3.org/2000/09/xmldsig#rsa-sha1

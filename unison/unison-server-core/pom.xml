@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison</artifactId>
-		<version>1.0.8</version>
+		<version>1.0.9</version>
 	</parent>
 	<artifactId>unison-server-core</artifactId>
 	<name>unison-server-core</name>
@@ -21,11 +21,9 @@
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.opensaml</groupId>
-			<artifactId>opensaml</artifactId>
-			<version>${opensaml.version}</version>
-		</dependency>
+		
+
+
 		<dependency>
 			<groupId>javax.mail</groupId>
 			<artifactId>javax.mail-api</artifactId>

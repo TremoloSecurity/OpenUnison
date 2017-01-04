@@ -32,83 +32,68 @@ import javax.crypto.SecretKey;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-
-import org.apache.commons.ssl.util.Hex;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.xml.security.utils.Base64;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.opensaml.Configuration;
-import org.opensaml.saml2.core.Audience;
-import org.opensaml.saml2.core.AudienceRestriction;
-import org.opensaml.saml2.core.StatusCode;
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.AttributeStatement;
-import org.opensaml.saml2.core.AttributeValue;
-import org.opensaml.saml2.core.AuthnContext;
-import org.opensaml.saml2.core.AuthnContextClassRef;
-import org.opensaml.saml2.core.AuthnStatement;
-import org.opensaml.saml2.core.Conditions;
-import org.opensaml.saml2.core.EncryptedAssertion;
-import org.opensaml.saml2.core.Issuer;
-import org.opensaml.saml2.core.NameID;
-import org.opensaml.saml2.core.Response;
-import org.opensaml.saml2.core.Status;
-import org.opensaml.saml2.core.Subject;
-import org.opensaml.saml2.core.SubjectConfirmation;
-import org.opensaml.saml2.core.SubjectConfirmationData;
-import org.opensaml.saml2.core.impl.AssertionBuilder;
-import org.opensaml.saml2.core.impl.AssertionMarshaller;
-import org.opensaml.saml2.core.impl.AttributeBuilder;
-import org.opensaml.saml2.core.impl.AttributeStatementBuilder;
-import org.opensaml.saml2.core.impl.AudienceBuilder;
-import org.opensaml.saml2.core.impl.AudienceRestrictionBuilder;
-import org.opensaml.saml2.core.impl.AuthnContextBuilder;
-import org.opensaml.saml2.core.impl.AuthnContextClassRefBuilder;
-import org.opensaml.saml2.core.impl.AuthnStatementBuilder;
-import org.opensaml.saml2.core.impl.ConditionsBuilder;
-import org.opensaml.saml2.core.impl.EncryptedAssertionMarshaller;
-import org.opensaml.saml2.core.impl.IssuerBuilder;
-import org.opensaml.saml2.core.impl.NameIDBuilder;
-import org.opensaml.saml2.core.impl.ResponseBuilder;
-import org.opensaml.saml2.core.impl.ResponseMarshaller;
-import org.opensaml.saml2.core.impl.StatusBuilder;
-import org.opensaml.saml2.core.impl.StatusCodeBuilder;
-import org.opensaml.saml2.core.impl.SubjectBuilder;
-import org.opensaml.saml2.core.impl.SubjectConfirmationBuilder;
-import org.opensaml.saml2.core.impl.SubjectConfirmationDataBuilder;
-import org.opensaml.saml2.encryption.Encrypter;
-import org.opensaml.saml2.encryption.Encrypter.KeyPlacement;
-import org.opensaml.xml.ConfigurationException;
-import org.opensaml.xml.XMLObject;
-import org.opensaml.xml.encryption.EncryptionConstants;
-import org.opensaml.xml.encryption.EncryptionException;
-import org.opensaml.xml.encryption.EncryptionParameters;
-import org.opensaml.xml.encryption.KeyEncryptionParameters;
-import org.opensaml.xml.io.Marshaller;
-import org.opensaml.xml.io.MarshallingException;
-import org.opensaml.xml.io.UnmarshallingException;
-import org.opensaml.xml.schema.XSString;
-import org.opensaml.xml.schema.impl.XSStringBuilder;
-import org.opensaml.xml.security.SecurityConfiguration;
-import org.opensaml.xml.security.SecurityHelper;
-import org.opensaml.xml.security.credential.BasicCredential;
-import org.opensaml.xml.security.credential.Credential;
-import org.opensaml.xml.security.credential.UsageType;
-import org.opensaml.xml.security.keyinfo.KeyInfoCredentialResolver;
-import org.opensaml.xml.security.keyinfo.KeyInfoGeneratorFactory;
-import org.opensaml.xml.security.keyinfo.StaticKeyInfoCredentialResolver;
-import org.opensaml.xml.security.x509.BasicX509Credential;
-import org.opensaml.xml.signature.KeyInfo;
-import org.opensaml.xml.signature.Signature;
-import org.opensaml.xml.signature.SignatureConstants;
-import org.opensaml.xml.signature.SignatureException;
-import org.opensaml.xml.signature.SignatureValidator;
-import org.opensaml.xml.signature.Signer;
-import org.opensaml.xml.signature.impl.KeyInfoBuilder;
-import org.opensaml.xml.util.XMLHelper;
-import org.opensaml.xml.validation.ValidationException;
+import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
+import org.opensaml.core.xml.io.Marshaller;
+import org.opensaml.core.xml.io.MarshallingException;
+import org.opensaml.core.xml.schema.XSString;
+import org.opensaml.core.xml.schema.impl.XSStringBuilder;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.AttributeStatement;
+import org.opensaml.saml.saml2.core.AttributeValue;
+import org.opensaml.saml.saml2.core.Audience;
+import org.opensaml.saml.saml2.core.AudienceRestriction;
+import org.opensaml.saml.saml2.core.AuthnContext;
+import org.opensaml.saml.saml2.core.AuthnContextClassRef;
+import org.opensaml.saml.saml2.core.AuthnStatement;
+import org.opensaml.saml.saml2.core.Conditions;
+import org.opensaml.saml.saml2.core.EncryptedAssertion;
+import org.opensaml.saml.saml2.core.Issuer;
+import org.opensaml.saml.saml2.core.NameID;
+import org.opensaml.saml.saml2.core.Response;
+import org.opensaml.saml.saml2.core.Status;
+import org.opensaml.saml.saml2.core.StatusCode;
+import org.opensaml.saml.saml2.core.Subject;
+import org.opensaml.saml.saml2.core.SubjectConfirmation;
+import org.opensaml.saml.saml2.core.SubjectConfirmationData;
+import org.opensaml.saml.saml2.core.impl.AssertionBuilder;
+import org.opensaml.saml.saml2.core.impl.AttributeBuilder;
+import org.opensaml.saml.saml2.core.impl.AttributeStatementBuilder;
+import org.opensaml.saml.saml2.core.impl.AudienceBuilder;
+import org.opensaml.saml.saml2.core.impl.AudienceRestrictionBuilder;
+import org.opensaml.saml.saml2.core.impl.AuthnContextBuilder;
+import org.opensaml.saml.saml2.core.impl.AuthnContextClassRefBuilder;
+import org.opensaml.saml.saml2.core.impl.AuthnStatementBuilder;
+import org.opensaml.saml.saml2.core.impl.ConditionsBuilder;
+import org.opensaml.saml.saml2.core.impl.IssuerBuilder;
+import org.opensaml.saml.saml2.core.impl.NameIDBuilder;
+import org.opensaml.saml.saml2.core.impl.ResponseBuilder;
+import org.opensaml.saml.saml2.core.impl.ResponseMarshaller;
+import org.opensaml.saml.saml2.core.impl.StatusBuilder;
+import org.opensaml.saml.saml2.core.impl.StatusCodeBuilder;
+import org.opensaml.saml.saml2.core.impl.SubjectBuilder;
+import org.opensaml.saml.saml2.core.impl.SubjectConfirmationBuilder;
+import org.opensaml.saml.saml2.core.impl.SubjectConfirmationDataBuilder;
+import org.opensaml.saml.saml2.encryption.Encrypter;
+import org.opensaml.security.credential.Credential;
+import org.opensaml.security.credential.CredentialSupport;
+import org.opensaml.security.x509.BasicX509Credential;
+import org.opensaml.xmlsec.EncryptionParameters;
+import org.opensaml.xmlsec.encryption.support.DataEncryptionParameters;
+import org.opensaml.xmlsec.encryption.support.EncryptionConstants;
+import org.opensaml.xmlsec.encryption.support.EncryptionException;
+import org.opensaml.xmlsec.encryption.support.KeyEncryptionParameters;
+import org.opensaml.xmlsec.signature.Signature;
+import org.opensaml.xmlsec.signature.support.SignatureConstants;
+import org.opensaml.xmlsec.signature.support.Signer;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
+
+import com.tremolosecurity.proxy.util.OpenSAMLUtils;
+import com.tremolosecurity.proxy.util.ProxyTools;
 
 
 
@@ -186,7 +171,7 @@ public  class Saml2Assertion {
 		random.nextBytes(idBytes);
 		
 		StringBuffer b = new StringBuffer();
-		b.append('f').append(Hex.encode(idBytes));
+		b.append('f').append(Hex.encodeHexString(idBytes));
 		String id = b.toString();
 		
 		Assertion assertion = null;
@@ -204,7 +189,7 @@ public  class Saml2Assertion {
 		
 		
 		b.setLength(0);
-		b.append('f').append(Hex.encode(idBytes));
+		b.append('f').append(Hex.encodeHexString(idBytes));
 		id = b.toString();
 		
 		
@@ -226,7 +211,7 @@ public  class Saml2Assertion {
 		Status s = statusBuilder.buildObject();
 		StatusCodeBuilder scb = new StatusCodeBuilder();
 		StatusCode sc = scb.buildObject();
-		sc.setValue(StatusCode.SUCCESS_URI);
+		sc.setValue(StatusCode.SUCCESS);
 		s.setStatusCode(sc);
 		r.setStatus(s);
 		
@@ -235,7 +220,45 @@ public  class Saml2Assertion {
 		
 		
 		if (this.encAssertion) {
-			Credential keyEncryptionCredential = SecurityHelper.getSimpleCredential(this.encCert.getPublicKey(), null);
+			DataEncryptionParameters encryptionParameters = new DataEncryptionParameters();
+			encryptionParameters.setAlgorithm(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES128);
+			
+			
+			KeyEncryptionParameters keyEncryptionParameters = new KeyEncryptionParameters();
+			
+			
+			
+			keyEncryptionParameters.setEncryptionCredential(new BasicX509Credential(this.encCert));
+	        keyEncryptionParameters.setAlgorithm(EncryptionConstants.ALGO_ID_KEYTRANSPORT_RSAOAEP);
+
+	        Encrypter encrypter = new Encrypter(encryptionParameters, keyEncryptionParameters);
+	        encrypter.setKeyPlacement(Encrypter.KeyPlacement.INLINE);
+
+	        try {
+	            EncryptedAssertion encryptedAssertion = encrypter.encrypt(assertion);
+	            r.getEncryptedAssertions().add(encryptedAssertion);
+	        } catch (EncryptionException e) {
+	            throw new RuntimeException(e);
+	        }
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			/*
+			
+			Credential keyEncryptionCredential = CredentialSupport.getSimpleCredential(this.encCert.getPublicKey(), null);
 			EncryptionParameters encParams = new EncryptionParameters();
 			encParams.setAlgorithm(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES128);
 			        
@@ -257,7 +280,7 @@ public  class Saml2Assertion {
 			} catch (EncryptionException e) {
 			    throw new Exception("Could not encrypt response",e);
 			}
-	        
+	        */
 		} else {
 			r.getAssertions().add(assertion);
 		}
@@ -266,13 +289,11 @@ public  class Saml2Assertion {
 			if (this.sigCert == null) {
 				throw new Exception("No signature key found");
 			}
-			BasicX509Credential signingCredential = SecurityHelper.getSimpleCredential(this.sigCert, this.sigKey);
+			BasicX509Credential signingCredential = CredentialSupport.getSimpleCredential(this.sigCert, this.sigKey);
 			
-			Signature signature = (Signature) Configuration.getBuilderFactory()
-	        .getBuilder(Signature.DEFAULT_ELEMENT_NAME)
-	        .buildObject(Signature.DEFAULT_ELEMENT_NAME);
+			Signature signature = OpenSAMLUtils.buildSAMLObject(Signature.class);
 			
-			SecurityHelper.prepareSignatureParams(signature, signingCredential, null, null);
+			//SecurityHelper.prepareSignatureParams(signature, signingCredential, null, null);
 			
 			
 			signature.setSigningCredential(signingCredential);
@@ -280,7 +301,14 @@ public  class Saml2Assertion {
 			signature.setCanonicalizationAlgorithm(SignatureConstants.ALGO_ID_C14N_EXCL_OMIT_COMMENTS);
 			
 			r.setSignature(signature); 
-			Element e = Configuration.getMarshallerFactory().getMarshaller(r).marshall(r); 
+			//Element e = Configuration.getMarshallerFactory().getMarshaller(r).marshall(r); 
+			
+			try {
+	            XMLObjectProviderRegistrySupport.getMarshallerFactory().getMarshaller(r).marshall(r);
+	        } catch (MarshallingException e) {
+	            throw new RuntimeException(e);
+	        }
+			
 			Signer.signObject(signature); 
 		}
 		
@@ -290,11 +318,11 @@ public  class Saml2Assertion {
 		Marshaller marshaller = new ResponseMarshaller();
 
 		// Marshall the Subject
-		Element assertionElement = marshaller.marshall(r);
+		Element responseElement = marshaller.marshall(r);
 		
-		
+		return net.shibboleth.utilities.java.support.xml.SerializeSupport.nodeToString(responseElement);
 
-		return XMLHelper.nodeToString(assertionElement);
+		
 		
 
 	}
@@ -306,7 +334,7 @@ public  class Saml2Assertion {
 		
 		
 		StringBuffer b = new StringBuffer();
-		b.append('f').append(Hex.encode(idBytes));
+		b.append('f').append(Hex.encodeHexString(idBytes));
 		String id = b.toString();
 		
 		
@@ -381,7 +409,7 @@ public  class Saml2Assertion {
 		while (attrs.hasNext()) {
 			Attribute attrib = attrs.next();
 			AttributeBuilder attrBuilder = new AttributeBuilder();
-			org.opensaml.saml2.core.Attribute samlAttrib = attrBuilder.buildObject();
+			org.opensaml.saml.saml2.core.Attribute samlAttrib = attrBuilder.buildObject();
 			samlAttrib.setName(attrib.getName());
 			Iterator<String> attrVals = attrib.getValues().iterator();
 			while (attrVals.hasNext()) {
@@ -452,25 +480,30 @@ public  class Saml2Assertion {
 	
 	private Element generateSignedAssertion(String id) throws Exception {
 		
-		
+		if (this.sigCert == null) {
+			throw new Exception("No signature key found");
+		}
 		
 		Assertion assertion = generateAssertion(id);
 		
-		BasicX509Credential signingCredential = SecurityHelper.getSimpleCredential(this.sigCert, this.sigKey);
+		BasicX509Credential signingCredential = CredentialSupport.getSimpleCredential(this.sigCert, this.sigKey);
 		
-		Signature signature = (Signature) Configuration.getBuilderFactory()
-        .getBuilder(Signature.DEFAULT_ELEMENT_NAME)
-        .buildObject(Signature.DEFAULT_ELEMENT_NAME);
+		Signature signature = (Signature) OpenSAMLUtils.buildSAMLObject(Signature.class);
 		
-		SecurityHelper.prepareSignatureParams(signature, signingCredential, null, null);
+		
 		
 		
 		signature.setSigningCredential(signingCredential);
 		signature.setSignatureAlgorithm(SignatureConstants.ALGO_ID_SIGNATURE_RSA_SHA1);
 		signature.setCanonicalizationAlgorithm(SignatureConstants.ALGO_ID_C14N_EXCL_OMIT_COMMENTS);
 		
-		assertion.setSignature(signature); 
-		Element e = Configuration.getMarshallerFactory().getMarshaller(assertion).marshall(assertion); 
+		assertion.setSignature(signature);
+		Element e = null;
+		try {
+            e = XMLObjectProviderRegistrySupport.getMarshallerFactory().getMarshaller(assertion).marshall(assertion);
+        } catch (MarshallingException e1) {
+            throw new RuntimeException(e1);
+        } 
 		Signer.signObject(signature); 
 		
 		

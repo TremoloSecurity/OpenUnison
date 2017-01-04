@@ -10,17 +10,17 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.tremolosecurity.unison</groupId>
 	<artifactId>unison</artifactId>
-	<version>1.0.8</version>
+	<version>1.0.9</version>
 	<name>Unison</name>
 	<packaging>pom</packaging>
 
 	<properties>
-		<openunison.version>1.0.8</openunison.version>
+		<openunison.version>1.0.9</openunison.version>
 		<servlet.api.version>3.1.0</servlet.api.version>
 		<servlet.2x.api.version>2.5-6.0.2</servlet.2x.api.version>
 		<commons-collections.version>3.2.2</commons-collections.version>
 		<commons-cli.version>1.3.1</commons-cli.version>
-		<opensaml.version>2.6.4</opensaml.version>
+		<opensaml.version>3.3.0</opensaml.version>
 		<xerces.version>2.11.0</xerces.version>
 		<alfresco-client.version>5.0.a</alfresco-client.version>
 		<javax.xml.rpc-api.version>1.1.1</javax.xml.rpc-api.version>
@@ -87,6 +87,12 @@
 			<id>jboss</id>
 			<url>https://repository.jboss.org/nexus/content/repositories/</url>
 		</repository>
+		
+		<repository>
+			<id>opensaml</id>
+			<url>https://build.shibboleth.net/nexus/content/repositories/releases/</url>
+		</repository>
+		 
 	</repositories>
 
 	<distributionManagement>

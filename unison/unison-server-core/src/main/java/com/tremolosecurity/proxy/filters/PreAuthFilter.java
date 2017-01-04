@@ -57,8 +57,9 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.logging.log4j.Logger;
-import org.opensaml.DefaultBootstrap;
-import org.opensaml.xml.ConfigurationException;
+
+import org.opensaml.core.config.InitializationService;
+
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UrlHolder;
@@ -333,12 +334,7 @@ public class PreAuthFilter implements HttpFilter {
 			this.audience = tt.getName();
 			this.relayState = config.getAttribute("relayState").getValues().get(0);
 			
-			try {
-				DefaultBootstrap.bootstrap();
-			} catch (ConfigurationException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+			InitializationService.initialize();
 		
 			this.url = this.assertionConsumerURL;
 		} else {
