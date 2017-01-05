@@ -32,8 +32,9 @@ import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.WorkflowTask;
 import com.tremolosecurity.provisioning.util.CustomTask;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
-import com.tremolosecurity.proxy.myvd.inserts.admin.PBKDF2;
 import com.tremolosecurity.saml.Attribute;
+
+import net.sourceforge.myvd.util.PBKDF2;
 
 public class SetRandomPassword implements CustomTask {
 

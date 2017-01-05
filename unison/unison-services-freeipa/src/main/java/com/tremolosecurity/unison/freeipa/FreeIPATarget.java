@@ -52,11 +52,12 @@ import com.tremolosecurity.provisioning.core.UserStoreProvider;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.util.HttpCon;
-import com.tremolosecurity.proxy.myvd.inserts.admin.PBKDF2;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.unison.freeipa.json.IPACall;
 import com.tremolosecurity.unison.freeipa.json.IPAResponse;
 import com.tremolosecurity.unison.freeipa.util.IPAException;
+
+import net.sourceforge.myvd.util.PBKDF2;
 
 
 

@@ -39,6 +39,15 @@ public class BasicDatabase extends MultiNameSpaceInsert implements JdbcPool {
 		
 		boolean hasGroups = props.get("useGroups") == null || props.get("useGroups").equals("true"); 
 		
+		boolean supportBind = props.getProperty("supportBind", "false").equalsIgnoreCase("true");
+		
+		String passwordColumn = null;
+		
+		if (supportBind) {
+			passwordColumn = props.getProperty("passwordColumn");
+		}
+		
+		
 		String validationQuery = props.getProperty("validationQuery");
 		boolean hasValidationQuery = validationQuery != null && ! validationQuery.isEmpty();
 		
@@ -49,9 +58,22 @@ public class BasicDatabase extends MultiNameSpaceInsert implements JdbcPool {
 		nsProps.put("server.root.entry.className","net.sourceforge.myvd.inserts.RootObject");
 		
 		nameSpaceNames.add("db");
-		nsProps.put("server.db.chain","jdbc");
+		
+		if (supportBind) {
+			nsProps.put("server.db.chain","auth,jdbc");
+		} else {
+			nsProps.put("server.db.chain","jdbc");
+		}
+		
 		nsProps.put("server.db.nameSpace","ou=users," + nameSpace.getBase().getDN().toString());
 		nsProps.put("server.db.weight","0");
+		
+		if (supportBind) {
+			nsProps.put("server.db.auth.className", "net.sourceforge.myvd.inserts.jdbc.Pbkdf2Auth");
+			nsProps.put("server.db.auth.config.sql", "SELECT " + passwordColumn + " FROM " + props.getProperty("user-table") + " WHERE " + getUidColumn(props) + " = ?");
+		}
+		
+		
 		nsProps.put("server.db.jdbc.className","net.sourceforge.myvd.inserts.jdbc.JdbcInsert");
 		nsProps.put("server.db.jdbc.config.driver",props.get("driver"));
 		nsProps.put("server.db.jdbc.config.url",props.get("url"));
@@ -128,6 +150,26 @@ public class BasicDatabase extends MultiNameSpaceInsert implements JdbcPool {
 		SQL += " FROM " + groupTable + " LEFT OUTER JOIN " + manyToManyTable + " ON " + groupTable + "." + groupPrimaryKey + "=" + manyToManyTable + "." + manyToManyGroup + " LEFT OUTER JOIN " + userTable + " ON " + manyToManyTable + "." + manyToManyUser + "=" + userTable + "." + userPrimaryKey;
 		
 		return SQL;
+	}
+	
+	private String getUidColumn(Properties props) {
+		String mapping = props.getProperty("user-mapping");
+		
+		StringTokenizer toker = new StringTokenizer(mapping,",",false);
+		
+		
+		
+		while (toker.hasMoreTokens()) {
+			 String token = toker.nextToken();
+			 String fieldName = token.substring(token.indexOf('=') + 1);
+			 String attr = token.substring(0, token.indexOf('='));
+			 if (attr.equalsIgnoreCase("uid")) {
+				 return fieldName;
+			 }
+			 
+		}
+		
+		return null;
 	}
 
 	private String getUserSelect(Properties props) {

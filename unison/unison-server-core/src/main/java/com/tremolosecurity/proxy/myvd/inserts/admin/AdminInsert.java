@@ -55,6 +55,7 @@ import net.sourceforge.myvd.types.Password;
 import net.sourceforge.myvd.types.Results;
 import net.sourceforge.myvd.util.EntryUtil;
 import net.sourceforge.myvd.util.IteratorEntrySet;
+import net.sourceforge.myvd.util.PBKDF2;
 
 public class AdminInsert implements Insert {
 
