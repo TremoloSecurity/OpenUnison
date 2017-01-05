@@ -46,6 +46,8 @@ import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.providers.db.CustomDB;
 import com.tremolosecurity.saml.Attribute;
 
+import net.sourceforge.myvd.util.PBKDF2;
+
 
 
 public class BasicDB implements BasicDBInterface {
@@ -94,6 +96,9 @@ public class BasicDB implements BasicDBInterface {
 	private String groupSQL;
 
 	private ConfigManager cfgMgr;
+	
+	boolean supportPasswords;
+	String passwordField;
 	
 	
 	/* (non-Javadoc)
@@ -972,6 +977,13 @@ public class BasicDB implements BasicDBInterface {
         }
         
         
+        if (cfg.get("supportPasswords") != null) {
+        	this.supportPasswords = cfg.get("supportPasswords").getValues().get(0).equalsIgnoreCase("true");
+        	if (this.supportPasswords) {
+        		this.passwordField = cfg.get("passwordField").getValues().get(0);
+        	}
+        }
+        
         if (cfg.get("groupMode").getValues().get(0).equalsIgnoreCase("None")) {
         	this.groupMode = GroupManagementMode.None;
         } else if (cfg.get("groupMode").getValues().get(0).equalsIgnoreCase("ManyToMany")) {
@@ -1037,7 +1049,87 @@ public class BasicDB implements BasicDBInterface {
 	
 	@Override
 	public void setUserPassword(User user,Map<String,Object> request) throws ProvisioningException {
-		// TODO Auto-generated method stub
+		int approvalID = 0;
+		
+		
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
+		
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+		
+		if (this.supportPasswords) {
+			Connection con = null;
+			try {
+				con = this.ds.getConnection();
+				StringBuffer sql = new StringBuffer();
+				sql.append("UPDATE ");
+				
+				if (! this.beginEscape.isEmpty()) {
+					
+					sql.append(this.beginEscape);
+				}
+				
+				sql.append(this.userTable);
+				
+				if (! this.endEscape.isEmpty()) {
+					sql.append(this.endEscape);
+				}
+				
+				sql.append(" SET " );
+				
+				if (! this.beginEscape.isEmpty()) {
+					sql.append(this.beginEscape);
+				}
+				
+				sql.append(this.passwordField);
+				
+				if (! this.endEscape.isEmpty()) {
+					sql.append(this.endEscape);
+				}
+				
+				sql.append(" = ? WHERE ");
+				
+				if (! this.beginEscape.isEmpty()) {
+					sql.append(this.beginEscape);
+				}
+				
+				sql.append(this.userName);
+				
+				if (! this.endEscape.isEmpty()) {
+					sql.append(this.endEscape);
+				}
+				
+				sql.append(" = ?");
+				
+				if (logger.isDebugEnabled()) {
+					logger.debug("update password sql : " + sql.toString());
+				}
+				
+				PreparedStatement ps = con.prepareStatement(sql.toString());
+				ps.setString(1, PBKDF2.generateHash(user.getPassword(), 64));
+				ps.setString(2, user.getUserID());
+				int results = ps.executeUpdate();
+				
+				if (results == 1) {
+					this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Replace, approvalID, workflow, "userPassword", "********");
+				} else if (results > 1) {
+					throw new ProvisioningException("Multiple accounts updated");
+				}
+				
+				ps.close();
+			} catch (Exception e) {
+				throw new ProvisioningException("could not update password",e);
+			} finally {
+				if (con != null) {
+					try {
+						con.close();
+					} catch (SQLException e) {
+						
+					}
+				}
+			}
+		}
 		
 	}
 	
