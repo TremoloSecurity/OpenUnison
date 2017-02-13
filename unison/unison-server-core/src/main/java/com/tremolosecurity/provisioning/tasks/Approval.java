@@ -706,7 +706,10 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 		this.failed = failed;
 	}
 	
-	
+	@Override
+	public boolean canHaveChildren() {
+		return true;
+	}
 	
 	
 }

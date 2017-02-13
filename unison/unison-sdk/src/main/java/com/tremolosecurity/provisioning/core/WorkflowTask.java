@@ -69,7 +69,7 @@ public interface WorkflowTask {
 
 	public abstract String renderTemplate(String val, Map<String, Object> request);
 
-	
+	public abstract boolean canHaveChildren();
 
 
 }

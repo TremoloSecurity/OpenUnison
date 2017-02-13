@@ -966,6 +966,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			Approval approval = (Approval) wf.findCurrentApprovalTask();
 			
 			
+			
 			if (approval == null) {
 				throw new ProvisioningException("Could not locate approval step");
 			}
@@ -999,6 +1000,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			
 			wf.getRequest().put(Approval.APPROVAL_RESULT, new Boolean(approved));
+			
+			approval.markComplete(approved);
 			
 			if (approved) {
 				wf.reInit(cfgMgr);

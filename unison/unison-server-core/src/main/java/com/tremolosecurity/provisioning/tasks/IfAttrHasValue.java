@@ -64,9 +64,13 @@ public class IfAttrHasValue extends WorkflowTaskImpl {
 		if (attr != null) {
 			String localValue = this.renderTemplate(value, request);
 			if (attr.getValues().contains(localValue)) {
+				super.markComplete(true);
 				return super.runSubTasks(super.getOnSuccess(),user,request);
 			}
 		}
+		
+		
+		super.markComplete(false);
 		
 		return super.runSubTasks(super.getOnFailure(),user,request);
 
@@ -82,5 +86,10 @@ public class IfAttrHasValue extends WorkflowTaskImpl {
 		StringBuffer b = new StringBuffer();
 		b.append("If user attribute ").append(this.name).append(" = ").append(this.value);
 		return b.toString();
+	}
+	
+	@Override
+	public boolean canHaveChildren() {
+		return true;
 	}
 }

@@ -88,5 +88,9 @@ public class IfAttrExists extends WorkflowTaskImpl {
 		this.name = name;
 	}
 
+	@Override
+	public boolean canHaveChildren() {
+		return true;
+	}
 	
 }
