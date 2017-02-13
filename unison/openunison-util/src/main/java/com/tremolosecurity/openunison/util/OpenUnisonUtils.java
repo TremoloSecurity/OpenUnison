@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Properties;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.ServletException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -71,7 +72,7 @@ import org.apache.logging.log4j.Logger;
 
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.apache.xml.security.utils.Base64;
-
+import org.cryptacular.codec.Base64Decoder;
 import org.opensaml.saml.saml2.core.impl.AuthnRequestMarshaller;
 import org.opensaml.saml.saml2.metadata.AssertionConsumerService;
 import org.opensaml.saml.saml2.metadata.EntityDescriptor;
@@ -147,7 +148,7 @@ public class OpenUnisonUtils {
 		options.addOption("idpName", true, "The name of the identity provider application");
 		options.addOption("pathToMetaData", true, "The full path to the saml2 metadata file");
 		options.addOption("createDefault", false, "If set, add default parameters");
-		options.addOption("action", true, "export-sp-metadata, import-sp-metadata, export-secretkey, print-secretkey, import-idp-metadata, export-idp-metadata, clear-dlq");
+		options.addOption("action", true, "export-sp-metadata, import-sp-metadata, export-secretkey, print-secretkey, import-idp-metadata, export-idp-metadata, clear-dlq, import-secretkey");
 		options.addOption("urlBase",true,"Base URL, no URI; https://host:port");
 		options.addOption("alias",true,"Key alias");
 		options.addOption("newKeystorePath",true,"Path to the new keystore");
@@ -156,6 +157,7 @@ public class OpenUnisonUtils {
 		options.addOption("signMetadataWithKey", true, "Signs the metadata with the specified key");
 		options.addOption("dlqName", true, "The name of the dead letter queue");
 		options.addOption("upgradeFrom106", false, "Updates workflows from 1.0.6");
+		options.addOption("secretkey", true, "base64 encoded secret key");
 		
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = parser.parse(options, args,true);
@@ -190,6 +192,8 @@ public class OpenUnisonUtils {
 			
 		} else if (action.equalsIgnoreCase("print-secretkey")) {
 			printSecreyKey(options, cmd, tt, ks);
+		} else if (action.equalsIgnoreCase("import-secretkey")) {
+			importSecreyKey(options, cmd, tt, ks,ksPath);
 		} else  if (action.equalsIgnoreCase("export-secretkey")) {
 			logger.info("Export Secret Key");
 			
@@ -247,6 +251,21 @@ public class OpenUnisonUtils {
 		
 		
 		
+		
+	}
+
+	private static void importSecreyKey(Options options, CommandLine cmd, TremoloType tt, KeyStore ks, String ksPath) throws KeyStoreException, Base64DecodingException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException {
+		String alias = loadOption(cmd,"alias",options);
+		logger.info("importing to " + alias);
+		String base64Key = loadOption(cmd,"secretkey",options);
+		
+		SecretKey sc = new SecretKeySpec(Base64.decode(base64Key),"AES");
+		
+		ks.setKeyEntry(alias, sc, tt.getKeyStorePassword().toCharArray(), null);
+		ks.store(new FileOutputStream(ksPath), tt.getKeyStorePassword().toCharArray());
+		
+		
+		logger.info("import complete");
 		
 	}
 
@@ -1016,6 +1035,7 @@ public class OpenUnisonUtils {
 	static String loadOption(CommandLine cmd,String name,Options options) {
 		String val = cmd.getOptionValue(name);
 		if (val == null) {
+			logger.warn("Could not find option '" + name + "'");
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp( "OpenUnisonUtils", options );
 			System.exit(1);
