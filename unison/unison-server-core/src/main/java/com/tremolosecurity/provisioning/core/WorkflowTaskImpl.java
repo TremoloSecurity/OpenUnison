@@ -47,6 +47,9 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 	private Workflow workflow;
 	private boolean isOnHold;
 	
+	private boolean isDone;
+	private boolean wasSuccess;
+	
 	public WorkflowTaskImpl() {
 		
 	}
@@ -76,6 +79,9 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 			
 			
 		}
+		
+		this.isDone = false;
+		this.wasSuccess = false;
 		
 		this.setOnHold(false);
 		
@@ -113,6 +119,7 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 		this.cfgMgr = cfgMgr;
 		this.workflow = wf;
 		this.reInit();
+		
 		
 		if (this.onSuccess != null) {
 			for (WorkflowTask wft : this.onSuccess) {
@@ -186,25 +193,33 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 	
 	protected final boolean restartChildren(User user,Map<String,Object> request) throws ProvisioningException {
 		
-		for (WorkflowTask wft : this.onSuccess) {
-			if (wft.isOnHold()) {
-				boolean doContinue = wft.doTask(user,request);
-				if (! doContinue) {
-					return false;
+		if (! this.isDone || (this.isDone && this.wasSuccess)) {
+			for (WorkflowTask wft : this.onSuccess) {
+				if (wft.isOnHold()) {
+					boolean doContinue = wft.doTask(user,request);
+					if (! doContinue) {
+						return false;
+					}
+				} else {
+					if (wft.canHaveChildren()) {
+						return wft.restartChildren();
+					}
 				}
-			} else {
-				return wft.restartChildren();
 			}
 		}
 		
-		for (WorkflowTask wft : this.onFailure) {
-			if (wft.isOnHold()) {
-				boolean doContinue = wft.doTask(user,request);
-				if (! doContinue) {
-					return false;
+		if (! this.isDone || (this.isDone && ! this.wasSuccess)) {
+			for (WorkflowTask wft : this.onFailure) {
+				if (wft.isOnHold()) {
+					boolean doContinue = wft.doTask(user,request);
+					if (! doContinue) {
+						return false;
+					}
+				} else {
+					if (wft.canHaveChildren()) {
+						return wft.restartChildren();
+					}
 				}
-			} else {
-				return wft.restartChildren();
 			}
 		}
 		
@@ -363,5 +378,18 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 	public ArrayList<WorkflowTask> getOnFailure() {
 		return this.onFailure;
 	}
+
+	public void markComplete(boolean wasSuccess) {
+		this.isDone = true;
+		this.wasSuccess = wasSuccess;
+		
+	}
+
+	@Override
+	public boolean canHaveChildren() {
+		return false;
+	}
+	
+	
 	
 }

@@ -94,4 +94,9 @@ public class IfNotUserExists extends WorkflowTaskImpl {
 		b.append("If user does not exsit in ").append(this.targetName);
 		return b.toString();
 	}
+	
+	@Override
+	public boolean canHaveChildren() {
+		return true;
+	}
 }
