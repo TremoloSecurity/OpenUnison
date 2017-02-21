@@ -321,14 +321,14 @@ public class WorkflowImpl implements  Workflow {
 					
 					nattr.setName(attr);
 					LDAPAttribute userAttrFromLDAP = fromLDAP.getAttribute(attr);
-					if (userAttrFromLDAP != null) {
+					if (userAttrFromLDAP != null ) {
 						nattr.setValue(userAttrFromLDAP.getStringValue());
+						nattr.setUsers(userObj);
+						userObj.getUserAttributeses().add(nattr);
 						
+						session.save(nattr);
 					}
-					nattr.setUsers(userObj);
-					userObj.getUserAttributeses().add(nattr);
 					
-					session.save(nattr);
 					
 				}
 			}
