@@ -18,7 +18,9 @@ import java.util.Properties;
 
 import javax.servlet.ServletException;
 
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPConstraints;
@@ -55,6 +57,8 @@ import net.sourceforge.myvd.types.Results;
 
 public class AuthLockoutInsert implements Insert {
 
+	static transient Logger logger = org.apache.logging.log4j.LogManager.getLogger(AuthLockoutInsert.class.getName());
+	
 	String name;
 	
 	int maxFailedAttempts;
@@ -100,7 +104,7 @@ public class AuthLockoutInsert implements Insert {
 		fails++;
 		String uid = entry.getAttribute(this.uidAttributeName).getStringValue();
 		User updateAttrs = new User(uid);
-		updateAttrs.getAttribs().put(this.lastFailedAttribute, new com.tremolosecurity.saml.Attribute(this.lastFailedAttribute,Long.toString(System.currentTimeMillis())));
+		updateAttrs.getAttribs().put(this.lastFailedAttribute, new com.tremolosecurity.saml.Attribute(this.lastFailedAttribute,Long.toString(new DateTime(DateTimeZone.UTC).getMillis())));
 		updateAttrs.getAttribs().put(this.numFailedAttribute, new com.tremolosecurity.saml.Attribute(this.numFailedAttribute,Integer.toString(fails)));
 		updateAttrs.getAttribs().put(this.uidAttributeName, new com.tremolosecurity.saml.Attribute(this.uidAttributeName,uid));
 		
@@ -120,7 +124,7 @@ public class AuthLockoutInsert implements Insert {
 		
 		String uid = entry.getAttribute(this.uidAttributeName).getStringValue();
 		User updateAttrs = new User(uid);
-		updateAttrs.getAttribs().put(this.lastSucceedAttribute, new com.tremolosecurity.saml.Attribute(this.lastSucceedAttribute,Long.toString(System.currentTimeMillis())));
+		updateAttrs.getAttribs().put(this.lastSucceedAttribute, new com.tremolosecurity.saml.Attribute(this.lastSucceedAttribute,Long.toString(new DateTime(DateTimeZone.UTC).getMillis())));
 		updateAttrs.getAttribs().put(this.numFailedAttribute, new com.tremolosecurity.saml.Attribute(this.numFailedAttribute,Integer.toString(fails)));
 		updateAttrs.getAttribs().put(this.uidAttributeName, new com.tremolosecurity.saml.Attribute(this.uidAttributeName,uid));
 		
@@ -163,8 +167,24 @@ public class AuthLockoutInsert implements Insert {
 			LDAPAttribute numFailures = entry.getEntry().getAttributeSet().getAttribute(this.numFailedAttribute);
 			
 			if (lastFailed != null && numFailures != null) {
-				DateTime lastFailedDt = new DateTime(Long.parseLong(lastFailed.getStringValue()));
-				if (lastFailedDt.plus(this.maxLockoutTime).isAfter(System.currentTimeMillis()) && Integer.parseInt(numFailures.getStringValue()) >= this.maxFailedAttempts) {
+				long lastFailedTS = Long.parseLong(lastFailed.getStringValue());
+				int numPrevFailures = Integer.parseInt(numFailures.getStringValue());
+				long now = new DateTime(DateTimeZone.UTC).getMillis();
+				long lockedUntil = lastFailedTS + this.maxLockoutTime;
+				
+				if (logger.isDebugEnabled()) {
+					logger.debug("Num Failed : " + numPrevFailures);
+					logger.debug("Last Failed : '" + lastFailedTS + "'");
+					logger.info("Now : '" + now + "'");
+					logger.info("Locked Until : '" + lockedUntil + "'");
+					logger.info("locked >= now? : '" + (lockedUntil >= now) + "'");
+					logger.info("max fails? : '" + this.maxFailedAttempts + "'");
+					logger.info("too many fails : '" + (numPrevFailures >= this.maxFailedAttempts) + "'");
+				}
+				
+				
+				
+				if (lockedUntil >= now && numPrevFailures >= this.maxFailedAttempts) {
 					this.updateFailedAttrs(entry.getEntry());
 					throw new LDAPException("Invalid credentials",LDAPException.INVALID_CREDENTIALS,"User locked out");
 				}

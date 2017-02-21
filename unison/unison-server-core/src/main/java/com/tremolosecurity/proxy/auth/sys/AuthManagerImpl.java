@@ -31,7 +31,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
@@ -68,6 +70,8 @@ import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.util.NVP;
 
 public class AuthManagerImpl implements AuthManager {
+	
+	static transient Logger logger = org.apache.logging.log4j.LogManager.getLogger(AuthManager.class.getName());
 	
 	/* (non-Javadoc)
 	 * @see com.tremolosecurity.proxy.auth.sys.AuthManager#nextAuth(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, boolean)
@@ -225,10 +229,29 @@ public class AuthManagerImpl implements AuthManager {
 						Attribute lastFailed = actl.getAuthInfo().getAttribs().get(act.getCompliance().getLastFailedAttribute());
 						Attribute numFailures = actl.getAuthInfo().getAttribs().get(act.getCompliance().getNumFailedAttribute());
 						
+						logger.info("lastFailed Attribute : '" + lastFailed + "'");
+						logger.info("numFailures Attribute : '" + numFailures + "'");
 						
 						if (lastFailed != null && numFailures != null) {
-							DateTime lastFailedDt = new DateTime(Long.parseLong(lastFailed.getValues().get(0)));
-							if (lastFailedDt.plus(act.getCompliance().getMaxLockoutTime()).isAfter(System.currentTimeMillis()) && Integer.parseInt(numFailures.getValues().get(0)) >= act.getCompliance().getMaxFailedAttempts()) {
+							
+							long lastFailedTS = Long.parseLong(lastFailed.getValues().get(0));
+							int numPrevFailures = Integer.parseInt(numFailures.getValues().get(0));
+							long now = new DateTime(DateTimeZone.UTC).getMillis();
+							long lockedUntil = lastFailedTS + act.getCompliance().getMaxLockoutTime();
+							
+							if (logger.isDebugEnabled()) {
+								logger.debug("Num Failed : " + numPrevFailures);
+								logger.debug("Last Failed : '" + lastFailedTS + "'");
+								logger.info("Now : '" + now + "'");
+								logger.info("Locked Until : '" + lockedUntil + "'");
+								logger.info("locked >= now? : '" + (lockedUntil >= now) + "'");
+								logger.info("max fails? : '" + act.getCompliance().getMaxFailedAttempts() + "'");
+								logger.info("too many fails : '" + (numPrevFailures >= act.getCompliance().getMaxFailedAttempts()) + "'");
+							}
+							
+							
+							
+							if (lockedUntil >= now && numPrevFailures >= act.getCompliance().getMaxFailedAttempts()) {
 								try {
 									failAuthentication(req, resp, holder, act);
 								} catch (Exception e) {
@@ -488,28 +511,32 @@ public class AuthManagerImpl implements AuthManager {
 				
 				LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(dn, 0, "(objectClass=*)", attrsToLoad);
 				
-				res.hasMore();
-				LDAPEntry userObj = res.next();
-				String uid = userObj.getAttribute(act.getCompliance().getUidAttributeName()).getStringValue();
-				
-				LDAPAttribute numFails = userObj.getAttribute(act.getCompliance().getNumFailedAttribute());
-				
-				int fails = 0;
-				if (numFails != null) {
-					fails = Integer.parseInt(numFails.getStringValue());
+				if (res.hasMore()) {
+					LDAPEntry userObj = res.next();
+					String uid = userObj.getAttribute(act.getCompliance().getUidAttributeName()).getStringValue();
+					
+					LDAPAttribute numFails = userObj.getAttribute(act.getCompliance().getNumFailedAttribute());
+					
+					int fails = 0;
+					if (numFails != null) {
+						fails = Integer.parseInt(numFails.getStringValue());
+					}
+					fails++;
+					
+					User updateAttrs = new User(uid);
+					
+					DateTime now = new DateTime(DateTimeZone.UTC);
+					
+					updateAttrs.getAttribs().put(act.getCompliance().getLastFailedAttribute(), new Attribute(act.getCompliance().getLastFailedAttribute(),Long.toString(now.getMillis())));
+					updateAttrs.getAttribs().put(act.getCompliance().getNumFailedAttribute(), new Attribute(act.getCompliance().getNumFailedAttribute(),Integer.toString(fails)));
+					updateAttrs.getAttribs().put(act.getCompliance().getUidAttributeName(), new Attribute(act.getCompliance().getUidAttributeName(),uid));
+					
+					HashMap<String,Object> wfReq = new HashMap<String,Object>();
+					wfReq.put(ProvisioningParams.UNISON_EXEC_TYPE, ProvisioningParams.UNISON_EXEC_SYNC);
+					
+					
+					holder.getConfig().getProvisioningEngine().getWorkFlow(act.getCompliance().getUpdateAttributesWorkflow()).executeWorkflow(updateAttrs, wfReq);
 				}
-				fails++;
-				
-				User updateAttrs = new User(uid);
-				updateAttrs.getAttribs().put(act.getCompliance().getLastFailedAttribute(), new Attribute(act.getCompliance().getLastFailedAttribute(),Long.toString(System.currentTimeMillis())));
-				updateAttrs.getAttribs().put(act.getCompliance().getNumFailedAttribute(), new Attribute(act.getCompliance().getNumFailedAttribute(),Integer.toString(fails)));
-				updateAttrs.getAttribs().put(act.getCompliance().getUidAttributeName(), new Attribute(act.getCompliance().getUidAttributeName(),uid));
-				
-				HashMap<String,Object> wfReq = new HashMap<String,Object>();
-				wfReq.put(ProvisioningParams.UNISON_EXEC_TYPE, ProvisioningParams.UNISON_EXEC_SYNC);
-				
-				
-				holder.getConfig().getProvisioningEngine().getWorkFlow(act.getCompliance().getUpdateAttributesWorkflow()).executeWorkflow(updateAttrs, wfReq);
 			}
 			
 		}
@@ -637,7 +664,8 @@ public class AuthManagerImpl implements AuthManager {
 			if (act.getCompliance() != null && act.getCompliance().isEnabled()) {
 				String uid = actl.getAuthInfo().getAttribs().get(act.getCompliance().getUidAttributeName()).getValues().get(0);
 				User updateAttrs = new User(uid);
-				updateAttrs.getAttribs().put(act.getCompliance().getLastSucceedAttribute(), new Attribute(act.getCompliance().getLastSucceedAttribute(),Long.toString(System.currentTimeMillis())));
+				
+				updateAttrs.getAttribs().put(act.getCompliance().getLastSucceedAttribute(), new Attribute(act.getCompliance().getLastSucceedAttribute(),Long.toString(new DateTime(DateTimeZone.UTC).getMillis())));
 				updateAttrs.getAttribs().put(act.getCompliance().getNumFailedAttribute(), new Attribute(act.getCompliance().getNumFailedAttribute(),"0"));
 				updateAttrs.getAttribs().put(act.getCompliance().getUidAttributeName(), new Attribute(act.getCompliance().getUidAttributeName(),uid));
 				
