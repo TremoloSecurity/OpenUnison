@@ -158,6 +158,7 @@ public class OpenUnisonUtils {
 		options.addOption("dlqName", true, "The name of the dead letter queue");
 		options.addOption("upgradeFrom106", false, "Updates workflows from 1.0.6");
 		options.addOption("secretkey", true, "base64 encoded secret key");
+		options.addOption("envFile", true, "Environment variables for parmaterized configs");
 		
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = parser.parse(options, args,true);
@@ -169,14 +170,16 @@ public class OpenUnisonUtils {
 		
 		logger.info("Loading Unison Configuration");
 		String unisonXMLFile = loadOption(cmd,"unisonXMLFile",options);
-		TremoloType tt = loadTremoloType(unisonXMLFile);
+		TremoloType ttRead = loadTremoloType(unisonXMLFile,cmd,options);
+		TremoloType ttWrite = loadTremoloType(unisonXMLFile);
+		
 		logger.info("Configuration loaded");
 		
 		
 		logger.info("Loading the keystore...");
 		String ksPath = loadOption(cmd,"keystorePath",options);
 		
-		KeyStore ks = loadKeyStore(ksPath,tt);
+		KeyStore ks = loadKeyStore(ksPath,ttRead);
 		
 		logger.info("...loaded");
 		
@@ -186,41 +189,41 @@ public class OpenUnisonUtils {
 		
 		if (action.equalsIgnoreCase("import-sp-metadata")) {
 		
-			importMetaData(options, cmd, unisonXMLFile, tt, ksPath, ks);
+			importMetaData(options, cmd, unisonXMLFile, ttRead,ttWrite, ksPath, ks);
 		} else if (action.equalsIgnoreCase("export-sp-metadata")) {
-			exportSPMetaData(options, cmd, tt, ks);
+			exportSPMetaData(options, cmd, ttRead, ks);
 			
 		} else if (action.equalsIgnoreCase("print-secretkey")) {
-			printSecreyKey(options, cmd, tt, ks);
+			printSecreyKey(options, cmd, ttRead, ks);
 		} else if (action.equalsIgnoreCase("import-secretkey")) {
-			importSecreyKey(options, cmd, tt, ks,ksPath);
+			importSecreyKey(options, cmd, ttRead, ks,ksPath);
 		} else  if (action.equalsIgnoreCase("export-secretkey")) {
 			logger.info("Export Secret Key");
 			
 			logger.info("Loading key");
 			String alias = loadOption(cmd,"alias",options);
-			SecretKey key = (SecretKey) ks.getKey(alias, tt.getKeyStorePassword().toCharArray());
+			SecretKey key = (SecretKey) ks.getKey(alias, ttRead.getKeyStorePassword().toCharArray());
 			logger.info("Loading new keystore path");
 			String pathToNewKeystore = loadOption(cmd,"newKeystorePath",options);
 			logger.info("Loading new keystore password");
 			String ksPassword = loadOption(cmd,"newKeystorePassword",options);
 			
 			KeyStore newKS = KeyStore.getInstance("JCEKS");
-			newKS.load(null, tt.getKeyStorePassword().toCharArray());
+			newKS.load(null, ttRead.getKeyStorePassword().toCharArray());
 			newKS.setKeyEntry(alias, key, ksPassword.toCharArray(),null);
 			newKS.store(new FileOutputStream(pathToNewKeystore), ksPassword.toCharArray());
 			logger.info("Exported");
 		} else  if (action.equalsIgnoreCase("import-idp-metadata")) {
-			importIdpMetadata(options, cmd, unisonXMLFile, tt, ksPath, ks);
+			importIdpMetadata(options, cmd, unisonXMLFile, ttRead,ttWrite, ksPath, ks);
 			
 		
 			
 		} else if (action.equalsIgnoreCase("export-idp-metadata")) {
-			exportIdPMetadata(options, cmd, tt, ks);
+			exportIdPMetadata(options, cmd, ttRead, ks);
 		} else if (action.equalsIgnoreCase("clear-dlq")) {
 			logger.info("Getting the DLQ Name...");
 			String dlqName = loadOption(cmd,"dlqName",options);
-			QueUtils.emptyDLQ(tt, dlqName);
+			QueUtils.emptyDLQ(ttRead, dlqName);
 		} else if (action.equalsIgnoreCase("upgradeFrom106")) {
 			logger.info("Upgrading OpenUnison's configuration from 1.0.6");
 			
@@ -430,8 +433,8 @@ public class OpenUnisonUtils {
 		logger.info(net.shibboleth.utilities.java.support.xml.SerializeSupport.nodeToString(assertionElement));
 	}
 
-	private static void importIdpMetadata(Options options, CommandLine cmd, String unisonXMLFile, TremoloType tt,
-			String ksPath, KeyStore ks)
+	private static void importIdpMetadata(Options options, CommandLine cmd, String unisonXMLFile, TremoloType ttRead,
+			TremoloType ttWrite, String ksPath, KeyStore ks)
 					throws ParserConfigurationException, SAXException, IOException, FileNotFoundException,
 					UnmarshallingException, Exception, Base64DecodingException, CertificateException, KeyStoreException,
 					NoSuchAlgorithmException, JAXBException, PropertyException {
@@ -457,7 +460,7 @@ public class OpenUnisonUtils {
 		
 		ApplicationType idp = null;
 		
-		for (ApplicationType app : tt.getApplications().getApplication()) {
+		for (ApplicationType app : ttWrite.getApplications().getApplication()) {
 			if (app.getName().equalsIgnoreCase(idpName)) {
 				idp = app;
 			}
@@ -629,7 +632,7 @@ public class OpenUnisonUtils {
 		
 		idp.getUrls().getUrl().get(0).getIdp().getTrusts().getTrust().add(trust);
 		
-		OpenUnisonUtils.storeMethod(unisonXMLFile, tt, ksPath, ks);
+		OpenUnisonUtils.storeMethod(unisonXMLFile, ttWrite, ksPath, ks);
 	}
 
 	private static void printSecreyKey(Options options, CommandLine cmd,
@@ -791,19 +794,19 @@ public class OpenUnisonUtils {
 	}
 
 	private static void importMetaData(Options options, CommandLine cmd,
-			String unisonXMLFile, TremoloType tt, String ksPath, KeyStore ks)
+			String unisonXMLFile, TremoloType ttRead, TremoloType ttWrite, String ksPath, KeyStore ks)
 			throws Exception, Base64DecodingException, CertificateException,
 			KeyStoreException, IOException, NoSuchAlgorithmException,
 			FileNotFoundException, JAXBException, PropertyException {
 		logger.info("Finding mechanism...");
 		String mechanismName = loadOption(cmd,"mechanismName",options);
-		MechanismType saml2Mech = loadMechanismType(mechanismName,tt);
+		MechanismType saml2Mech = loadMechanismType(mechanismName,ttWrite);
 		logger.info("...found");
 		
 		logger.info("Finding chain...");
 		String chainName = loadOption(cmd,"chainName",options);
 		
-		AuthChainType act = loadChainType(chainName,tt);
+		AuthChainType act = loadChainType(chainName,ttWrite);
 		
 		
 		boolean createDefault = cmd.hasOption("createDefault");
@@ -812,7 +815,7 @@ public class OpenUnisonUtils {
 		logger.info("Loading metadata...");
 		String pathToMetaData = loadOption(cmd,"pathToMetaData",options);
 		logger.info("...loaded");
-		EntityDescriptor ed = loadIdPMetaData(pathToMetaData,ks,tt);
+		EntityDescriptor ed = loadIdPMetaData(pathToMetaData,ks,ttRead);
 		IDPSSODescriptor idp = ed.getIDPSSODescriptor("urn:oasis:names:tc:SAML:2.0:protocol");
 		
 		logger.info("Looking for correct mechanism on the chain...");
@@ -852,7 +855,7 @@ public class OpenUnisonUtils {
 			setDefaults(ks, ed, idp, currentMechanism, params);
 		}
 		
-		storeMethod(unisonXMLFile, tt, ksPath, ks);
+		storeMethod(unisonXMLFile, ttWrite, ksPath, ks);
 	}
 
 	private static void storeMethod(String unisonXMLFile, TremoloType tt,
@@ -1022,10 +1025,47 @@ public class OpenUnisonUtils {
 		return null;
 	}
 	
+	private static TremoloType loadTremoloType(String unisonXMLFile,CommandLine cmd,Options options) throws Exception {
+		JAXBContext jc = JAXBContext.newInstance("com.tremolosecurity.config.xml");
+		Unmarshaller unmarshaller = jc.createUnmarshaller();
+		InputStream in = null;
+		
+		
+		String envFile = cmd.getOptionValue("envFile");
+		if (envFile != null) {
+			BufferedReader fin = new BufferedReader(new InputStreamReader(new FileInputStream(envFile)));
+			String line = null;
+			while ((line = fin.readLine()) != null) {
+				String name = line.substring(0, line.indexOf('='));
+				String val = line.substring(line.indexOf('=') + 1);
+				System.setProperty(name, val);
+			}
+			
+			String withProps = OpenUnisonUtils.includeEnvironmentVariables(unisonXMLFile);
+			in = new ByteArrayInputStream(withProps.getBytes("UTF-8"));
+			
+		} else {
+			in = new FileInputStream(unisonXMLFile);
+		}
+		
+		
+		
+		Object obj = unmarshaller.unmarshal(in);
+		
+		JAXBElement<TremoloType> cfg = (JAXBElement<TremoloType>) obj;
+		return cfg.getValue();
+	}
+	
 	private static TremoloType loadTremoloType(String unisonXMLFile) throws Exception {
 		JAXBContext jc = JAXBContext.newInstance("com.tremolosecurity.config.xml");
 		Unmarshaller unmarshaller = jc.createUnmarshaller();
 		FileInputStream in = new FileInputStream(unisonXMLFile);
+		
+		
+		
+		
+		
+		
 		Object obj = unmarshaller.unmarshal(in);
 		
 		JAXBElement<TremoloType> cfg = (JAXBElement<TremoloType>) obj;
@@ -1053,6 +1093,79 @@ public class OpenUnisonUtils {
 		} else {
 			return val;
 		}
+	}
+	
+	private static String includeEnvironmentVariables(String srcPath) throws IOException {
+		StringBuffer b = new StringBuffer();
+		String line = null;
+		
+		BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(srcPath)));
+		
+		while ((line = in.readLine()) != null) {
+			b.append(line).append('\n');
+		}
+		
+		String cfg = b.toString();
+		if (logger.isDebugEnabled()) {
+			logger.debug("---------------");
+			logger.debug("Before environment variables : '" + srcPath + "'");
+			logger.debug(cfg);
+			logger.debug("---------------");
+		}
+		
+		int begin,end;
+		
+		b.setLength(0);
+		begin = 0;
+		end = 0;
+		
+		String finalCfg = null;
+		
+		begin = cfg.indexOf("#[");
+		while (begin > 0) {
+			if (end == 0) {
+				b.append(cfg.substring(0,begin));
+			} else {
+				b.append(cfg.substring(end,begin));
+			}
+			
+			end = cfg.indexOf(']',begin + 2);
+			
+			String envVarName = cfg.substring(begin + 2,end);
+			String value = System.getenv(envVarName);
+			
+			if (value == null) {
+				value = System.getProperty(envVarName);
+			}
+			
+			if (logger.isDebugEnabled()) {
+				logger.debug("Environment Variable '" + envVarName + "'='" + value + "'");
+			}
+			
+			b.append(value);
+			
+			begin = cfg.indexOf("#[",end + 1);
+			end++;
+			
+		}
+		
+		if (end == 0) {
+			finalCfg = cfg;
+		} else {
+			b.append(cfg.substring(end));
+			finalCfg = b.toString();
+		}
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("---------------");
+			logger.debug("After environment variables : '" + srcPath + "'");
+			logger.debug(finalCfg);
+			logger.debug("---------------");
+		}
+		
+		return finalCfg;
+		
+		
 	}
 
 }
