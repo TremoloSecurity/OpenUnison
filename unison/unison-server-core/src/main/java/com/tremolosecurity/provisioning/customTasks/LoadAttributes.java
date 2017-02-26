@@ -79,18 +79,19 @@ public class LoadAttributes implements CustomTask {
 		
 		try {
 			LDAPSearchResults res = this.cfg.getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, equal(this.nameAttr,user.getUserID()).toString(), params);
-			res.hasMore();
-			LDAPEntry entry = res.next();
-			LDAPAttributeSet attrs = entry.getAttributeSet();
-			for (Object obj : attrs) {
-				LDAPAttribute attr = (LDAPAttribute) obj;
-				Attribute userAttr = new Attribute(attr.getName());
-				
-				for (String val : attr.getStringValueArray()) {
-					userAttr.getValues().add(val);
+			if (res.hasMore()) {
+				LDAPEntry entry = res.next();
+				LDAPAttributeSet attrs = entry.getAttributeSet();
+				for (Object obj : attrs) {
+					LDAPAttribute attr = (LDAPAttribute) obj;
+					Attribute userAttr = new Attribute(attr.getName());
+					
+					for (String val : attr.getStringValueArray()) {
+						userAttr.getValues().add(val);
+					}
+					
+					user.getAttribs().put(attr.getName(), userAttr);
 				}
-				
-				user.getAttribs().put(attr.getName(), userAttr);
 			}
 		} catch (LDAPException e) {
 			throw new ProvisioningException("Could not load user : " + user.getUserID(),e);
