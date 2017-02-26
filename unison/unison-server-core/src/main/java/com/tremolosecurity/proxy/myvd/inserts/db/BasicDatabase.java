@@ -41,6 +41,11 @@ public class BasicDatabase extends MultiNameSpaceInsert implements JdbcPool {
 		boolean hasUsers = props.get("useUsers") == null || props.get("useUsers").equals("true");
 		boolean supportBind = props.getProperty("supportBind", "false").equalsIgnoreCase("true");
 		
+		
+		String rootNS = name + "_root";
+		String userdb = name + "_db";
+		String groupdb = name + "_groupdb";
+		
 		String passwordColumn = null;
 		
 		if (supportBind) {
@@ -51,83 +56,83 @@ public class BasicDatabase extends MultiNameSpaceInsert implements JdbcPool {
 		String validationQuery = props.getProperty("validationQuery");
 		boolean hasValidationQuery = validationQuery != null && ! validationQuery.isEmpty();
 		
-		nameSpaceNames.add("root");
-		nsProps.put("server.root.chain","entry");
-		nsProps.put("server.root.nameSpace",nameSpace.getBase().getDN().toString());
-		nsProps.put("server.root.weight","0");
-		nsProps.put("server.root.entry.className","net.sourceforge.myvd.inserts.RootObject");
+		nameSpaceNames.add(rootNS);
+		nsProps.put("server." + rootNS + ".chain","entry");
+		nsProps.put("server." + rootNS + ".nameSpace",nameSpace.getBase().getDN().toString());
+		nsProps.put("server." + rootNS + ".weight","0");
+		nsProps.put("server." + rootNS + ".entry.className","net.sourceforge.myvd.inserts.RootObject");
 		
 		if (hasUsers) {
-			nameSpaceNames.add("db");
+			nameSpaceNames.add(userdb);
 			
 			if (supportBind) {
-				nsProps.put("server.db.chain","auth,jdbc");
+				nsProps.put("server." + userdb + ".chain","auth,jdbc");
 			} else {
-				nsProps.put("server.db.chain","jdbc");
+				nsProps.put("server." + userdb + ".chain","jdbc");
 			}
 		
 		
-			nsProps.put("server.db.nameSpace","ou=users," + nameSpace.getBase().getDN().toString());
-			nsProps.put("server.db.weight","0");
+			nsProps.put("server." + userdb + ".nameSpace","ou=users," + nameSpace.getBase().getDN().toString());
+			nsProps.put("server." + userdb + ".weight","0");
 			
 			if (supportBind) {
-				nsProps.put("server.db.auth.className", "net.sourceforge.myvd.inserts.jdbc.Pbkdf2Auth");
-				nsProps.put("server.db.auth.config.sql", "SELECT " + passwordColumn + " FROM " + props.getProperty("user-table") + " WHERE " + getUidColumn(props) + " = ?");
+				nsProps.put("server." + userdb + ".auth.className", "net.sourceforge.myvd.inserts.jdbc.Pbkdf2Auth");
+				nsProps.put("server." + userdb + ".auth.config.sql", "SELECT " + passwordColumn + " FROM " + props.getProperty("user-table") + " WHERE " + getUidColumn(props) + " = ?");
 			}
 			
 			
-			nsProps.put("server.db.jdbc.className","net.sourceforge.myvd.inserts.jdbc.JdbcInsert");
-			nsProps.put("server.db.jdbc.config.driver",props.get("driver"));
-			nsProps.put("server.db.jdbc.config.url",props.get("url"));
-			nsProps.put("server.db.jdbc.config.user",props.get("user"));
-			nsProps.put("server.db.jdbc.config.password",props.getProperty("password"));
-			nsProps.put("server.db.jdbc.config.maxCons",props.getProperty("maxCons"));
-			nsProps.put("server.db.jdbc.config.maxConsIdle",props.getProperty("maxConsIdle"));
-			nsProps.put("server.db.jdbc.config.rdn","uid");
-			nsProps.put("server.db.jdbc.config.mapping",props.getProperty("user-mapping"));
-			nsProps.put("server.db.jdbc.config.objectClass",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getUserObjectClass());
-			nsProps.put("server.db.jdbc.config.sql",getUserSelect(props));
-			nsProps.put("server.db.jdbc.config.addBaseToFilter","false");
-			nsProps.put("server.db.jdbc.config.useSimple","true");
+			nsProps.put("server." + userdb + ".jdbc.className","net.sourceforge.myvd.inserts.jdbc.JdbcInsert");
+			nsProps.put("server." + userdb + ".jdbc.config.driver",props.get("driver"));
+			nsProps.put("server." + userdb + ".jdbc.config.url",props.get("url"));
+			nsProps.put("server." + userdb + ".jdbc.config.user",props.get("user"));
+			nsProps.put("server." + userdb + ".jdbc.config.password",props.getProperty("password"));
+			nsProps.put("server." + userdb + ".jdbc.config.maxCons",props.getProperty("maxCons"));
+			nsProps.put("server." + userdb + ".jdbc.config.maxConsIdle",props.getProperty("maxConsIdle"));
+			nsProps.put("server." + userdb + ".jdbc.config.rdn","uid");
+			nsProps.put("server." + userdb + ".jdbc.config.mapping",props.getProperty("user-mapping"));
+			nsProps.put("server." + userdb + ".jdbc.config.objectClass",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getUserObjectClass());
+			nsProps.put("server." + userdb + ".jdbc.config.sql",getUserSelect(props));
+			nsProps.put("server." + userdb + ".jdbc.config.addBaseToFilter","false");
+			nsProps.put("server." + userdb + ".jdbc.config.useSimple","true");
 			if (hasValidationQuery) {
-				nsProps.put("server.db.jdbc.config.validationQuery",validationQuery);
+				nsProps.put("server." + userdb + ".jdbc.config.validationQuery",validationQuery);
 			}
 		}
 		
 		if (hasGroups) {
-			nameSpaceNames.add("groupdb");
-			nsProps.put("server.groupdb.chain","DBGroups,jdbc");
-			nsProps.put("server.groupdb.nameSpace","ou=groups," + nameSpace.getBase().getDN().toString());
-			nsProps.put("server.groupdb.weight","0");
+			nameSpaceNames.add(groupdb);
+			nsProps.put("server." + groupdb + ".chain","DBGroups,jdbc");
+			nsProps.put("server." + groupdb + ".nameSpace","ou=groups," + nameSpace.getBase().getDN().toString());
+			nsProps.put("server." + groupdb + ".weight","0");
 			
 			
 			if (hasUsers) {
-				nsProps.put("server.groupdb.DBGroups.className","net.sourceforge.myvd.inserts.jdbc.DBGroups");
-				nsProps.put("server.groupdb.DBGroups.config.memberAttribute",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute());
-				nsProps.put("server.groupdb.DBGroups.config.suffix","ou=users," + nameSpace.getBase().getDN().toString());
-				nsProps.put("server.groupdb.DBGroups.config.rdn","uid");
+				nsProps.put("server." + groupdb + ".DBGroups.className","net.sourceforge.myvd.inserts.jdbc.DBGroups");
+				nsProps.put("server." + groupdb + ".DBGroups.config.memberAttribute",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute());
+				nsProps.put("server." + groupdb + ".DBGroups.config.suffix","ou=users," + nameSpace.getBase().getDN().toString());
+				nsProps.put("server." + groupdb + ".DBGroups.config.rdn","uid");
 			} else {
-				nsProps.put("server.groupdb.DBGroups.className","com.tremolosecurity.myvd.inserts.mapping.Attribute2DN");
-				nsProps.put("server.groupdb.DBGroups.config.attributeName",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute());
-				nsProps.put("server.groupdb.DBGroups.config.searchBase",props.get("groupUserSearchBase"));
-				nsProps.put("server.groupdb.DBGroups.config.searchAttribute","uid");
+				nsProps.put("server." + groupdb + ".DBGroups.className","com.tremolosecurity.myvd.inserts.mapping.Attribute2DN");
+				nsProps.put("server." + groupdb + ".DBGroups.config.attributeName",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute());
+				nsProps.put("server." + groupdb + ".DBGroups.config.searchBase",props.get("groupUserSearchBase"));
+				nsProps.put("server." + groupdb + ".DBGroups.config.searchAttribute","uid");
 			}
 			
-			nsProps.put("server.groupdb.jdbc.className","net.sourceforge.myvd.inserts.jdbc.JdbcInsert");
-			nsProps.put("server.groupdb.jdbc.config.driver",props.getProperty("driver"));
-			nsProps.put("server.groupdb.jdbc.config.url",props.getProperty("url"));
-			nsProps.put("server.groupdb.jdbc.config.user",props.getProperty("user"));
-			nsProps.put("server.groupdb.jdbc.config.password",props.getProperty("password"));
-			nsProps.put("server.groupdb.jdbc.config.rdn","cn");
-			nsProps.put("server.groupdb.jdbc.config.maxCons",props.getProperty("maxCons"));
-			nsProps.put("server.groupdb.jdbc.config.maxConsIdle",props.getProperty("maxConsIdle"));
-			nsProps.put("server.groupdb.jdbc.config.mapping",props.getProperty("group-mapping"));
-			nsProps.put("server.groupdb.jdbc.config.objectClass",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupObjectClass());
-			nsProps.put("server.groupdb.jdbc.config.sql",getGroupSelect(props));
-			nsProps.put("server.groupdb.jdbc.config.addBaseToFilter","false");
-			nsProps.put("server.groupdb.jdbc.config.useSimple","true");
+			nsProps.put("server." + groupdb + ".jdbc.className","net.sourceforge.myvd.inserts.jdbc.JdbcInsert");
+			nsProps.put("server." + groupdb + ".jdbc.config.driver",props.getProperty("driver"));
+			nsProps.put("server." + groupdb + ".jdbc.config.url",props.getProperty("url"));
+			nsProps.put("server." + groupdb + ".jdbc.config.user",props.getProperty("user"));
+			nsProps.put("server." + groupdb + ".jdbc.config.password",props.getProperty("password"));
+			nsProps.put("server." + groupdb + ".jdbc.config.rdn","cn");
+			nsProps.put("server." + groupdb + ".jdbc.config.maxCons",props.getProperty("maxCons"));
+			nsProps.put("server." + groupdb + ".jdbc.config.maxConsIdle",props.getProperty("maxConsIdle"));
+			nsProps.put("server." + groupdb + ".jdbc.config.mapping",props.getProperty("group-mapping"));
+			nsProps.put("server." + groupdb + ".jdbc.config.objectClass",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupObjectClass());
+			nsProps.put("server." + groupdb + ".jdbc.config.sql",getGroupSelect(props));
+			nsProps.put("server." + groupdb + ".jdbc.config.addBaseToFilter","false");
+			nsProps.put("server." + groupdb + ".jdbc.config.useSimple","true");
 			if (hasValidationQuery) {
-				nsProps.put("server.groupdb.jdbc.config.validationQuery",validationQuery);
+				nsProps.put("server." + groupdb + ".jdbc.config.validationQuery",validationQuery);
 			}
 		}
 		
