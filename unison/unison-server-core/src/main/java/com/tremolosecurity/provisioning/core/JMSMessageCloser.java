@@ -52,6 +52,7 @@ public class JMSMessageCloser implements StopableThread {
 	@Override
 	public void stop() {
 		try {
+			
 			consumer.setMessageListener(null);
 			consumer.close();
 			
@@ -59,13 +60,13 @@ public class JMSMessageCloser implements StopableThread {
 				this.con.close();
 			}
 		} catch (JMSException e) {
-			logger.warn("Could not close consumer",e);
+			logger.debug("Could not close consumer",e);
 		}
 		
 		try {
 			session.close();
 		} catch (JMSException e) {
-			logger.warn("Could not close session",e);
+			logger.debug("Could not close session",e);
 		}
 
 	}

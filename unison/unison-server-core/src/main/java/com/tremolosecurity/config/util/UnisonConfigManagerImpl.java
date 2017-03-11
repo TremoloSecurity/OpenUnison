@@ -416,9 +416,9 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		this.provEnvgine.initMessageConsumers();
 		this.provEnvgine.initScheduler();
 		this.provEnvgine.initListeners();
-		this.provEnvgine.clearDLQ();
 		
 		
+		this.postInitialize();
 		
 		
 		
@@ -432,6 +432,8 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	 * @see com.tremolosecurity.config.util.UnisonConfigManager#getAuthChains()
 	 */
 	
+	public abstract void postInitialize();
+
 	public abstract void loadKeystore(String path,String myVdPath) throws Exception;
 
 	@Override

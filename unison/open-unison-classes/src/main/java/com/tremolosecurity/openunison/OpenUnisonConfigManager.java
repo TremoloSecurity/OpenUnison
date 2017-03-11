@@ -41,6 +41,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.UnisonConfigManagerImpl;
 import com.tremolosecurity.config.xml.TremoloType;
+import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.proxy.myvd.MyVDConnection;
 
 
@@ -276,6 +277,18 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 		
 		return finalCfg;
 		
+		
+	}
+
+	@Override
+	public void postInitialize() {
+		logger.info("Clearing DLQ");
+		
+		try {
+			this.getProvisioningEngine().clearDLQ();
+		} catch (ProvisioningException e) {
+			logger.warn("Could not clear DLQ",e);
+		}
 		
 	}
 

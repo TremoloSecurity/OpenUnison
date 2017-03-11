@@ -1400,7 +1400,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 					this.qcon = null;
 					con.close();
 				} catch (JMSException e) {
-					logger.warn("Could not close connection",e);
+					logger.debug("Could not close connection",e);
 				}
 				
 			}
