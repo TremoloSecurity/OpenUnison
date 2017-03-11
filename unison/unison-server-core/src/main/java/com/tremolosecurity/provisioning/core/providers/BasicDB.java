@@ -38,6 +38,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPException;
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.config.xml.TargetType;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
@@ -89,8 +90,21 @@ public class BasicDB implements BasicDBInterface {
 		One2Many, Custom
 	};
 	
+	
+	
 	GroupManagementMode groupMode;
 
+	enum TargetAttributeType {
+		String,
+		Int,
+		Long,
+		Date,
+		TimeStamp
+	};
+	
+	
+	HashMap<String,TargetAttributeType> attr2Type;
+	
 	private String userSQL;
 
 	private String groupSQL;
@@ -231,7 +245,20 @@ public class BasicDB implements BasicDBInterface {
 			for (String attr : attributes) {
 				if (attrs.get(attr) != null) {
 					
-					ps.setString(i, attrs.get(attr).getValues().get(0));
+					TargetAttributeType tat = this.attr2Type.get(attr);
+					
+					switch (tat) {
+						case String : ps.setString(i, attrs.get(attr).getValues().get(0)); break;
+						case Int : ps.setInt(i, Integer.parseInt(attrs.get(attr).getValues().get(0))); break;
+						case Long : ps.setLong(i, Long.parseLong(attrs.get(attr).getValues().get(0))); break;
+						
+						//TODO add these
+						case Date : break;
+						case TimeStamp : break;
+					}
+					
+					
+					
 					i++;
 				}
 				
@@ -242,9 +269,12 @@ public class BasicDB implements BasicDBInterface {
 			
 			int id;
 			
-			if (rs.next()) {
+			if (rs.next() && ! this.driver.contains("oracle")) {
 				
-				id = rs.getInt(1);
+				 
+				
+				
+				id = (int) rs.getInt(1);
 			} else {
 				StringBuffer select = new StringBuffer();
 				select.append("SELECT ");
@@ -254,7 +284,7 @@ public class BasicDB implements BasicDBInterface {
 				getUserId.setString(1, user.getUserID());
 				ResultSet userResult = getUserId.executeQuery();
 				userResult.next();
-				id = userResult.getInt(this.userPrimaryKey);
+				id = (int) userResult.getInt(this.userPrimaryKey);
 				
 				userResult.close();
 				getUserId.close();
@@ -613,6 +643,18 @@ public class BasicDB implements BasicDBInterface {
 		if (userIDnum != -1) {
 			ps.setInt(2, userIDnum);
 		} else {
+			
+			TargetAttributeType tat = this.attr2Type.get(attrName);
+			switch (tat) {
+				case String : ps.setString(2, userID); break;
+				case Int : ps.setInt(2, Integer.parseInt(userID)); break;
+				case Long : ps.setLong(2, Long.parseLong(userID)); break;
+				
+				//TODO add these
+				case Date : break;
+				case TimeStamp : break;
+			}
+			
 			ps.setString(2, userID);
 		}
 		ps.executeUpdate();
@@ -1038,7 +1080,29 @@ public class BasicDB implements BasicDBInterface {
         }
         
         
+        this.attr2Type = new HashMap<String,TargetAttributeType>();
         
+        for (TargetType tt : cfgMgr.getCfg().getProvisioning().getTargets().getTarget()) {
+        	if (tt.getName().equals(name)) {
+        		for (com.tremolosecurity.config.xml.TargetAttributeType tat : tt.getTargetAttribute()) {
+        			if (tat.getTargetType() == null) {
+        				this.attr2Type.put(tat.getName(), TargetAttributeType.String);
+        			} else if (tat.getTargetType().equalsIgnoreCase("string")) {
+        				this.attr2Type.put(tat.getName(), TargetAttributeType.String);
+        			} else if (tat.getTargetType().equalsIgnoreCase("int")) {
+        				this.attr2Type.put(tat.getName(), TargetAttributeType.Int);
+        			} else if (tat.getTargetType().equalsIgnoreCase("long")) {
+        				this.attr2Type.put(tat.getName(), TargetAttributeType.Long);
+        			} else if (tat.getTargetType().equalsIgnoreCase("date")) {
+        				this.attr2Type.put(tat.getName(), TargetAttributeType.Date);
+        			} else if (tat.getTargetType().equalsIgnoreCase("timestamp")) {
+        				this.attr2Type.put(tat.getName(), TargetAttributeType.TimeStamp);
+        			} else {
+        				this.attr2Type.put(tat.getName(), TargetAttributeType.String);
+        			}
+        		}
+        	}
+        }
         
 		
 	}
