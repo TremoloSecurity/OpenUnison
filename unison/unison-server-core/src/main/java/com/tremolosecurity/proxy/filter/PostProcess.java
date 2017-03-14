@@ -168,11 +168,14 @@ public abstract class PostProcess {
 			if (header.getName().equals("Content-Type")) {
 				
 				continue;
-			} if (header.getName().equals("Content-Length")) {
+			} else if (header.getName().equals("Content-Type")) {
+				
+				continue;
+			} else if (header.getName().equals("Content-Length")) {
 				if (! header.getValue().equals("0")) {
 					continue;
 				}
-			} if (header.getName().equals("ETag")) {
+			} else if (header.getName().equals("Transfer-Encoding")) {
 				continue;
 			} else if (header.getName().equalsIgnoreCase("set-cookie") || header.getName().equalsIgnoreCase("set-cookie2")) {
 				//System.out.println(header.getValue());
