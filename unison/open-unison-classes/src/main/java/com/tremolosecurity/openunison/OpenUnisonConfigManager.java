@@ -68,7 +68,11 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 		try {
 			configPath = InitialContext.doLookup("java:comp/env/unisonServiceConfigPath");
 		} catch (NamingException ne) {
-			configPath = InitialContext.doLookup("java:/env/unisonServiceConfigPath");
+			try {
+				configPath = InitialContext.doLookup("java:/env/unisonServiceConfigPath");
+			} catch (NamingException ne2) {
+				logger.warn("No context bound, assuming WEB-INF/unisonService.props");
+			}
 		}
 		
 		 

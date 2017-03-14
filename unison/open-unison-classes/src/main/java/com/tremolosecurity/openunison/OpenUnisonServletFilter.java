@@ -58,12 +58,16 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 		try {
 			configPath = InitialContext.doLookup("java:comp/env/unisonConfigPath");
 		} catch (NamingException ne) {
-			configPath = InitialContext.doLookup("java:/env/unisonConfigPath");
+			try {
+				configPath = InitialContext.doLookup("java:/env/unisonConfigPath");
+			} catch (NamingException ne2) {
+				logger.warn("No context paths present, assuming the config path is WEB-INF/unison.xml");
+			}
 		}
 		
 		 
 		if (configPath == null) {
-			configPath = "/WEB-INF/unison.xml";
+			configPath = "WEB-INF/unison.xml";
 		}
 		
 		logger.info("Initializing OpenUnison " + version);
