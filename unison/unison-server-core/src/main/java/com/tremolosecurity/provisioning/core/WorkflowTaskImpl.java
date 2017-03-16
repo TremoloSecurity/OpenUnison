@@ -361,12 +361,21 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 	
 	@Override
 	public String renderTemplate(String val,Map<String,Object> request) {
+		
+		
+		val = val.replaceAll("[$][{]", "___");
+		
 		ST st = new ST(val,'$','$');
 		for (String key : request.keySet()) {
 			st.add(key.replaceAll("[.]", "_"), request.get(key));
 		}
 		
-		return st.render();
+		String tmp = st.render();
+		
+		
+		tmp = tmp.replaceAll("___", "\\${");
+		
+		return tmp;
 	}
 	
 	@Override
