@@ -17,6 +17,7 @@ limitations under the License.
 
 package com.tremolosecurity.openunison;
 
+import java.io.FileInputStream;
 import java.util.Properties;
 
 import javax.naming.InitialContext;
@@ -52,6 +53,21 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 	@Override
 	public ConfigManager loadConfiguration(FilterConfig filterCfg,
 			String registryName) throws Exception {
+		
+		
+		String envFile = System.getProperty("unisonEnvironmentFile");
+		if (envFile != null) {
+			logger.info("Loading environment file : '" + envFile + "'");
+			
+			Properties env = new Properties();
+			env.load(new FileInputStream(envFile));
+			
+			for (Object name : env.keySet()) {
+				logger.info("Adding property : '" + name + "'");
+				System.setProperty((String) name,env.getProperty((String) name));
+			}
+		}
+		
 		
 		String configPath = null;
 		
