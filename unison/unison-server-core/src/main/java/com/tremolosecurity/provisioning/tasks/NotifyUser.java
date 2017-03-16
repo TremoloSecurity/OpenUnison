@@ -65,7 +65,7 @@ public class NotifyUser extends WorkflowTaskImpl {
 		
 		
 		
-		if (this.getWorkflow().getRequesterNum() != this.getWorkflow().getUserNum()) {
+		if (this.getWorkflow().getRequesterNum() != this.getWorkflow().getUserNum() && request.get("unison.sendToSubject") == null) {
 			String mail = this.getWorkflow().getRequester().getAttribs().get(this.mailAttr).getValues().get(0);
 			
 			String localSubject = this.renderTemplate(subject, request);
