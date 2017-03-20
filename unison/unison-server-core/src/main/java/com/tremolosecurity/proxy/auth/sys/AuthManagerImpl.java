@@ -229,13 +229,15 @@ public class AuthManagerImpl implements AuthManager {
 						Attribute lastFailed = actl.getAuthInfo().getAttribs().get(act.getCompliance().getLastFailedAttribute());
 						Attribute numFailures = actl.getAuthInfo().getAttribs().get(act.getCompliance().getNumFailedAttribute());
 						
-						logger.info("lastFailed Attribute : '" + lastFailed + "'");
-						logger.info("numFailures Attribute : '" + numFailures + "'");
+						if (logger.isDebugEnabled()) {
+							logger.debug("lastFailed Attribute : '" + lastFailed + "'");
+							logger.debug("numFailures Attribute : '" + numFailures + "'");
+						}
 						
 						if (lastFailed != null && numFailures != null) {
 							
-							long lastFailedTS = Long.parseLong(lastFailed.getValues().get(0));
-							int numPrevFailures = Integer.parseInt(numFailures.getValues().get(0));
+							long lastFailedTS = lastFailed.getValues().size() > 0 ? Long.parseLong(lastFailed.getValues().get(0)) : 0;
+							int numPrevFailures = Integer.parseInt(numFailures.getValues().size() > 0 ? numFailures.getValues().get(0) : "0");
 							long now = new DateTime(DateTimeZone.UTC).getMillis();
 							long lockedUntil = lastFailedTS + act.getCompliance().getMaxLockoutTime();
 							
