@@ -267,6 +267,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 					StringBuffer b = genFinalURL(request);
 					response.sendRedirect(b.toString());
 					
+					//TODO if session already exists extend the life of the id_token
+					
 				}
 			}
 			
