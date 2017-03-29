@@ -1082,28 +1082,30 @@ public class BasicDB implements BasicDBInterface {
         
         this.attr2Type = new HashMap<String,TargetAttributeType>();
         
-        for (TargetType tt : cfgMgr.getCfg().getProvisioning().getTargets().getTarget()) {
-        	if (tt.getName().equals(name)) {
-        		for (com.tremolosecurity.config.xml.TargetAttributeType tat : tt.getTargetAttribute()) {
-        			if (tat.getTargetType() == null) {
-        				this.attr2Type.put(tat.getName(), TargetAttributeType.String);
-        			} else if (tat.getTargetType().equalsIgnoreCase("string")) {
-        				this.attr2Type.put(tat.getName(), TargetAttributeType.String);
-        			} else if (tat.getTargetType().equalsIgnoreCase("int")) {
-        				this.attr2Type.put(tat.getName(), TargetAttributeType.Int);
-        			} else if (tat.getTargetType().equalsIgnoreCase("long")) {
-        				this.attr2Type.put(tat.getName(), TargetAttributeType.Long);
-        			} else if (tat.getTargetType().equalsIgnoreCase("date")) {
-        				this.attr2Type.put(tat.getName(), TargetAttributeType.Date);
-        			} else if (tat.getTargetType().equalsIgnoreCase("timestamp")) {
-        				this.attr2Type.put(tat.getName(), TargetAttributeType.TimeStamp);
-        			} else {
-        				this.attr2Type.put(tat.getName(), TargetAttributeType.String);
-        			}
-        		}
-        	}
-        }
         
+        if (cfgMgr.getCfg().getProvisioning() != null && cfgMgr.getCfg().getProvisioning().getTargets() != null) {
+	        for (TargetType tt : cfgMgr.getCfg().getProvisioning().getTargets().getTarget()) {
+	        	if (tt.getName().equals(name)) {
+	        		for (com.tremolosecurity.config.xml.TargetAttributeType tat : tt.getTargetAttribute()) {
+	        			if (tat.getTargetType() == null) {
+	        				this.attr2Type.put(tat.getName(), TargetAttributeType.String);
+	        			} else if (tat.getTargetType().equalsIgnoreCase("string")) {
+	        				this.attr2Type.put(tat.getName(), TargetAttributeType.String);
+	        			} else if (tat.getTargetType().equalsIgnoreCase("int")) {
+	        				this.attr2Type.put(tat.getName(), TargetAttributeType.Int);
+	        			} else if (tat.getTargetType().equalsIgnoreCase("long")) {
+	        				this.attr2Type.put(tat.getName(), TargetAttributeType.Long);
+	        			} else if (tat.getTargetType().equalsIgnoreCase("date")) {
+	        				this.attr2Type.put(tat.getName(), TargetAttributeType.Date);
+	        			} else if (tat.getTargetType().equalsIgnoreCase("timestamp")) {
+	        				this.attr2Type.put(tat.getName(), TargetAttributeType.TimeStamp);
+	        			} else {
+	        				this.attr2Type.put(tat.getName(), TargetAttributeType.String);
+	        			}
+	        		}
+	        	}
+	        }
+        }
 		
 	}
 
