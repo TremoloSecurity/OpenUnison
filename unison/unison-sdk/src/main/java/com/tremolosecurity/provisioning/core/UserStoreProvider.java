@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.provisioning.mapping.MapIdentity;
 import com.tremolosecurity.saml.Attribute;
 
 

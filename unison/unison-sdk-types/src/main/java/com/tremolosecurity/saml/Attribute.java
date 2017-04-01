@@ -35,13 +35,21 @@ public class Attribute implements Serializable {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 3652987806606284542L;
+	
 
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(Attribute.class);
 	
+	public enum DataType {
+		string,
+		intNum,
+		longNum,
+		date,
+		timeStamp
+	};
 
 	List<String> values;
 	String name;
+	DataType dataType;
 
 	/**
 	 * Creates an attribute with an empty name and no values
@@ -49,6 +57,7 @@ public class Attribute implements Serializable {
 	public Attribute() {
 		this.name = "";
 		this.values = new ArrayList<String>();
+		this.dataType = DataType.string;
 	}
 	
 	/**
@@ -58,6 +67,7 @@ public class Attribute implements Serializable {
 	public Attribute(String name) {
 		this.name = name;
 		this.values = new ArrayList<String>();
+		this.dataType = DataType.string;
 	}
 	
 	/**
@@ -68,6 +78,7 @@ public class Attribute implements Serializable {
 	public Attribute(String name,String value) {
 		this(name);
 		this.values.add(value);
+		this.dataType = DataType.string;
 	}
 	
 	
@@ -82,6 +93,8 @@ public class Attribute implements Serializable {
 		for (int i=0;i<values.length;i++) {
 			this.values.add(values[i]);
 		}
+		
+		this.dataType = DataType.string;
 	}
 	
 	/**
@@ -122,4 +135,14 @@ public class Attribute implements Serializable {
 		
 		return buf.toString();
 	}
+
+	public DataType getDataType() {
+		return dataType;
+	}
+
+	public void setDataType(DataType dataType) {
+		this.dataType = dataType;
+	}
+	
+	
 }

@@ -37,6 +37,7 @@ import com.tremolosecurity.config.xml.TargetsType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.WorkflowTask;
+
 import com.tremolosecurity.provisioning.mapping.MapIdentity.MappingType;
 import com.tremolosecurity.saml.Attribute;
 
@@ -54,6 +55,8 @@ public class MapIdentity implements Serializable {
 		custom,
 		composite
 	};
+	
+
 	
 	HashMap<String,MappingEntry> map;
 	HashSet<String> attributes;
@@ -107,6 +110,22 @@ public class MapIdentity implements Serializable {
 				mp.val = mapper.getSource().substring(lastIndex);
 				entry.composite.add(mp);
 				
+			}
+			
+			if (mapper.getTargetType() == null) {
+				entry.destType = Attribute.DataType.string;
+			} else if (mapper.getTargetType().equalsIgnoreCase("string")) {
+				entry.destType = Attribute.DataType.string;
+			} else if (mapper.getTargetType().equalsIgnoreCase("int")) {
+				entry.destType = Attribute.DataType.intNum;
+			} else if (mapper.getTargetType().equalsIgnoreCase("long")) {
+				entry.destType = Attribute.DataType.longNum;
+			} else if (mapper.getTargetType().equalsIgnoreCase("date")) {
+				entry.destType = Attribute.DataType.date;
+			} else if (mapper.getTargetType().equalsIgnoreCase("timestamp")) {
+				entry.destType = Attribute.DataType.timeStamp;
+			} else {
+				entry.destType = Attribute.DataType.string;
 			}
 			
 			this.map.put(mapper.getName(), entry);
@@ -261,6 +280,7 @@ public class MapIdentity implements Serializable {
 									   newUser.setUserID(mapping.staticValue);
 								   } else {
 									   newAttrib = new Attribute(name);
+									   newAttrib.setDataType(mapping.destType);
 									   if (request != null) {
 										   newAttrib.getValues().add(task.renderTemplate(mapping.staticValue,request));
 									   } else {
@@ -272,6 +292,7 @@ public class MapIdentity implements Serializable {
 								   break;
 								   
 				case userAttr : newAttrib = new Attribute(name);
+								newAttrib.setDataType(mapping.destType);
 								String attrName = mapping.userAttr;
 								
 								if (request != null) {
@@ -303,6 +324,7 @@ public class MapIdentity implements Serializable {
 									newUser.setUserID(mapping.mapping.doMapping(userObj, name).getValues().get(0));
 								} else {
 									newAttrib = mapping.mapping.doMapping(userObj, name);
+									newAttrib.setDataType(mapping.destType);
 									newUser.getAttribs().put(name, newAttrib);
 								}
 					            
@@ -328,6 +350,7 @@ public class MapIdentity implements Serializable {
 									 newUser.setUserID(newVal);
 								 } else {
 									 newAttrib = new Attribute(name);
+									 newAttrib.setDataType(mapping.destType);
 									 newAttrib.getValues().add(newVal);
 									 newUser.getAttribs().put(name, newAttrib);
 								 }
@@ -346,6 +369,7 @@ public class MapIdentity implements Serializable {
 				String name = names.next();
 				if (! mapped.contains(name)) {
 					Attribute newAttrib = new Attribute(name);
+					
 					newAttrib.getValues().addAll(userObj.getAttribs().get(name).getValues());
 					newUser.getAttribs().put(name, newAttrib);
 				}
@@ -388,6 +412,7 @@ class MappingEntry implements Serializable {
 	 */
 	private static final long serialVersionUID = 8177213218546735985L;
 	MappingType type;
+	Attribute.DataType destType;
 	String userAttr;
 	String staticValue;
 	CustomMapping mapping;

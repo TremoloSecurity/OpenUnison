@@ -18,10 +18,12 @@ limitations under the License.
 package com.tremolosecurity.provisioning.core.providers;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,7 +36,9 @@ import javax.sql.DataSource;
 
 import org.apache.commons.dbcp.cpdsadapter.DriverAdapterCPDS;
 import org.apache.commons.dbcp.datasources.SharedPoolDataSource;
+import org.apache.commons.net.ntp.TimeStamp;
 import org.apache.logging.log4j.Logger;
+import org.joda.time.format.ISODateTimeFormat;
 
 import com.novell.ldap.LDAPException;
 import com.tremolosecurity.config.util.ConfigManager;
@@ -45,6 +49,7 @@ import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.UserStoreProvider;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.providers.db.CustomDB;
+import com.tremolosecurity.provisioning.mapping.MapIdentity;
 import com.tremolosecurity.saml.Attribute;
 
 import net.sourceforge.myvd.util.PBKDF2;
@@ -103,7 +108,7 @@ public class BasicDB implements BasicDBInterface {
 	};
 	
 	
-	HashMap<String,TargetAttributeType> attr2Type;
+	
 	
 	private String userSQL;
 
@@ -245,16 +250,20 @@ public class BasicDB implements BasicDBInterface {
 			for (String attr : attributes) {
 				if (attrs.get(attr) != null) {
 					
-					TargetAttributeType tat = this.attr2Type.get(attr);
+					Attribute.DataType dataType = attrs.get(attr).getDataType();
 					
-					switch (tat) {
-						case String : ps.setString(i, attrs.get(attr).getValues().get(0)); break;
-						case Int : ps.setInt(i, Integer.parseInt(attrs.get(attr).getValues().get(0))); break;
-						case Long : ps.setLong(i, Long.parseLong(attrs.get(attr).getValues().get(0))); break;
+					switch (dataType) {
+						case string : ps.setString(i, attrs.get(attr).getValues().get(0)); break;
+						case intNum : ps.setInt(i, Integer.parseInt(attrs.get(attr).getValues().get(0))); break;
+						case longNum : ps.setLong(i, Long.parseLong(attrs.get(attr).getValues().get(0))); break;
 						
-						//TODO add these
-						case Date : break;
-						case TimeStamp : break;
+						
+						case date : 
+							ps.setDate(i, new Date(ISODateTimeFormat.date().parseDateTime(attrs.get(attr).getValues().get(0)).getMillis()));
+							break;
+						case timeStamp : 
+							ps.setTimestamp(i, new Timestamp(ISODateTimeFormat.dateTime().parseDateTime(attrs.get(attr).getValues().get(0)).getMillis()));
+							break;
 					}
 					
 					
@@ -644,15 +653,21 @@ public class BasicDB implements BasicDBInterface {
 			ps.setInt(2, userIDnum);
 		} else {
 			
-			TargetAttributeType tat = this.attr2Type.get(attrName);
+
+			
+			
+			Attribute.DataType tat = user.getAttribs().get(attrName).getDataType();
 			switch (tat) {
-				case String : ps.setString(2, userID); break;
-				case Int : ps.setInt(2, Integer.parseInt(userID)); break;
-				case Long : ps.setLong(2, Long.parseLong(userID)); break;
+				case string : ps.setString(2, userID); break;
+				case intNum : ps.setInt(2, Integer.parseInt(userID)); break;
+				case longNum : ps.setLong(2, Long.parseLong(userID)); break;
 				
-				//TODO add these
-				case Date : break;
-				case TimeStamp : break;
+				case date : 
+					ps.setDate(2, new Date(ISODateTimeFormat.date().parseDateTime(userID).getMillis()));
+					break;
+				case timeStamp : 
+					ps.setTimestamp(2, new Timestamp(ISODateTimeFormat.dateTime().parseDateTime(userID).getMillis()));
+					break;
 			}
 			
 			ps.setString(2, userID);
@@ -1080,32 +1095,7 @@ public class BasicDB implements BasicDBInterface {
         }
         
         
-        this.attr2Type = new HashMap<String,TargetAttributeType>();
         
-        
-        if (cfgMgr.getCfg().getProvisioning() != null && cfgMgr.getCfg().getProvisioning().getTargets() != null) {
-	        for (TargetType tt : cfgMgr.getCfg().getProvisioning().getTargets().getTarget()) {
-	        	if (tt.getName().equals(name)) {
-	        		for (com.tremolosecurity.config.xml.TargetAttributeType tat : tt.getTargetAttribute()) {
-	        			if (tat.getTargetType() == null) {
-	        				this.attr2Type.put(tat.getName(), TargetAttributeType.String);
-	        			} else if (tat.getTargetType().equalsIgnoreCase("string")) {
-	        				this.attr2Type.put(tat.getName(), TargetAttributeType.String);
-	        			} else if (tat.getTargetType().equalsIgnoreCase("int")) {
-	        				this.attr2Type.put(tat.getName(), TargetAttributeType.Int);
-	        			} else if (tat.getTargetType().equalsIgnoreCase("long")) {
-	        				this.attr2Type.put(tat.getName(), TargetAttributeType.Long);
-	        			} else if (tat.getTargetType().equalsIgnoreCase("date")) {
-	        				this.attr2Type.put(tat.getName(), TargetAttributeType.Date);
-	        			} else if (tat.getTargetType().equalsIgnoreCase("timestamp")) {
-	        				this.attr2Type.put(tat.getName(), TargetAttributeType.TimeStamp);
-	        			} else {
-	        				this.attr2Type.put(tat.getName(), TargetAttributeType.String);
-	        			}
-	        		}
-	        	}
-	        }
-        }
 		
 	}
 
