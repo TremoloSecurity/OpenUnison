@@ -49,7 +49,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jetty.util.log.Log;
+
 import org.joda.time.DateTime;
 
 import com.google.gson.Gson;

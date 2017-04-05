@@ -143,11 +143,11 @@
 			<artifactId>activemq-broker</artifactId>
 			<version>${activemq.version}</version>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>activemq-web</artifactId>
 			<version>${activemq.version}</version>
-		</dependency>
+		</dependency> -->
 		<dependency>
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>activemq-kahadb-store</artifactId>
