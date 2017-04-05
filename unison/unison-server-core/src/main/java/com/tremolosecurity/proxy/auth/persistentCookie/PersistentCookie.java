@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
@@ -159,7 +160,11 @@ public class PersistentCookie implements AuthMechanism {
 		}
 		
 		try {
-			lastmile.loadLastMielToken(authCookie.getValue(), key);
+			String cookieVal = authCookie.getValue();
+			if (cookieVal.startsWith("\"")) {
+				cookieVal = cookieVal.substring(1, cookieVal.length() - 1);
+			}
+			lastmile.loadLastMielToken(cookieVal, key);
 		} catch (Exception e) {
 			logger.warn("Could not decrypt cookie",e);
 			as.setSuccess(false);
@@ -186,7 +191,14 @@ public class PersistentCookie implements AuthMechanism {
 				dn = attrib.getValues().get(0);
 				
 			} else if (attrib.getName().equalsIgnoreCase("SSL_SESSION_ID")) {
-				validSslSessionId = attrib.getValues().get(0).equals(request.getAttribute("javax.servlet.request.ssl_session_id"));
+				
+				Object sessionID = request.getAttribute("javax.servlet.request.ssl_session_id");
+				if (sessionID instanceof byte[]) {
+					sessionID = new String(Base64.encodeBase64((byte[]) sessionID));
+				}
+				
+				
+				validSslSessionId = attrib.getValues().get(0).equals(sessionID);
 				
 			}
 		}

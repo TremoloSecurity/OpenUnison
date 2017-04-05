@@ -25,6 +25,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.codec.binary.Base64;
 import org.joda.time.DateTime;
 
 import com.tremolosecurity.config.util.ConfigManager;
@@ -103,11 +104,17 @@ public class PersistentCookieResult implements CustomResult {
 		lastmile.getAttributes().add(new Attribute("CLIENT_IP",request.getRemoteAddr()));
 		
 		if (useSSLSession) {
-			lastmile.getAttributes().add(new Attribute("SSL_SESSION_ID",(String) request.getAttribute("javax.servlet.request.ssl_session_id")));
+			
+			Object sessionID = request.getAttribute("javax.servlet.request.ssl_session_id");
+			if (sessionID instanceof byte[]) {
+				sessionID = new String(Base64.encodeBase64((byte[]) sessionID));
+			}
+			
+			lastmile.getAttributes().add(new Attribute("SSL_SESSION_ID",(String) sessionID));
 		}
 		
 		try {
-			cookie.setValue(lastmile.generateLastMileToken(mgr.getSecretKey(keyAlias)));
+			cookie.setValue(new StringBuilder().append('"').append(lastmile.generateLastMileToken(mgr.getSecretKey(keyAlias))).append('"').toString());
 		} catch (Exception e) {
 			throw new ServletException("Could not encrypt persistent cookie",e);
 		}
