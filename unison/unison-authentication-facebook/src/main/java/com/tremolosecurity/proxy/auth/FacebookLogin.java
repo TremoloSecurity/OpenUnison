@@ -38,6 +38,9 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.logging.log4j.Logger;
 
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.restfb.DefaultFacebookClient;
 import com.restfb.FacebookClient;
 import com.restfb.types.User;
@@ -61,6 +64,10 @@ public class FacebookLogin implements AuthMechanism {
 	public static final String FB_DN_PATTERN = "faceBookDNPattern";
 	
 	ConfigManager cfgMgr;
+	
+	static Gson gson = new GsonBuilder()
+		    .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+		    .create();
 	
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp,AuthStep as)
@@ -217,7 +224,10 @@ public class FacebookLogin implements AuthMechanism {
 		httpget.abort();
 		
 		String accessToken = str.toString();
-		accessToken = accessToken.substring(accessToken.indexOf('=')+1,accessToken.indexOf('&'));
+		
+		accessToken = gson.fromJson(accessToken, TokenType.class).getAccessToken();
+		
+		//accessToken = accessToken.substring(accessToken.indexOf('=')+1,accessToken.indexOf('&'));
 		
 		return accessToken;
 	}
@@ -269,5 +279,21 @@ public class FacebookLogin implements AuthMechanism {
 		
 		return null;
 	}
+	
+	
+	
+}
+
+class TokenType {
+	String accessToken;
+
+	public String getAccessToken() {
+		return accessToken;
+	}
+
+	public void setAccessToken(String accessToken) {
+		this.accessToken = accessToken;
+	}
+	
 	
 }
