@@ -791,6 +791,11 @@
 			</simpleType>
 		</attribute>
 		<attribute name="targetType" default="string">
+		<annotation>
+							<documentation>
+								The types of the attribute in the provisioning target
+							</documentation>
+						</annotation>
 			<simpleType>
 				<restriction base="string">
 					<enumeration value="string"></enumeration>
