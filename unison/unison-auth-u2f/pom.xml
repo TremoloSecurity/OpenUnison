@@ -8,11 +8,7 @@
   <artifactId>unison-auth-u2f</artifactId>
   <name>unison-auth-u2f</name>
   <dependencies>
-  	<dependency>
-	   <groupId>com.yubico</groupId>
-	   <artifactId>u2flib-server-core</artifactId>
-	   <version>0.16.0</version>
-	</dependency>
+
 	<dependency>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison-sdk</artifactId>

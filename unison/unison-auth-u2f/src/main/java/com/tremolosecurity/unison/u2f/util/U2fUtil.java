@@ -46,49 +46,14 @@ import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.unison.google.u2f.KeyHolder;
-import com.yubico.u2f.data.DeviceRegistration;
+
 
 
 
 public class U2fUtil {
 	static Gson gson = new Gson();
 	
-	public static String encode(ArrayList<DeviceRegistration> devices,String encyrptionKeyName) throws Exception {
-		ArrayList<String> encoded = new ArrayList<String>();
-		for (DeviceRegistration dr : devices) {
-			encoded.add(dr.toJson());
-		}
-		
-		String json = gson.toJson(encoded);
-		EncryptedMessage msg = new EncryptedMessage();
-		
-		SecretKey key = GlobalEntries.getGlobalEntries().getConfigManager().getSecretKey(encyrptionKeyName);
-		if (key == null) {
-			throw new Exception("Queue message encryption key not found");
-		}
-		
-		Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-		cipher.init(Cipher.ENCRYPT_MODE, key);
-		msg.setMsg(cipher.doFinal(json.getBytes("UTF-8")));
-		msg.setIv(cipher.getIV());
-		
-		
-		
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		
-		DeflaterOutputStream compressor  = new DeflaterOutputStream(baos,new Deflater(Deflater.BEST_COMPRESSION,true));
-		
-		compressor.write(gson.toJson(msg).getBytes("UTF-8"));
-		compressor.flush();
-		compressor.close();
-		
-		
-		
-		String b64 = new String( Base64.encodeBase64(baos.toByteArray()));
-		
-		return b64;
-		
-	}
+	
 	
 	public static String encode(List<SecurityKeyData> devices,String encyrptionKeyName) throws Exception {
 		ArrayList<KeyHolder> keys = new ArrayList<KeyHolder>();
@@ -166,39 +131,7 @@ public class U2fUtil {
 		return decoded;
 	}
 	
-	public static ArrayList<DeviceRegistration> loadUserDevices(AuthInfo userData,String challengeStoreAttribute,String encyrptionKeyName)
-			throws Exception, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
-			InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
-		Attribute challengeAttr = userData.getAttribs().get(challengeStoreAttribute);
-		ArrayList<DeviceRegistration> devices = new ArrayList<DeviceRegistration>();
-		
-		if (challengeAttr != null) {
-			SecretKey key = GlobalEntries.getGlobalEntries().getConfigManager().getSecretKey(encyrptionKeyName);
-			if (key == null) {
-				throw new Exception("Queue message encryption key not found");
-			}
-			
-			
-			
-			
-			EncryptedMessage msg = gson.fromJson(inflate(challengeAttr.getValues().get(0)), EncryptedMessage.class);
-			IvParameterSpec spec =  new IvParameterSpec(msg.getIv());
-		    Cipher cipher;
-		    
-		    cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-			cipher.init(Cipher.DECRYPT_MODE, key,spec);
-			
-			
-			byte[] bytes = cipher.doFinal(msg.getMsg());
-			String json = new String(bytes);
-			java.util.List fromJSON = gson.fromJson(json, java.util.List.class);
-			for (Object regJson : fromJSON) {
-				devices.add(DeviceRegistration.fromJson((String) regJson));
-			}
-			
-		}
-		return devices;
-	}
+	
 	
 	public static List<SecurityKeyData> loadUserKeys(AuthInfo userData,String challengeStoreAttribute,String encyrptionKeyName)
 			throws Exception, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
