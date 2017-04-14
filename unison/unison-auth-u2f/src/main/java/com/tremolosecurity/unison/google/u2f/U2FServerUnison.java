@@ -76,7 +76,7 @@ public class U2FServerUnison implements U2FServer {
   @SuppressWarnings("unused")
   private static final String UNUSED_CHANNEL_ID = "";
 
-  private static final Logger Log = Logger.getLogger(U2FServerUnison.class.getName());
+  private static final org.apache.logging.log4j.Logger log = org.apache.logging.log4j.LogManager.getLogger(U2FServerUnison.class.getName());
 
   private final ChallengeGenerator challengeGenerator;
   private final DataStore dataStore;
@@ -101,7 +101,7 @@ public class U2FServerUnison implements U2FServer {
 
 @Override
   public RegistrationRequest getRegistrationRequest(String accountName, String appId) {
-    Log.info(">> getRegistrationRequest " + accountName);
+    log.debug(">> getRegistrationRequest " + accountName);
 
     byte[] challenge = challengeGenerator.generateChallenge(accountName);
     EnrollSessionData sessionData = new EnrollSessionData(accountName, appId, challenge);
@@ -110,25 +110,26 @@ public class U2FServerUnison implements U2FServer {
 
     String challengeBase64 = Base64.encodeBase64URLSafeString(challenge);
 
-    Log.info("-- Output --");
-    Log.info("  sessionId: " + sessionId);
-    Log.info("  challenge: " + Hex.encodeHexString(challenge));
-
-    Log.info("<< getRegistrationRequest " + accountName);
-
+    if (log.isDebugEnabled()) {
+	    log.debug("-- Output --");
+	    log.debug("  sessionId: " + sessionId);
+	    log.debug("  challenge: " + Hex.encodeHexString(challenge));
+	
+	    log.debug("<< getRegistrationRequest " + accountName);
+    }
     return new RegistrationRequest(U2FConsts.U2F_V2, challengeBase64, appId, sessionId);
   }
 
   @Override
   public SecurityKeyData processRegistrationResponse(
       RegistrationResponse registrationResponse, long currentTimeInMillis) throws U2FException {
-    Log.info(">> processRegistrationResponse");
+    log.debug(">> processRegistrationResponse");
 
     String sessionId = registrationResponse.getSessionId();
     String clientDataBase64 = registrationResponse.getClientData();
     String rawRegistrationDataBase64 = registrationResponse.getRegistrationData();
 
-    Log.info(">> rawRegistrationDataBase64: " + rawRegistrationDataBase64);
+    log.debug(">> rawRegistrationDataBase64: " + rawRegistrationDataBase64);
     EnrollSessionData sessionData = dataStore.getEnrollSessionData(sessionId);
 
     if (sessionData == null) {
@@ -138,13 +139,14 @@ public class U2FServerUnison implements U2FServer {
     String appId = sessionData.getAppId();
     String clientData = new String(Base64.decodeBase64(clientDataBase64));
     byte[] rawRegistrationData = Base64.decodeBase64(rawRegistrationDataBase64);
-    Log.info("-- Input --");
-    Log.info("  sessionId: " + sessionId);
-    Log.info("  challenge: " + Hex.encodeHexString(sessionData.getChallenge()));
-    Log.info("  accountName: " + sessionData.getAccountName());
-    Log.info("  clientData: " + clientData);
-    Log.info("  rawRegistrationData: " + Hex.encodeHexString(rawRegistrationData));
-
+    if (log.isDebugEnabled()) {
+	    log.debug("-- Input --");
+	    log.debug("  sessionId: " + sessionId);
+	    log.debug("  challenge: " + Hex.encodeHexString(sessionData.getChallenge()));
+	    log.debug("  accountName: " + sessionData.getAccountName());
+	    log.debug("  clientData: " + clientData);
+	    log.debug("  rawRegistrationData: " + Hex.encodeHexString(rawRegistrationData));
+    }
     RegisterResponse registerResponse = RawMessageCodec.decodeRegisterResponse(rawRegistrationData);
 
     byte[] userPublicKey = registerResponse.getUserPublicKey();
@@ -155,22 +157,24 @@ public class U2FServerUnison implements U2FServer {
     try {
       transports = U2fAttestation.Parse(attestationCertificate).getTransports();
     } catch (CertificateParsingException e) {
-      Log.warning("Could not parse transports extension " + e.getMessage());
+      log.warn("Could not parse transports extension " + e.getMessage());
     }
 
-    Log.info("-- Parsed rawRegistrationResponse --");
-    Log.info("  userPublicKey: " + Hex.encodeHexString(userPublicKey));
-    Log.info("  keyHandle: " + Hex.encodeHexString(keyHandle));
-    Log.info("  attestationCertificate: " + attestationCertificate.toString());
-    Log.info("  transports: " + transports);
-    try {
-      Log.info("  attestationCertificate bytes: "
-          + Hex.encodeHexString(attestationCertificate.getEncoded()));
-    } catch (CertificateEncodingException e) {
-      throw new U2FException("Cannot encode certificate", e);
+    if (log.isDebugEnabled()) {
+	    log.debug("-- Parsed rawRegistrationResponse --");
+	    log.debug("  userPublicKey: " + Hex.encodeHexString(userPublicKey));
+	    log.debug("  keyHandle: " + Hex.encodeHexString(keyHandle));
+	    log.debug("  attestationCertificate: " + attestationCertificate.toString());
+	    log.debug("  transports: " + transports);
+	    try {
+	      log.debug("  attestationCertificate bytes: "
+	          + Hex.encodeHexString(attestationCertificate.getEncoded()));
+	    } catch (CertificateEncodingException e) {
+	      throw new U2FException("Cannot encode certificate", e);
+	    }
+	    log.debug("  signature: " + Hex.encodeHexString(signature));
     }
-    Log.info("  signature: " + Hex.encodeHexString(signature));
-
+    
     byte[] appIdSha256 = crypto.computeSha256(appId.getBytes());
     byte[] clientDataSha256 = crypto.computeSha256(clientData.getBytes());
     byte[] signedBytes = RawMessageCodec.encodeRegistrationSignedBytes(
@@ -190,7 +194,7 @@ public class U2FServerUnison implements U2FServer {
     
     if (!found) {
     	if (! this.requireAttestation) {
-    		Log.warning("attestion cert is not trusted");
+    		log.warn("attestion cert is not trusted");
     	} else {
     		throw new U2FException("Attestation certificate is not trusted");
     	}
@@ -198,8 +202,10 @@ public class U2FServerUnison implements U2FServer {
 
     verifyBrowserData(
         new JsonParser().parse(clientData), "navigator.id.finishEnrollment", sessionData);
-
-    Log.info("Verifying signature of bytes " + Hex.encodeHexString(signedBytes));
+    if (log.isDebugEnabled()) {
+    	log.debug("Verifying signature of bytes " + Hex.encodeHexString(signedBytes));
+    }
+    
     if (!crypto.verifySignature(attestationCertificate, signedBytes, signature)) {
       throw new U2FException("Signature is invalid");
     }
@@ -211,13 +217,18 @@ public class U2FServerUnison implements U2FServer {
         keyHandle, userPublicKey, attestationCertificate, /* initial counter value */ 0);
     dataStore.addSecurityKeyData(sessionData.getAccountName(), securityKeyData);
 
-    Log.info("<< processRegistrationResponse");
+    if (log.isDebugEnabled()) {
+    	log.debug("<< processRegistrationResponse");
+    }
+    
     return securityKeyData;
   }
 
   @Override
   public U2fSignRequest getSignRequest(String accountName, String appId) throws U2FException {
-    Log.info(">> getSignRequest " + accountName);
+	  if (log.isDebugEnabled()) {
+		  log.debug(">> getSignRequest " + accountName);
+	  }
 
     List<SecurityKeyData> securityKeyDataList = dataStore.getSecurityKeyData(accountName);
 
@@ -225,7 +236,10 @@ public class U2FServerUnison implements U2FServer {
     String challengeBase64 = Base64.encodeBase64URLSafeString(challenge);
 
     ImmutableList.Builder<RegisteredKey> registeredKeys = ImmutableList.builder();
-    Log.info("  challenge: " + Hex.encodeHexString(challenge));
+    if (log.isDebugEnabled()) {
+    	log.debug("  challenge: " + Hex.encodeHexString(challenge));
+    }
+    
     for (SecurityKeyData securityKeyData : securityKeyDataList) {
       SignSessionData sessionData =
           new SignSessionData(accountName, appId, challenge, securityKeyData.getPublicKey());
@@ -233,13 +247,17 @@ public class U2FServerUnison implements U2FServer {
 
       byte[] keyHandle = securityKeyData.getKeyHandle();
       List<Transports> transports = securityKeyData.getTransports();
-      Log.info("-- Output --");
-      Log.info("  sessionId: " + sessionId);
-      Log.info("  keyHandle: " + Hex.encodeHexString(keyHandle));
-
+      if (log.isDebugEnabled()) {
+	      log.debug("-- Output --");
+	      log.debug("  sessionId: " + sessionId);
+	      log.debug("  keyHandle: " + Hex.encodeHexString(keyHandle));
+      }
       String keyHandleBase64 = Base64.encodeBase64URLSafeString(keyHandle);
-
-      Log.info("<< getRegisteredKey " + accountName);
+      
+      if (log.isDebugEnabled()) {
+    	  log.debug("<< getRegisteredKey " + accountName);
+      }
+      
       registeredKeys.add(
           new RegisteredKey(U2FConsts.U2F_V2, keyHandleBase64, transports, appId, sessionId));
     }
@@ -249,7 +267,9 @@ public class U2FServerUnison implements U2FServer {
 
   @Override
   public SecurityKeyData processSignResponse(SignResponse signResponse) throws U2FException {
-    Log.info(">> processSignResponse");
+	  if (log.isDebugEnabled()) {
+		  log.debug(">> processSignResponse");
+	  }
 
     String sessionId = signResponse.getSessionId();
     String browserDataBase64 = signResponse.getClientData();
@@ -278,14 +298,15 @@ public class U2FServerUnison implements U2FServer {
     String browserData = new String(Base64.decodeBase64(browserDataBase64));
     byte[] rawSignData = Base64.decodeBase64(rawSignDataBase64);
 
-    Log.info("-- Input --");
-    Log.info("  sessionId: " + sessionId);
-    Log.info("  publicKey: " + Hex.encodeHexString(securityKeyData.getPublicKey()));
-    Log.info("  challenge: " + Hex.encodeHexString(sessionData.getChallenge()));
-    Log.info("  accountName: " + sessionData.getAccountName());
-    Log.info("  browserData: " + browserData);
-    Log.info("  rawSignData: " + Hex.encodeHexString(rawSignData));
-
+    if (log.isDebugEnabled()) {
+	    log.debug("-- Input --");
+	    log.debug("  sessionId: " + sessionId);
+	    log.debug("  publicKey: " + Hex.encodeHexString(securityKeyData.getPublicKey()));
+	    log.debug("  challenge: " + Hex.encodeHexString(sessionData.getChallenge()));
+	    log.debug("  accountName: " + sessionData.getAccountName());
+	    log.debug("  browserData: " + browserData);
+	    log.debug("  rawSignData: " + Hex.encodeHexString(rawSignData));
+    }
     verifyBrowserData(
         new JsonParser().parse(browserData), "navigator.id.getAssertion", sessionData);
 
@@ -295,10 +316,12 @@ public class U2FServerUnison implements U2FServer {
     int counter = authenticateResponse.getCounter();
     byte[] signature = authenticateResponse.getSignature();
 
-    Log.info("-- Parsed rawSignData --");
-    Log.info("  userPresence: " + Integer.toHexString(userPresence & 0xFF));
-    Log.info("  counter: " + counter);
-    Log.info("  signature: " + Hex.encodeHexString(signature));
+    if (log.isDebugEnabled()) {
+	    log.debug("-- Parsed rawSignData --");
+	    log.debug("  userPresence: " + Integer.toHexString(userPresence & 0xFF));
+	    log.debug("  counter: " + counter);
+	    log.debug("  signature: " + Hex.encodeHexString(signature));
+    }
 
     if ((userPresence & UserPresenceVerifier.USER_PRESENT_FLAG) == 0) {
       throw new U2FException("User presence invalid during authentication");
@@ -313,7 +336,10 @@ public class U2FServerUnison implements U2FServer {
     byte[] signedBytes = RawMessageCodec.encodeAuthenticateSignedBytes(
         appIdSha256, userPresence, counter, browserDataSha256);
 
-    Log.info("Verifying signature of bytes " + Hex.encodeHexString(signedBytes));
+    if (log.isDebugEnabled()) {
+    	log.debug("Verifying signature of bytes " + Hex.encodeHexString(signedBytes));
+    }
+    
     if (!crypto.verifySignature(
             crypto.decodePublicKey(securityKeyData.getPublicKey()), signedBytes, signature)) {
       throw new U2FException("Signature is invalid");
@@ -322,7 +348,9 @@ public class U2FServerUnison implements U2FServer {
     dataStore.updateSecurityKeyCounter(
         sessionData.getAccountName(), securityKeyData.getPublicKey(), counter);
 
-    Log.info("<< processSignResponse");
+    if (log.isDebugEnabled()) {
+    	log.debug("<< processSignResponse");
+    }
     return securityKeyData;
   }
 

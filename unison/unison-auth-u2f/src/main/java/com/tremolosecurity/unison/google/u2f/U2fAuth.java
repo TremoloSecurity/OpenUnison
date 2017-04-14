@@ -66,6 +66,8 @@ public class U2fAuth implements AuthMechanism {
 
 	private ChallengeGenerator challengeGen;
 	
+	static Gson gson = new Gson();
+	
 	
 	@Override
 	public void init(ServletContext ctx, HashMap<String, Attribute> init) {
@@ -96,7 +98,7 @@ public class U2fAuth implements AuthMechanism {
 		if (request.getParameter("signResponse") == null) {
 			startAuthentication(request, response, as);
 		} else {
-			Gson gson = new Gson();
+			
 			SignResponseHolder srh = gson.fromJson(request.getParameter("signResponse"),SignResponseHolder.class);
 			
 			AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();

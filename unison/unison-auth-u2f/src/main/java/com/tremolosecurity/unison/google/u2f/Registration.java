@@ -71,6 +71,8 @@ public class Registration implements HttpFilter {
 	
 	ChallengeGenerator challengeGen;
 	
+	
+	
 	@Override
 	public void doFilter(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain)
 			throws Exception {
@@ -94,7 +96,9 @@ public class Registration implements HttpFilter {
 			
 		} else if (request.getMethod().equalsIgnoreCase("POST")) {
 			U2FServer u2f = (U2FServer) request.getSession().getAttribute(SERVER);
-			logger.info("response : '" + request.getParameter("tokenResponse").getValues().get(0) + "'");
+			if (logger.isDebugEnabled()) {
+				logger.debug("response : '" + request.getParameter("tokenResponse").getValues().get(0) + "'");
+			}
 			RegistrationResponseHolder rrh = gson.fromJson(request.getParameter("tokenResponse").getValues().get(0), RegistrationResponseHolder.class);
 			RegistrationResponse rr = new RegistrationResponse(rrh.getRegistrationData(),rrh.getClientData(),rrh.getClientData());
 			try {
