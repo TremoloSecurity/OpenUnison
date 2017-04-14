@@ -152,6 +152,7 @@
 		<module>unison-auth-openidconnect</module>
 		<module>unison-idp-openidconnect</module>
 		<module>unison-applications-k8s</module>
+		<module>unison-auth-u2f</module>
 	</modules>
 	<build>
 		<plugins>

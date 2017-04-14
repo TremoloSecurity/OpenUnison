@@ -1,0 +1,27 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.tremolosecurity.unison</groupId>
+    <artifactId>unison</artifactId>
+    <version>1.0.9</version>
+  </parent>
+  <artifactId>unison-auth-u2f</artifactId>
+  <name>unison-auth-u2f</name>
+  <dependencies>
+  	<dependency>
+	   <groupId>com.yubico</groupId>
+	   <artifactId>u2flib-server-core</artifactId>
+	   <version>0.16.0</version>
+	</dependency>
+	<dependency>
+		<groupId>com.tremolosecurity.unison</groupId>
+		<artifactId>unison-sdk</artifactId>
+		<version>${openunison.version}</version>
+	</dependency>
+	<dependency>
+    <groupId>org.simpleframework</groupId>
+    <artifactId>simple</artifactId>
+    <version>5.1.6</version>
+</dependency>
+  </dependencies>
+</project>
