@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2015, 2016 Tremolo Security, Inc.
+ * Copyright 2017 Tremolo Security, Inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -10,41 +10,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package com.tremolosecurity.unison.freeipa.util;
+package com.tremolosecurity.provisioning.core;
 
-import com.tremolosecurity.provisioning.core.ProvisioningException;
+import java.util.Map;
 
-public class IPAException extends ProvisioningException {
-
-	int code;
-	String name;
+public interface UserStoreProviderWithAddGroup extends UserStoreProvider {
+	public abstract void addGroup(String name,User user, Map<String, Object> request) throws ProvisioningException;
 	
-	public IPAException(String msg) {
-		super(msg);
-		
-	}
+	public abstract void deleteGroup(String name,User user, Map<String, Object> request) throws ProvisioningException;
 	
-	public IPAException(String msg,Throwable t) {
-		super(msg,t);
-		
-	}
-
-	public int getCode() {
-		return code;
-	}
-
-	public void setCode(int code) {
-		this.code = code;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-	
-	
-
+	public abstract boolean isGroupExists(String name,User user, Map<String, Object> request) throws ProvisioningException;
 }

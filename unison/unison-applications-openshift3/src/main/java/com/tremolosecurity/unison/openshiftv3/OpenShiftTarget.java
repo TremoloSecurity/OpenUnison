@@ -15,6 +15,7 @@ package com.tremolosecurity.unison.openshiftv3;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -49,15 +50,17 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.UserStoreProvider;
+import com.tremolosecurity.provisioning.core.UserStoreProviderWithAddGroup;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.unison.openshiftv3.model.Item;
 import com.tremolosecurity.unison.openshiftv3.model.Response;
 import com.tremolosecurity.unison.openshiftv3.model.groups.GroupItem;
 
-public class OpenShiftTarget implements UserStoreProvider {
+public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(OpenShiftTarget.class.getName());
 
@@ -642,6 +645,123 @@ public class OpenShiftTarget implements UserStoreProvider {
 				this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Delete,  approvalID, workflow, "group", groupName);
 			} else {
 				throw new Exception("Could not remove group " + groupName + " to " + userName + " - " + resp.getReason());
+			}
+		}
+	}
+
+	@Override
+	public void addGroup(String name, User user, Map<String, Object> request) throws ProvisioningException {
+		HttpCon con = null;
+		int approvalID = 0;
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+		
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
+		
+		try {
+			String token = this.getAuthToken();
+			con = this.createClient();
+			
+			Gson gson = new Gson();
+			
+			
+			
+			com.tremolosecurity.unison.openshiftv3.model.groups.Group group = new com.tremolosecurity.unison.openshiftv3.model.groups.Group();
+			group.setKind("Group");
+			group.setApiVersion("v1");
+			group.setMetadata(new HashMap<String,String>());
+			group.getMetadata().put("name", name);
+			group.getMetadata().put("creationTimestamp", null);
+			group.setUsers(null);
+			String jsonInput = gson.toJson(group);
+			String json = this.callWSPost(token, con, "/oapi/v1/groups", jsonInput);
+
+			Response resp = gson.fromJson(json, Response.class);
+			
+			
+			if (resp.getKind().equalsIgnoreCase("Group")) {
+				this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Add,  approvalID, workflow, "group-object", name);
+			} else {
+				throw new ProvisioningException("Unknown response : '" + json + "'");
+			}
+			
+			
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not load group",e);
+		} finally {
+			if (con != null) {
+				con.getBcm().close();
+			}
+		}
+		
+	}
+
+	@Override
+	public void deleteGroup(String name, User user, Map<String, Object> request) throws ProvisioningException {
+		HttpCon con = null;
+		
+		int approvalID = 0;
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+		
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
+		
+		
+		try {
+			String token = this.getAuthToken();
+			con = this.createClient();
+			
+			Gson gson = new Gson();
+			StringBuffer b = new StringBuffer();
+			b.append("/oapi/v1/groups/").append(name);
+			String json = this.callWSDelete(token, con, b.toString());
+			Response resp = gson.fromJson(json, Response.class);
+			
+			
+			if (resp.getStatus().equalsIgnoreCase("Success")) {
+				this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Delete,  approvalID, workflow, "group-object", name);
+			} else {
+				throw new ProvisioningException("Unknown response : '" + json + "'");
+			}
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not load group",e);
+		} finally {
+			if (con != null) {
+				con.getBcm().close();
+			}
+		}
+		
+	}
+
+	@Override
+	public boolean isGroupExists(String name, User user, Map<String, Object> request) throws ProvisioningException {
+		HttpCon con = null;
+		
+		try {
+			String token = this.getAuthToken();
+			con = this.createClient();
+			
+			Gson gson = new Gson();
+			StringBuffer b = new StringBuffer();
+			b.append("/oapi/v1/groups/").append(name);
+			String json = this.callWS(token, con, b.toString());
+			com.tremolosecurity.unison.openshiftv3.model.groups.Group group = gson.fromJson(json, com.tremolosecurity.unison.openshiftv3.model.groups.Group.class);
+			
+			
+			if (group.getStatus() != null && group.getStatus().equalsIgnoreCase("Failure")) {
+				return false;
+			} else if (group.getKind().equalsIgnoreCase("Group")) {
+				return true;
+			} else {
+				throw new ProvisioningException("Unknown response : '" + json + "'");
+			}
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not load group",e);
+		} finally {
+			if (con != null) {
+				con.getBcm().close();
 			}
 		}
 	}

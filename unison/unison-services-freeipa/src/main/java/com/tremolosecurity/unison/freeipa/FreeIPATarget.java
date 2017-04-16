@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2015 Tremolo Security, Inc.
+ * Copyright 2015, 2017 Tremolo Security, Inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,6 +49,7 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.UserStoreProvider;
+import com.tremolosecurity.provisioning.core.UserStoreProviderWithAddGroup;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.util.HttpCon;
@@ -62,7 +63,7 @@ import net.sourceforge.myvd.util.PBKDF2;
 
 
 
-public class FreeIPATarget implements UserStoreProvider{
+public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(FreeIPATarget.class.getName());
 	
@@ -733,6 +734,124 @@ public class FreeIPATarget implements UserStoreProvider{
 				if (! newVals.contains(val)) {
 					this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Delete,  approvalID, workflow, attrName, val);
 				}
+			}
+		}
+	}
+
+	@Override
+	public void addGroup(String name, User user, Map<String, Object> request) throws ProvisioningException {
+		int approvalID = 0;
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+		
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
+		
+		IPACall groupSearch = new IPACall();
+		groupSearch.setId(0);
+		groupSearch.setMethod("group_add");
+		
+		ArrayList<String> groupArray = new ArrayList<String>();
+		groupArray.add(name);
+		groupSearch.getParams().add(groupArray);
+		
+		HashMap<String,String> additionalParams = new HashMap<String,String>();
+		
+		groupSearch.getParams().add(additionalParams);
+		
+		HttpCon con = null;
+		
+		try {
+		
+			con = this.createClient();
+			
+			IPAResponse resp = this.executeIPACall(groupSearch, con);
+			
+			this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Add,  approvalID, workflow, "group-object", name);
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not find groups",e);
+		} finally {
+			if (con != null) {
+				con.getBcm().close();
+			}
+		}
+		
+	}
+
+	@Override
+	public void deleteGroup(String name, User user, Map<String, Object> request) throws ProvisioningException {
+		int approvalID = 0;
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+		
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
+		
+		IPACall groupSearch = new IPACall();
+		groupSearch.setId(0);
+		groupSearch.setMethod("group_del");
+		
+		ArrayList<String> groupArray = new ArrayList<String>();
+		groupArray.add(name);
+		groupSearch.getParams().add(groupArray);
+		
+		HashMap<String,String> additionalParams = new HashMap<String,String>();
+		
+		groupSearch.getParams().add(additionalParams);
+		
+		HttpCon con = null;
+		
+		try {
+		
+			con = this.createClient();
+			
+			IPAResponse resp = this.executeIPACall(groupSearch, con);
+			
+			this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Delete,  approvalID, workflow, "group-object", name);
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not find groups",e);
+		} finally {
+			if (con != null) {
+				con.getBcm().close();
+			}
+		}
+		
+	}
+
+	@Override
+	public boolean isGroupExists(String name, User user, Map<String, Object> request) throws ProvisioningException {
+		IPACall groupSearch = new IPACall();
+		groupSearch.setId(0);
+		groupSearch.setMethod("group_show");
+		
+		ArrayList<String> groupArray = new ArrayList<String>();
+		groupArray.add(name);
+		groupSearch.getParams().add(groupArray);
+		
+		HashMap<String,String> additionalParams = new HashMap<String,String>();
+		
+		groupSearch.getParams().add(additionalParams);
+		
+		HttpCon con = null;
+		
+		try {
+		
+			con = this.createClient();
+			
+			IPAResponse resp = this.executeIPACall(groupSearch, con);
+			
+			return true;
+		} catch (IPAException ipae) {
+			if (ipae.getCode() == 4001) {
+				return false;
+			} else {
+				throw new ProvisioningException("Could not find groups",ipae);
+			}
+ 		} catch (Exception e) {
+			throw new ProvisioningException("Could not find groups",e);
+		} finally {
+			if (con != null) {
+				con.getBcm().close();
 			}
 		}
 	}
