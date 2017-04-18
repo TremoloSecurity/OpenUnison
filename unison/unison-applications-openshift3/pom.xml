@@ -14,6 +14,12 @@
   		<artifactId>unison-sdk</artifactId>
   		<version>${openunison.version}</version>
   	</dependency>
+  	
+	<dependency>
+		<groupId>com.googlecode.json-simple</groupId>
+		<artifactId>json-simple</artifactId>
+		<version>${json-simple.version}</version>
+	</dependency>
   </dependencies>
   
   	

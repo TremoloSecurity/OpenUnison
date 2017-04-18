@@ -436,7 +436,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		return json;
 	}
 	
-	private String callWSDelete(String token, HttpCon con,String uri) throws IOException, ClientProtocolException {
+	public String callWSDelete(String token, HttpCon con,String uri) throws IOException, ClientProtocolException {
 		StringBuffer b = new StringBuffer();
 		
 		b.append(this.url).append(uri);
@@ -450,7 +450,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		return json;
 	}
 	
-	private String callWSPut(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
+	public String callWSPut(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
 		StringBuffer b = new StringBuffer();
 		
 		b.append(this.url).append(uri);
@@ -468,7 +468,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		return json;
 	}
 	
-	private String callWSPost(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
+	public String callWSPost(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
 		StringBuffer b = new StringBuffer();
 		
 		b.append(this.url).append(uri);
