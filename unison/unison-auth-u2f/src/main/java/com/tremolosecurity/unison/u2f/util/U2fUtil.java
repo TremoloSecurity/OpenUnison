@@ -173,7 +173,11 @@ public class U2fUtil {
 		URL url = new URL(request.getRequestURL().toString());
 		appID.append(url.getProtocol()).append("://").append(url.getHost());
 		
-		if (! (url.getProtocol().equalsIgnoreCase("http") && (url.getPort() == 80 || url.getPort() <= 0)) || ! (  url.getProtocol().equalsIgnoreCase("https") && (url.getPort() == 443 || url.getPort() <= 0)) ) {
+		/*if (! (url.getProtocol().equalsIgnoreCase("http") && (url.getPort() == 80 || url.getPort() <= 0)) || ! (  url.getProtocol().equalsIgnoreCase("https") && (url.getPort() == 443 || url.getPort() <= 0)) ) {
+			appID.append(':').append(url.getPort());
+		}*/
+		
+		if (url.getPort() > 0) { 
 			appID.append(':').append(url.getPort());
 		}
 		
