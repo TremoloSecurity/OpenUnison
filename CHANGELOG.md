@@ -1,5 +1,9 @@
-## 1.0.9-2017040801
+## 1.0.9-2017082101
 
+**bugs:**
+ - guava outdated [\#197](https://github.com/TremoloSecurity/OpenUnison/issues/197)
+
+## 1.0.9-2017040801
 
 **bugs:**
  - slf4j dependency not being set correctly [\#190](https://github.com/TremoloSecurity/OpenUnison/issues/190)
