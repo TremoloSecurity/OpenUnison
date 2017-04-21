@@ -1,3 +1,8 @@
+## 1.0.9-2017082001
+
+**bugs:**
+ - guava outdated [\#197](https://github.com/TremoloSecurity/OpenUnison/issues/197)
+
 ## 1.0.9-2017040801
 
 **bugs:**
