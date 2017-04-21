@@ -1,5 +1,6 @@
 ## 1.0.9-2017040801
 
+
 **bugs:**
  - slf4j dependency not being set correctly [\#190](https://github.com/TremoloSecurity/OpenUnison/issues/190)
  - activemq-all causing classpath clashes [\#189](https://github.com/TremoloSecurity/OpenUnison/issues/189)
