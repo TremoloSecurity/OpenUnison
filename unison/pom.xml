@@ -85,10 +85,10 @@
 			<url>https://www.tremolosecurity.com/nexus/content/repositories/releases/</url>
 		</repository>
 
-		<repository>
+		<!-- <repository>
 			<id>jboss</id>
 			<url>https://repository.jboss.org/nexus/content/repositories/</url>
-		</repository>
+		</repository>  -->
 		
 		<repository>
 			<id>opensaml</id>
