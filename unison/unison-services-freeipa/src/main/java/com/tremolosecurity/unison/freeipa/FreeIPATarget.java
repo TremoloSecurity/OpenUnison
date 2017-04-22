@@ -544,7 +544,13 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 		
 		modify.getParams().add(additionalParams);
 		
-		IPAResponse resp = this.executeIPACall(modify, con);
+		try {
+			IPAResponse resp = this.executeIPACall(modify, con);
+		} catch (IPAException e) {
+			if (! e.getMessage().equalsIgnoreCase("no modifications to be performed")) {
+				throw e;
+			}
+		}
 	}
 	
 	private void deleteAttribute(String userID, String attrName,
