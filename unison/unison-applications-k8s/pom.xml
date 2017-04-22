@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison</artifactId>
-		<version>1.0.9</version>
+		<version>1.0.10</version>
 	</parent>
 	<artifactId>unison-applications-k8s</artifactId>
 	<name>unison-applications-k8s</name>

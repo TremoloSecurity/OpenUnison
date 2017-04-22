@@ -27,7 +27,7 @@ public class ScaleSingleRequestConfig {
 	String homeURL;
 	String uidAttribute;
 	transient String workflowName;
-	
+	transient boolean useAttributesFromAuthentication;
 	
 	public ScaleSingleRequestConfig() {
 		this.frontPage = new ScaleFrontPage();
@@ -91,6 +91,19 @@ public class ScaleSingleRequestConfig {
 	public void setUidAttribute(String uidAttribute) {
 		this.uidAttribute = uidAttribute;
 	}
+
+
+
+	public boolean isUseAttributesFromAuthentication() {
+		return useAttributesFromAuthentication;
+	}
+
+
+
+	public void setUseAttributesFromAuthentication(boolean useAttributesFromAuthentication) {
+		this.useAttributesFromAuthentication = useAttributesFromAuthentication;
+	}
+	
 	
 	
 	

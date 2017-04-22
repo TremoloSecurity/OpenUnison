@@ -92,6 +92,17 @@ public class ScaleSingleRequest implements HttpFilter {
 				tu.setUid(userData.getAttribs().get(this.scaleConfig.getUidAttribute()).getValues().get(0));
 				tu.getAttributes().add(new Attribute(this.scaleConfig.getUidAttribute(),userData.getAttribs().get(this.scaleConfig.getUidAttribute()).getValues().get(0)));
 				
+				if (this.scaleConfig.isUseAttributesFromAuthentication()) {
+					for (String key : userData.getAttribs().keySet()) {
+						Attribute fromUser = userData.getAttribs().get(key);
+						if (! key.equalsIgnoreCase(this.scaleConfig.getUidAttribute())) {
+							Attribute forwf = new Attribute(key);
+							forwf.getValues().addAll(fromUser.getValues());
+							tu.getAttributes().add(forwf);
+						}
+					}
+				}
+				
 				wfCall.setUser(tu);
 				
 				try {
@@ -168,8 +179,8 @@ public class ScaleSingleRequest implements HttpFilter {
 		scaleConfig.setWorkflowName(this.loadAttributeValue("workflowName", "Workflow Name", config));
 		scaleConfig.setUidAttribute(this.loadAttributeValue("uidAttribute", "UID Attribute", config));
 		
-		
-		
+		String tmp = this.loadOptionalAttributeValue("useAttributesFromAuthentication", "Use Attributes from Authentication", config);
+		scaleConfig.setUseAttributesFromAuthentication(tmp != null && tmp.equalsIgnoreCase("true"));
 		
 
 	}

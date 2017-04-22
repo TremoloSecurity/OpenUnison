@@ -10,12 +10,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.tremolosecurity.unison</groupId>
 	<artifactId>unison</artifactId>
-	<version>1.0.9</version>
+	<version>1.0.10</version>
 	<name>Unison</name>
 	<packaging>pom</packaging>
 
 	<properties>
-		<openunison.version>1.0.9</openunison.version>
+		<openunison.version>1.0.10</openunison.version>
 		<servlet.api.version>3.1.0</servlet.api.version>
 		<servlet.2x.api.version>2.5-6.0.2</servlet.2x.api.version>
 		<commons-collections.version>3.2.2</commons-collections.version>
