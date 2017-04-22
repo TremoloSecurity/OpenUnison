@@ -22,6 +22,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -105,7 +106,28 @@ public class ServiceActions {
 					}
 					while (res.hasMore()) res.next();
 				} else {
-					sum.setDisplayName(approver);
+					
+					//TODO decrypt object
+					if (displayNameAttribute.equalsIgnoreCase(cfgMgr.getCfg().getProvisioning().getApprovalDB().getUserIdAttribute())) {
+						sum.setDisplayName(appr.getWorkflow().getUsers().getUserKey());
+					} else {
+						boolean found = false;
+						Set<UserAttributes> fromReportData = appr.getWorkflow().getUsers().getUserAttributeses();
+						for (UserAttributes attr : fromReportData) {
+							if (attr.getName().equalsIgnoreCase(displayNameAttribute)) {
+								sum.setDisplayName(attr.getValue());
+								found = true;
+								break;
+							}
+						}
+						
+						if (! found) {
+							sum.setDisplayName(appr.getWorkflow().getUsers().getUserKey());
+						}
+					} 
+					
+					
+					
 				}
 				
 				
