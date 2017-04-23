@@ -181,7 +181,7 @@ public class AddGroupToRole implements CustomTask {
 					if (! resp.getKind().equals("RoleBinding")) {
 						throw new ProvisioningException("Could not add '" + localGroupName + "' to '" + localPolicyName + "' in project '" + localProjectName + "' - " + jsonResp);
 					} else {
-						this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ActionType.Add,  approvalID, workflow, "openshift-project.role.group", new StringBuilder().append(localProjectName).append('.').append(localPolicyName).append('.').append(localGroupName).toString());
+						this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ActionType.Add,  approvalID, this.task.getWorkflow(), "openshift-project.role.group", new StringBuilder().append(localProjectName).append('.').append(localPolicyName).append('.').append(localGroupName).toString());
 					}
 					
 				} else {
@@ -224,7 +224,7 @@ public class AddGroupToRole implements CustomTask {
 					if (! resp.getKind().equals("RoleBinding")) {
 						throw new ProvisioningException("Could not add '" + localGroupName + "' to '" + localPolicyName + "' in project '" + localProjectName + "' - " + resp.getStatus());
 					} else {
-						this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ActionType.Add,  approvalID, workflow, "openshift-project.role.group", new StringBuilder().append(localProjectName).append('.').append(localPolicyName).append('.').append(localGroupName).toString());
+						this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ActionType.Add,  approvalID, this.task.getWorkflow(), "openshift-project.role.group", new StringBuilder().append(localProjectName).append('.').append(localPolicyName).append('.').append(localGroupName).toString());
 					}
 				}
 				

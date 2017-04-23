@@ -39,12 +39,27 @@ public class ScaleJSRegisterConfig {
 	transient boolean useCustomSubmission;
 	transient HashMap<String,Attribute> customSubmissionConfig;
 	transient String customSubmissionClassName;
+	transient boolean submitLoggedInUser;
 	
 	public ScaleJSRegisterConfig() {
 		this.attributes = new HashMap<String,ScaleAttribute>();
 		this.frontPage = new ScaleFrontPage();
 		this.attributeNameList = new ArrayList<String>();
+		this.submitLoggedInUser = false;
 	}
+
+	
+
+	public boolean isSubmitLoggedInUser() {
+		return submitLoggedInUser;
+	}
+
+
+
+	public void setSubmitLoggedInUser(boolean submitLoggedInUser) {
+		this.submitLoggedInUser = submitLoggedInUser;
+	}
+
 
 
 	public List<String> getAttributeNameList() {

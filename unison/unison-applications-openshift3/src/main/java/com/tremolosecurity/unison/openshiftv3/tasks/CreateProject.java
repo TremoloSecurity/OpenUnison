@@ -92,7 +92,7 @@ public class CreateProject implements CustomTask {
 			if (! kind.equalsIgnoreCase("Project")) {
 				throw new ProvisioningException("Could not create project with json '" + localTemplate + "' - '" + respJSON + "'" );
 			} else {
-				this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ActionType.Add,  approvalID, workflow, "openshift-project", projectName);
+				this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ActionType.Add,  approvalID, this.task.getWorkflow(), "openshift-project", projectName);
 			}
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not create project",e);

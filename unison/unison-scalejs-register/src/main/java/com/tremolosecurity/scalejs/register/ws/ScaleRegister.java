@@ -215,8 +215,17 @@ public class ScaleRegister implements HttpFilter {
 			
 			if (errors.getErrors().isEmpty()) {
 				TremoloUser user = new TremoloUser();
-				user.setUid(newUser.getAttributes().get(this.scaleConfig.getUidAttributeName()));
+				
 				AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+				
+				if (this.scaleConfig.isSubmitLoggedInUser()) {
+					user.setUid(userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0));
+					user.getAttributes().add(new Attribute(this.scaleConfig.getUidAttributeName(),userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0)));
+				} else {
+					user.setUid(newUser.getAttributes().get(this.scaleConfig.getUidAttributeName()));
+				}
+				
+				
 				
 				for (String attrName : newUser.getAttributes().keySet()) {
 					user.getAttributes().add(new Attribute(attrName,newUser.getAttributes().get(attrName)));	
@@ -240,7 +249,7 @@ public class ScaleRegister implements HttpFilter {
 				
 				
 					
-				if (userData.getAuthLevel() != 0) {
+				if (userData.getAuthLevel() != 0 && ! this.scaleConfig.isSubmitLoggedInUser()) {
 					wfcall.setRequestor(userData.getAttribs().get(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getApprovalDB().getUserIdAttribute()).getValues().get(0));
 					wfcall.getRequestParams().put(Approval.SEND_NOTIFICATION, "false");
 					wfcall.getRequestParams().put(Approval.REASON, newUser.getReason());
@@ -425,6 +434,12 @@ public class ScaleRegister implements HttpFilter {
 		}
 		
 		scaleConfig.setUseCustomSubmission(val.equalsIgnoreCase("true"));
+		
+		val = loadOptionalAttributeValue("submitLoggedInUser", "Submit logged in user as subject", config);
+		if (val == null) {
+			val = "false";
+		}
+		scaleConfig.setSubmitLoggedInUser(val.equalsIgnoreCase("true"));
 		
 		if (scaleConfig.isUseCustomSubmission()) {
 			scaleConfig.setCustomSubmissionClassName(this.loadAttributeValue("callWorkflowClassName", "Custom Submission Class", config));

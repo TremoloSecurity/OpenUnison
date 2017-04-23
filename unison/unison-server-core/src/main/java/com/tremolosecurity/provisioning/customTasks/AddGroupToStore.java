@@ -56,6 +56,9 @@ public class AddGroupToStore implements CustomTask {
 	public boolean doTask(User user, Map<String, Object> request) throws ProvisioningException {
 		UserStoreProvider target =  task.getConfigManager().getProvisioningEngine().getTarget(this.target).getProvider();
 		if (target instanceof UserStoreProviderWithAddGroup) {
+			
+			request.put("WORKFLOW", this.task.getWorkflow());
+			
 			for (String name : names) {
 				((UserStoreProviderWithAddGroup)target).addGroup(task.renderTemplate(name, request), user, request);
 			}
