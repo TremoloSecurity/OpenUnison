@@ -390,8 +390,11 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 						action = (boolean) tmp;
 					}
 					
-					 
-					GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().doApproval(this.id, this.getWorkflow().getRequester().getUserID(), action, reason);
+					 try {
+						 GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().doApproval(this.id, this.getWorkflow().getRequester().getUserID(), action, reason);
+					 } catch (ProvisioningException pe) {
+						 logger.warn("Could not execute pre-approval",pe);
+					 }
 				}
 				
 				
