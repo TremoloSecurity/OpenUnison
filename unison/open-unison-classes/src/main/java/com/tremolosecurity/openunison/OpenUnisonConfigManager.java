@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.KeyStore;
+import java.util.Enumeration;
 import java.util.Properties;
 
 import javax.naming.InitialContext;
@@ -151,6 +152,20 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 			
 			ks.load(in, unisonConfig.getKeyStorePassword().toCharArray());
 			
+			KeyStore cacerts = KeyStore.getInstance(KeyStore.getDefaultType());
+			String cacertsPath = System.getProperty("javax.net.ssl.trustStore");
+			if (cacertsPath == null) {
+				cacertsPath = System.getProperty("java.home") + "/lib/security/cacerts";
+			}
+			
+			cacerts.load(new FileInputStream(cacertsPath), null);
+			
+			Enumeration<String> enumer = cacerts.aliases();
+			while (enumer.hasMoreElements()) {
+				String alias = enumer.nextElement();
+				java.security.cert.Certificate cert = cacerts.getCertificate(alias);
+				ks.setCertificateEntry(alias, cert);
+			}
 			
 			this.kmf = KeyManagerFactory.getInstance("SunX509");
 			kmf.init(this.ks, unisonConfig.getKeyStorePassword().toCharArray());
