@@ -82,7 +82,7 @@
 		<repository>
 			<id>deployment</id>
 			<name>Tremolo Security Releases</name>
-			<url>https://www.tremolosecurity.com/nexus/content/repositories/releases/</url>
+			<url>https://www.tremolosecurity.com/nexus/content/repositories/betas/</url>
 		</repository>
 
 		<!-- <repository>
@@ -101,7 +101,7 @@
 		<repository>
 			<id>deployment</id>
 			<name>Tremolo Security Releases</name>
-			<url>https://www.tremolosecurity.com/nexus/content/repositories/releases</url>
+			<url>https://www.tremolosecurity.com/nexus/content/repositories/betas</url>
 		</repository>
 
 	</distributionManagement>
