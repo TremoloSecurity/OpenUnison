@@ -540,7 +540,7 @@ public class AuthManagerImpl implements AuthManager {
 					
 					
 					//load attributes from the user object if it exists
-					AuthInfo userData = ((AuthController) req.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+					/*AuthInfo userData = ((AuthController) req.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
 					
 					if (GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getUserAttrbiutes() != null) {
 						for (String attrName : GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getUserAttrbiutes()) {
@@ -552,7 +552,7 @@ public class AuthManagerImpl implements AuthManager {
 								updateAttrs.getAttribs().put(attrName,attrForWF);
 							}
 						}
-					}
+					}*/
 					
 					
 					

@@ -1,6 +1,7 @@
-## 1.0.9-2017082101
+## 1.0.9-2017082301
 
 **bugs:**
+ - compliance lockout creates anon user on failed auth [\#202](https://github.com/TremoloSecurity/OpenUnison/issues/202)
  - guava outdated [\#197](https://github.com/TremoloSecurity/OpenUnison/issues/197)
 
 ## 1.0.9-2017040801
