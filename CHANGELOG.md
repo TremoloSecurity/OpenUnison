@@ -1,4 +1,25 @@
-## 1.0.9-2017082301
+## 1.0.10-2017042901
+
+**bugs:**
+ - cacerts ignored [\#205](https://github.com/TremoloSecurity/OpenUnison/issues/205)
+ - if an error occurs when creating an authorization AFTER its committed, log the error don't throw an exception [\#204](https://github.com/TremoloSecurity/OpenUnison/issues/204)
+ - compliance lockout creates anon user on failed auth [\#202](https://github.com/TremoloSecurity/OpenUnison/issues/202)
+ - Approvals for users not in MyVD shows the subject of the approver, not the requestor [\#200](https://github.com/TremoloSecurity/OpenUnison/issues/200)
+ - freeipa errors out if no changes are in the request [\#198](https://github.com/TremoloSecurity/OpenUnison/issues/198)
+ - guava outdated [\#197](https://github.com/TremoloSecurity/OpenUnison/issues/197)
+
+**enhancements:**
+ - Add favicon.ico with the ts shield [\#203](https://github.com/TremoloSecurity/OpenUnison/issues/203)
+ - update scale register to act like single-request [\#196](https://github.com/TremoloSecurity/OpenUnison/issues/196)
+ - provisioning target to copy/move user attributes to the request object [\#201](https://github.com/TremoloSecurity/OpenUnison/issues/201)
+ - single request - pull attributes from authentication object [\#199](https://github.com/TremoloSecurity/OpenUnison/issues/199)
+ - Support U2F [\#191](https://github.com/TremoloSecurity/OpenUnison/issues/191)
+ - provisioning task for creating projects [\#195](https://github.com/TremoloSecurity/OpenUnison/issues/195)
+ - provisioning task to add group to policy [\#194](https://github.com/TremoloSecurity/OpenUnison/issues/194)
+ - provisioning custom task to add group [\#193](https://github.com/TremoloSecurity/OpenUnison/issues/193)
+ - Create interface for adding/removing groups from provisioning targets [\#192](https://github.com/TremoloSecurity/OpenUnison/issues/192)
+
+## 1.0.9-2017042301
 
 **bugs:**
  - compliance lockout creates anon user on failed auth [\#202](https://github.com/TremoloSecurity/OpenUnison/issues/202)
