@@ -13,6 +13,7 @@
 package com.tremolosecurity.provisioning.customTasks;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ public class AddGroupToStore implements CustomTask {
 	static transient Logger logger = org.apache.logging.log4j.LogManager.getLogger(AddGroupToStore.class.getName());
 
 	List<String> names;
+	Map<String,String> attributes;
 	String target;
 	
 	transient WorkflowTask task;
@@ -43,6 +45,18 @@ public class AddGroupToStore implements CustomTask {
 				
 				
 		this.target = params.get("target").getValues().get(0);
+		
+		this.attributes = new HashMap<String,String>();
+		
+		if (params.get("attributes") != null) {
+			for (String attr : params.get("attributes").getValues()) {
+				String name = attr.substring(0,attr.indexOf('='));
+				String val = attr.substring(attr.indexOf('=') + 1);
+				
+				this.attributes.put(name, val);
+			}
+		}
+		
 		this.task = task;
 	}
 
@@ -59,8 +73,15 @@ public class AddGroupToStore implements CustomTask {
 			
 			request.put("WORKFLOW", this.task.getWorkflow());
 			
+			Map<String,String> localAttrs = new HashMap<String,String>();
+			localAttrs.putAll(attributes);
+			
+			for (String key : localAttrs.keySet()) {
+				localAttrs.put(key, task.renderTemplate(localAttrs.get(key),request));
+			}
+			
 			for (String name : names) {
-				((UserStoreProviderWithAddGroup)target).addGroup(task.renderTemplate(name, request), user, request);
+				((UserStoreProviderWithAddGroup)target).addGroup(task.renderTemplate(name, request), localAttrs,user, request);
 			}
 		} else {
 			logger.warn("Target '" + this.target + "' can not add groups");

@@ -650,7 +650,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	}
 
 	@Override
-	public void addGroup(String name, User user, Map<String, Object> request) throws ProvisioningException {
+	public void addGroup(String name, Map<String,String> additionalAttributes,User user, Map<String, Object> request) throws ProvisioningException {
 		HttpCon con = null;
 		int approvalID = 0;
 		if (request.containsKey("APPROVAL_ID")) {

@@ -1232,6 +1232,25 @@ public class BasicDB implements BasicDBInterface {
 	public String getGroupPrimaryKey() {
 		return groupPrimaryKey;
 	}
+
+	@Override
+	public void addGroup(String name, Map<String, String> additionalAttributes, User user, Map<String, Object> request)
+			throws ProvisioningException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deleteGroup(String name, User user, Map<String, Object> request) throws ProvisioningException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean isGroupExists(String name, User user, Map<String, Object> request) throws ProvisioningException {
+		// TODO Auto-generated method stub
+		return false;
+	}
 	
 	
 }

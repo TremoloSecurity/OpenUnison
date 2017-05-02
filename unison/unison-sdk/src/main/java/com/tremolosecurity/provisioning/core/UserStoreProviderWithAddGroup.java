@@ -15,7 +15,7 @@ package com.tremolosecurity.provisioning.core;
 import java.util.Map;
 
 public interface UserStoreProviderWithAddGroup extends UserStoreProvider {
-	public abstract void addGroup(String name,User user, Map<String, Object> request) throws ProvisioningException;
+	public abstract void addGroup(String name,Map<String,String> additionalAttributes,User user,Map<String, Object> request) throws ProvisioningException;
 	
 	public abstract void deleteGroup(String name,User user, Map<String, Object> request) throws ProvisioningException;
 	

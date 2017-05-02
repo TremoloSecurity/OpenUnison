@@ -26,9 +26,10 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.UserStoreProvider;
+import com.tremolosecurity.provisioning.core.UserStoreProviderWithAddGroup;
 import com.tremolosecurity.saml.Attribute;
 
-public interface BasicDBInterface extends UserStoreProvider {
+public interface BasicDBInterface extends UserStoreProviderWithAddGroup {
 
 	
 

@@ -745,7 +745,7 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 	}
 
 	@Override
-	public void addGroup(String name, User user, Map<String, Object> request) throws ProvisioningException {
+	public void addGroup(String name, Map<String,String> additionalAttributes,User user, Map<String, Object> request) throws ProvisioningException {
 		int approvalID = 0;
 		if (request.containsKey("APPROVAL_ID")) {
 			approvalID = (Integer) request.get("APPROVAL_ID");
@@ -762,6 +762,10 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 		groupSearch.getParams().add(groupArray);
 		
 		HashMap<String,String> additionalParams = new HashMap<String,String>();
+		
+		for (String key : additionalAttributes.keySet()) {
+			additionalParams.put(key, additionalAttributes.get(key));
+		}
 		
 		groupSearch.getParams().add(additionalParams);
 		

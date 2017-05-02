@@ -17,6 +17,8 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.core.providers;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,6 +44,7 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.UserStoreProvider;
+import com.tremolosecurity.provisioning.core.UserStoreProviderWithAddGroup;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.util.ldap.pool.LdapConnection;
@@ -52,7 +55,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
-public class LDAPProvider implements UserStoreProvider,LDAPInterface {
+public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface {
 
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(LDAPProvider.class);
 	LdapPool ldapPool;
@@ -762,6 +765,68 @@ public class LDAPProvider implements UserStoreProvider,LDAPInterface {
 				this.unison2ldap.put(unison, dir);
 				return dir;
 			}
+		}
+	}
+
+	@Override
+	public void addGroup(String name, Map<String, String> additionalAttributes, User user, Map<String, Object> request)
+			throws ProvisioningException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deleteGroup(String name, User user, Map<String, Object> request) throws ProvisioningException {
+		try {
+			
+			LdapConnection con;
+			try {
+				con = this.ldapPool.getConnection();
+			} catch (Exception e) {
+				throw new ProvisioningException("Could not get LDAP connection " + user.getUserID(),e);
+			}
+			
+			try {
+				LDAPSearchResults res = con.getConnection().search(this.searchBase, 2, and(equal("objectClass",this.cfgMgr.getCfg().getGroupObjectClass()),equal("cn",name)).toString(), new String[] {"1.1"}, false);
+				if (res.hasMore()) {
+					LDAPEntry entry = res.next();
+					con.getConnection().delete(entry.getDN());
+				}
+				
+				
+			} finally {
+				con.returnCon();
+			}
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not set user's password",e);
+		}
+	}
+		
+	}
+
+	@Override
+	public boolean isGroupExists(String name, User user, Map<String, Object> request) throws ProvisioningException {
+		try {
+			
+			LdapConnection con;
+			try {
+				con = this.ldapPool.getConnection();
+			} catch (Exception e) {
+				throw new ProvisioningException("Could not get LDAP connection " + user.getUserID(),e);
+			}
+			
+			try {
+				LDAPSearchResults res = con.getConnection().search(this.searchBase, 2, and(equal("objectClass",this.cfgMgr.getCfg().getGroupObjectClass()),equal("cn",name)).toString(), new String[] {"1.1"}, false);
+				if (! res.hasMore()) {
+					return false;
+				}
+				
+				return true;
+			} finally {
+				con.returnCon();
+			}
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not set user's password",e);
 		}
 	}
 }
