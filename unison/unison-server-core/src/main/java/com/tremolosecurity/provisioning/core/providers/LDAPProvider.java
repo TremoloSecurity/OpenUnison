@@ -802,7 +802,7 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 		}
 	}
 		
-	}
+	
 
 	@Override
 	public boolean isGroupExists(String name, User user, Map<String, Object> request) throws ProvisioningException {

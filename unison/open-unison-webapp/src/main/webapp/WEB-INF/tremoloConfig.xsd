@@ -1244,9 +1244,21 @@
 						</documentation>
 					</annotation>
 				</attribute>
-				<attribute name="remove" type="boolean" default="false">
+				<attribute name="remove" type="boolean"
+					default="false">
 					<annotation>
-						<documentation>If true and the value is empty, remove the entire attribute; if true and the value is set, remove only that value of the attribute</documentation>
+						<documentation>
+							If true and the value is empty, remove the
+							entire attribute; if true and the value is
+							set, remove only that value of the attribute
+						</documentation>
+					</annotation>
+				</attribute>
+				<attribute name="addToRequest" type="boolean" default="false">
+					<annotation>
+						<documentation>
+							If true then the attribute is added to the workflow's request object intead of its user object
+						</documentation>
 					</annotation>
 				</attribute>
 			</extension>

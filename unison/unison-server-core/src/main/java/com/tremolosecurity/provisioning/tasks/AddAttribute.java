@@ -38,6 +38,7 @@ public class AddAttribute extends WorkflowTaskImpl {
 	String name;
 	String value;
 	boolean remove;
+	boolean addToRequest;
 	
 	public AddAttribute() {
 		
@@ -55,7 +56,7 @@ public class AddAttribute extends WorkflowTaskImpl {
 		name = cfg.getName();
 		value = cfg.getValue();
 		remove = cfg.isRemove();
-
+		this.addToRequest = cfg.isAddToRequest();
 	}
 
 	@Override
@@ -63,24 +64,34 @@ public class AddAttribute extends WorkflowTaskImpl {
 		String localName = this.renderTemplate(name, request);
 		String localVal = this.renderTemplate(value, request);
 		
-		if (this.remove) {
-			Attribute attr = user.getAttribs().get(localName);
-			if (attr != null) { 
-				if (localVal.isEmpty()) {
-					user.getAttribs().remove(localName);
-				} else {
-					attr.getValues().remove(localVal);
-				}
+		if (this.addToRequest) {
+			if (this.remove) {
+				request.remove(localName);
+			} else {
+				request.put(localName, localVal);
 			}
 		} else {
-			Attribute attr = user.getAttribs().get(localName);
-			if (attr == null) {
-				attr = new Attribute(localName);
-				user.getAttribs().put(localName, attr);
+			if (this.remove) {
+				Attribute attr = user.getAttribs().get(localName);
+				if (attr != null) { 
+					if (localVal.isEmpty()) {
+						user.getAttribs().remove(localName);
+					} else {
+						attr.getValues().remove(localVal);
+					}
+				}
+			} else {
+				Attribute attr = user.getAttribs().get(localName);
+				if (attr == null) {
+					attr = new Attribute(localName);
+					user.getAttribs().put(localName, attr);
+				}
+				attr.getValues().add(localVal);
+				
 			}
-			attr.getValues().add(localVal);
-			
 		}
+		
+		
 		
 		
 		return true;
