@@ -150,7 +150,11 @@ public abstract class PostProcess {
 			
 			
 			
-			resp.setCharacterEncoding(null);
+			try {
+				resp.setCharacterEncoding(null);
+			} catch (Throwable t) {
+				//we're not doing anything
+			}
 			
 		
 		StringBuffer stmp = new StringBuffer();
