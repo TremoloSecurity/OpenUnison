@@ -1236,20 +1236,129 @@ public class BasicDB implements BasicDBInterface {
 	@Override
 	public void addGroup(String name, Map<String, String> additionalAttributes, User user, Map<String, Object> request)
 			throws ProvisioningException {
-		// TODO Auto-generated method stub
+		
+		int approvalID = 0;
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+		
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
+		
+		if (this.groupMode == BasicDB.GroupManagementMode.Many2Many || this.groupMode == BasicDB.GroupManagementMode.One2Many) {
+			String sql = (String) additionalAttributes.get("unison.group.create.sql");
+			Connection con = null;
+			try {
+				con = this.ds.getConnection();
+				
+				PreparedStatement ps = con.prepareStatement(sql);
+				ps.setString(1, name);
+				
+				boolean done = false;
+				int i = 2;
+				StringBuilder b = new StringBuilder();
+				while (! done) {
+					b.setLength(0);
+					String val =  (String) additionalAttributes.get(b.append("unison.group.create.param.").append(i).toString());
+					if (val != null) {
+						ps.setString(i, val);
+						i++;
+					} else {
+						done = true;
+					}
+				}
+				
+				int num = ps.executeUpdate();
+				ps.close();
+				
+				if (num > 0) {
+					this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Add,  approvalID, workflow, "group-object", name);
+				}
+				
+			} catch (SQLException e) {
+				throw new ProvisioningException("Could not search for group",e);
+			} finally {
+				try {
+					con.close();
+				} catch (SQLException e) {
+					
+				}
+			}
+		} else {
+			throw new ProvisioningException("Not Supported");
+		}
 		
 	}
 
 	@Override
 	public void deleteGroup(String name, User user, Map<String, Object> request) throws ProvisioningException {
-		// TODO Auto-generated method stub
+		int approvalID = 0;
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+		
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
+		
+		if (this.groupMode == BasicDB.GroupManagementMode.Many2Many || this.groupMode == BasicDB.GroupManagementMode.One2Many) {
+			String sql = "DELETE FROM " + this.groupTable + " WHERE " + this.groupName + "=?";
+			Connection con = null;
+			try {
+				con = this.ds.getConnection();
+				
+				PreparedStatement ps = con.prepareStatement(sql);
+				ps.setString(1, name);
+				
+				int num = ps.executeUpdate();
+				ps.close();
+				
+				if (num > 0) {
+					this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Delete,  approvalID, workflow, "group-object", name);
+				}
+				
+			} catch (SQLException e) {
+				throw new ProvisioningException("Could not search for group",e);
+			} finally {
+				try {
+					con.close();
+				} catch (SQLException e) {
+					
+				}
+			}
+		} else {
+			throw new ProvisioningException("Not Supported");
+		}
 		
 	}
 
 	@Override
 	public boolean isGroupExists(String name, User user, Map<String, Object> request) throws ProvisioningException {
-		// TODO Auto-generated method stub
-		return false;
+		if (this.groupMode == BasicDB.GroupManagementMode.Many2Many || this.groupMode == BasicDB.GroupManagementMode.One2Many) {
+			String sql = "SELECT * FROM " + this.groupTable + " WHERE " + this.groupName + "=?";
+			Connection con = null;
+			try {
+				con = this.ds.getConnection();
+				
+				PreparedStatement ps = con.prepareStatement(sql);
+				ps.setString(1, name);
+				ResultSet rs = ps.executeQuery();
+				boolean hasRecords = rs.next();
+				
+				rs.close();
+				ps.close();
+				
+				return hasRecords;
+				
+			} catch (SQLException e) {
+				throw new ProvisioningException("Could not search for group",e);
+			} finally {
+				try {
+					con.close();
+				} catch (SQLException e) {
+					
+				}
+			}
+		} else {
+			throw new ProvisioningException("Not Supported");
+		}
 	}
 	
 	
