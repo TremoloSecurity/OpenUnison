@@ -47,7 +47,7 @@
 		<httpmime.version>4.5.3</httpmime.version>
 		<commons-fileupload.version>1.3.3</commons-fileupload.version>
 		<javax.jms-api.version>2.0.1</javax.jms-api.version>
-		<quartz.version>2.2.4</quartz.version>
+		<quartz.version>2.3.0</quartz.version>
 		<quartz-jobs.version>2.2.3</quartz-jobs.version>
 		<json-io.version>4.9.12</json-io.version>
 		<log4j.version>2.8.2</log4j.version>
