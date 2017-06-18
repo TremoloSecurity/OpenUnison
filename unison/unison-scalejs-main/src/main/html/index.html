@@ -102,7 +102,7 @@ limitations under the License.
 			</div>
 			<div class="jumbotron">
 				<center><h1>Logging In</h1></center>
-				<center><h1><i class="fa fa-refresh fa-spin block"></i></h1></center>
+				<center><i class="fa fa-refresh fa-spin block fa-5x fa-lg"></i></center>
 			</div>
 		</div>
 		<div ng-show="scale.isSessionLoaded()">
@@ -496,7 +496,7 @@ limitations under the License.
 						</div>
 
 						<div class="col-md-8">
-							<input type="text" ng-model="scale.currentApproval.justification" />
+							<input type="text" ng-model="scale.currentApproval.justification" aria-label="justification for approval or denial"/>
 						</div>
 					</div>
 					<div class="row">
@@ -803,7 +803,7 @@ limitations under the License.
 
 	<modal title="Processing" visible="scale.showModal">
 		 <center><h1>{{ scale.modalMessage }}</h1>
-     <h1><i class="fa fa-refresh fa-spin block"></i></h1></center>
+     <i class="fa fa-refresh fa-spin block fa-5x fa-lg"></i></center>
    </modal>
 
 </div>
