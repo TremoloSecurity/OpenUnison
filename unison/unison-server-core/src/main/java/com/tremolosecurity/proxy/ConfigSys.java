@@ -42,6 +42,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UrlHolder;
+import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.log.AccessLog;
 import com.tremolosecurity.log.AccessLog.AccessEvent;
@@ -97,6 +98,8 @@ public class ConfigSys  {
 	 */
 	
 	public void doConfig(HttpServletRequest req,HttpServletResponse resp,NextSys nextSys) throws IOException, ServletException {
+		UrlHolder holder = null;
+		AuthInfo userAuth = null;
 		try {
 			
 			
@@ -107,7 +110,7 @@ public class ConfigSys  {
 			boolean checkLogout = false;
 			
 			RequestHolder reqHolder = (RequestHolder) req.getAttribute(ProxyConstants.TREMOLO_REQ_HOLDER);
-			UrlHolder holder = (UrlHolder) req.getAttribute(ProxyConstants.AUTOIDM_CFG);
+			holder = (UrlHolder) req.getAttribute(ProxyConstants.AUTOIDM_CFG);
 			boolean isForcedAuth = req.getAttribute(ProxyConstants.TREMOLO_IS_FORCED_AUTH) != null ? (Boolean) req.getAttribute(ProxyConstants.TREMOLO_IS_FORCED_AUTH) : false;
 			
 			
@@ -126,6 +129,7 @@ public class ConfigSys  {
 					
 					RequestHolder presentHolder = actl.getHolder();
 					AuthInfo authdata = actl.getAuthInfo();
+					userAuth = authdata;
 					if (! req.getRequestURI().startsWith(cfg.getAuthPath()) /*&&  ! presentHolder.getUrlNoQueryString().equalsIgnoreCase(req.getRequestURL().toString())*/ && (authdata == null || ! authdata.isAuthComplete())) {
 						//we're going to ignore requests for favicon.ico
 						if (! req.getRequestURI().endsWith("/favicon.ico") && ! req.getRequestURI().endsWith("/apple-touch-icon-precomposed.png") && ! req.getRequestURI().endsWith("/apple-touch-icon.png") ) {
@@ -290,7 +294,7 @@ public class ConfigSys  {
 						if (actl != null) {
 							
 							AuthInfo authdata = actl.getAuthInfo();
-					
+							userAuth = authdata;
 						 	if ((req.getRequestURI().equalsIgnoreCase(logouturi) || (pd != null && pd.isLogout())) && (authdata != null)) { 
 						 		
 						 		
@@ -339,13 +343,26 @@ public class ConfigSys  {
 				
 			}
 		} catch (Exception e) {
+			ApplicationType appType = null;
+			if (holder != null) {
+				appType = holder.getApp();
+			} else {
+				appType = new ApplicationType();
+				appType.setName("UNKNOWN");
+				
+			}
+			
+			AccessLog.log(AccessEvent.Error, holder.getApp(), (HttpServletRequest) req, userAuth , "NONE");
+			
 			req.setAttribute("TREMOLO_ERROR_REQUEST_URL", req.getRequestURL().toString());
 			req.setAttribute("TREMOLO_ERROR_EXCEPTION", e);
 			logger.error("Could not process request",e);
 			
 			StringBuffer b = new StringBuffer();
 			b.append(cfg.getAuthFormsPath()).append("error.jsp");
+			resp.setStatus(500);
 			req.getRequestDispatcher(b.toString()).forward(req, resp);
+			
 		}
 	}
 

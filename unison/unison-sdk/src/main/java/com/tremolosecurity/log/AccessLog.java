@@ -34,7 +34,8 @@ public class AccessLog {
 		AuFail,
 		AzSuccess,
 		AzFail,
-		NotFound
+		NotFound,
+		Error
 	}
 	
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AccessLog.class.getName());
@@ -54,6 +55,7 @@ public class AccessLog {
 			case AuFail : strevent = "AuFail"; break;
 			case AzFail : strevent = "AzFail"; break;
 			case NotFound : strevent = "NotFound"; break;
+			case Error : strevent = "Error";break;
 		}
 		
 		
