@@ -1,3 +1,15 @@
+## 1.0.11-2017061801
+
+**bugs:**
+ - section 508 scalejs - empty "h" in model dialog [\#216](https://github.com/TremoloSecurity/OpenUnison/issues/216)
+ - section 508 scalejs - empty "h1" after "Logging In" [\#212](https://github.com/TremoloSecurity/OpenUnison/issues/212)
+ - NPE when clearing the character encoding in Tomcat 8.5 [\#211](https://github.com/TremoloSecurity/OpenUnison/issues/211)
+
+**enhancements:**
+ - db provisioning target - add groups [\#209](https://github.com/TremoloSecurity/OpenUnison/issues/209)
+ - Add flag to AddAttribute task to add to request instead of user object [\#206](https://github.com/TremoloSecurity/OpenUnison/issues/206)
+ - Add source ip and session id to the access log [\#110](https://github.com/TremoloSecurity/OpenUnison/issues/110)
+
 ## 1.0.10-2017042901
 
 **bugs:**
