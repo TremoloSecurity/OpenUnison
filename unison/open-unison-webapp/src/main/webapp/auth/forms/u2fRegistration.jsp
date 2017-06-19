@@ -73,7 +73,8 @@ if (reqHolder != null) {
 
 		<form method="post" action="<%= request.getAttribute("com.tremolosecurity.unison.u2f.Registration.url") %>" id="finishRegistration" name="finishRegistration">
 			<input type="hidden" id="tokenResponse" name="tokenResponse" />
-			<input type="submit" id="finishRegister" name="finishRegister" style="display:none" />
+			<!-- <input type="submit" id="finishRegister" name="finishRegister"  />  --><!--  style="display:none"  -->
+			<img src="<%= auth %>images/pixel.png" id="finishRegister" onclick="document.forms['finishRegistration'].submit();" />
 		</form>
 
  <script>

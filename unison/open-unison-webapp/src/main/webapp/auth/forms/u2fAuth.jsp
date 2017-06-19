@@ -73,7 +73,9 @@ if (reqHolder != null) {
 
 		<form method="post" action="<%= session.getAttribute("TREMOLO_AUTH_URI") %>" id="finishAuthForm" name="finishAuthForm">
 			<input type="hidden" id="signResponse" name="signResponse" />
-			<input type="submit" id="finishAuth" name="finishAuth" style="display:none" />
+			<!--  <input type="submit" id="finishAuth" name="finishAuth" style="display:none" /> -->
+			
+			<img src="<%= auth %>images/pixel.png" id="finishAuth" onclick="document.forms['finishAuthForm'].submit();" />
 		</form>
 
  <script>
