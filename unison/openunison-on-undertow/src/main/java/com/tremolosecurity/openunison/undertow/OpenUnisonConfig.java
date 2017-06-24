@@ -24,10 +24,16 @@ public class OpenUnisonConfig {
 	int secureExternalPort;
 	boolean forceToSecure;
 	String activemqDir;
+	String secureKeyAlias;
 	
 	String clientAuth;
 	List<String> allowedClientNames;
 	List<String> ciphers;
+	
+	String pathToDeployment;
+	String pathToEnvFile;
+	
+	List<String> allowedTLSProtocols;
 	
 	public int getOpenPort() {
 		return openPort;
@@ -82,6 +88,30 @@ public class OpenUnisonConfig {
 	}
 	public void setCiphers(List<String> ciphers) {
 		this.ciphers = ciphers;
+	}
+	public String getPathToDeployment() {
+		return pathToDeployment;
+	}
+	public void setPathToDeployment(String pathToDeployment) {
+		this.pathToDeployment = pathToDeployment;
+	}
+	public String getPathToEnvFile() {
+		return pathToEnvFile;
+	}
+	public void setPathToEnvFile(String pathToEnvFile) {
+		this.pathToEnvFile = pathToEnvFile;
+	}
+	public String getSecureKeyAlias() {
+		return secureKeyAlias;
+	}
+	public void setSecureKeyAlias(String secureKeyAlias) {
+		this.secureKeyAlias = secureKeyAlias;
+	}
+	public List<String> getAllowedTLSProtocols() {
+		return allowedTLSProtocols;
+	}
+	public void setAllowedTLSProtocols(List<String> allowedTLSProtocols) {
+		this.allowedTLSProtocols = allowedTLSProtocols;
 	}
 	
 	

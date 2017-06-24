@@ -43,5 +43,15 @@
 			<artifactId>jboss-jstl-api_1.2_spec</artifactId>
 			<version>${jboss-jstl-api_1.2_spec.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>open-unison-classes</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+				<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+			<version>1.18</version>
+		</dependency>
 	</dependencies>
 </project>
