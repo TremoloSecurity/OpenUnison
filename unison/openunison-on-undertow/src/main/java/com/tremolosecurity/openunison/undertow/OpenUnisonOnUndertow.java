@@ -14,19 +14,25 @@ package com.tremolosecurity.openunison.undertow;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.Key;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
@@ -36,11 +42,14 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 import javax.security.auth.x500.X500Principal;
+import javax.servlet.DispatcherType;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import org.apache.jasper.deploy.JspPropertyGroup;
+import org.apache.jasper.deploy.TagLibraryInfo;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.xnio.Options;
@@ -52,9 +61,18 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.openunison.OpenUnisonServletFilter;
+import com.tremolosecurity.server.GlobalEntries;
 
+import io.undertow.Handlers;
 import io.undertow.Undertow;
 import io.undertow.Undertow.Builder;
+import io.undertow.jsp.HackInstanceManager;
+import io.undertow.jsp.JspServletBuilder;
+import io.undertow.server.handlers.PathHandler;
+import io.undertow.server.handlers.resource.FileResourceManager;
+import io.undertow.servlet.Servlets;
+import io.undertow.servlet.api.DeploymentInfo;
+import io.undertow.servlet.api.DeploymentManager;
 
 public class OpenUnisonOnUndertow {
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(OpenUnisonOnUndertow.class.getName());
@@ -132,126 +150,42 @@ public class OpenUnisonOnUndertow {
 		}
 		
 		if (config.getSecurePort() > 0) {
-			KeyStore keystore = KeyStore.getInstance("JCEKS");
-			
-			keystore.load(new FileInputStream(unisonConfiguration.getKeyStorePath()), unisonConfiguration.getKeyStorePassword().toCharArray());
-			
-			KeyStore forUndertow = KeyStore.getInstance("JCEKS");
-			forUndertow.load(null);
-			Key key = keystore.getKey(config.getSecureKeyAlias(), unisonConfiguration.getKeyStorePassword().toCharArray());
-			
-			ArrayList<X509Certificate> chain = new ArrayList<X509Certificate>();
-			chain.add((X509Certificate) keystore.getCertificate(config.getSecureKeyAlias()));
-			
-			addSigners(chain.get(0), chain, keystore);
-			
-			Certificate[] certChain = new Certificate[chain.size()];
-			for (int i=0;i<certChain.length;i++) {
-				certChain[i] = chain.get(i);
-			}
-			
-			forUndertow.setKeyEntry(config.getSecureKeyAlias(), key, unisonConfiguration.getKeyStorePassword().toCharArray(), certChain);
-			
-			SSLContext sslcontext = SSLContext.getInstance("TLS");  
-			KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-			kmf.init(forUndertow, unisonConfiguration.getKeyStorePassword().toCharArray());
-			
-			
-			
-			KeyStore trustStore = KeyStore.getInstance("JCEKS");
-			trustStore.load(null);
-			
-			HashSet<X500Principal> issuers = new HashSet<X500Principal>();
-			for (String trustalias : config.getAllowedClientNames()) {
-				
-				issuers.add(new X500Principal(trustalias));
-			}
-			
-			Enumeration<String> aliases = keystore.aliases();
-			
-			while (aliases.hasMoreElements()) {
-				String aliasx = aliases.nextElement();
-				
-				X509Certificate cert = (X509Certificate) keystore.getCertificate(aliasx);
-				if (cert != null) {
-					
-					if (issuers.contains(cert.getSubjectX500Principal())) {
-						trustStore.setCertificateEntry(aliasx,cert);
-			
-					}
-					
-				}
-			}
-			
-			
-			
-			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-			tmf.init(trustStore);
-			
-			
-			
-			
-			
-			
-            sslcontext.init(kmf.getKeyManagers(),tmf.getTrustManagers(),new SecureRandom()); 
-			
-            String host = "0.0.0.0";
-            
-            buildUndertow.addHttpsListener(config.getSecurePort(), host, sslcontext);
-            
-            SSLContext context = SSLContext.getDefault();
-			SSLSocketFactory sf = context.getSocketFactory();
-			String[] cipherSuites = sf.getSupportedCipherSuites();
-			
-			HashSet<String> allowedCiphers = new HashSet<String>();
-			
-			if (config.getCiphers() == null || config.getCiphers().size() == 0) {
-				allowedCiphers.add("TLS_RSA_WITH_RC4_128_SHA");
-				allowedCiphers.add("TLS_RSA_WITH_AES_128_CBC_SHA");
-				allowedCiphers.add("TLS_RSA_WITH_AES_256_CBC_SHA");
-				allowedCiphers.add("TLS_RSA_WITH_3DES_EDE_CBC_SHA");
-				allowedCiphers.add("TLS_RSA_WITH_AES_128_CBC_SHA256");
-				allowedCiphers.add("TLS_RSA_WITH_AES_256_CBC_SHA256");
-			} else {
-				allowedCiphers.addAll(config.getCiphers());
-			}
-			
-			String[] enabledCiphers = new String[allowedCiphers.size()];
-            allowedCiphers.toArray(enabledCiphers);
-            
-            buildUndertow.setSocketOption(Options.SSL_ENABLED_CIPHER_SUITES, Options.SSL_ENABLED_CIPHER_SUITES.cast(Sequence.of(enabledCiphers)));
-            
-            if (config.getClientAuth().equalsIgnoreCase("want")) {
-            	buildUndertow.setSocketOption(Options.SSL_CLIENT_AUTH_MODE, org.xnio.SslClientAuthMode.REQUESTED);				
-			} else if (config.getClientAuth().equalsIgnoreCase("required")) {
-				buildUndertow.setSocketOption(Options.SSL_CLIENT_AUTH_MODE, org.xnio.SslClientAuthMode.REQUIRED);
-			}
-            
-            HashSet<String> allowedTLSProtocols = new HashSet<String>();
-            if (config.getAllowedTLSProtocols() == null || config.getAllowedTLSProtocols().size() == 0) {
-            	allowedTLSProtocols.add("TLSv1.2");
-            } else {
-            	allowedTLSProtocols.addAll(config.getAllowedTLSProtocols());
-            }
-            
-            String[] protocols = sslcontext.createSSLEngine().getEnabledProtocols();
-			ArrayList<String> protToUse = new ArrayList<String>();
-			for (String protocol : protocols) {
-				if (allowedTLSProtocols.contains(protocol)) {
-					protToUse.add(protocol);
-					logger.info("Supporting TLS Protocol : '" + protocol + "'");
-				} else {
-					logger.info("NOT Supporting TLS Protocol : '" + protocol + "'");
-				}
-			}
-			
-			protocols = new String[protToUse.size()];
-			protToUse.toArray(protocols);
-			
-			buildUndertow.setSocketOption(Options.SSL_ENABLED_PROTOCOLS, Options.SSL_ENABLED_PROTOCOLS.cast(Sequence.of(protocols)));
-            		
-			logger.info("Configured TLS Listener on Port " + config.getSecurePort());
+			setupTlsListener(config, unisonConfiguration, buildUndertow);
 		}
+		
+		
+		
+		DeploymentInfo servletBuilder = Servlets.deployment()  
+				.setClassLoader(OpenUnisonOnUndertow.class.getClassLoader())
+                .setEagerFilterInit(true)
+				.setContextPath("/")
+                .setDeploymentName("openunison")
+                .addFilter(
+                		
+	                		Servlets.filter("openunison",com.tremolosecurity.openunison.OpenUnisonServletFilter.class)
+	                		.addInitParam("mode", "appliance")
+                		
+                		
+                )
+                .addFilterUrlMapping("openunison", "/*", DispatcherType.REQUEST)
+                .setResourceManager(new FileResourceManager(new File(config.getPathToDeployment() + "/webapp"),1024))
+                .addServlet(JspServletBuilder.createServlet("Default Jsp Servlet", "*.jsp"))
+                .addServlet(
+                		Servlets.servlet("identityProvider",com.tremolosecurity.idp.server.IDP.class)
+                		.addMapping("/auth/idp/*")
+                		);
+		
+		
+		JspServletBuilder.setupDeployment(servletBuilder, new HashMap<String, JspPropertyGroup>(), new HashMap<String, TagLibraryInfo>(), new HackInstanceManager());
+		
+		DeploymentManager manager = Servlets.defaultContainer().addDeployment(servletBuilder);
+		manager.deploy();
+		
+		
+		PathHandler path = Handlers.path(Handlers.redirect("/"))
+		        .addPrefixPath("/", manager.start());
+         
+		buildUndertow.setHandler(path);
 		
 		undertow = buildUndertow.build();
 		undertow.start();
@@ -260,12 +194,137 @@ public class OpenUnisonOnUndertow {
 		    public void run() {
 		    	logger.info("Shutting down");
 		    	undertow.stop();
+		    	GlobalEntries.getGlobalEntries().getConfigManager().clearThreads();
 		    }
 		});
 		
 		
 		
 		
+	}
+
+	private static void setupTlsListener(OpenUnisonConfig config, TremoloType unisonConfiguration,
+			Builder buildUndertow) throws KeyStoreException, IOException, NoSuchAlgorithmException,
+			CertificateException, FileNotFoundException, UnrecoverableKeyException, KeyManagementException {
+		KeyStore keystore = KeyStore.getInstance("JCEKS");
+		
+		keystore.load(new FileInputStream(unisonConfiguration.getKeyStorePath()), unisonConfiguration.getKeyStorePassword().toCharArray());
+		
+		KeyStore forUndertow = KeyStore.getInstance("JCEKS");
+		forUndertow.load(null);
+		Key key = keystore.getKey(config.getSecureKeyAlias(), unisonConfiguration.getKeyStorePassword().toCharArray());
+		
+		ArrayList<X509Certificate> chain = new ArrayList<X509Certificate>();
+		chain.add((X509Certificate) keystore.getCertificate(config.getSecureKeyAlias()));
+		
+		addSigners(chain.get(0), chain, keystore);
+		
+		Certificate[] certChain = new Certificate[chain.size()];
+		for (int i=0;i<certChain.length;i++) {
+			certChain[i] = chain.get(i);
+		}
+		
+		forUndertow.setKeyEntry(config.getSecureKeyAlias(), key, unisonConfiguration.getKeyStorePassword().toCharArray(), certChain);
+		
+		SSLContext sslcontext = SSLContext.getInstance("TLS");  
+		KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+		kmf.init(forUndertow, unisonConfiguration.getKeyStorePassword().toCharArray());
+		
+		
+		
+		KeyStore trustStore = KeyStore.getInstance("JCEKS");
+		trustStore.load(null);
+		
+		HashSet<X500Principal> issuers = new HashSet<X500Principal>();
+		for (String trustalias : config.getAllowedClientNames()) {
+			
+			issuers.add(new X500Principal(trustalias));
+		}
+		
+		Enumeration<String> aliases = keystore.aliases();
+		
+		while (aliases.hasMoreElements()) {
+			String aliasx = aliases.nextElement();
+			
+			X509Certificate cert = (X509Certificate) keystore.getCertificate(aliasx);
+			if (cert != null) {
+				
+				if (issuers.contains(cert.getSubjectX500Principal())) {
+					trustStore.setCertificateEntry(aliasx,cert);
+		
+				}
+				
+			}
+		}
+		
+		
+		
+		TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		tmf.init(trustStore);
+		
+		
+		
+		
+		
+		
+		sslcontext.init(kmf.getKeyManagers(),tmf.getTrustManagers(),new SecureRandom()); 
+		
+		String host = "0.0.0.0";
+		
+		buildUndertow.addHttpsListener(config.getSecurePort(), host, sslcontext);
+		
+		SSLContext context = SSLContext.getDefault();
+		SSLSocketFactory sf = context.getSocketFactory();
+		String[] cipherSuites = sf.getSupportedCipherSuites();
+		
+		HashSet<String> allowedCiphers = new HashSet<String>();
+		
+		if (config.getCiphers() == null || config.getCiphers().size() == 0) {
+			allowedCiphers.add("TLS_RSA_WITH_RC4_128_SHA");
+			allowedCiphers.add("TLS_RSA_WITH_AES_128_CBC_SHA");
+			allowedCiphers.add("TLS_RSA_WITH_AES_256_CBC_SHA");
+			allowedCiphers.add("TLS_RSA_WITH_3DES_EDE_CBC_SHA");
+			allowedCiphers.add("TLS_RSA_WITH_AES_128_CBC_SHA256");
+			allowedCiphers.add("TLS_RSA_WITH_AES_256_CBC_SHA256");
+		} else {
+			allowedCiphers.addAll(config.getCiphers());
+		}
+		
+		String[] enabledCiphers = new String[allowedCiphers.size()];
+		allowedCiphers.toArray(enabledCiphers);
+		
+		buildUndertow.setSocketOption(Options.SSL_ENABLED_CIPHER_SUITES, Options.SSL_ENABLED_CIPHER_SUITES.cast(Sequence.of(enabledCiphers)));
+		
+		if (config.getClientAuth().equalsIgnoreCase("want")) {
+			buildUndertow.setSocketOption(Options.SSL_CLIENT_AUTH_MODE, org.xnio.SslClientAuthMode.REQUESTED);				
+		} else if (config.getClientAuth().equalsIgnoreCase("required")) {
+			buildUndertow.setSocketOption(Options.SSL_CLIENT_AUTH_MODE, org.xnio.SslClientAuthMode.REQUIRED);
+		}
+		
+		HashSet<String> allowedTLSProtocols = new HashSet<String>();
+		if (config.getAllowedTLSProtocols() == null || config.getAllowedTLSProtocols().size() == 0) {
+			allowedTLSProtocols.add("TLSv1.2");
+		} else {
+			allowedTLSProtocols.addAll(config.getAllowedTLSProtocols());
+		}
+		
+		String[] protocols = sslcontext.createSSLEngine().getEnabledProtocols();
+		ArrayList<String> protToUse = new ArrayList<String>();
+		for (String protocol : protocols) {
+			if (allowedTLSProtocols.contains(protocol)) {
+				protToUse.add(protocol);
+				logger.info("Supporting TLS Protocol : '" + protocol + "'");
+			} else {
+				logger.info("NOT Supporting TLS Protocol : '" + protocol + "'");
+			}
+		}
+		
+		protocols = new String[protToUse.size()];
+		protToUse.toArray(protocols);
+		
+		buildUndertow.setSocketOption(Options.SSL_ENABLED_PROTOCOLS, Options.SSL_ENABLED_PROTOCOLS.cast(Sequence.of(protocols)));
+				
+		logger.info("Configured TLS Listener on Port " + config.getSecurePort());
 	}
 	
 	private static String includeEnvironmentVariables(String srcPath) throws IOException {
