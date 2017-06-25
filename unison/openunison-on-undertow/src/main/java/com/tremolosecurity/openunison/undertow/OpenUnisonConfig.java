@@ -35,6 +35,8 @@ public class OpenUnisonConfig {
 	
 	List<String> allowedTLSProtocols;
 	
+	String quartzDir;
+	
 	public int getOpenPort() {
 		return openPort;
 	}
@@ -112,6 +114,12 @@ public class OpenUnisonConfig {
 	}
 	public void setAllowedTLSProtocols(List<String> allowedTLSProtocols) {
 		this.allowedTLSProtocols = allowedTLSProtocols;
+	}
+	public String getQuartzDir() {
+		return quartzDir;
+	}
+	public void setQuartzDir(String quartzDir) {
+		this.quartzDir = quartzDir;
 	}
 	
 	

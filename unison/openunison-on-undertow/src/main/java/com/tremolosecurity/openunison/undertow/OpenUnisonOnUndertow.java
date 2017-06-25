@@ -17,6 +17,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.Key;
@@ -104,12 +105,35 @@ public class OpenUnisonOnUndertow {
 		logger.info("Config Secure External Port : '" + config.getSecureExternalPort() + "'");
 		logger.info("Force to Secure : '" + config.isForceToSecure() + "'");
 		logger.info("ActiveMQ Directory : '" + config.getActivemqDir() + "'");
+		logger.info("Quartz Directory : '" + config.getQuartzDir() + "'");
 		logger.info("Config TLS Client Auth Mode : '" + config.getClientAuth() + "'");
 		logger.info("Config TLS Allowed Client Subjects : '" + config.getAllowedClientNames() + "'");
 		logger.info("Config TLS Ciphers : '" + config.getCiphers() + "'");
 		logger.info("Config Path to Deployment : '" + config.getPathToDeployment() + "'");
 		logger.info("Config Path to Environment File : '" + config.getPathToEnvFile() + "'");
 
+		logger.info("Creating unisonServiceProps");
+		
+		File f = File.createTempFile("unisonService", "props");
+		logger.info("Temporary unisonServiceProps : '" + f.getAbsolutePath() + "'");
+		Properties unisonServiceProps = new Properties();
+		unisonServiceProps.put("com.tremolosecurity.openunison.forceToSSL",Boolean.toString(config.isForceToSecure()));
+		unisonServiceProps.put("com.tremolosecurity.openunison.openPort",Integer.toString(config.getOpenPort()));
+		unisonServiceProps.put("com.tremolosecurity.openunison.securePort", Integer.toString(config.getSecurePort()));
+		unisonServiceProps.put("com.tremolosecurity.openunison.externalOpenPort",Integer.toString(config.getOpenExternalPort()));
+		unisonServiceProps.put("com.tremolosecurity.openunison.externalSecurePort", Integer.toString(config.getSecureExternalPort()));
+		
+		if (config.getActivemqDir() != null) {
+			unisonServiceProps.put("com.tremolosecurity.openunison.activemqdir", config.getActivemqDir());
+		}
+		
+		if (config.getQuartzDir() != null) {
+			unisonServiceProps.put("com.tremolosecurity.openunison.quartzdir", config.getQuartzDir());
+		}
+		
+		unisonServiceProps.store(new FileOutputStream(f), "OpenUnison Configuration");
+		System.getProperties().put("com.tremolosecurity.unison.unisonServicePropsPath", f.getAbsolutePath());
+		System.getProperties().put("com.tremolosecurity.unison.unisonXML", config.getPathToDeployment() + "/webapp/WEB-INF/unison.xml");
 		
 		logger.info("Loading environment file : '" + config.getPathToEnvFile() + "'");
 		

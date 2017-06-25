@@ -65,20 +65,23 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 		this.configXML = configXML;
 		
 		String configPath = null;
-		
-		try {
-			configPath = InitialContext.doLookup("java:comp/env/unisonServiceConfigPath");
-		} catch (NamingException ne) {
+		if (System.getProperties().containsKey("com.tremolosecurity.unison.unisonServicePropsPath")) {
+			configPath = System.getProperties().getProperty("com.tremolosecurity.unison.unisonServicePropsPath");
+		} else {
 			try {
-				configPath = InitialContext.doLookup("java:/env/unisonServiceConfigPath");
-			} catch (NamingException ne2) {
-				logger.warn("No context bound, assuming WEB-INF/unisonService.props");
+				configPath = InitialContext.doLookup("java:comp/env/unisonServiceConfigPath");
+			} catch (NamingException ne) {
+				try {
+					configPath = InitialContext.doLookup("java:/env/unisonServiceConfigPath");
+				} catch (NamingException ne2) {
+					logger.warn("No context bound, assuming WEB-INF/unisonService.props");
+				}
 			}
-		}
-		
-		 
-		if (configPath == null) {
-			configPath = "WEB-INF/unisonService.props";
+			
+			 
+			if (configPath == null) {
+				configPath = "WEB-INF/unisonService.props";
+			}
 		}
 		
 		
