@@ -1,0 +1,18 @@
+# Systemd unit file for OpenUnison
+[Unit]
+Description=Tremolo Security OpenUnison on Undertow
+After=syslog.target network.target
+
+[Service]
+Type=forking
+
+Environment='JAVA_OPTS=-XX:+UseParallelGC -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom'
+
+ExecStart=/usr/local/openunison/bin/startOpenUnisonOnUndertow.sh /etc/openunison/openunison.yaml
+ExecStop=/usr/local/openunison/bin/stopOpenUnisonOnUndertow.sh /etc/openunison/openunison.yaml
+
+User=openunison
+Group=openunison
+
+[Install]
+WantedBy=multi-user.target

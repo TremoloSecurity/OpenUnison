@@ -55,5 +55,5 @@ mkdir $3/logs
 
 export CLASSPATH="$3/lib/*:$3/classes:$4"
 echo $CLASSPATH
-exec java -classpath $CLASSPATH com.tremolosecurity.openunison.undertow.OpenUnisonOnUndertow $2 >> $3/logs/openunison.log 2>&1 &
+exec java -classpath $CLASSPATH $JAVA_OPTS com.tremolosecurity.openunison.undertow.OpenUnisonOnUndertow $2 >> $3/logs/openunison.log 2>&1 &
 echo $! > $3/.pid
