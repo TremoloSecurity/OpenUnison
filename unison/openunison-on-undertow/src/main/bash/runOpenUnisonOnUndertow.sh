@@ -11,12 +11,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+if [ "$#" -ne 4 ]; then
+    echo "Four arguments must be passed: path_to_openunison_war path_to_openunison_configuration_yaml path_to_deploy_to path_to_quartz_directory"
+    exit 1
+fi
+
 echo "Path to war : $1"
 echo "Path to configuration : $2"
 echo "Path to deployment : $3"
 echo "Path to quartz configuration : $4"
 
 #Need to add some error checking
+
+export pid="$(cat $3/.pid)"
+
+if ps -p $pid > /dev/null
+then
+   echo "OpenUnison on Undertow is running on $pid, stop OpenUnison first"
+   exit 0
+fi
 
 if [ -z $3 ]; then
 	echo "path to deployment not set, exiting"
@@ -32,7 +46,7 @@ echo "Creating $3"
 mkdir -p $3/webapp
 cp $1 $3/webapp/
 cd $3/webapp
-unzip $(ls *.war)
+unzip $(ls *.war) > /dev/null
 
 rm -f $3/webapp/*.war
 mv $3/webapp/WEB-INF/lib $3/

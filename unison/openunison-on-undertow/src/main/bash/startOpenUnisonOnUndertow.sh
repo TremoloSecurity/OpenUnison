@@ -10,11 +10,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
-. $1
- 
-echo "Path to deployment : $OPENUNISON_DEPLOYMENT_PATH"
 
-export pid="$(cat $OPENUNISON_DEPLOYMENT_PATH/.pid)"
-echo "Stopping OpenUnison on Undertow"
-kill $pid
+. $1
+$PATH_TO_RUN/runOpenUnisonOnUndertow.sh $OPENUNISON_WAR $OPENUNISON_YAML $OPENUNISON_DEPLOYMENT_PATH $OPENUNISON_QUARTZ_PATH
