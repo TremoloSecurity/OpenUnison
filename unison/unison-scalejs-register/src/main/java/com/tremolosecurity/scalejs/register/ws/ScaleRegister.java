@@ -381,7 +381,14 @@ public class ScaleRegister implements HttpFilter {
 			scaleAttr.setName(attributeName);
 			scaleAttr.setDisplayName(this.loadAttributeValue(attributeName + ".displayName", attributeName + " Display Name", config));
 			scaleAttr.setReadOnly(false);
+			
+			
 			scaleAttr.setRequired(true);
+			
+			val = this.loadOptionalAttributeValue(attributeName + ".required", attributeName + " Required", config);
+			if (val != null) {
+				scaleAttr.setRequired(val.equalsIgnoreCase("true"));
+			}
 			
 			val = this.loadOptionalAttributeValue(attributeName + ".regEx", attributeName + " Reg Ex", config);
 			if (val != null) {
