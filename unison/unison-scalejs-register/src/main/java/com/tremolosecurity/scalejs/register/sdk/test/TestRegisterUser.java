@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.service.util.WFCall;
+import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.scalejs.register.cfg.ScaleJSRegisterConfig;
 import com.tremolosecurity.scalejs.register.data.NewUserRequest;
@@ -25,7 +26,7 @@ public class TestRegisterUser implements CreateRegisterUser {
 	}
 
 	@Override
-	public String createTremoloUser(NewUserRequest newUser, List<String> errors) throws ProvisioningException {
+	public String createTremoloUser(NewUserRequest newUser, List<String> errors,AuthInfo userData) throws ProvisioningException {
 		errors.add("This doesn't do anything");
 		return null;
 	}

@@ -206,7 +206,10 @@ public class ScaleRegister implements HttpFilter {
 			String wfName = this.scaleConfig.getWorkflowName();
 			if (errors.getErrors().isEmpty()) {
 				if (scaleConfig.isUseCustomSubmission()) {
-					wfName = cru.createTremoloUser(newUser, errors.getErrors());
+					
+					AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+					
+					wfName = cru.createTremoloUser(newUser, errors.getErrors(),userData);
 				}
 			}
 			

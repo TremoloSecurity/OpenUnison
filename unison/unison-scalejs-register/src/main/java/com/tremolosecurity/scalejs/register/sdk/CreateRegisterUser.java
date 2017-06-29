@@ -20,6 +20,7 @@ import com.tremolosecurity.scalejs.register.cfg.ScaleJSRegisterConfig;
 import com.tremolosecurity.scalejs.register.data.NewUserRequest;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.service.util.WFCall;
+import com.tremolosecurity.proxy.auth.AuthInfo;
 
 public interface CreateRegisterUser {
 	/**
@@ -33,8 +34,9 @@ public interface CreateRegisterUser {
 	 * Returns the name of the workflow to execute, any changes to newUser are reflected in the request
 	 * @param newUser
 	 * @param errors
+	 * @param userData 
 	 * @return
 	 * @throws ProvisioningException
 	 */
-	public String createTremoloUser(NewUserRequest newUser,List<String> errors) throws ProvisioningException;
+	public String createTremoloUser(NewUserRequest newUser,List<String> errors, AuthInfo userData) throws ProvisioningException;
 }
