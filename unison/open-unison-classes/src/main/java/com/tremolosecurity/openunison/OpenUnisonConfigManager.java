@@ -99,8 +99,8 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 		this.externalOpenPort = Integer.parseInt(this.loadConfigParam(OpenUnisonConstants.UNISON_CONFIG_EXTERNAL_OPEN_PORT, "80", service));
 		this.externalSecurePort = Integer.parseInt(this.loadConfigParam(OpenUnisonConstants.UNISON_CONFIG_EXTERNAL_SECURE_PORT, "443", service));
 		
-		System.setProperty(OpenUnisonConstants.UNISON_CONFIG_ACTIVEMQDIR,this.loadConfigParam(OpenUnisonConstants.UNISON_CONFIG_ACTIVEMQDIR, filterCfg.getServletContext().getRealPath("/WEB-INF/activemq"), service));
-		System.setProperty(OpenUnisonConstants.UNISON_CONFIG_QUARTZDIR,this.loadConfigParam(OpenUnisonConstants.UNISON_CONFIG_QUARTZDIR, filterCfg.getServletContext().getRealPath("/WEB-INF/classes"), service));
+		System.setProperty(OpenUnisonConstants.UNISON_CONFIG_ACTIVEMQDIR,this.loadConfigParam(OpenUnisonConstants.UNISON_CONFIG_ACTIVEMQDIR, (filterCfg != null ? filterCfg.getServletContext().getRealPath("/WEB-INF/activemq") : "" ), service));
+		System.setProperty(OpenUnisonConstants.UNISON_CONFIG_QUARTZDIR,this.loadConfigParam(OpenUnisonConstants.UNISON_CONFIG_QUARTZDIR, (filterCfg != null ? filterCfg.getServletContext().getRealPath("/WEB-INF/classes") : ""), service));
 		
 		
 		
