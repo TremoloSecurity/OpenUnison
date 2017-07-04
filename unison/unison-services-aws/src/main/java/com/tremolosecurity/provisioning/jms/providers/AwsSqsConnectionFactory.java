@@ -48,7 +48,13 @@ public class AwsSqsConnectionFactory implements ConnectionFactory {
 	
 	@Override
 	public Connection createConnection() throws JMSException {
-		Builder builder = SQSConnectionFactory.builder().withAWSCredentialsProvider(new StaticCredentialsProvider(new BasicAWSCredentials(this.accessKey,this.secretKey)));
+		Builder builder = null;
+		
+		if (this.accessKey == null || this.accessKey.isEmpty()) {
+			builder = SQSConnectionFactory.builder();
+		} else {
+			builder = SQSConnectionFactory.builder().withAWSCredentialsProvider(new StaticCredentialsProvider(new BasicAWSCredentials(this.accessKey,this.secretKey)));
+		}
 		
 		if (this.regionName != null && ! this.regionName.isEmpty()) {
 			builder = builder.withRegionName(regionName);
