@@ -682,37 +682,41 @@ public class AuthManagerImpl implements AuthManager {
 			}
 
 			
+			
 			if (act.getCompliance() != null && act.getCompliance().isEnabled()) {
-				String uid = actl.getAuthInfo().getAttribs().get(act.getCompliance().getUidAttributeName()).getValues().get(0);
-				User updateAttrs = new User(uid);
-				
-				updateAttrs.getAttribs().put(act.getCompliance().getLastSucceedAttribute(), new Attribute(act.getCompliance().getLastSucceedAttribute(),Long.toString(new DateTime(DateTimeZone.UTC).getMillis())));
-				updateAttrs.getAttribs().put(act.getCompliance().getNumFailedAttribute(), new Attribute(act.getCompliance().getNumFailedAttribute(),"0"));
-				updateAttrs.getAttribs().put(act.getCompliance().getUidAttributeName(), new Attribute(act.getCompliance().getUidAttributeName(),uid));
-				
-				
-				
-				if (GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getUserAttrbiutes() != null) {
-					for (String attrName : GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getUserAttrbiutes()) {
-						Attribute fromAuth = ai.getAttribs().get(attrName);
-						if (fromAuth != null) {
-							Attribute attrForWF = new Attribute(attrName);
-							attrForWF.getValues().addAll(fromAuth.getValues());
-							
-							updateAttrs.getAttribs().put(attrName,attrForWF);
+				Attribute uidAttribute = actl.getAuthInfo().getAttribs().get(act.getCompliance().getUidAttributeName());
+				if (uidAttribute != null) {
+					String uid = uidAttribute.getValues().get(0);
+					User updateAttrs = new User(uid);
+					
+					updateAttrs.getAttribs().put(act.getCompliance().getLastSucceedAttribute(), new Attribute(act.getCompliance().getLastSucceedAttribute(),Long.toString(new DateTime(DateTimeZone.UTC).getMillis())));
+					updateAttrs.getAttribs().put(act.getCompliance().getNumFailedAttribute(), new Attribute(act.getCompliance().getNumFailedAttribute(),"0"));
+					updateAttrs.getAttribs().put(act.getCompliance().getUidAttributeName(), new Attribute(act.getCompliance().getUidAttributeName(),uid));
+					
+					
+					
+					if (GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getUserAttrbiutes() != null) {
+						for (String attrName : GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getUserAttrbiutes()) {
+							Attribute fromAuth = ai.getAttribs().get(attrName);
+							if (fromAuth != null) {
+								Attribute attrForWF = new Attribute(attrName);
+								attrForWF.getValues().addAll(fromAuth.getValues());
+								
+								updateAttrs.getAttribs().put(attrName,attrForWF);
+							}
 						}
 					}
-				}
-				
-				
-				HashMap<String,Object> wfReq = new HashMap<String,Object>();
-				wfReq.put(ProvisioningParams.UNISON_EXEC_TYPE, ProvisioningParams.UNISON_EXEC_SYNC);
-				
-				
-				try {
-					holder.getConfig().getProvisioningEngine().getWorkFlow(act.getCompliance().getUpdateAttributesWorkflow()).executeWorkflow(updateAttrs, wfReq);
-				} catch (ProvisioningException e) {
-					throw new ServletException("Could not update successful login attribute",e);
+					
+					
+					HashMap<String,Object> wfReq = new HashMap<String,Object>();
+					wfReq.put(ProvisioningParams.UNISON_EXEC_TYPE, ProvisioningParams.UNISON_EXEC_SYNC);
+					
+					
+					try {
+						holder.getConfig().getProvisioningEngine().getWorkFlow(act.getCompliance().getUpdateAttributesWorkflow()).executeWorkflow(updateAttrs, wfReq);
+					} catch (ProvisioningException e) {
+						throw new ServletException("Could not update successful login attribute",e);
+					}
 				}
 			}
 			
