@@ -112,7 +112,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 		
 		String defaultObjectClass = authParams.get("defaultObjectClass").getValues().get(0);
 		
-		
+		boolean forceAuth = true;//authParams.get("forceAuthentication") != null ? authParams.get("forceAuthentication").getValues().get(0).equalsIgnoreCase("true") : false;
 		
 		UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
 		RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
@@ -157,6 +157,10 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 						.append("&scope=").append(URLEncoder.encode(scope,"UTF-8"))
 						.append("&redirect_uri=").append(URLEncoder.encode(redirectURL,"UTF-8"))
 						.append("&state=").append(URLEncoder.encode("security_token=","UTF-8")).append(URLEncoder.encode(state, "UTF-8"));
+			
+			if (forceAuth) {
+				redirToSend.append("&max_age=0");
+			}
 			
 			if (! hd.isEmpty()) {
 				redirToSend.append("&hd=").append(hd);
