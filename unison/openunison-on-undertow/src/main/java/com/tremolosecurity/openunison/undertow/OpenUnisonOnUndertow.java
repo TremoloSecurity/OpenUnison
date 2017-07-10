@@ -177,7 +177,10 @@ public class OpenUnisonOnUndertow {
 			setupTlsListener(config, unisonConfiguration, buildUndertow);
 		}
 		
-		
+		File pathToWebApp = new File(config.getPathToDeployment() + "/webapp");
+		logger.info("Path to webapp : '" + pathToWebApp.getAbsolutePath() + "'");
+		logger.info("Path directory? : '" + pathToWebApp.isDirectory() + "'");
+		logger.info("Path exists : '" + pathToWebApp.exists() + "'");
 		
 		DeploymentInfo servletBuilder = Servlets.deployment()  
 				.setClassLoader(OpenUnisonOnUndertow.class.getClassLoader())
@@ -192,7 +195,7 @@ public class OpenUnisonOnUndertow {
                 		
                 )
                 .addFilterUrlMapping("openunison", "/*", DispatcherType.REQUEST)
-                .setResourceManager(new FileResourceManager(new File(config.getPathToDeployment() + "/webapp"),1024))
+                .setResourceManager(new FileResourceManager(pathToWebApp,1024,true))
                 .addServlet(JspServletBuilder.createServlet("Default Jsp Servlet", "*.jsp"))
                 .addServlet(
                 		Servlets.servlet("identityProvider",com.tremolosecurity.idp.server.IDP.class)

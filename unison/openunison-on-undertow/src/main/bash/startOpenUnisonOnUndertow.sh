@@ -12,5 +12,5 @@
 # limitations under the License.
 
 . $1
-env
+
 $PATH_TO_RUN/runOpenUnisonOnUndertow.sh $OPENUNISON_WAR $OPENUNISON_YAML $OPENUNISON_DEPLOYMENT_PATH $OPENUNISON_QUARTZ_PATH
