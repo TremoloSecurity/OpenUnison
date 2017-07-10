@@ -352,7 +352,7 @@ public class ConfigSys  {
 				
 			}
 			
-			AccessLog.log(AccessEvent.Error, holder.getApp(), (HttpServletRequest) req, userAuth , "NONE");
+			AccessLog.log(AccessEvent.Error, appType, (HttpServletRequest) req, userAuth , "NONE");
 			
 			req.setAttribute("TREMOLO_ERROR_REQUEST_URL", req.getRequestURL().toString());
 			req.setAttribute("TREMOLO_ERROR_EXCEPTION", e);
