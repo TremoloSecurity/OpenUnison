@@ -194,7 +194,7 @@ public class CertAuth implements AuthMechanism {
 								X509Certificate lissuer = (X509Certificate) cfgMgr.getKeyStore().getCertificate(alias);
 								if (lissuer != null && lissuer.getSubjectX500Principal().equals(certs[i].getIssuerX500Principal()) ) {
 									try {
-										certs[i].verify(lissuer.getPublicKey();
+										certs[i].verify(lissuer.getPublicKey());
 										issuer = lissuer;
 									} catch (Exception e) {
 										logger.warn("Issuer with wrong public key",e);
