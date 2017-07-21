@@ -21,6 +21,7 @@ import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.security.KeyStoreException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -104,6 +105,7 @@ public class CertAuth implements AuthMechanism {
 		
 		
 		
+		
 		String urlChain = holder.getUrl().getAuthChain();
 		AuthChainType act = holder.getConfig().getAuthChains().get(reqHolder.getAuthChainName());
 		
@@ -184,6 +186,25 @@ public class CertAuth implements AuthMechanism {
 					X509Certificate issuer = null;
 					if (i + 1 < certs.length) {
 						issuer = certs[i + 1];
+					} else {
+						try {
+							Enumeration<String> enumer = cfgMgr.getKeyStore().aliases();
+							while (enumer.hasMoreElements()) {
+								String alias = enumer.nextElement();
+								X509Certificate lissuer = (X509Certificate) cfgMgr.getKeyStore().getCertificate(alias);
+								if (lissuer != null && lissuer.getSubjectX500Principal().equals(certs[i].getIssuerX500Principal()) ) {
+									try {
+										certs[i].verify(lissuer.getPublicKey();
+										issuer = lissuer;
+									} catch (Exception e) {
+										logger.warn("Issuer with wrong public key",e);
+									}
+									
+								}
+							}
+						} catch (KeyStoreException e) {
+							throw new ServletException("Could not process CRLs",e);
+						}
 					}
 					
 					if (issuer != null) {
@@ -191,6 +212,8 @@ public class CertAuth implements AuthMechanism {
 							certOK = false;
 							break;
 						}
+					} else {
+						logger.warn("No issuer!  not performing CRL check");
 					}
 				}
 			}
