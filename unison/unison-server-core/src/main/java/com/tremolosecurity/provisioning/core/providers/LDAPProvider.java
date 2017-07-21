@@ -829,5 +829,9 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 			throw new ProvisioningException("Could not set user's password",e);
 		}
 	}
+
+	public String getSearchBase() {
+		return this.searchBase;
+	}
 }
 
