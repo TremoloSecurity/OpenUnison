@@ -23,6 +23,157 @@
   <artifactId>open-unison-classes</artifactId>
   <name>com.tremolosecurity.unison</name>
   <dependencies>
+  <dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-alfresco-4.x</artifactId>
+			<version>${openunison.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>commons-collections</artifactId>
+					<groupId>commons-collections</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-codec</artifactId>
+					<groupId>commons-codec</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-io</artifactId>
+					<groupId>commons-io</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>spring-asm</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>spring-core</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>xmlsec</artifactId>
+					<groupId>org.apache.santuario</groupId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.servlet</groupId>
+					<artifactId>servlet-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.servlet</groupId>
+					<artifactId>jstl</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-el</groupId>
+					<artifactId>commons-el</artifactId>
+				</exclusion>
+				
+				
+			</exclusions>
+		</dependency> 
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-wordpress</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-sharepoint2007</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-authentication-facebook</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-authentication-2fasms-twilio</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-services-aws</artifactId>
+			<version>${openunison.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>commons-codec</artifactId>
+					<groupId>commons-codec</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-sharepoint2007</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-drupal</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-scalejs-main</artifactId>
+			<version>${openunison.version}</version>
+			<type>jar</type>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-scalejs-token</artifactId>
+			<version>${openunison.version}</version>
+			<type>jar</type>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-scalejs-singlerequest</artifactId>
+			<version>${openunison.version}</version>
+			<type>jar</type>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-scalejs-register</artifactId>
+			<version>${openunison.version}</version>
+			<type>jar</type>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-scalejs-password</artifactId>
+			<version>${openunison.version}</version>
+			<type>jar</type>
+		</dependency>
+		 
+        <dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-services-mongodb</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+		
+		 <dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-auth-openidconnect</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-idp-openidconnect</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-k8s</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+		
   	<dependency>
   		<groupId>com.tremolosecurity.unison</groupId>
   		<artifactId>unison-server-core</artifactId>
