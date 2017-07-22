@@ -160,6 +160,7 @@ public class OpenUnisonUtils {
 		options.addOption("secretkey", true, "base64 encoded secret key");
 		options.addOption("envFile", true, "Environment variables for parmaterized configs");
 		
+		
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = parser.parse(options, args,true);
 		
@@ -171,7 +172,13 @@ public class OpenUnisonUtils {
 		logger.info("Loading Unison Configuration");
 		String unisonXMLFile = loadOption(cmd,"unisonXMLFile",options);
 		TremoloType ttRead = loadTremoloType(unisonXMLFile,cmd,options);
-		TremoloType ttWrite = loadTremoloType(unisonXMLFile);
+		
+		String action = loadOption(cmd,"action",options);
+		TremoloType ttWrite = null;
+		if (action.equalsIgnoreCase("import-sp-metadata") || action.equalsIgnoreCase("import-idp-metadata")) {
+			ttWrite = loadTremoloType(unisonXMLFile);
+		} 
+		 
 		
 		logger.info("Configuration loaded");
 		
@@ -183,7 +190,7 @@ public class OpenUnisonUtils {
 		
 		logger.info("...loaded");
 		
-		String action = loadOption(cmd,"action",options);
+		
 		
 		
 		
