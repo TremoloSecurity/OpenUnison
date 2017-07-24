@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.Stack;
+import java.util.concurrent.ThreadLocalRandom;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -229,7 +230,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 
 
 
-	private GenericObjectPool<MessageProducerHolder> mpPool;
+	private ArrayList<GenericObjectPool<MessageProducerHolder>> mpPools;
 	
 
 	private MessageProducer taskMP;
@@ -1335,8 +1336,25 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			this.broker = BrokerHolder.getInstance( cfgMgr, "local",this);
 			
 		} else {
-			this.mpPool = new GenericObjectPool<MessageProducerHolder>(new PooledMessageProducerFactory(this.cfgMgr,this));
-			this.mpPool.setMaxTotal(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getMaxProducers());
+			
+			this.mpPools = new ArrayList<GenericObjectPool<MessageProducerHolder>>();
+			
+			if (this.cfgMgr.getCfg().getProvisioning().getQueueConfig().isMultiTaskQueues()) {
+				for (int j = 1;j<=this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getNumQueues();j++) {
+					String name = this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getTaskQueueName().replace("{x}", Integer.toString(j));
+					GenericObjectPool<MessageProducerHolder> lpool = new GenericObjectPool<MessageProducerHolder>(new PooledMessageProducerFactory(this.cfgMgr,this,name));
+					lpool.setMaxTotal(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getMaxProducers());
+					this.mpPools.add(lpool);
+				}
+			} else {
+				this.mpPools = new ArrayList<GenericObjectPool<MessageProducerHolder>>();
+				GenericObjectPool<MessageProducerHolder> lpool = new GenericObjectPool<MessageProducerHolder>(new PooledMessageProducerFactory(this.cfgMgr,this,this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getTaskQueueName()));
+				lpool.setMaxTotal(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getMaxProducers());
+				this.mpPools.add(lpool);
+			}
+			
+			
+			
 			this.cfgMgr.addThread(new StopableThread() {
 
 				@Override
@@ -1347,8 +1365,10 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 
 				@Override
 				public void stop() {
-					mpPool.close();
-					mpPool.clear();
+					for (GenericObjectPool<MessageProducerHolder> mpPool : mpPools) {
+						mpPool.close();
+						mpPool.clear();
+					}
 					
 				}
 				
@@ -1436,6 +1456,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			bm.setStringProperty("WorkflowName", wfHolder.getWorkflow().getName());
 			bm.setStringProperty("WorkflowSubject", wfHolder.getUser().getUserID());
+			bm.setStringProperty("JMSXGroupID", "unison");
+			
 			
 			TaskHolder holder = wfHolder.getWfStack().peek();
 			WorkflowTask task = holder.getParent().get(holder.getPosition());
@@ -1474,12 +1496,17 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 
 
 	public MessageProducerHolder getTaskMessageProducer() throws Exception {
-		return this.mpPool.borrowObject();
+		
+		int index = ThreadLocalRandom.current().nextInt(0,this.mpPools.size());
+		
+		MessageProducerHolder mph = this.mpPools.get(index).borrowObject();
+		mph.setPool(this.mpPools.get(index));
+		return mph;
 	}
 
 
 	public void returnMessageProducer(MessageProducerHolder mph) {
-		this.mpPool.returnObject(mph);
+		mph.getPool().returnObject(mph);
 		
 	}
 
@@ -1518,17 +1545,36 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				cfgMgr.addThread(new JMSMessageCloser(taskSession,mc));
         	} else {
         		
-        		for (int i=0;i<this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getMaxConsumers();i++) {
-        			javax.jms.Connection con = this.getQueueConnection();
-        			TaskConsumer taskConsumer = new TaskConsumer(this,this.cfgMgr);
-					javax.jms.Session taskSession = con.createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
-					javax.jms.Queue taskQueue = taskSession.createQueue(taskQueueName);
-					MessageConsumer mc = taskSession.createConsumer(taskQueue);
-					
-					mc.setMessageListener(taskConsumer);
-					
-					cfgMgr.addThread(new JMSMessageCloser(con,taskSession,mc));
+        		if (this.cfgMgr.getCfg().getProvisioning().getQueueConfig().isMultiTaskQueues()) {
+        			for (int j=1;j<=this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getNumQueues();j++) {
+        				String name = this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getTaskQueueName().replace("{x}", Integer.toString(j));
+        				for (int i=0;i<this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getMaxConsumers();i++) {
+                			javax.jms.Connection con = this.getQueueConnection();
+                			TaskConsumer taskConsumer = new TaskConsumer(this,this.cfgMgr);
+        					javax.jms.Session taskSession = con.createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
+        					javax.jms.Queue taskQueue = taskSession.createQueue(name);
+        					MessageConsumer mc = taskSession.createConsumer(taskQueue);
+        					
+        					mc.setMessageListener(taskConsumer);
+        					
+        					cfgMgr.addThread(new JMSMessageCloser(con,taskSession,mc));
+                		}
+        			}
+        		} else {
+        			for (int i=0;i<this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getMaxConsumers();i++) {
+            			javax.jms.Connection con = this.getQueueConnection();
+            			TaskConsumer taskConsumer = new TaskConsumer(this,this.cfgMgr);
+    					javax.jms.Session taskSession = con.createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
+    					javax.jms.Queue taskQueue = taskSession.createQueue(taskQueueName);
+    					MessageConsumer mc = taskSession.createConsumer(taskQueue);
+    					
+    					mc.setMessageListener(taskConsumer);
+    					
+    					cfgMgr.addThread(new JMSMessageCloser(con,taskSession,mc));
+            		}
         		}
+        		
+        		
         	}
 		} catch (JMSException e) {
 			throw new ProvisioningException("Could not initialize task message system",e);

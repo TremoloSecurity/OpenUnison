@@ -1868,6 +1868,16 @@
 			</annotation>
 
 		</attribute>
+		<attribute name="numQueues" type="int" default="1">
+			<annotation>
+				<documentation>Number of task queues</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="multiTaskQueues" type="boolean" default="false">
+			<annotation>
+				<documentation>If true, multiple queues can be used for tasks</documentation>
+			</annotation>
+		</attribute>
 	</complexType>
 
 	<complexType name="portalUrlType">

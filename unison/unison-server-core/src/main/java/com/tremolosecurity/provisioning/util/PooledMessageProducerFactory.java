@@ -25,6 +25,7 @@ import javax.jms.Session;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
+import org.apache.commons.pool2.impl.GenericObjectPool;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningEngineImpl;
@@ -35,14 +36,17 @@ public class PooledMessageProducerFactory implements PooledObjectFactory<Message
 	ConfigManager cfg;
 	String taskQueueName;
 	
-	public PooledMessageProducerFactory(ConfigManager cfgMgr, ProvisioningEngineImpl provisioningEngineImpl) {
+	
+	public PooledMessageProducerFactory(ConfigManager cfgMgr, ProvisioningEngineImpl provisioningEngineImpl,String queueName) {
 		this.cfg = cfgMgr;
 		this.prov = provisioningEngineImpl;
 		
-		taskQueueName = "TremoloUnisonTaskQueue";
+		/*taskQueueName = "TremoloUnisonTaskQueue";
 		if (this.cfg.getCfg().getProvisioning() != null && this.cfg.getCfg().getProvisioning().getQueueConfig() != null) {
 			taskQueueName = this.cfg.getCfg().getProvisioning().getQueueConfig().getTaskQueueName();
-		}
+		}*/
+		
+		this.taskQueueName = queueName;
 	}
 	
 	@Override

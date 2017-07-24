@@ -21,15 +21,19 @@ import javax.jms.Connection;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 
+import org.apache.commons.pool2.impl.GenericObjectPool;
+
 public class MessageProducerHolder {
 	MessageProducer producer;
 	Connection con;
 	Session session;
+	GenericObjectPool<MessageProducerHolder> pool;
 	
 	public MessageProducerHolder(Connection con,MessageProducer producer,Session session) {
 		this.con = con;
 		this.producer = producer;
 		this.session = session;
+		
 	}
 
 	public MessageProducer getProducer() {
@@ -43,6 +47,15 @@ public class MessageProducerHolder {
 	public Session getSession() {
 		return session;
 	}
+
+	public GenericObjectPool<MessageProducerHolder> getPool() {
+		return pool;
+	}
+
+	public void setPool(GenericObjectPool<MessageProducerHolder> pool) {
+		this.pool = pool;
+	}
+	
 	
 	
 	
