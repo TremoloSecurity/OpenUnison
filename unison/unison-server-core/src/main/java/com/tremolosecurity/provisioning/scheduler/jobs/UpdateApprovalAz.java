@@ -104,7 +104,7 @@ public class UpdateApprovalAz extends UnisonJob {
 				
 				EncryptedMessage em = configManager.getProvisioningEngine().encryptObject(wf);
 				TextMessage tmsg = session.createTextMessage(gson.toJson(em));
-				
+				tmsg.setStringProperty("JMSXGroupID", "unison-updateaz");
 				
 				mp.send(tmsg);
 			}

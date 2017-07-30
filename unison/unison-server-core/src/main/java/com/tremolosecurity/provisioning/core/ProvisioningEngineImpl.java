@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.Stack;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.crypto.BadPaddingException;
@@ -1457,6 +1458,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			bm.setStringProperty("WorkflowName", wfHolder.getWorkflow().getName());
 			bm.setStringProperty("WorkflowSubject", wfHolder.getUser().getUserID());
 			bm.setStringProperty("JMSXGroupID", "unison");
+			bm.setStringProperty("nonce", UUID.randomUUID().toString());
 			
 			
 			TaskHolder holder = wfHolder.getWfStack().peek();
@@ -1957,6 +1959,8 @@ class SendMessageThread implements MessageListener {
 		Gson gson = new Gson();
 		bm.setText(gson.toJson(msg));
 		bm.setStringProperty("OriginalQueue", this.smtpQueue);
+		bm.setStringProperty("nonce", UUID.randomUUID().toString());
+		bm.setStringProperty("JMSXGroupID", "unison-email");
 		mp.send(bm);
 		//session.commit();
 		

@@ -78,7 +78,7 @@ public class AutoFail extends UnisonJob {
 				EncryptedMessage em = configManager.getProvisioningEngine()
 						.encryptObject(fa);
 				TextMessage tmsg = session.createTextMessage(gson.toJson(em));
-
+				tmsg.setStringProperty("JMSXGroupID", "unison-autofail");
 				mp.send(tmsg);
 			}
 
