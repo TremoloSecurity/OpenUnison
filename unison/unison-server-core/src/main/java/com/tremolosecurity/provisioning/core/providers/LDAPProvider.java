@@ -57,6 +57,9 @@ import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
 public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface {
 
+	
+	public static final String NEW_USER_DN = "com.tremolosecurity.unison.provisioning.ldap.newUserDN";
+	
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(LDAPProvider.class);
 	LdapPool ldapPool;
 	
@@ -116,7 +119,7 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 		
 		Workflow workflow = (Workflow) request.get("WORKFLOW");
 		
-		String dn = this.getDN(user);
+		String dn = this.getDN(user,request);
 		LDAPAttributeSet attrs = new LDAPAttributeSet();
 		
 		attrs.add(new LDAPAttribute("objectClass",this.objectClass));
@@ -644,17 +647,25 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 		}
 	}
 	
-	private String getDN(User user) throws ProvisioningException {
+	private String getDN(User user,Map<String,Object> request) throws ProvisioningException {
+		String ldnPattern;
+		
+		if (request.get(LDAPProvider.NEW_USER_DN) != null) {
+			ldnPattern = (String) request.get(LDAPProvider.NEW_USER_DN);
+		} else {
+			ldnPattern = this.dnPattern;
+		}
+		
 		StringBuffer dn = new StringBuffer();
 		int last = 0;
-		int index = dnPattern.indexOf('$');
+		int index = ldnPattern.indexOf('$');
 		while (index != -1) {
 			int begin = index + 1;
-			int end = dnPattern.indexOf('}',begin + 1);
+			int end = ldnPattern.indexOf('}',begin + 1);
 
-			dn.append(dnPattern.substring(last,index));
+			dn.append(ldnPattern.substring(last,index));
 			
-			String attr = dnPattern.substring(begin + 1,end);
+			String attr = ldnPattern.substring(begin + 1,end);
 			Attribute attrib = user.getAttribs().get(attr);
 			
 			if (attrib == null) {
@@ -666,10 +677,10 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 			
 			
 			last = end + 1;
-			index = dnPattern.indexOf('$',last);
+			index = ldnPattern.indexOf('$',last);
 		}
 		
-		dn.append(dnPattern.substring(last));
+		dn.append(ldnPattern.substring(last));
 		
 		return dn.toString();
 		
