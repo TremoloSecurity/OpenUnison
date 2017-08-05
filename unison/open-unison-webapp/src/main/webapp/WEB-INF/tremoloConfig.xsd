@@ -291,6 +291,16 @@
 				<documentation>If true, adds the HttpOnly</documentation>
 			</annotation>
 		</attribute>
+		<attribute name="hsts" type="boolean" default="false">
+			<annotation>
+				<documentation>If true, adds the HSTS headers</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="hstsTTL" type="int" default="0">
+			<annotation>
+				<documentation>The number of seconds the HSTS header should be available</documentation>
+			</annotation>
+		</attribute>
 	</complexType>
 
 	<element name="tremoloConfig" type="tns:tremoloType"></element>

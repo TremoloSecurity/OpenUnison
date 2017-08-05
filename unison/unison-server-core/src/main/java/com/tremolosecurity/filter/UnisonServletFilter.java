@@ -124,6 +124,8 @@ static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonServl
 				} else {
 					toSSL = ! req.getRequestURL().toString().toLowerCase().startsWith("https");
 				}
+				
+				
 			}
 			
 			if (toSSL) {
@@ -144,7 +146,12 @@ static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonServl
 			}
 			
 			
-			
+			//add hsts
+			if (GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getApplications().isHsts()) {
+				StringBuffer sb = new StringBuffer();
+				sb.append("max-age-value=").append(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getApplications().getHstsTTL()).append(" ; includeSubDomains");
+				resp.addHeader("Strict-Transport-Security", sb.toString());
+			}
 			
 			req.setAttribute(ProxyConstants.TREMOLO_CFG_OBJ, cfg);
 			

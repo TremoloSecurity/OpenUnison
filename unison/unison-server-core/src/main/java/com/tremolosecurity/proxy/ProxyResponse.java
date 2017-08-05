@@ -231,6 +231,9 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 			
 		}
 		
+		
+		
+		
 		Iterator<Attribute> itAttr = this.headers.values().iterator();
 		while (itAttr.hasNext()) {
 			Attribute attr = itAttr.next();
