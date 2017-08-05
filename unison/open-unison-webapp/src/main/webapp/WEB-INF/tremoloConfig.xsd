@@ -281,6 +281,16 @@
 					until it times out</documentation>
 			</annotation>
 		</attribute>
+		<attribute name="openSessionSecure" type="boolean" default="false">
+			<annotation>
+				<documentation>If true, requires SSL connections</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="openSessionHttpOnly" type="boolean" default="false">
+			<annotation>
+				<documentation>If true, adds the HttpOnly</documentation>
+			</annotation>
+		</attribute>
 	</complexType>
 
 	<element name="tremoloConfig" type="tns:tremoloType"></element>
@@ -697,6 +707,11 @@
 						from inactivity</documentation>
 				</annotation>
 
+			</element>
+			<element name="httpOnly" type="boolean" minOccurs="0" maxOccurs="1">
+				<annotation>
+					<documentation>If true, the HttpOnly flag will be added to the cookie so its not available to javascript</documentation>
+				</annotation>
 			</element>
 		</sequence>
 	</complexType>

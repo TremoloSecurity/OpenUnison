@@ -411,31 +411,31 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 
 	public void doPost(HttpServletRequest request, HttpServletResponse response, AuthStep as)
 			throws IOException, ServletException {
-		// TODO Auto-generated method stub
+		this.doGet(request, response, as);
 
 	}
 
 	public void doPut(HttpServletRequest request, HttpServletResponse response, AuthStep as)
 			throws IOException, ServletException {
-		// TODO Auto-generated method stub
+		this.doGet(request, response, as);
 
 	}
 
 	public void doHead(HttpServletRequest request, HttpServletResponse response, AuthStep as)
 			throws IOException, ServletException {
-		// TODO Auto-generated method stub
+		this.doGet(request, response, as);
 
 	}
 
 	public void doOptions(HttpServletRequest request, HttpServletResponse response, AuthStep as)
 			throws IOException, ServletException {
-		// TODO Auto-generated method stub
+		this.doGet(request, response, as);
 
 	}
 
 	public void doDelete(HttpServletRequest request, HttpServletResponse response, AuthStep as)
 			throws IOException, ServletException {
-		// TODO Auto-generated method stub
+		this.doGet(request, response, as);
 
 	}
 

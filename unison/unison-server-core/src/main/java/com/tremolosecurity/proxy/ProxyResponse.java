@@ -221,6 +221,7 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 					}
 					
 					cookie.setSecure(holder.getApp().getCookieConfig().isSecure());
+					cookie.setHttpOnly(holder.getApp().getCookieConfig().isHttpOnly() != null && holder.getApp().getCookieConfig().isHttpOnly());
 				}
 				
 				

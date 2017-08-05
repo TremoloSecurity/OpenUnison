@@ -427,7 +427,7 @@ public class SessionManagerImpl implements SessionManager {
 		sessionCookie.setSecure(false);
 		sessionCookie.setMaxAge(-1);
 		sessionCookie.setSecure(app.getCookieConfig().isSecure());
-		sessionCookie.setHttpOnly(false);
+		sessionCookie.setHttpOnly(app.getCookieConfig().isHttpOnly() != null && app.getCookieConfig().isHttpOnly());
 		resp.addCookie(sessionCookie);
 
 		// delete the opensession if it exists
@@ -436,7 +436,8 @@ public class SessionManagerImpl implements SessionManager {
 				.getOpenSessionCookieName(), id);
 
 		openSessionCookie.setPath("/");
-		openSessionCookie.setSecure(false);
+		openSessionCookie.setSecure(cfg.getCfg().getApplications().isOpenSessionSecure());
+		openSessionCookie.setHttpOnly(cfg.getCfg().getApplications().isOpenSessionHttpOnly());
 		openSessionCookie.setMaxAge(0);
 		resp.addCookie(openSessionCookie);
 		}
@@ -480,7 +481,8 @@ public class SessionManagerImpl implements SessionManager {
 				.getOpenSessionCookieName(), id);
 
 		sessionCookie.setPath("/");
-		sessionCookie.setSecure(false);
+		sessionCookie.setSecure(cfg.getCfg().getApplications().isOpenSessionSecure());
+		sessionCookie.setHttpOnly(cfg.getCfg().getApplications().isOpenSessionHttpOnly());
 		sessionCookie.setMaxAge(-1);
 		// TODO add secure?
 		// sessionCookie.setSecure(app.getCookieConfig().isSecure());
