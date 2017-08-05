@@ -179,7 +179,7 @@ limitations under the License.
 
 								<input type="text" ng-show="attributeConfig.type == 'text'" ng-model="scale.newUser.attributes[attributeConfig.name]"  aria-label="{{ attributeConfig.displayName }}" />
 								<select ng-show="attributeConfig.type == 'list'" ng-model="scale.newUser.attributes[attributeConfig.name]"  aria-label="{{ attributeConfig.displayName }}" ng-options="option.name for option in attributeConfig.values track by option.value" convert-to-string></select>
-
+								<textarea rows="10" cols="50" ng-show="attributeConfig.type == 'textarea'" ng-model="scale.newUser.attributes[attributeConfig.name]"  aria-label="{{ attributeConfig.displayName }}"><</textarea>
 							</div>
 					</div>
 					<div class="row" ng-hide="! scale.config.requireReason">
