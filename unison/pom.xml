@@ -29,8 +29,8 @@
 		<google-api-services-oauth2.version>v2-rev124-1.22.0</google-api-services-oauth2.version>
 		<google-api-services-admin-directory.version>directory_v1-rev75-1.22.0</google-api-services-admin-directory.version>
 		<json-simple.version>1.1.1</json-simple.version>
-		<twilio-java-sdk.version>7.12.0</twilio-java-sdk.version>
-		<restfb.version>1.42.0</restfb.version>
+		<twilio-java-sdk.version>7.14.0</twilio-java-sdk.version>
+		<restfb.version>1.43.0</restfb.version>
 		<jbosssx-bare.version>4.0.20.Final</jbosssx-bare.version>
 		<jbosssx-client.version>4.0.20.Final</jbosssx-client.version>
 		<jboss-as-logging.version>7.2.0.Final</jboss-as-logging.version>
@@ -48,30 +48,30 @@
 		<commons-fileupload.version>1.3.3</commons-fileupload.version>
 		<javax.jms-api.version>2.0.1</javax.jms-api.version>
 		<quartz.version>2.3.0</quartz.version>
-		<quartz-jobs.version>2.2.3</quartz-jobs.version>
+		<quartz-jobs.version>2.3.0</quartz-jobs.version>
 		<json-io.version>4.9.12</json-io.version>
 		<log4j.version>2.8.2</log4j.version>
 		<joda-time.version>2.9.9</joda-time.version>
-		<javax.mail-api.version>1.5.6</javax.mail-api.version>
-		<bcpkix-jdk15on.version>1.56</bcpkix-jdk15on.version>
+		<javax.mail-api.version>1.6.0</javax.mail-api.version>
+		<bcpkix-jdk15on.version>1.57</bcpkix-jdk15on.version>
 		<net.sourceforge.spnego.version>7.1</net.sourceforge.spnego.version>
 		<reflections.version>0.9.11</reflections.version>
 		<apache-log4j-extras.version>1.2.17</apache-log4j-extras.version>
 		<googleauth.version>1.1.1</googleauth.version>
-		<activemq.version>5.14.5</activemq.version>
+		<activemq.version>5.15.0</activemq.version>
 		<commons-pool2.version>2.4.2</commons-pool2.version>
-		<aws-java-sdk.version>1.11.150</aws-java-sdk.version>
+		<aws-java-sdk.version>1.11.172</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>1.0.3</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.0.2</stringtemplate.version>
 		<hibernate.version>5.2.10.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
-		<org.apache.poi.version>3.15</org.apache.poi.version>
-		<jose4j.version>0.5.7</jose4j.version>
-		<mongodb-driver.version>3.4.2</mongodb-driver.version>
+		<org.apache.poi.version>3.16</org.apache.poi.version>
+		<jose4j.version>0.6.0</jose4j.version>
+		<mongodb-driver.version>3.5.0</mongodb-driver.version>
 		<xalan.version>2.7.2</xalan.version>
 		<jackson.version>2.8.9</jackson.version>
 		<slf4j.version>1.7.25</slf4j.version>
-		<guava.version>22.0</guava.version>
+		<guava.version>23.0</guava.version>
 		<undertow.version>1.4.18.Final</undertow.version>
 	  	<jastow.version>2.0.2.Final</jastow.version>
 	  	<jboss-jstl-api_1.2_spec.version>1.1.3.Final</jboss-jstl-api_1.2_spec.version>
