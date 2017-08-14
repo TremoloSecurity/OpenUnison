@@ -687,8 +687,17 @@ public class OpenUnisonUtils {
 		String urlBase = loadOption(cmd,"urlBase",options);
 		
 		String url = urlBase + saml2Mech.getUri();
+		
+		SecureRandom random = new SecureRandom();
+		byte[] idBytes = new byte[20];
+		random.nextBytes(idBytes);
+		
+		
+		String id = "f" + Hex.encodeHexString(idBytes);
+		
 		EntityDescriptorBuilder edb = new EntityDescriptorBuilder();
 		EntityDescriptorImpl ed = (EntityDescriptorImpl) edb.buildObject();
+		ed.setID(id);
 		ed.setEntityID(url);
 		
 		
