@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 (function(){
-  var app = angular.module('scale',['treeControl','monospaced.qrcode']);
+  var app = angular.module('scale',['treeControl','monospaced.qrcode','ngClickCopy']);
 
 
 
@@ -56,7 +56,7 @@ limitations under the License.
 			$scope.scale.modalShowFooter = true;
 			$scope.scale.showModal = true;
 			$scope.scale.showModal = true;
-			
+
       };
 
 
@@ -99,23 +99,23 @@ limitations under the License.
 
     	  $http.get('sessioncheck').
 	  	  	then(function(response) {
-	  	  		
+
 	  	  	},
-	  	  	
+
 	  	  	function(response) {
 	  	  		location.reload(true);
 	  	  	}
-	  	  	
+
 	  	  );
-    	  
+
     	  $interval(
       			function() {
       				$http.get('sessioncheck')
       					.then(
       						function(response) {
       							$scope.scale.minsLeft = response.data.minsLeft;
-      							
-      							
+
+
       							if ($scope.scale.minsLeft <= $scope.scale.config.warnMinutesLeft) {
   	    							$scope.scale.modalTitle = "Inactive Session";
   	    							$scope.scale.modalMessage = response.data.minsLeft + " minutes until your session ends.  Click OK to continue your session.";
@@ -136,19 +136,19 @@ limitations under the License.
   	    											$scope.scale.showModal = false;
   	    											$scope.scale.reloadSession();
   	    										}
-  	    								
+
   	    								);
-  	    								
+
   	    							};
   	    							$scope.scale.showModal = true;
   	    							$scope.scale.modalShowFooter = true;
-      							}   
+      							}
       						},
       						function(response) {
       							$scope.scale.showModal = false;
   								$scope.scale.reloadSession();
       						}
-      					
+
       					);
       			}, 1000 * 60
       	);
@@ -156,21 +156,21 @@ limitations under the License.
         $http.get('token/config').then(
           function(response) {
             $scope.scale.config = response.data;
-            
+
             try {
             	JSON.parse(JSON.stringify(response.data));
             } catch (e) {
             	location.reload(true);
             }
-            
+
             $http.get('token/user').then(
               function(response) {
                 $scope.scale.displayName = response.data.displayName;
                 $scope.scale.token = response.data.token;
-                
-                
-                
-                
+
+
+
+
                 $scope.scale.setSessionLoadedComplete();
                 $scope.scale.appIsError = false;
                 //$scope.$apply();
@@ -215,8 +215,8 @@ limitations under the License.
                     '<h4 class="modal-title">{{ title }}</h4>' +
                   '</div>' +
                   '<div class="modal-body" ng-transclude></div>' +
-'<div class="modal-footer" ng-show="scale.modalShowFooter">' + 
-                  
+'<div class="modal-footer" ng-show="scale.modalShowFooter">' +
+
                   '<button type="button" class="btn-primary btn-lg" ng-click="scale.modalOKFunction()" >OK</button>' +
                 '</div>' +
               '</div>' +
