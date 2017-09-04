@@ -37,6 +37,11 @@ public class OpenUnisonConfig {
 	
 	String quartzDir;
 	
+	boolean socketShutdownListener;
+	String socketShutdownHost;
+	int socketShutdownPort;
+	String socketShutdownCommand;
+	
 	public int getOpenPort() {
 		return openPort;
 	}
@@ -120,6 +125,30 @@ public class OpenUnisonConfig {
 	}
 	public void setQuartzDir(String quartzDir) {
 		this.quartzDir = quartzDir;
+	}
+	public boolean isSocketShutdownListener() {
+		return socketShutdownListener;
+	}
+	public void setSocketShutdownListener(boolean socketShutdownListener) {
+		this.socketShutdownListener = socketShutdownListener;
+	}
+	public String getSocketShutdownHost() {
+		return socketShutdownHost;
+	}
+	public void setSocketShutdownHost(String socketShutdownHost) {
+		this.socketShutdownHost = socketShutdownHost;
+	}
+	public int getSocketShutdownPort() {
+		return socketShutdownPort;
+	}
+	public void setSocketShutdownPort(int socketShutdownPort) {
+		this.socketShutdownPort = socketShutdownPort;
+	}
+	public String getSocketShutdownCommand() {
+		return socketShutdownCommand;
+	}
+	public void setSocketShutdownCommand(String socketShutdownCommand) {
+		this.socketShutdownCommand = socketShutdownCommand;
 	}
 	
 	

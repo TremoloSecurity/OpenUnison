@@ -20,6 +20,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.security.Key;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -99,6 +103,8 @@ public class OpenUnisonOnUndertow {
 			config = gson.fromJson(new InputStreamReader(new FileInputStream(args[0])), OpenUnisonConfig.class);
 		}
 		
+		final OpenUnisonConfig fconfig = config;
+		
 		logger.info("Config Open Port : '" + config.getOpenPort() + "'");
 		logger.info("Config Open External Port : '" + config.getOpenExternalPort() + "'");
 		logger.info("Config Secure Port : '" + config.getSecurePort() + "'");
@@ -111,6 +117,13 @@ public class OpenUnisonOnUndertow {
 		logger.info("Config TLS Ciphers : '" + config.getCiphers() + "'");
 		logger.info("Config Path to Deployment : '" + config.getPathToDeployment() + "'");
 		logger.info("Config Path to Environment File : '" + config.getPathToEnvFile() + "'");
+		
+		logger.info("Support socket shutdown : " + config.isSocketShutdownListener());
+		if (config.isSocketShutdownListener()) {
+			logger.info("Socket shutdown host : '" + config.getSocketShutdownHost() + "'");
+			logger.info("Socket shutdown port : '" + config.getSocketShutdownPort() + "'");
+			logger.info("Socket shutdown command : '" + config.getSocketShutdownCommand() + "'");
+		}
 
 		logger.info("Creating unisonServiceProps");
 		
@@ -182,6 +195,7 @@ public class OpenUnisonOnUndertow {
 		logger.info("Path directory? : '" + pathToWebApp.isDirectory() + "'");
 		logger.info("Path exists : '" + pathToWebApp.exists() + "'");
 		
+		
 		DeploymentInfo servletBuilder = Servlets.deployment()  
 				.setClassLoader(OpenUnisonOnUndertow.class.getClassLoader())
                 .setEagerFilterInit(true)
@@ -215,7 +229,6 @@ public class OpenUnisonOnUndertow {
 		buildUndertow.setHandler(path);
 		
 		undertow = buildUndertow.build();
-		undertow.start();
 		
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 		    public void run() {
@@ -224,6 +237,40 @@ public class OpenUnisonOnUndertow {
 		    	GlobalEntries.getGlobalEntries().getConfigManager().clearThreads();
 		    }
 		});
+		
+		if (config.isSocketShutdownListener()) {
+			new Thread() {
+				public void run() {
+					logger.info("Starting shutdown socket listener");
+					try {
+						ServerSocket socket = new ServerSocket(fconfig.getSocketShutdownPort(),0,InetAddress.getByName(fconfig.getSocketShutdownHost()));
+						while (true) {
+							Socket clientSocket = socket.accept();
+						    PrintWriter out =
+						        new PrintWriter(clientSocket.getOutputStream(), true);
+						    BufferedReader in = new BufferedReader(
+						        new InputStreamReader(clientSocket.getInputStream()));
+						    
+						    String command = in.readLine();
+						    if (fconfig.getSocketShutdownCommand().equalsIgnoreCase(command)) {
+						    	logger.info("Shutting down");
+						    	clientSocket.close();
+						    	socket.close();
+						    	undertow.stop();
+						    	GlobalEntries.getGlobalEntries().getConfigManager().clearThreads();
+						    } else {
+						    	clientSocket.close();
+						    }
+						}
+					} catch (IOException e) {
+						logger.error("Could not start shutdown listener",e);
+					}
+				}
+			}.start();
+		}
+		
+		undertow.start();
+		
 		
 		
 		
