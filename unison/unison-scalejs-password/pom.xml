@@ -38,5 +38,10 @@
 			<artifactId>unison-scalejs-common</artifactId>
 			<version>${openunison.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-provisioning-sdk</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
 	</dependencies>
 </project>

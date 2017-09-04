@@ -22,6 +22,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.provisioning.core.ProvisioningParams;
+import com.tremolosecurity.provisioning.objects.Workflows;
 import com.tremolosecurity.provisioning.service.util.TremoloUser;
 import com.tremolosecurity.provisioning.service.util.WFCall;
 import com.tremolosecurity.proxy.ProxySys;
@@ -98,6 +100,12 @@ public class ScalePassword implements HttpFilter {
 					wfCall.setReason(this.scaleConfig.getReason());
 					wfCall.setUidAttributeName(this.scaleConfig.getUidAttribute());
 					
+					if (this.scaleConfig.isRunSynchronously()) {
+						wfCall.getRequestParams().put(ProvisioningParams.UNISON_EXEC_TYPE, ProvisioningParams.UNISON_EXEC_SYNC);
+					} else {
+						wfCall.getRequestParams().put(ProvisioningParams.UNISON_EXEC_TYPE, ProvisioningParams.UNISON_EXEC_ASYNC);
+					}
+					
 					TremoloUser tu = new TremoloUser();
 					tu.setUid(userData.getAttribs().get(this.scaleConfig.getUidAttribute()).getValues().get(0));
 					tu.getAttributes().add(new Attribute(this.scaleConfig.getUidAttribute(),userData.getAttribs().get(this.scaleConfig.getUidAttribute()).getValues().get(0)));
@@ -109,7 +117,11 @@ public class ScalePassword implements HttpFilter {
 						exec.execute(wfCall, GlobalEntries.getGlobalEntries().getConfigManager());
 					} catch (Exception e) {
 						logger.error("Could not update user",e);
-						errors.getErrors().add("Please contact your system administrator");
+						if (this.scaleConfig.isRunSynchronously()) {
+							errors.getErrors().add("Unable to set your password, make sure it meets with complexity requirements");
+						} else {
+							errors.getErrors().add("Please contact your system administrator");
+						}
 					}
 				}
 			}
@@ -180,7 +192,12 @@ public class ScalePassword implements HttpFilter {
 		scaleConfig.setReason(this.loadAttributeValue("reason", "Reason Text", config));
 		scaleConfig.setWorkflowName(this.loadAttributeValue("workflowName", "Workflow Name", config));
 		scaleConfig.setValidatorClassName(this.loadAttributeValue("validatorClassName", "Validator Class", config));
-		
+		String val = this.loadOptionalAttributeValue("synchronous", "Run Synchronously", config);
+		if (val == null) {
+			scaleConfig.setRunSynchronously(false);
+		} else {
+			scaleConfig.setRunSynchronously(val.equalsIgnoreCase("true"));
+		}
 		Attribute attr  = config.getAttribute("validator.params");
 		scaleConfig.setValidatorParams(new HashMap<String,Attribute>());
 		if (attr != null) {

@@ -31,6 +31,8 @@ public class ScalePasswordResetConfig {
 	String uidAttribute;
 	String reason;
 	
+	boolean runSynchronously;
+	
 	transient String workflowName;
 	transient String validatorClassName;
 	transient HashMap<String,Attribute> validatorParams;
@@ -135,6 +137,18 @@ public class ScalePasswordResetConfig {
 
 	public void setReason(String reason) {
 		this.reason = reason;
+	}
+
+
+
+	public boolean isRunSynchronously() {
+		return runSynchronously;
+	}
+
+
+
+	public void setRunSynchronously(boolean runSynchronously) {
+		this.runSynchronously = runSynchronously;
 	}
 	
 	
