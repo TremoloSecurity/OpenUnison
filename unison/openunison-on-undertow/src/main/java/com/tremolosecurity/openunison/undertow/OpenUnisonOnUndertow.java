@@ -53,6 +53,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import com.tremolosecurity.openunison.util.config.OpenUnisonConfigLoader;
 import org.apache.jasper.deploy.JspPropertyGroup;
 import org.apache.jasper.deploy.TagLibraryInfo;
 import org.apache.logging.log4j.Logger;
@@ -164,7 +165,7 @@ public class OpenUnisonOnUndertow {
 		
 		logger.info("OpenUnison XML File : '" + unisonXML + "'");
 		
-		String unisonXMLContent = includeEnvironmentVariables(unisonXML);
+		String unisonXMLContent = OpenUnisonConfigLoader.generateOpenUnisonConfig(unisonXML);
 		
 		JAXBContext jc = JAXBContext.newInstance("com.tremolosecurity.config.xml");
 		Unmarshaller unmarshaller = jc.createUnmarshaller();
@@ -245,21 +246,76 @@ public class OpenUnisonOnUndertow {
 					try {
 						ServerSocket socket = new ServerSocket(fconfig.getSocketShutdownPort(),0,InetAddress.getByName(fconfig.getSocketShutdownHost()));
 						while (true) {
-							Socket clientSocket = socket.accept();
-						    PrintWriter out =
-						        new PrintWriter(clientSocket.getOutputStream(), true);
+							logger.info("shutdown waiting for input");
+							Socket clientSocket = null;
+							try {
+								clientSocket = socket.accept();
+							} catch (Throwable t) {
+								logger.warn("Could not accept connection",t);
+								continue;
+							}
+							logger.info("request received");
+						    //PrintWriter out =
+						    //    new PrintWriter(clientSocket.getOutputStream(), true);
 						    BufferedReader in = new BufferedReader(
 						        new InputStreamReader(clientSocket.getInputStream()));
-						    
+						    logger.info("reading data");
 						    String command = in.readLine();
+							logger.info("'" + command + "'");
+						    if (command != null) {
+						    	command.trim();
+							}
+						    logger.info("'" + command + "'");
 						    if (fconfig.getSocketShutdownCommand().equalsIgnoreCase(command)) {
-						    	logger.info("Shutting down");
-						    	clientSocket.close();
-						    	socket.close();
-						    	undertow.stop();
-						    	GlobalEntries.getGlobalEntries().getConfigManager().clearThreads();
+						    	logger.info("Stopping threads");
+								GlobalEntries.getGlobalEntries().getConfigManager().clearThreads();
+
+						    	logger.info("Shutting down undertow");
+								undertow.stop();
+
+								logger.info("Closing input stream");
+
+								try {
+									in.close();
+								} catch (Throwable t) {}
+
+								/*try {
+									out.close();
+								} catch (Throwable t) {}*/
+
+								logger.info("Closing client socket");
+								try {
+									clientSocket.close();
+								} catch (Throwable t) {}
+
+								logger.info("Closing server socket");
+								try {
+									socket.close();
+								} catch (Throwable t) {}
+
+								logger.info("Sleeping for 10 seconds");
+								try {
+									Thread.sleep(10000);
+									logger.info("Exiting");
+									System.exit(0);
+									return;
+								} catch (Exception e) {}
+
 						    } else {
-						    	clientSocket.close();
+						    	command = null;
+						    	logger.info("invalid command");
+								try {
+									in.close();
+								} catch (Throwable t) {}
+
+								/*try {
+									out.close();
+								} catch (Throwable t) {}
+*/
+								try {
+									clientSocket.close();
+								} catch (Throwable t) {}
+
 						    }
 						}
 					} catch (IOException e) {
@@ -401,78 +457,7 @@ public class OpenUnisonOnUndertow {
 		logger.info("Configured TLS Listener on Port " + config.getSecurePort());
 	}
 	
-	private static String includeEnvironmentVariables(String srcPath) throws IOException {
-		StringBuffer b = new StringBuffer();
-		String line = null;
-		
-		BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(srcPath)));
-		
-		while ((line = in.readLine()) != null) {
-			b.append(line).append('\n');
-		}
-		
-		String cfg = b.toString();
-		if (logger.isDebugEnabled()) {
-			logger.debug("---------------");
-			logger.debug("Before environment variables : '" + srcPath + "'");
-			logger.debug(cfg);
-			logger.debug("---------------");
-		}
-		
-		int begin,end;
-		
-		b.setLength(0);
-		begin = 0;
-		end = 0;
-		
-		String finalCfg = null;
-		
-		begin = cfg.indexOf("#[");
-		while (begin > 0) {
-			if (end == 0) {
-				b.append(cfg.substring(0,begin));
-			} else {
-				b.append(cfg.substring(end,begin));
-			}
-			
-			end = cfg.indexOf(']',begin + 2);
-			
-			String envVarName = cfg.substring(begin + 2,end);
-			String value = System.getenv(envVarName);
-			
-			if (value == null) {
-				value = System.getProperty(envVarName);
-			}
-			
-			if (logger.isDebugEnabled()) {
-				logger.debug("Environment Variable '" + envVarName + "'='" + value + "'");
-			}
-			
-			b.append(value);
-			
-			begin = cfg.indexOf("#[",end + 1);
-			end++;
-			
-		}
-		
-		if (end == 0) {
-			finalCfg = cfg;
-		} else {
-			b.append(cfg.substring(end));
-			finalCfg = b.toString();
-		}
-		
-		if (logger.isDebugEnabled()) {
-			logger.debug("---------------");
-			logger.debug("After environment variables : '" + srcPath + "'");
-			logger.debug(finalCfg);
-			logger.debug("---------------");
-		}
-		
-		return finalCfg;
-		
-		
-	}
+
 	
 	private static void addSigners(X509Certificate cert,
 			ArrayList<X509Certificate> chain,KeyStore ks) throws KeyStoreException {

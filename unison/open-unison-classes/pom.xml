@@ -179,6 +179,13 @@
   		<artifactId>unison-server-core</artifactId>
   		<version>${openunison.version}</version>
   	</dependency>
+
+	  <dependency>
+		  <groupId>com.tremolosecurity.unison</groupId>
+		  <artifactId>openunison-util</artifactId>
+		  <version>${openunison.version}</version>
+	  </dependency>
+
   	<dependency>
   		<groupId>javax.servlet</groupId>
   		<artifactId>javax.servlet-api</artifactId>

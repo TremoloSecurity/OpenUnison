@@ -36,6 +36,7 @@ import javax.servlet.ServletContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 
+import com.tremolosecurity.openunison.util.config.OpenUnisonConfigLoader;
 import net.sourceforge.myvd.server.ServerCore;
 
 import org.apache.logging.log4j.Logger;
@@ -88,9 +89,9 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 		Properties service = new Properties();
 		
 		if (configPath.startsWith("WEB-INF")) {
-			service.load( new ByteArrayInputStream(this.includeEnvironmentVariables(filterCfg.getServletContext().getRealPath(("/" + configPath))).getBytes("UTF-8")));
+			service.load( new ByteArrayInputStream(OpenUnisonConfigLoader.generateOpenUnisonConfig(filterCfg.getServletContext().getRealPath(("/" + configPath))).getBytes("UTF-8")));
 		} else {
-			service.load(new ByteArrayInputStream(this.includeEnvironmentVariables(configPath).getBytes("UTF-8")));
+			service.load(new ByteArrayInputStream(OpenUnisonConfigLoader.generateOpenUnisonConfig(configPath).getBytes("UTF-8")));
 		}
 		
 		this.forceToSSL = Boolean.parseBoolean(this.loadConfigParam(OpenUnisonConstants.UNISON_CONFIG_FORCE_TO_SSL, "false", service));
@@ -123,9 +124,9 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 			Unmarshaller unmarshaller) throws Exception {
 		InputStream in;
 		if (configXML.startsWith("WEB-INF")) {
-			in = new ByteArrayInputStream(this.includeEnvironmentVariables(ctx.getRealPath("/" + configXML)).getBytes("UTF-8"));
+			in = new ByteArrayInputStream(OpenUnisonConfigLoader.generateOpenUnisonConfig(ctx.getRealPath("/" + configXML)).getBytes("UTF-8"));
 		} else {
-			in = new ByteArrayInputStream(this.includeEnvironmentVariables(configXML).getBytes("UTF-8"));
+			in = new ByteArrayInputStream(OpenUnisonConfigLoader.generateOpenUnisonConfig(configXML).getBytes("UTF-8"));
 		}
 		
 		Object obj = unmarshaller.unmarshal(in);
@@ -212,9 +213,9 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 			
 			InputStream in;
 			if (myvdConfigPath.startsWith("WEB-INF")) {
-				in = new ByteArrayInputStream(this.includeEnvironmentVariables(ctx.getRealPath("/" + myvdConfigPath)).getBytes("UTF-8"));
+				in = new ByteArrayInputStream(OpenUnisonConfigLoader.generateOpenUnisonConfig(ctx.getRealPath("/" + myvdConfigPath)).getBytes("UTF-8"));
 			} else {
-				in = new ByteArrayInputStream(this.includeEnvironmentVariables(myvdConfigPath).getBytes("UTF-8"));
+				in = new ByteArrayInputStream(OpenUnisonConfigLoader.generateOpenUnisonConfig(myvdConfigPath).getBytes("UTF-8"));
 			}
 			
 			props.load(in);
@@ -229,78 +230,7 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 
 	}
 	
-	private String includeEnvironmentVariables(String srcPath) throws IOException {
-		StringBuffer b = new StringBuffer();
-		String line = null;
-		
-		BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(srcPath)));
-		
-		while ((line = in.readLine()) != null) {
-			b.append(line).append('\n');
-		}
-		
-		String cfg = b.toString();
-		if (logger.isDebugEnabled()) {
-			logger.debug("---------------");
-			logger.debug("Before environment variables : '" + srcPath + "'");
-			logger.debug(cfg);
-			logger.debug("---------------");
-		}
-		
-		int begin,end;
-		
-		b.setLength(0);
-		begin = 0;
-		end = 0;
-		
-		String finalCfg = null;
-		
-		begin = cfg.indexOf("#[");
-		while (begin > 0) {
-			if (end == 0) {
-				b.append(cfg.substring(0,begin));
-			} else {
-				b.append(cfg.substring(end,begin));
-			}
-			
-			end = cfg.indexOf(']',begin + 2);
-			
-			String envVarName = cfg.substring(begin + 2,end);
-			String value = System.getenv(envVarName);
-			
-			if (value == null) {
-				value = System.getProperty(envVarName);
-			}
-			
-			if (logger.isDebugEnabled()) {
-				logger.debug("Environment Variable '" + envVarName + "'='" + value + "'");
-			}
-			
-			b.append(value);
-			
-			begin = cfg.indexOf("#[",end + 1);
-			end++;
-			
-		}
-		
-		if (end == 0) {
-			finalCfg = cfg;
-		} else {
-			b.append(cfg.substring(end));
-			finalCfg = b.toString();
-		}
-		
-		if (logger.isDebugEnabled()) {
-			logger.debug("---------------");
-			logger.debug("After environment variables : '" + srcPath + "'");
-			logger.debug(finalCfg);
-			logger.debug("---------------");
-		}
-		
-		return finalCfg;
-		
-		
-	}
+
 
 	@Override
 	public void postInitialize() {
