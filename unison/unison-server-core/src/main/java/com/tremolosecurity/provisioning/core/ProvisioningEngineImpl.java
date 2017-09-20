@@ -1121,21 +1121,21 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		if (this.maskedAttributes != null && this.maskedAttributes.contains(attribute)) {
 			val = "##########";
 		}
-		
-		if (this.sessionFactory == null) {
-			StringBuffer line = new StringBuffer();
-			line.append("target=").append(target);
-			line.append(" entry=").append(isEntry);
-			line.append(" ");
-			switch (actionType) {
-				case Add : line.append("Add"); break;
-				case Delete : line.append("Delete"); break;
-				case Replace : line.append("Replace"); break;
-			}
-			
-			line.append(" user=").append(wf.getUser().getUserID()).append(" workflow=").append(wf.getName()).append(" approval=").append(approval).append(" ").append(attribute).append("='").append(val).append("'");
-			logger.info(line);
-		} else {
+
+		StringBuffer line = new StringBuffer();
+		line.append("target=").append(target);
+		line.append(" entry=").append(isEntry);
+		line.append(" ");
+		switch (actionType) {
+			case Add : line.append("Add"); break;
+			case Delete : line.append("Delete"); break;
+			case Replace : line.append("Replace"); break;
+		}
+
+		line.append(" user=").append(wf.getUser().getUserID()).append(" workflow=").append(wf.getName()).append(" approval=").append(approval).append(" ").append(attribute).append("='").append(val).append("'");
+		logger.info(line);
+
+		if (this.sessionFactory != null) {
 			
 			org.hibernate.Session session = sessionFactory.openSession();
 			

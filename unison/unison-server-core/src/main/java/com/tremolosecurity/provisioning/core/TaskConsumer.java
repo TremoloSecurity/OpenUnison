@@ -80,7 +80,7 @@ public class TaskConsumer implements MessageListener {
 					//do nothing
 				}
 			}
-			
+
 			msg.acknowledge();
 		
 		} catch (Throwable t) {
