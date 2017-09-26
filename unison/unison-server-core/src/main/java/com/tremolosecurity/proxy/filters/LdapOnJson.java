@@ -25,8 +25,10 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.ldapJson.LdapJsonBindRequest;
 import com.tremolosecurity.ldapJson.LdapJsonEntry;
 import com.tremolosecurity.ldapJson.LdapJsonError;
+import com.tremolosecurity.proxy.ProxyData;
 import com.tremolosecurity.proxy.ProxySys;
 import com.tremolosecurity.proxy.filter.*;
+import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 
@@ -42,6 +44,10 @@ public class LdapOnJson implements HttpFilter {
     static Gson gson = new Gson();
     @Override
     public void doFilter(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain) throws Exception {
+        //every request is distinct, logout immediately
+        chain.setLogout(true);
+
+
         response.setContentType("application/json");
         try {
             URL reqURL;
