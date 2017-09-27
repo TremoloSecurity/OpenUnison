@@ -93,6 +93,10 @@ limitations under the License.
 					<groupId>org.apache.httpcomponents</groupId>
 					<artifactId>httpclient</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>com.tremolosecurity.myvd</groupId>
+					<artifactId>apacheds-service</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 				<dependency>
