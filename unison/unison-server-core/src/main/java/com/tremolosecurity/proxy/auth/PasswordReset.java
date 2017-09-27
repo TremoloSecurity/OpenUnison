@@ -23,9 +23,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayDeque;
@@ -49,10 +46,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.sql.DataSource;
 
-import org.apache.commons.dbcp.cpdsadapter.DriverAdapterCPDS;
-import org.apache.commons.dbcp.datasources.SharedPoolDataSource;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.SessionFactory;
@@ -72,21 +66,10 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UrlHolder;
-import com.tremolosecurity.config.xml.ApprovalDBType;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.AuthMechType;
-import com.tremolosecurity.config.xml.ParamType;
-import com.tremolosecurity.provisioning.core.ProvisioningEngineImpl;
-import com.tremolosecurity.provisioning.core.ProvisioningException;
-import com.tremolosecurity.provisioning.core.ProvisioningTargetImpl;
-import com.tremolosecurity.provisioning.core.User;
-import com.tremolosecurity.provisioning.objects.AllowedApprovers;
 import com.tremolosecurity.provisioning.util.GenPasswd;
-import com.tremolosecurity.proxy.ProxyRequest;
-import com.tremolosecurity.proxy.ProxyUtil;
-import com.tremolosecurity.proxy.auth.RequestHolder.HTTPMethod;
 import com.tremolosecurity.proxy.auth.passwordreset.PasswordResetRequest;
-import com.tremolosecurity.proxy.auth.ssl.CRLManager;
 import com.tremolosecurity.proxy.auth.util.AuthStep;
 import com.tremolosecurity.proxy.auth.util.AuthUtil;
 import com.tremolosecurity.proxy.util.ProxyConstants;
@@ -119,12 +102,17 @@ public class PasswordReset implements AuthMechanism {
 	boolean useSocks;
 	String smtpLocalhost;
 
+
+
 	private boolean smtpTLS;
 	
 	boolean enabled;
 	
 	Queue<SmtpMessage> msgQ;
-	
+
+	String lookupAttributeName;
+
+
 	
 	private void initializeHibernate(String driver, String user,String password,String url,String dialect,int maxCons,int maxIdleCons,String validationQuery,String mappingFile,String createSchema) {
 		StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder();
@@ -271,7 +259,8 @@ public class PasswordReset implements AuthMechanism {
 			AuthChainType act = holder.getConfig().getAuthChains().get(reqHolder.getAuthChainName());
 			String splashRedirect = authParams.get("splashRedirect").getValues().get(0);
 			String noUserSplash = authParams.get("noUserSplash").getValues().get(0);
-			generateResetKey(request, response, splashRedirect,noUserSplash,as,act);
+
+			generateResetKey(request, response, splashRedirect,noUserSplash,as,act,this.lookupAttributeName);
 			return;
 		} else if (request.getParameter("key") == null) {
 			String emailCollectionRedir = authParams.get("emailCollectionRedir").getValues().get(0);
@@ -343,9 +332,10 @@ public class PasswordReset implements AuthMechanism {
 		if (! this.enabled) {
 			throw new ServletException("Operation Not Supported");
 		}
-		
-		
-		
+
+		HashMap<String,Attribute> authParams = (HashMap<String,Attribute>) session.getAttribute(ProxyConstants.AUTH_MECH_PARAMS);
+
+
 		DateTime now = new DateTime().minusMinutes(minValidKey);
 		
 		
@@ -372,7 +362,7 @@ public class PasswordReset implements AuthMechanism {
 			
 			
 			try {
-				LDAPSearchResults res = this.cfgMgr.getMyVD().search(AuthUtil.getChainRoot(cfgMgr,act), 2, equal("mail",email).toString(), new ArrayList<String>());
+				LDAPSearchResults res = this.cfgMgr.getMyVD().search(AuthUtil.getChainRoot(cfgMgr,act), 2, equal(this.lookupAttributeName,email).toString(), new ArrayList<String>());
 				
 				if (res.hasMore()) {
 					
@@ -461,12 +451,12 @@ public class PasswordReset implements AuthMechanism {
 		String splashRedirect = authParams.get("splashRedirect").getValues().get(0);
 		
 		String noUserSplash = authParams.get("noUserSplash").getValues().get(0);
-		
-		
+
+
 		
 		if (request.getParameter("email") != null) {
 		
-			generateResetKey(request, response, splashRedirect,noUserSplash,as,act);
+			generateResetKey(request, response, splashRedirect,noUserSplash,as,act, this.lookupAttributeName);
 		
 			return;
 		} else if (request.getParameter("key") != null) {
@@ -504,37 +494,45 @@ public class PasswordReset implements AuthMechanism {
 	}
 
 	private void generateResetKey(HttpServletRequest request,
-			HttpServletResponse response, String splashRedirect, String noUserSplash,AuthStep as, AuthChainType act)
+								  HttpServletResponse response, String splashRedirect, String noUserSplash, AuthStep as, AuthChainType act, String lookupAttribute)
 			throws ServletException, IOException {
 		org.hibernate.Session con = null;
 		try {
 			con = this.sessionFactory.openSession();
 		
 		
-		String emailAddress = request.getParameter("email");
+		String lookupAttributeValue = request.getParameter("email");
 		
 		
 		ArrayList<String> attrs = new ArrayList<String>();
-		attrs.add("1.1");
+		attrs.add("mail");
 		
 		
-		
+		String emailAddress = null;
 		
 			
-			LDAPSearchResults res = this.cfgMgr.getMyVD().search(AuthUtil.getChainRoot(cfgMgr,act), 2, equal("mail",emailAddress).toString(), attrs);
+			LDAPSearchResults res = this.cfgMgr.getMyVD().search(AuthUtil.getChainRoot(cfgMgr,act), 2, equal(lookupAttribute,lookupAttributeValue).toString(), attrs);
 			
 			if (! res.hasMore()) {
 				response.sendRedirect(noUserSplash);
 				
 				return;
 			} else {
-				res.next();
+
+				LDAPEntry entry = res.next();
+				if (entry.getAttribute("mail") != null) {
+					emailAddress = entry.getAttribute("mail").getStringValue();
+				}
 				while (res.hasMore()) res.next();
 			}
 			
+			if (emailAddress == null) {
+				response.sendRedirect(noUserSplash);
+
+				return;
+			}
 			
-			
-			sendPasswordReset(con, emailAddress);
+			sendPasswordReset(con,lookupAttributeValue, emailAddress);
 			
 			response.sendRedirect(splashRedirect);
 			return;
@@ -551,11 +549,11 @@ public class PasswordReset implements AuthMechanism {
 	}
 
 	
-	public void sendPasswordReset(String emailAddress) throws Exception {
+	public void sendPasswordReset(String uid,String emailAddress) throws Exception {
 		org.hibernate.Session con = null;
 		try {
 			con = this.sessionFactory.openSession();
-			this.sendPasswordReset(con, emailAddress);
+			this.sendPasswordReset(con, uid,emailAddress);
 		
 		} finally {
 			if (con != null) {
@@ -564,7 +562,7 @@ public class PasswordReset implements AuthMechanism {
 		}
 	}
 	
-	private void sendPasswordReset(org.hibernate.Session con, String emailAddress)
+	private void sendPasswordReset(org.hibernate.Session con, String uid,String emailAddress)
 			throws SQLException, Exception {
 		GenPasswd gp = new GenPasswd(30);
 		String key = gp.getPassword();
@@ -572,7 +570,7 @@ public class PasswordReset implements AuthMechanism {
 		
 		
 		PasswordResetRequest req = new PasswordResetRequest();
-		req.setEmail(emailAddress);
+		req.setEmail(uid);
 		req.setResetKey(key);
 		req.setTs(new Timestamp(now.getMillis()));
 		
@@ -718,6 +716,12 @@ public class PasswordReset implements AuthMechanism {
 			} else {
 				this.smtpLocalhost = null;	
 			}
+
+			if (init.get("uidAttributeName") != null) {
+				this.lookupAttributeName = init.get("uidAttributeName").getValues().get(0);
+			} else {
+				this.lookupAttributeName = "mail";
+			}
 		
 		}
 		
@@ -792,10 +796,10 @@ public class PasswordReset implements AuthMechanism {
 	public Queue<SmtpMessage> getMsgQ() {
 		return this.msgQ;
 	}
-	
-	
 
-	
+	public String getLookupAttributeName() {
+		return lookupAttributeName;
+	}
 }
 
 class TokenCleanup implements StopableThread {
@@ -1005,5 +1009,7 @@ Properties props = new Properties();
 		this.running = false;
 		
 	}
+
+
 	
 }

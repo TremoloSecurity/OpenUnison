@@ -53,7 +53,7 @@ public class SetPassword implements CustomTask {
 		String uri = this.cfgMgr.getAuthMechs().get(mechName).getUri();
 		PasswordReset mech = (PasswordReset) this.cfgMgr.getAuthMech(uri);
 		try {
-			mech.sendPasswordReset(user.getAttribs().get("mail").getValues().get(0));
+			mech.sendPasswordReset(user.getAttribs().get(mech.getLookupAttributeName()).getValues().get(0),user.getAttribs().get("mail").getValues().get(0));
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not send password reset to user",e);
 		}
