@@ -54,6 +54,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import com.tremolosecurity.openunison.util.config.OpenUnisonConfigLoader;
+import io.undertow.UndertowOptions;
 import org.apache.jasper.deploy.JspPropertyGroup;
 import org.apache.jasper.deploy.TagLibraryInfo;
 import org.apache.logging.log4j.Logger;
@@ -180,7 +181,8 @@ public class OpenUnisonOnUndertow {
 		
 		logger.info("Building Undertow");
 		Builder buildUndertow = Undertow.builder();
-		
+
+		buildUndertow.setServerOption(UndertowOptions.NO_REQUEST_TIMEOUT,60000);
 		
 		if (config.getOpenPort() > 0) {
 			buildUndertow.addHttpListener(config.getOpenPort(), "0.0.0.0");
