@@ -42,9 +42,9 @@
 		<undertow-1x.version>1.0.0.Final</undertow-1x.version>
 		<myvd-server.version>1.0.2</myvd-server.version>
 		<jldap.version>1.0.0</jldap.version>
-		<httpclient.version>4.5.3</httpclient.version>
-		<httpcore.version>4.4.7</httpcore.version>
-		<httpmime.version>4.5.3</httpmime.version>
+		<httpclient.version>4.5.2</httpclient.version>
+		<httpcore.version>4.4.4</httpcore.version>
+		<httpmime.version>4.5.2</httpmime.version>
 		<commons-fileupload.version>1.3.3</commons-fileupload.version>
 		<javax.jms-api.version>2.0.1</javax.jms-api.version>
 		<quartz.version>2.3.0</quartz.version>
