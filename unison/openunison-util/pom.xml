@@ -24,60 +24,6 @@ limitations under the License.
 	<artifactId>openunison-util</artifactId>
 	<name>openunison-util</name>
 	<dependencies>
-	<dependency>
-            <groupId>org.opensaml</groupId>
-            <artifactId>opensaml-core</artifactId>
-            <version>${opensaml.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.opensaml</groupId>
-            <artifactId>opensaml-saml-api</artifactId>
-            <version>${opensaml.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.opensaml</groupId>
-            <artifactId>opensaml-saml-impl</artifactId>
-            <version>${opensaml.version}</version>
-
-            <exclusions>
-            	<exclusion>
-            		<groupId>org.apache.httpcomponents</groupId>
-            		<artifactId>httpclient</artifactId>
-            	</exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.opensaml</groupId>
-            <artifactId>opensaml-messaging-api</artifactId>
-            <version>${opensaml.version}</version>
-            <exclusions>
-            	<exclusion>
-            		<artifactId>httpclient</artifactId>
-            		<groupId>org.apache.httpcomponents</groupId>
-            	</exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.opensaml</groupId>
-            <artifactId>opensaml-messaging-impl</artifactId>
-            <version>${opensaml.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.opensaml</groupId>
-            <artifactId>opensaml-soap-api</artifactId>
-            <version>${opensaml.version}</version>
-            <exclusions>
-            	<exclusion>
-            		<artifactId>httpclient</artifactId>
-            		<groupId>org.apache.httpcomponents</groupId>
-            	</exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.opensaml</groupId>
-            <artifactId>opensaml-soap-impl</artifactId>
-            <version>${opensaml.version}</version>
-        </dependency>
 		<dependency>
 			<groupId>commons-cli</groupId>
 			<artifactId>commons-cli</artifactId>
@@ -85,35 +31,11 @@ limitations under the License.
 		</dependency>
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
-			<artifactId>unison-sdk</artifactId>
+			<artifactId>openunison-util-classes</artifactId>
 			<version>${openunison.version}</version>
 
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.httpcomponents</groupId>
-					<artifactId>httpclient</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.tremolosecurity.myvd</groupId>
-					<artifactId>apacheds-service</artifactId>
-				</exclusion>
-			</exclusions>
+
 		</dependency>
-				<dependency>
-			<groupId>com.tremolosecurity.unison</groupId>
-			<artifactId>unison-services-aws</artifactId>
-			<version>${openunison.version}</version>
-
-
-				</dependency>
-		
-		
-		
-<dependency>
-    <groupId>xerces</groupId>
-    <artifactId>xercesImpl</artifactId>
-    <version>${xerces.version}</version>
-</dependency>
 	</dependencies>
 	<build>
 		<plugins>

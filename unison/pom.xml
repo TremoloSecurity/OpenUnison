@@ -159,6 +159,7 @@
 		<module>unison-applications-k8s</module>
 		<module>unison-auth-u2f</module>
 		<module>openunison-on-undertow</module>
+		<module>openunison-util-classes</module>
 	</modules>
 	<build>
 		<plugins>
