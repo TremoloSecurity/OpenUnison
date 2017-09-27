@@ -1,9 +1,9 @@
-<!-- Copyright 2015 Tremolo Security, Inc. Licensed under the Apache License, 
-	Version 2.0 (the "License"); you may not use this file except in compliance 
-	with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
-	Unless required by applicable law or agreed to in writing, software distributed 
-	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
-	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
+<!-- Copyright 2015 Tremolo Security, Inc. Licensed under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+	Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
 	the specific language governing permissions and limitations under the License. -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -25,54 +25,54 @@
 		<alfresco-client.version>5.0.a</alfresco-client.version>
 		<javax.xml.rpc-api.version>1.1.1</javax.xml.rpc-api.version>
 		<google-api-client.version>1.22.0</google-api-client.version>
-		<google-api-services-plus.version>v1-rev477-1.22.0</google-api-services-plus.version>
-		<google-api-services-oauth2.version>v2-rev124-1.22.0</google-api-services-oauth2.version>
-		<google-api-services-admin-directory.version>directory_v1-rev75-1.22.0</google-api-services-admin-directory.version>
+		<google-api-services-plus.version>v1-rev529-1.22.0</google-api-services-plus.version>
+		<google-api-services-oauth2.version>v2-rev130-1.20.0</google-api-services-oauth2.version>
+		<google-api-services-admin-directory.version>directory_v1-rev84-1.22.0</google-api-services-admin-directory.version>
 		<json-simple.version>1.1.1</json-simple.version>
-		<twilio-java-sdk.version>7.14.0</twilio-java-sdk.version>
-		<restfb.version>1.43.0</restfb.version>
-		<jbosssx-bare.version>4.0.20.Final</jbosssx-bare.version>
-		<jbosssx-client.version>4.0.20.Final</jbosssx-client.version>
+		<twilio-java-sdk.version>7.14.5</twilio-java-sdk.version>
+		<restfb.version>1.45.0</restfb.version>
+		<jbosssx-bare.version>4.1.6.Final</jbosssx-bare.version>
+		<jbosssx-client.version>4.1.6.Final</jbosssx-client.version>
 		<jboss-as-logging.version>7.2.0.Final</jboss-as-logging.version>
 		<jboss-as-web.version>7.2.0.Final</jboss-as-web.version>
-		<gson.version>2.8.1</gson.version>
-		<bcprov-jdk15on.version>1.57</bcprov-jdk15on.version>
-		<bcprov-ext-jdk15on.version>1.57</bcprov-ext-jdk15on.version>
+		<gson.version>2.8.2</gson.version>
+		<bcprov-jdk15on.version>1.58</bcprov-jdk15on.version>
+		<bcprov-ext-jdk15on.version>1.58</bcprov-ext-jdk15on.version>
 		<catalina.version>6.0.45</catalina.version>
 		<undertow-1x.version>1.0.0.Final</undertow-1x.version>
-		<myvd-server.version>1.0.1</myvd-server.version>
+		<myvd-server.version>1.0.2</myvd-server.version>
 		<jldap.version>1.0.0</jldap.version>
-		<httpclient.version>4.5.2</httpclient.version>
-		<httpcore.version>4.4.4</httpcore.version>
-		<httpmime.version>4.5.2</httpmime.version>
+		<httpclient.version>4.5.3</httpclient.version>
+		<httpcore.version>4.4.7</httpcore.version>
+		<httpmime.version>4.5.3</httpmime.version>
 		<commons-fileupload.version>1.3.3</commons-fileupload.version>
 		<javax.jms-api.version>2.0.1</javax.jms-api.version>
 		<quartz.version>2.3.0</quartz.version>
 		<quartz-jobs.version>2.3.0</quartz-jobs.version>
-		<json-io.version>4.9.12</json-io.version>
-		<log4j.version>2.8.2</log4j.version>
+		<json-io.version>4.10.0</json-io.version>
+		<log4j.version>2.9.1</log4j.version>
 		<joda-time.version>2.9.9</joda-time.version>
 		<javax.mail-api.version>1.6.0</javax.mail-api.version>
-		<bcpkix-jdk15on.version>1.57</bcpkix-jdk15on.version>
+		<bcpkix-jdk15on.version>1.58</bcpkix-jdk15on.version>
 		<net.sourceforge.spnego.version>7.1</net.sourceforge.spnego.version>
 		<reflections.version>0.9.11</reflections.version>
 		<apache-log4j-extras.version>1.2.17</apache-log4j-extras.version>
-		<googleauth.version>1.1.1</googleauth.version>
+		<googleauth.version>1.1.2</googleauth.version>
 		<activemq.version>5.15.0</activemq.version>
 		<commons-pool2.version>2.4.2</commons-pool2.version>
-		<aws-java-sdk.version>1.11.172</aws-java-sdk.version>
-		<amazon-sqs-java-messaging-lib.version>1.0.3</amazon-sqs-java-messaging-lib.version>
+		<aws-java-sdk.version>1.11.203</aws-java-sdk.version>
+		<amazon-sqs-java-messaging-lib.version>1.0.4</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.0.2</stringtemplate.version>
-		<hibernate.version>5.2.10.Final</hibernate.version>
+		<hibernate.version>5.2.11.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
-		<org.apache.poi.version>3.16</org.apache.poi.version>
-		<jose4j.version>0.6.0</jose4j.version>
+		<org.apache.poi.version>3.17</org.apache.poi.version>
+		<jose4j.version>0.6.1</jose4j.version>
 		<mongodb-driver.version>3.5.0</mongodb-driver.version>
 		<xalan.version>2.7.2</xalan.version>
-		<jackson.version>2.8.9</jackson.version>
+		<jackson.version>2.9.1</jackson.version>
 		<slf4j.version>1.7.25</slf4j.version>
 		<guava.version>23.0</guava.version>
-		<undertow.version>1.4.18.Final</undertow.version>
+		<undertow.version>1.4.20.Final</undertow.version>
 	  	<jastow.version>2.0.2.Final</jastow.version>
 	  	<jboss-jstl-api_1.2_spec.version>1.1.3.Final</jboss-jstl-api_1.2_spec.version>
 	  	<xmlsec.version>2.0.5</xmlsec.version>
@@ -93,12 +93,12 @@
 			<id>jboss</id>
 			<url>https://repository.jboss.org/nexus/content/repositories/</url>
 		</repository>  -->
-		
+
 		<repository>
 			<id>opensaml</id>
 			<url>https://build.shibboleth.net/nexus/content/repositories/releases/</url>
 		</repository>
-		 
+
 	</repositories>
 
 	<distributionManagement>
