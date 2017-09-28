@@ -1,3 +1,44 @@
+## 1.0.12-2017092801
+
+**enhancements:**
+ - Run OpenUnison on Undertow [\#220](https://github.com/TremoloSecurity/OpenUnison/issues/220)
+ - 1.0.12 build [\#243](https://github.com/TremoloSecurity/OpenUnison/issues/243)
+ - Support for multiple fields in password reset auth [\#251](https://github.com/TremoloSecurity/OpenUnison/issues/251)
+ - Add LDAP-->JSON support to MyVD [\#250](https://github.com/TremoloSecurity/OpenUnison/issues/250)
+ - Add configuration pre-processor [\#252](https://github.com/TremoloSecurity/OpenUnison/issues/252)
+ - Add LDAP-->JSON support as a web service [\#249](https://github.com/TremoloSecurity/OpenUnison/issues/249)
+ - Support Azure Service Bus for JMS integration [\#253](https://github.com/TremoloSecurity/OpenUnison/issues/253)
+ - Add option for scalejs password to be synchronous [\#247](https://github.com/TremoloSecurity/OpenUnison/issues/247)
+ - add copy&paste button to scalejs token [\#246](https://github.com/TremoloSecurity/OpenUnison/issues/246)
+ - Add textfield to scalejs register [\#237](https://github.com/TremoloSecurity/OpenUnison/issues/237)
+ - ScaleJS Register - Make attributes optional [\#223](https://github.com/TremoloSecurity/OpenUnison/issues/223)
+ - support for hsts header [\#242](https://github.com/TremoloSecurity/OpenUnison/issues/242)
+ - Support httponly flag [\#241](https://github.com/TremoloSecurity/OpenUnison/issues/241)
+ - ldap provisioning target - support dynamic DNs [\#239](https://github.com/TremoloSecurity/OpenUnison/issues/239)
+ - Support SQS FIFO Queues [\#238](https://github.com/TremoloSecurity/OpenUnison/issues/238)
+ - Support multiple task queues [\#234](https://github.com/TremoloSecurity/OpenUnison/issues/234)
+ - Add queue listener that triggers a workflow [\#229](https://github.com/TremoloSecurity/OpenUnison/issues/229)
+ - LDAP provisioning target - get search base [\#231](https://github.com/TremoloSecurity/OpenUnison/issues/231)
+ - Add errors to access.log [\#217](https://github.com/TremoloSecurity/OpenUnison/issues/217)
+ - allow oidc to force authentication [\#227](https://github.com/TremoloSecurity/OpenUnison/issues/227)
+ - SQS - Support AWS without access keys [\#219](https://github.com/TremoloSecurity/OpenUnison/issues/219)
+ - make it easier to use openunison in automated tests [\#225](https://github.com/TremoloSecurity/OpenUnison/issues/225)
+ - ScaleJS Register - Add logged in user as parameter to CreateRegisterUser [\#224](https://github.com/TremoloSecurity/OpenUnison/issues/224)
+ - build [\#218](https://github.com/TremoloSecurity/OpenUnison/issues/218)
+
+**bugs:**
+ - openunison-utils - export metadata failing [\#240](https://github.com/TremoloSecurity/OpenUnison/issues/240)
+ - Class cast exception in freeipa target [\#245](https://github.com/TremoloSecurity/OpenUnison/issues/245)
+ - fix register issue with button still showing [\#235](https://github.com/TremoloSecurity/OpenUnison/issues/235)
+ - openunison util dlq clearer doesn't work [\#233](https://github.com/TremoloSecurity/OpenUnison/issues/233)
+ - saml2 failing  [\#232](https://github.com/TremoloSecurity/OpenUnison/issues/232)
+ - certificate auth - CRL check not triggered if client cert chain does not include signer [\#230](https://github.com/TremoloSecurity/OpenUnison/issues/230)
+ - Compliance - if uid attribute doesn't exist there's an NPE [\#226](https://github.com/TremoloSecurity/OpenUnison/issues/226)
+ - ScaleJS Register - Min/Max values not working [\#221](https://github.com/TremoloSecurity/OpenUnison/issues/221)
+ - section 508 scalejs - empty "h" in model dialog [\#216](https://github.com/TremoloSecurity/OpenUnison/issues/216)
+ - section 508 scalejs - empty "h1" after "Logging In" [\#212](https://github.com/TremoloSecurity/OpenUnison/issues/212)
+
+
 ## 1.0.11-2017061801
 
 **bugs:**

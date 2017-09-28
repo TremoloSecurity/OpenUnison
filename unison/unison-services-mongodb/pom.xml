@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.tremolosecurity.unison</groupId>
     <artifactId>unison</artifactId>
-    <version>1.0.12.beta</version>
+    <version>1.0.12</version>
   </parent>
   <artifactId>unison-services-mongodb</artifactId>
   <name>unison-services-mongodb</name>
