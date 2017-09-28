@@ -32,9 +32,18 @@ public class OpenUnisonConfigLoader {
 
         b.setLength(0);
         includeFiles(b,cfg,new File(srcPath).getParent());
-        cfg = b.toString();
+        if (b.toString().trim().length() > 0) {
+            logger.info("No config from include files, using original");
+            cfg = b.toString();
+        }
+
         b.setLength(0);
         integrateIncludes(b, cfg);
+
+        if (b.toString().trim().length() == 0) {
+            logger.info("No config from include env, using original");
+            b.append(cfg);
+        }
 
         int begin,end;
 
