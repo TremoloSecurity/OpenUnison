@@ -169,7 +169,7 @@ public class OpenUnisonOnUndertow {
 		String unisonXMLContent = OpenUnisonConfigLoader.generateOpenUnisonConfig(unisonXML);
 
 
-			logger.info("unisonXML File : \n" + unisonXMLContent);
+
 
 
 		JAXBContext jc = JAXBContext.newInstance("com.tremolosecurity.config.xml");
