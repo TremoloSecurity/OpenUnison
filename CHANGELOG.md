@@ -1,3 +1,14 @@
+## 1.0.12-2017100301
+
+**bugs:**
+ - openunison on undertow failing with logging error [\#255](https://github.com/TremoloSecurity/OpenUnison/issues/255)
+ - openunison on undertow printing full config to std out [\#254](https://github.com/TremoloSecurity/OpenUnison/issues/254)
+
+**enhancements:**
+ - Run OpenUnison on Undertow [\#220](https://github.com/TremoloSecurity/OpenUnison/issues/220)
+ - 1.0.12 build [\#243](https://github.com/TremoloSecurity/OpenUnison/issues/243)
+
+
 ## 1.0.12-2017092801
 
 **enhancements:**
