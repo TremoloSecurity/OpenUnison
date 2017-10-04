@@ -182,7 +182,7 @@
 
 	  <dependency>
 		  <groupId>com.tremolosecurity.unison</groupId>
-		  <artifactId>openunison-util</artifactId>
+		  <artifactId>openunison-util-classes</artifactId>
 		  <version>${openunison.version}</version>
 	  </dependency>
 
