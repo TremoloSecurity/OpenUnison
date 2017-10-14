@@ -1,3 +1,11 @@
+## 1.0.12-2017101301
+
+**bugs:**
+ - HSTS header not correct - sending incorrect max age [\#257](https://github.com/TremoloSecurity/OpenUnison/issues/257)
+
+**enhancements:**
+ - add context option to openunison on undertow [\#256](https://github.com/TremoloSecurity/OpenUnison/issues/256)
+
 ## 1.0.12-2017100301
 
 **bugs:**

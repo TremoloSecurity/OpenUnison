@@ -43,36 +43,36 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(OpenUnisonServletFilter.class.getName());
 
 	private SessionManager sessionManager;
-	
 
 
 
-	public static final String version = "1.0.12-2017100301";
+
+	public static final String version = "1.0.12-2017101301";
 
 
 
-	
+
 	@Override
 	public ConfigManager loadConfiguration(FilterConfig filterCfg,
 			String registryName) throws Exception {
-		
-		
+
+
 		String envFile = System.getProperty("unisonEnvironmentFile");
 		if (envFile != null) {
 			logger.info("Loading environment file : '" + envFile + "'");
-			
+
 			Properties env = new Properties();
 			env.load(new FileInputStream(envFile));
-			
+
 			for (Object name : env.keySet()) {
 				logger.info("Adding property : '" + name + "'");
 				System.setProperty((String) name,env.getProperty((String) name));
 			}
 		}
-		
-		
+
+
 		String configPath = null;
-		
+
 		if (System.getProperties().contains("com.tremolosecurity.unison.unisonXML")) {
 			configPath = System.getProperties().getProperty("com.tremolosecurity.unison.unisonXML");
 		} else {
@@ -85,34 +85,34 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 					logger.warn("No context paths present, assuming the config path is WEB-INF/unison.xml");
 				}
 			}
-			
-			 
+
+
 			if (configPath == null) {
 				configPath = "WEB-INF/unison.xml";
 			}
 		}
-		
+
 		logger.info("Initializing OpenUnison " + version);
-		
+
 		logger.info("Unison Configuration File : '" + configPath  + "'");
-		
+
 		this.cfgMgr =  new OpenUnisonConfigManager(configPath,filterCfg.getServletContext(),registryName,filterCfg);
-		
+
 		GlobalEntries.getGlobalEntries().set(ProxyConstants.CONFIG_MANAGER,cfgMgr);
-		
+
 		return this.cfgMgr;
 	}
 
 	@Override
 	public void postLoadConfiguration(FilterConfig filterCfg,
 			String registryName, ConfigManager cfgMgr) {
-		
+
 		sessionManager = new SessionManagerImpl(cfgMgr,filterCfg.getServletContext());
 		GlobalEntries.getGlobalEntries().set(ProxyConstants.TREMOLO_SESSION_MANAGER, sessionManager);
 		filterCfg.getServletContext().setAttribute(ProxyConstants.TREMOLO_SESSION_MANAGER, sessionManager);
 
 	}
-	
+
 	@Override
 	public void init(FilterConfig filterCfg) throws ServletException {
 		super.init(filterCfg);
@@ -125,7 +125,7 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 		this.sessionManager.stopSessionChecker();
 		logger.info("Shut down complete");
 	}
-	
-	
+
+
 
 }
