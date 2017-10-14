@@ -106,11 +106,17 @@ public class OpenUnisonOnUndertow {
 		}
 		
 		final OpenUnisonConfig fconfig = config;
-		
+
+
+		if (config.getContextRoot() == null) {
+			config.setContextRoot("/");
+		}
+
 		logger.info("Config Open Port : '" + config.getOpenPort() + "'");
 		logger.info("Config Open External Port : '" + config.getOpenExternalPort() + "'");
 		logger.info("Config Secure Port : '" + config.getSecurePort() + "'");
 		logger.info("Config Secure External Port : '" + config.getSecureExternalPort() + "'");
+		logger.info("Config Context Root :  '" + config.getContextRoot() + "'");
 		logger.info("Force to Secure : '" + config.isForceToSecure() + "'");
 		logger.info("ActiveMQ Directory : '" + config.getActivemqDir() + "'");
 		logger.info("Quartz Directory : '" + config.getQuartzDir() + "'");
@@ -206,7 +212,7 @@ public class OpenUnisonOnUndertow {
 		DeploymentInfo servletBuilder = Servlets.deployment()  
 				.setClassLoader(OpenUnisonOnUndertow.class.getClassLoader())
                 .setEagerFilterInit(true)
-				.setContextPath("/")
+				.setContextPath(config.getContextRoot())
                 .setDeploymentName("openunison")
                 .addFilter(
                 		
@@ -231,7 +237,7 @@ public class OpenUnisonOnUndertow {
 		
 		
 		PathHandler path = Handlers.path(Handlers.redirect("/"))
-		        .addPrefixPath("/", manager.start());
+		        .addPrefixPath(config.getContextRoot(), manager.start());
          
 		buildUndertow.setHandler(path);
 		

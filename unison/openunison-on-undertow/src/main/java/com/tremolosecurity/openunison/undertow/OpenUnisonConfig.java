@@ -41,6 +41,8 @@ public class OpenUnisonConfig {
 	String socketShutdownHost;
 	int socketShutdownPort;
 	String socketShutdownCommand;
+
+	String contextRoot;
 	
 	public int getOpenPort() {
 		return openPort;
@@ -150,7 +152,12 @@ public class OpenUnisonConfig {
 	public void setSocketShutdownCommand(String socketShutdownCommand) {
 		this.socketShutdownCommand = socketShutdownCommand;
 	}
-	
-	
-	
+
+	public String getContextRoot() {
+		return contextRoot;
+	}
+
+	public void setContextRoot(String contextRoot) {
+		this.contextRoot = contextRoot;
+	}
 }
