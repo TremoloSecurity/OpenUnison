@@ -149,7 +149,7 @@ static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonServl
 			//add hsts
 			if (GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getApplications().isHsts()) {
 				StringBuffer sb = new StringBuffer();
-				sb.append("max-age-value=").append(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getApplications().getHstsTTL()).append(" ; includeSubDomains");
+				sb.append("max-age=").append(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getApplications().getHstsTTL()).append(" ; includeSubDomains");
 				resp.addHeader("Strict-Transport-Security", sb.toString());
 			}
 			
