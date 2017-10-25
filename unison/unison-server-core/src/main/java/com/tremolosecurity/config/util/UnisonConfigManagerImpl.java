@@ -489,7 +489,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		
 		URL urlObj =  new URL(url);
 		
-		if (urlObj.getPath().startsWith(this.authPath) && ! urlObj.getPath().startsWith("/auth/idp/")) {
+		if (urlObj.getPath().startsWith(this.authPath) && ! urlObj.getPath().startsWith(this.authIdP)) {
 			return null;
 		}
 		

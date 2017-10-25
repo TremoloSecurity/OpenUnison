@@ -95,7 +95,7 @@ public class NextEmbSys implements NextSys {
 						  
 			case Auth : 
 				
-						if (request.getRequestURI().startsWith(cfg.getAuthFormsPath()) /*|| request.getRequestURI().startsWith(cfg.getAuthIdPPath() )*/ /*|| request.getRequestURI().startsWith("/auth/idp/")*/ ) {
+						if (request.getRequestURI().startsWith(cfg.getAuthFormsPath()) /*|| request.getRequestURI().startsWith(cfg.getAuthIdPPath() ) /*|| request.getRequestURI().startsWith("/auth/idp/")*/ ) {
 							//processesing the authentications, skip auth and az processing
 							this.state = SysState.Skip; 
 							//System.out.println(request.getSession());
