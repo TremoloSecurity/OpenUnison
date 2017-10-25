@@ -256,6 +256,11 @@
 				<documentation>If set, determines the objectClass to use for users.  Defaults to inetOrgPerson.</documentation>
 			</annotation>
 		</attribute>
+		<attribute name="threadsPerRoute" type="integer" default="6" >
+			<annotation>
+				<documentation>Determines the number of threads per route per session.  Defaults to 6 (based on Chrome).  For best performance, should be equal to whichever browser being used most.</documentation>
+			</annotation>
+		</attribute>
 	</complexType>
 
 	<complexType name="applicationsType">

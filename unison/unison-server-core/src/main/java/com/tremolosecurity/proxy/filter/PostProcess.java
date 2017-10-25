@@ -26,6 +26,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringBufferInputStream;
+import java.math.BigInteger;
 import java.net.HttpCookie;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -489,6 +490,12 @@ public abstract class PostProcess {
 		if (http == null) {
 			//create a new connection manager and client
 			phcm = new PoolingHttpClientConnectionManager(cfgMgr.getHttpClientSocketRegistry());
+			BigInteger num = cfgMgr.getCfg().getThreadsPerRoute();
+			if (num == null) {
+				phcm.setDefaultMaxPerRoute(6);
+			} else {
+				phcm.setDefaultMaxPerRoute(num.intValue());
+			}
 			phcm.setDefaultSocketConfig(SocketConfig.custom().setSoKeepAlive(true).build());
 			http = HttpClients.custom().setConnectionManager(phcm).setDefaultRequestConfig(cfgMgr.getGlobalHttpClientConfig()).build();
 			
