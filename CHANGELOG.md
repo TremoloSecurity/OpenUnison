@@ -1,27 +1,24 @@
-## 1.0.12-2017101301
+## 1.0.12-2017102501
 
 **bugs:**
+ - Reverse Proxy - configure number of threads per session per route [\#259](https://github.com/TremoloSecurity/OpenUnison/issues/259)
+ - Moving OpenUnison to a new root fails to load oidc/saml2 correctly [\#258](https://github.com/TremoloSecurity/OpenUnison/issues/258)
  - HSTS header not correct - sending incorrect max age [\#257](https://github.com/TremoloSecurity/OpenUnison/issues/257)
-
-**enhancements:**
- - add context option to openunison on undertow [\#256](https://github.com/TremoloSecurity/OpenUnison/issues/256)
-
-## 1.0.12-2017100301
-
-**bugs:**
  - openunison on undertow failing with logging error [\#255](https://github.com/TremoloSecurity/OpenUnison/issues/255)
  - openunison on undertow printing full config to std out [\#254](https://github.com/TremoloSecurity/OpenUnison/issues/254)
+ - openunison-utils - export metadata failing [\#240](https://github.com/TremoloSecurity/OpenUnison/issues/240)
+ - Class cast exception in freeipa target [\#245](https://github.com/TremoloSecurity/OpenUnison/issues/245)
+ - fix register issue with button still showing [\#235](https://github.com/TremoloSecurity/OpenUnison/issues/235)
+ - openunison util dlq clearer doesn't work [\#233](https://github.com/TremoloSecurity/OpenUnison/issues/233)
+ - saml2 failing  [\#232](https://github.com/TremoloSecurity/OpenUnison/issues/232)
+ - certificate auth - CRL check not triggered if client cert chain does not include signer [\#230](https://github.com/TremoloSecurity/OpenUnison/issues/230)
+ - Compliance - if uid attribute doesn't exist there's an NPE [\#226](https://github.com/TremoloSecurity/OpenUnison/issues/226)
+ - ScaleJS Register - Min/Max values not working [\#221](https://github.com/TremoloSecurity/OpenUnison/issues/221)
 
 **enhancements:**
- - Run OpenUnison on Undertow [\#220](https://github.com/TremoloSecurity/OpenUnison/issues/220)
  - 1.0.12 build [\#243](https://github.com/TremoloSecurity/OpenUnison/issues/243)
-
-
-## 1.0.12-2017092801
-
-**enhancements:**
+ - add context option to openunison on undertow [\#256](https://github.com/TremoloSecurity/OpenUnison/issues/256)
  - Run OpenUnison on Undertow [\#220](https://github.com/TremoloSecurity/OpenUnison/issues/220)
- - 1.0.12 build [\#243](https://github.com/TremoloSecurity/OpenUnison/issues/243)
  - Support for multiple fields in password reset auth [\#251](https://github.com/TremoloSecurity/OpenUnison/issues/251)
  - Add LDAP-->JSON support to MyVD [\#250](https://github.com/TremoloSecurity/OpenUnison/issues/250)
  - Add configuration pre-processor [\#252](https://github.com/TremoloSecurity/OpenUnison/issues/252)
@@ -43,19 +40,7 @@
  - SQS - Support AWS without access keys [\#219](https://github.com/TremoloSecurity/OpenUnison/issues/219)
  - make it easier to use openunison in automated tests [\#225](https://github.com/TremoloSecurity/OpenUnison/issues/225)
  - ScaleJS Register - Add logged in user as parameter to CreateRegisterUser [\#224](https://github.com/TremoloSecurity/OpenUnison/issues/224)
- - build [\#218](https://github.com/TremoloSecurity/OpenUnison/issues/218)
 
-**bugs:**
- - openunison-utils - export metadata failing [\#240](https://github.com/TremoloSecurity/OpenUnison/issues/240)
- - Class cast exception in freeipa target [\#245](https://github.com/TremoloSecurity/OpenUnison/issues/245)
- - fix register issue with button still showing [\#235](https://github.com/TremoloSecurity/OpenUnison/issues/235)
- - openunison util dlq clearer doesn't work [\#233](https://github.com/TremoloSecurity/OpenUnison/issues/233)
- - saml2 failing  [\#232](https://github.com/TremoloSecurity/OpenUnison/issues/232)
- - certificate auth - CRL check not triggered if client cert chain does not include signer [\#230](https://github.com/TremoloSecurity/OpenUnison/issues/230)
- - Compliance - if uid attribute doesn't exist there's an NPE [\#226](https://github.com/TremoloSecurity/OpenUnison/issues/226)
- - ScaleJS Register - Min/Max values not working [\#221](https://github.com/TremoloSecurity/OpenUnison/issues/221)
- - section 508 scalejs - empty "h" in model dialog [\#216](https://github.com/TremoloSecurity/OpenUnison/issues/216)
- - section 508 scalejs - empty "h1" after "Logging In" [\#212](https://github.com/TremoloSecurity/OpenUnison/issues/212)
 
 
 ## 1.0.11-2017061801
