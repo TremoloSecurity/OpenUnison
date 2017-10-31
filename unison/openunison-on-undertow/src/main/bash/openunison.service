@@ -8,8 +8,8 @@ Type=forking
 
 Environment='JAVA_OPTS=-XX:+UseParallelGC -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom'
 
-ExecStart=/usr/local/openunison/bin/startOpenUnisonOnUndertow.sh /etc/openunison/openunison.yaml
-ExecStop=/usr/local/openunison/bin/stopOpenUnisonOnUndertow.sh /etc/openunison/openunison.yaml
+ExecStart=/opt/openunison/bin/startOpenUnisonOnUndertow.sh /etc/openunison/openunison.yaml
+ExecStop=/opt/openunison/bin/stopOpenUnisonOnUndertow.sh /etc/openunison/openunison.yaml
 
 User=openunison
 Group=openunison
