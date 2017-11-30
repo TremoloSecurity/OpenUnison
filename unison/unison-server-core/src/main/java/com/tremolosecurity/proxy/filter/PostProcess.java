@@ -501,7 +501,9 @@ public abstract class PostProcess {
 			
 			session.setAttribute("TREMOLO_HTTP_POOL", phcm);
 			session.setAttribute("TREMOLO_HTTP_CLIENT", http);
-			
+
+
+
 			LogoutUtil.insertFirstLogoutHandler(request, new CloseHttpConnectionsOnLogout(http,phcm));
 			
 		}

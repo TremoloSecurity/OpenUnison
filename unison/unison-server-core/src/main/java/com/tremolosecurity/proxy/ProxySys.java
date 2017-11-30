@@ -47,7 +47,8 @@ import com.tremolosecurity.proxy.util.ProxyConstants;
 
 public class ProxySys {
 
-	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ProxySys.class);
+    public static final String HTTP_CTX = "TREMOLO_HTTP_CTX";
+    static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ProxySys.class);
 
 	public static String TREMOLO_BINARY_DATA = "TREMOLO_BINARY_DATA";
 	

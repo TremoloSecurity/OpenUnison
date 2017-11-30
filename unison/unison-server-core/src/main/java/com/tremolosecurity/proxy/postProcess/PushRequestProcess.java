@@ -190,8 +190,8 @@ public  class PushRequestProcess extends PostProcess {
 		
 		httpMethod.setEntity(entity);
 		
-		
-		HttpResponse response = httpclient.execute(httpMethod);
+		HttpContext ctx = (HttpContext) req.getSession().getAttribute(ProxySys.HTTP_CTX);
+		HttpResponse response = httpclient.execute(httpMethod,ctx);
 		
 		
 		

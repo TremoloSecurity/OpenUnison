@@ -30,6 +30,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.servlet.http.HttpServletRequest;
 
+import com.tremolosecurity.proxy.ProxySys;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
 import org.apache.http.client.CookieStore;
@@ -104,8 +105,9 @@ public class UriRequestProcess extends PostProcess {
 		req.setAttribute("TREMOLO_FINAL_URL", proxyToURL.toString());
 		
 		setHeadersCookies(req, holder, httpMethod,proxyToURL.toString());
-		
-		HttpResponse response = httpclient.execute(httpMethod);
+
+		HttpContext ctx = (HttpContext) req.getSession().getAttribute(ProxySys.HTTP_CTX);
+		HttpResponse response = httpclient.execute(httpMethod,ctx);
 		
 		postProcess(req, resp, holder, response,proxyToURL.toString(),chain,httpMethod);
 
