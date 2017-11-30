@@ -52,6 +52,12 @@
 		</dependency>
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-openshift3</artifactId>
+			<version>${openunison.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-scalejs-token</artifactId>
 			<version>${openunison.version}</version>
 			<scope>provided</scope>
