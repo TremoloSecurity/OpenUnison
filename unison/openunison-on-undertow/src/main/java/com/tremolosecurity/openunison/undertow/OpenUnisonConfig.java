@@ -33,7 +33,7 @@ public class OpenUnisonConfig {
 	String pathToDeployment;
 	String pathToEnvFile;
 	
-	List<String> allowedTLSProtocols;
+	List<String> allowedTlsProtocols;
 	
 	String quartzDir;
 	
@@ -116,11 +116,11 @@ public class OpenUnisonConfig {
 	public void setSecureKeyAlias(String secureKeyAlias) {
 		this.secureKeyAlias = secureKeyAlias;
 	}
-	public List<String> getAllowedTLSProtocols() {
-		return allowedTLSProtocols;
+	public List<String> getAllowedTlsProtocols() {
+		return allowedTlsProtocols;
 	}
-	public void setAllowedTLSProtocols(List<String> allowedTLSProtocols) {
-		this.allowedTLSProtocols = allowedTLSProtocols;
+	public void setAllowedTlsProtocols(List<String> allowedTlsProtocols) {
+		this.allowedTlsProtocols = allowedTlsProtocols;
 	}
 	public String getQuartzDir() {
 		return quartzDir;

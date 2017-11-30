@@ -122,6 +122,7 @@ public class OpenUnisonOnUndertow {
 		logger.info("Quartz Directory : '" + config.getQuartzDir() + "'");
 		logger.info("Config TLS Client Auth Mode : '" + config.getClientAuth() + "'");
 		logger.info("Config TLS Allowed Client Subjects : '" + config.getAllowedClientNames() + "'");
+		logger.info("Config TLS Protocols : '" + config.getAllowedTlsProtocols() + "'");
 		logger.info("Config TLS Ciphers : '" + config.getCiphers() + "'");
 		logger.info("Config Path to Deployment : '" + config.getPathToDeployment() + "'");
 		logger.info("Config Path to Environment File : '" + config.getPathToEnvFile() + "'");
@@ -233,14 +234,33 @@ public class OpenUnisonOnUndertow {
 		JspServletBuilder.setupDeployment(servletBuilder, new HashMap<String, JspPropertyGroup>(), new HashMap<String, TagLibraryInfo>(), new HackInstanceManager());
 		
 		DeploymentManager manager = Servlets.defaultContainer().addDeployment(servletBuilder);
+
+
+
 		manager.deploy();
 		
 		
-		PathHandler path = Handlers.path(Handlers.redirect("/"))
+		PathHandler path = Handlers.path(Handlers.redirect(config.getContextRoot()))
 		        .addPrefixPath(config.getContextRoot(), manager.start());
          
 		buildUndertow.setHandler(path);
-		
+
+
+		if (! config.getContextRoot().equals("/")) {
+			servletBuilder = Servlets.deployment()
+					.setClassLoader(OpenUnisonOnUndertow.class.getClassLoader())
+					.setEagerFilterInit(true)
+					.setContextPath("/")
+					.setDeploymentName("root");
+			manager = Servlets.defaultContainer().addDeployment(servletBuilder);
+			manager.deploy();
+
+			path.addPath("/",manager.start());
+
+
+		}
+
+
 		undertow = buildUndertow.build();
 		
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -444,10 +464,10 @@ public class OpenUnisonOnUndertow {
 		}
 		
 		HashSet<String> allowedTLSProtocols = new HashSet<String>();
-		if (config.getAllowedTLSProtocols() == null || config.getAllowedTLSProtocols().size() == 0) {
+		if (config.getAllowedTlsProtocols() == null || config.getAllowedTlsProtocols().size() == 0) {
 			allowedTLSProtocols.add("TLSv1.2");
 		} else {
-			allowedTLSProtocols.addAll(config.getAllowedTLSProtocols());
+			allowedTLSProtocols.addAll(config.getAllowedTlsProtocols());
 		}
 		
 		String[] protocols = sslcontext.createSSLEngine().getEnabledProtocols();
