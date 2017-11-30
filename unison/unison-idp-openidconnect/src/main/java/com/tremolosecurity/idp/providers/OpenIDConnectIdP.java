@@ -349,7 +349,17 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			String redirectURI = request.getParameter("redirect_uri");
 			String grantType = request.getParameter("grant_type");
 			String refreshToken = request.getParameter("refresh_token");
-			
+
+			if (clientID == null) {
+				//this means that the clientid is in the Authorization header
+				String azHeader = request.getHeader("Authorization");
+				azHeader = azHeader.substring(azHeader.indexOf(' ') + 1).trim();
+				azHeader = new String(org.apache.commons.codec.binary.Base64.decodeBase64(azHeader));
+				clientID = azHeader.substring(0,azHeader.indexOf(':'));
+				clientSecret = azHeader.substring(azHeader.indexOf(':') + 1);
+			}
+
+
 			AuthController ac = (AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL);
 			UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
 			
