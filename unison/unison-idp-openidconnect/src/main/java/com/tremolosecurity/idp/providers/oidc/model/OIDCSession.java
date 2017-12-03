@@ -34,7 +34,7 @@ public class OIDCSession {
 	private Timestamp sessionExpires;
 	private String applicationName;
 	private String encryptedRefreshToken;
-	private String encryptedClientSecret;
+
 	
 	private String userDN;
 	private String clientID;
@@ -101,13 +101,7 @@ public class OIDCSession {
 	}
 	
 	
-	@Column(name = "encryptedClientSecret",columnDefinition = "TEXT")
-	public String getEncryptedClientSecret() {
-		return encryptedClientSecret;
-	}
-	public void setEncryptedClientSecret(String encryptedClientSecret) {
-		this.encryptedClientSecret = encryptedClientSecret;
-	}
+
 	
 	@Column(name = "userDN")
 	public String getUserDN() {

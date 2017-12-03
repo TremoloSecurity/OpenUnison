@@ -459,22 +459,24 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		String decryptedRefreshToken = new String(cipher.doFinal(encBytes));
 		
 		OIDCSession session = this.getSessionByRefreshToken(decryptedRefreshToken);
-		
+
 		if (session == null) {
 			logger.warn("Session does not exist from refresh_token");
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
 			response.sendError(401);
 			return;
 		}
-		
-		
-		String clientSecretFromSession = this.decryptClientSecret(this.trusts.get(clientID).getCodeLastmileKeyName(), session.getEncryptedClientSecret());
-		if (! clientSecretFromSession.equals(clientSecret)) {
-			logger.warn("Invalid client_secret");
-			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
-			response.sendError(401);
-			return;
-		} 
+
+		OpenIDConnectTrust trust = this.trusts.get(session.getClientID());
+
+		if (! trust.isPublicEndpoint()) {
+			if (!trust.getClientSecret().equals(clientSecret)) {
+				logger.warn("Invalid client_secret");
+				AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData, "NONE");
+				response.sendError(401);
+				return;
+			}
+		}
 		
 		JsonWebSignature jws = new JsonWebSignature();
 		jws.setCompactSerialization(session.getIdToken());
@@ -592,11 +594,13 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		}
 		
 		OpenIDConnectTrust trust = this.trusts.get(clientID);
-		
-		if (! clientSecret.equals(trust.getClientSecret())) {
-			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
-			response.sendError(403);
-			return;
+
+		if (! trust.isPublicEndpoint()) {
+			if (!clientSecret.equals(trust.getClientSecret())) {
+				AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData, "NONE");
+				response.sendError(403);
+				return;
+			}
 		}
 		
 		ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
@@ -725,7 +729,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		session.setUserDN(userDN);
 		session.setClientID(clientID);
 		UUID refreshToken = UUID.randomUUID();
-		UUID userClientSecret = UUID.randomUUID();
+
 		
 		session.setRefreshToken(refreshToken.toString());
 		
@@ -733,7 +737,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		
 		session.setEncryptedRefreshToken(b64);
-		session.setEncryptedClientSecret(this.encryptToken(codeTokenKeyName, gson, userClientSecret));
+
 		Session db = null;
 		try {
 			db = this.sessionFactory.openSession();
@@ -969,6 +973,11 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			trust.setAccessTokenTimeToLive(Long.parseLong(attrs.get("accessTokenTimeToLive").getValues().get(0)));
 			trust.setAccessTokenSkewMillis(Long.parseLong(attrs.get("accessTokenSkewMillis").getValues().get(0)));
 			trust.setTrustName(trustName);
+
+			if (attrs.get("publicEndpoint") != null && attrs.get("publicEndpoint").getValues().get(0).equalsIgnoreCase("true")) {
+				trust.setPublicEndpoint(true);
+			}
+
 			trusts.put(trust.getClientID(), trust);
 			
 		}

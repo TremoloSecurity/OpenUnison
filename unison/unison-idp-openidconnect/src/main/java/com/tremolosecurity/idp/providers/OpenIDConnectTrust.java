@@ -24,6 +24,16 @@ public class OpenIDConnectTrust {
 	long codeTokenTimeToLive;
 	long accessTokenTimeToLive;
 	long accessTokenSkewMillis;
+
+	public boolean isPublicEndpoint() {
+		return publicEndpoint;
+	}
+
+	public void setPublicEndpoint(boolean publicEndpoint) {
+		this.publicEndpoint = publicEndpoint;
+	}
+
+	boolean publicEndpoint;
 	
 	public String getRedirectURI() {
 		return redirectURI;

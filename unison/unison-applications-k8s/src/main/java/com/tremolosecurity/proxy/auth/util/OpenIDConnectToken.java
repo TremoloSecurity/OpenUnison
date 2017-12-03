@@ -200,11 +200,5 @@ public class OpenIDConnectToken {
 		return this.oidcSession.getEncryptedRefreshToken();
 	}
 	
-	public String getDecryptedClientSecret() throws Exception {
-		HashMap<String, OpenIDConnectIdP> idps = (HashMap<String, OpenIDConnectIdP>) GlobalEntries.getGlobalEntries()
-				.get(OpenIDConnectIdP.UNISON_OPENIDCONNECT_IDPS);
-		OpenIDConnectIdP idp = idps.get(this.idpName);
-		return idp.decryptClientSecret(idp.getTrusts().get(this.trustName).getCodeLastmileKeyName(),this.oidcSession.getEncryptedClientSecret());
-		
-	}
+
 }
