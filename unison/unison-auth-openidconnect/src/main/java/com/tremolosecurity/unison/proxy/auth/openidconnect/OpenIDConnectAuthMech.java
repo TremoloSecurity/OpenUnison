@@ -120,12 +120,15 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 		
 		
 		
-		
+		StringBuffer b = new StringBuffer();
 		
 		URL reqURL = new URL(request.getRequestURL().toString());
-		String redirectURL = reqURL.getProtocol() + "://" + reqURL.getHost();
+
+		b.append(reqURL.getProtocol()).append("://").append(reqURL.getHost());
+
+
 		if (reqURL.getPort() != -1) {
-			redirectURL += ":" + reqURL.getPort();
+			b.append(":").append(reqURL.getPort());
 		}
 		
 		String urlChain = holder.getUrl().getAuthChain();
@@ -137,7 +140,9 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 		AuthMechType amt = act.getAuthMech().get(as.getId());
 		
 		String authMechName = amt.getName();
-		redirectURL += cfg.getAuthMechs().get(authMechName).getUri();
+
+
+		b.append(holder.getConfig().getContextPath()).append(cfg.getAuthMechs().get(authMechName).getUri());
 		
 		
 		String hd = authParams.get("hd").getValues().get(0);
@@ -155,7 +160,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 						.append("?client_id=").append(URLEncoder.encode(clientid,"UTF-8"))
 						.append("&response_type=").append(URLEncoder.encode(responseType, "UTF-8"))
 						.append("&scope=").append(URLEncoder.encode(scope,"UTF-8"))
-						.append("&redirect_uri=").append(URLEncoder.encode(redirectURL,"UTF-8"))
+						.append("&redirect_uri=").append(URLEncoder.encode(b.toString(),"UTF-8"))
 						.append("&state=").append(URLEncoder.encode("security_token=","UTF-8")).append(URLEncoder.encode(state, "UTF-8"));
 			
 			if (forceAuth) {
@@ -187,7 +192,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 				        .addParameter("code", request.getParameter("code"))
 				        .addParameter("client_id", clientid)
 				        .addParameter("client_secret", secret)
-				        .addParameter("redirect_uri", redirectURL)
+				        .addParameter("redirect_uri", b.toString())
 				        .addParameter("grant_type", "authorization_code")
 				        .build();
 			} catch (URISyntaxException e) {
