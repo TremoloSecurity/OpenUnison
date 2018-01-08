@@ -236,7 +236,7 @@ public class SessionManagerImpl implements SessionManager {
 				// TODO create open session
 				if (cookies != null) {
 					for (int i = 0; i < cookies.length; i++) {
-						if (cookies[i].getName().equals("tremoloOpenSession")) {
+						if (cookies[i].getName().equals(cfg.getCfg().getApplications().getOpenSessionCookieName())) {
 							String sessionID = cookies[i].getValue();
 							TremoloHttpSession tsession = this.sessions
 									.get(sessionID);
@@ -678,6 +678,11 @@ class SessionTimeoutChecker extends Thread {
 								.getOpenSessionTimeout() > 0) {
 							DateTime lastAccessed = (DateTime) session
 									.getAttribute(SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED);
+
+							if (lastAccessed == null) {
+								lastAccessed = new DateTime(session.getCreationTime());
+							}
+
 							DateTime now = new DateTime();
 							if (now.minusSeconds(
 									cfg.getCfg().getApplications()
@@ -701,6 +706,11 @@ class SessionTimeoutChecker extends Thread {
 							if (app.getCookieConfig().getTimeout() > 0) {
 								DateTime lastAccessed = (DateTime) session
 										.getAttribute(SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED);
+
+								if (lastAccessed == null) {
+									lastAccessed = new DateTime(session.getCreationTime());
+								}
+
 								DateTime now = new DateTime();
 								if (now.minusSeconds(
 										app.getCookieConfig().getTimeout())
