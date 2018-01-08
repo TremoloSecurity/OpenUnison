@@ -1858,7 +1858,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				cfgMgr.addThread(new JMSMessageCloser(con,listenerSession,mc));
 			}
 		} catch (Exception e) {
-			
+			logger.warn("Could not initialize listeners",e);
 		}
 	}
 
