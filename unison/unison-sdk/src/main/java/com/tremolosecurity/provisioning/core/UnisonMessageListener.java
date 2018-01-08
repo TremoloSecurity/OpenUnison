@@ -25,6 +25,7 @@ import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
 
+import com.cedarsoftware.util.io.JsonReader;
 import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
@@ -44,8 +45,14 @@ public abstract class UnisonMessageListener implements MessageListener {
 			TextMessage smsg = (TextMessage) msg;
 			ConfigManager cfgMgr = (ConfigManager) GlobalEntries.getGlobalEntries().get(ProxyConstants.CONFIG_MANAGER);
 			Gson gson = new Gson();
-			EncryptedMessage em = gson.fromJson(smsg.getText(), EncryptedMessage.class);
-			Object obj = cfgMgr.getProvisioningEngine().decryptObject(em);
+			Object obj;
+
+			if (this.isEncrypted()) {
+				EncryptedMessage em = gson.fromJson(smsg.getText(), EncryptedMessage.class);
+				obj = cfgMgr.getProvisioningEngine().decryptObject(em);
+			} else {
+				obj = JsonReader.jsonToJava(smsg.getText());
+			}
 			
 			this.onMessage(cfgMgr,obj,msg);
 			msg.acknowledge();
@@ -66,5 +73,9 @@ public abstract class UnisonMessageListener implements MessageListener {
 	public abstract void onMessage(ConfigManager cfg,Object payload,Message msg) throws ProvisioningException;
 	
 	public abstract void init(ConfigManager cfg,HashMap<String,Attribute> attributes) throws ProvisioningException;
+
+	public boolean isEncrypted() {
+		return true;
+	}
 
 }
