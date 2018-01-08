@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.SocketException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -452,6 +453,11 @@ public class ConfigSys  {
 					}
 				} catch (ConnectionClosedException e) {
 					logger.warn("Connection closed prematurely",e);
+				} catch (SocketException e) {
+					out.flush();
+					if (logger.isDebugEnabled()) {
+						logger.debug("Connection closed by remote host",e);
+					}
 				}
 				
 				
