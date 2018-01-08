@@ -107,9 +107,14 @@ public class UrlHolder {
 		
 		parseProxyURL(url);
 		if (url.getProxyTo() != null) {
-			
-			
-			String val = url.getProxyTo().substring(0,url.getProxyTo().indexOf('$'));
+			String val;
+			int indexOfDollarSign = url.getProxyTo().indexOf('$');
+			if (indexOfDollarSign >= 0) {
+				val = url.getProxyTo().substring(0,indexOfDollarSign);
+			} else {
+				val = url.getProxyTo();
+			}
+
 			
 			URL tmp = new URL(val);
 			this.isSSL = tmp.getProtocol().equalsIgnoreCase("https");
