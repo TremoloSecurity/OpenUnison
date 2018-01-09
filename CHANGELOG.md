@@ -1,27 +1,9 @@
-## 1.0.12-2017120801
-
-**bugs:**
- - oidc auth mech doesn't work with context roots off of / [\#266](https://github.com/TremoloSecurity/OpenUnison/issues/266)
- - Header names in HttpFilter implementations not case insensitive [\#34](https://github.com/TremoloSecurity/OpenUnison/issues/34)
- - OpenID Connect - Support client secret in Authorization header [\#264](https://github.com/TremoloSecurity/OpenUnison/issues/264)
- - OpenUnisonOnUndertow - fix configuration of allowed protocols [\#261](https://github.com/TremoloSecurity/OpenUnison/issues/261)
- - Reverse Proxy - configure number of threads per session per route [\#259](https://github.com/TremoloSecurity/OpenUnison/issues/259)
- - Moving OpenUnison to a new root fails to load oidc/saml2 correctly [\#258](https://github.com/TremoloSecurity/OpenUnison/issues/258)
- - HSTS header not correct - sending incorrect max age [\#257](https://github.com/TremoloSecurity/OpenUnison/issues/257)
- - openunison on undertow failing with logging error [\#255](https://github.com/TremoloSecurity/OpenUnison/issues/255)
- - openunison on undertow printing full config to std out [\#254](https://github.com/TremoloSecurity/OpenUnison/issues/254)
- - openunison-utils - export metadata failing [\#240](https://github.com/TremoloSecurity/OpenUnison/issues/240)
- - Class cast exception in freeipa target [\#245](https://github.com/TremoloSecurity/OpenUnison/issues/245)
- - fix register issue with button still showing [\#235](https://github.com/TremoloSecurity/OpenUnison/issues/235)
- - openunison util dlq clearer doesn't work [\#233](https://github.com/TremoloSecurity/OpenUnison/issues/233)
- - saml2 failing  [\#232](https://github.com/TremoloSecurity/OpenUnison/issues/232)
- - certificate auth - CRL check not triggered if client cert chain does not include signer [\#230](https://github.com/TremoloSecurity/OpenUnison/issues/230)
- - Compliance - if uid attribute doesn't exist there's an NPE [\#226](https://github.com/TremoloSecurity/OpenUnison/issues/226)
- - ScaleJS Register - Min/Max values not working [\#221](https://github.com/TremoloSecurity/OpenUnison/issues/221)
- - section 508 scalejs - empty "h" in model dialog [\#216](https://github.com/TremoloSecurity/OpenUnison/issues/216)
- - section 508 scalejs - empty "h1" after "Logging In" [\#212](https://github.com/TremoloSecurity/OpenUnison/issues/212)
+## 1.0.12-2018010801
 
 **enhancements:**
+ - clean up queue management in pre-built jobs [\#272](https://github.com/TremoloSecurity/OpenUnison/issues/272)
+ - unexpected closed connections not handled well [\#270](https://github.com/TremoloSecurity/OpenUnison/issues/270)
+ - Queue Listeners - support unencrypted messages [\#268](https://github.com/TremoloSecurity/OpenUnison/issues/268)
  - 1.0.12 build [\#243](https://github.com/TremoloSecurity/OpenUnison/issues/243)
  - Add support for not requiring a client_secret in oidc idp trust config [\#142](https://github.com/TremoloSecurity/OpenUnison/issues/142)
  - kubernetes - process for creating objects [\#265](https://github.com/TremoloSecurity/OpenUnison/issues/265)
@@ -52,6 +34,29 @@
  - ScaleJS Register - Add logged in user as parameter to CreateRegisterUser [\#224](https://github.com/TremoloSecurity/OpenUnison/issues/224)
  - build [\#218](https://github.com/TremoloSecurity/OpenUnison/issues/218)
 
+**bugs:**
+ - if opensession is not named tremoloOpenSession, creates memory leak [\#271](https://github.com/TremoloSecurity/OpenUnison/issues/271)
+ - queue listener - no exception if error occurs during initialization [\#269](https://github.com/TremoloSecurity/OpenUnison/issues/269)
+ - URLHolder generates exception if proxyTo doesn't contain a '$e [\#267](https://github.com/TremoloSecurity/OpenUnison/issues/267)
+ - oidc auth mech doesn't work with context roots off of / [\#266](https://github.com/TremoloSecurity/OpenUnison/issues/266)
+ - Header names in HttpFilter implementations not case insensitive [\#34](https://github.com/TremoloSecurity/OpenUnison/issues/34)
+ - OpenID Connect - Support client secret in Authorization header [\#264](https://github.com/TremoloSecurity/OpenUnison/issues/264)
+ - OpenUnisonOnUndertow - fix configuration of allowed protocols [\#261](https://github.com/TremoloSecurity/OpenUnison/issues/261)
+ - Reverse Proxy - configure number of threads per session per route [\#259](https://github.com/TremoloSecurity/OpenUnison/issues/259)
+ - Moving OpenUnison to a new root fails to load oidc/saml2 correctly [\#258](https://github.com/TremoloSecurity/OpenUnison/issues/258)
+ - HSTS header not correct - sending incorrect max age [\#257](https://github.com/TremoloSecurity/OpenUnison/issues/257)
+ - openunison on undertow failing with logging error [\#255](https://github.com/TremoloSecurity/OpenUnison/issues/255)
+ - openunison on undertow printing full config to std out [\#254](https://github.com/TremoloSecurity/OpenUnison/issues/254)
+ - openunison-utils - export metadata failing [\#240](https://github.com/TremoloSecurity/OpenUnison/issues/240)
+ - Class cast exception in freeipa target [\#245](https://github.com/TremoloSecurity/OpenUnison/issues/245)
+ - fix register issue with button still showing [\#235](https://github.com/TremoloSecurity/OpenUnison/issues/235)
+ - openunison util dlq clearer doesn't work [\#233](https://github.com/TremoloSecurity/OpenUnison/issues/233)
+ - saml2 failing  [\#232](https://github.com/TremoloSecurity/OpenUnison/issues/232)
+ - certificate auth - CRL check not triggered if client cert chain does not include signer [\#230](https://github.com/TremoloSecurity/OpenUnison/issues/230)
+ - Compliance - if uid attribute doesn't exist there's an NPE [\#226](https://github.com/TremoloSecurity/OpenUnison/issues/226)
+ - ScaleJS Register - Min/Max values not working [\#221](https://github.com/TremoloSecurity/OpenUnison/issues/221)
+ - section 508 scalejs - empty "h" in model dialog [\#216](https://github.com/TremoloSecurity/OpenUnison/issues/216)
+ - section 508 scalejs - empty "h1" after "Logging In" [\#212](https://github.com/TremoloSecurity/OpenUnison/issues/212)
 
 
 
