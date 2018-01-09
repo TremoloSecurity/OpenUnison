@@ -20,10 +20,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 
-import javax.jms.MessageProducer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
+import javax.jms.*;
 
+import com.tremolosecurity.provisioning.scheduler.jobs.util.DisposeConnection;
 import org.apache.logging.log4j.Logger;
 import org.quartz.JobExecutionContext;
 
@@ -40,6 +39,21 @@ import com.tremolosecurity.provisioning.util.EncryptedMessage;
 public class AutoFail extends UnisonJob {
 
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AutoFail.class.getName());
+
+	private javax.jms.Connection connection;
+	private Session session;
+	private Queue queue;
+	private MessageProducer mp;
+
+	private synchronized void createConnections(ConfigManager configManager,String queueName) throws JMSException, ProvisioningException {
+		if (connection == null) {
+			connection = configManager.getProvisioningEngine().getQueueConnection();
+			session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+			queue = session.createQueue(queueName);
+			mp = session.createProducer(queue);
+			configManager.addThread(new DisposeConnection(connection));
+		}
+	}
 
 	@Override
 	public void execute(ConfigManager configManager, JobExecutionContext context)
@@ -62,12 +76,7 @@ public class AutoFail extends UnisonJob {
 
 		try {
 
-			javax.jms.Connection connection = configManager
-					.getProvisioningEngine().getQueueConnection();
-			Session session = connection.createSession(false,
-					javax.jms.Session.AUTO_ACKNOWLEDGE);
-			javax.jms.Queue queue = session.createQueue(queueName);
-			MessageProducer mp = session.createProducer(queue);
+			this.createConnections(configManager,queueName);
 
 			Gson gson = new Gson();
 			for (ApprovalSummary sum : summaries.getApprovals()) {
@@ -82,8 +91,7 @@ public class AutoFail extends UnisonJob {
 				mp.send(tmsg);
 			}
 
-			mp.close();
-			session.close();
+
 
 		} catch (Throwable t) {
 

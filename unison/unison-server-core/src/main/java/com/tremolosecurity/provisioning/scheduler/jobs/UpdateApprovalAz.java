@@ -36,11 +36,9 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import javax.jms.MessageProducer;
-import javax.jms.ObjectMessage;
-import javax.jms.Session;
-import javax.jms.TextMessage;
+import javax.jms.*;
 
+import com.tremolosecurity.provisioning.scheduler.jobs.util.DisposeConnection;
 import org.hibernate.Query;
 import org.quartz.JobExecutionContext;
 
@@ -58,29 +56,42 @@ import com.tremolosecurity.provisioning.util.EncryptedMessage;
 
 public class UpdateApprovalAz extends UnisonJob {
 
-	
+
+	private javax.jms.Connection connection;
+	private Session session;
+	private Queue queue;
+	private MessageProducer mp;
+
+	private synchronized void createConnections(ConfigManager configManager,String queueName) throws JMSException, ProvisioningException {
+		if (connection == null) {
+			connection = configManager.getProvisioningEngine().getQueueConnection();
+			session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+			queue = session.createQueue(queueName);
+			mp = session.createProducer(queue);
+			configManager.addThread(new DisposeConnection(connection));
+		}
+	}
 	
 	@Override
 	public void execute(ConfigManager configManager, JobExecutionContext context)
 			throws ProvisioningException {
-		
+
+
 		
 		String queueName = context.getJobDetail().getJobDataMap().getString("queueName");
 		
 		if (configManager == null || configManager.getProvisioningEngine() == null) {
 			return;
 		}
-		
+
+
 		
 		org.hibernate.Session hsession = configManager.getProvisioningEngine().getHibernateSessionFactory().openSession();
 		
 		
 		try {
-			
-			javax.jms.Connection connection = configManager.getProvisioningEngine().getQueueConnection();
-			Session session = connection.createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
-			javax.jms.Queue queue = session.createQueue(queueName);
-			MessageProducer mp = session.createProducer(queue);
+
+			this.createConnections(configManager,queueName);
 			
 			HashMap<Integer,String> approvals = new HashMap<Integer,String>();
 			//PreparedStatement findOpenApprovals = con.prepareStatement("SELECT id,workflowObj FROM approvals WHERE approved IS NULL");
@@ -109,9 +120,7 @@ public class UpdateApprovalAz extends UnisonJob {
 				mp.send(tmsg);
 			}
 			
-			mp.close();
-			session.close();
-			
+
 			
 		} catch(Throwable t) {
 			
