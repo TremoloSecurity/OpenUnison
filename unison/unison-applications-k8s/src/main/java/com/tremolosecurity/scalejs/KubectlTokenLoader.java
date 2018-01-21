@@ -22,10 +22,15 @@ import com.tremolosecurity.proxy.auth.util.OpenIDConnectToken;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;
 import com.tremolosecurity.scalejs.token.cfg.ScaleTokenConfig;
 import com.tremolosecurity.scalejs.token.sdk.TokenLoader;
+import com.tremolosecurity.server.GlobalEntries;
+
+import org.apache.commons.codec.binary.Base64;
 import org.apache.logging.log4j.Logger;
 import org.stringtemplate.v4.ST;
 
 import javax.servlet.http.HttpSession;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,18 +38,22 @@ public class KubectlTokenLoader implements TokenLoader {
     static Logger logger = org.apache.logging.log4j.LogManager.getLogger(KubectlTokenLoader.class);
 
     String uidAttributeName;
-    String caCertificateURL;
-    String k8sMasterCaCertificateURL;
     String kubectlTemplate;
+    String k8sCaCertName;
+    String unisonCaCertName;
     private String kubectlUsage;
 
     @Override
     public void init(HttpFilterConfig config, ScaleTokenConfig scaleTokenConfig) throws Exception {
         this.uidAttributeName = config.getAttribute("uidAttributeName").getValues().get(0);
-        this.caCertificateURL = config.getAttribute("caCertificateURL").getValues().get(0);
-        this.k8sMasterCaCertificateURL = config.getAttribute("k8sMasterCaCertificateURL").getValues().get(0);
+        
+        
         this.kubectlTemplate = config.getAttribute("kubectlTemplate").getValues().get(0);
         this.kubectlUsage = config.getAttribute("kubectlUsage").getValues().get(0);
+        this.k8sCaCertName = config.getAttribute("k8sCaCertName").getValues().get(0);
+        this.unisonCaCertName = config.getAttribute("unisonCaCertName").getValues().get(0);
+
+        
     }
 
 
@@ -104,16 +113,41 @@ public class KubectlTokenLoader implements TokenLoader {
             HashMap<String,String> tokens = new HashMap<String,String>();
             tokens.put("kubectl Command",this.renderTemplate(this.kubectlTemplate,templateObjects));
             tokens.put("Usage",this.kubectlUsage);
-            if (! this.k8sMasterCaCertificateURL.isEmpty()) {
-                tokens.put("API Server Certificate Authority URL",this.k8sMasterCaCertificateURL);
+            
+            String k8sCert = this.cert2pem(this.k8sCaCertName);
+            if (k8sCert != null) {
+                tokens.put("Kubernetes API Server CA Certificate", k8sCert);
             }
 
-            if (! this.caCertificateURL.isEmpty()) {
-                tokens.put("OpenUnison Certificate Authority URL",this.caCertificateURL);
+            String ouCert = this.cert2pem(this.unisonCaCertName);
+            if (ouCert != null) {
+                tokens.put("OpenUnison Server CA Certificate",ouCert);
             }
 
             return tokens;
 
         }
+
+        
+    }
+
+    private String cert2pem(String certificateName) {
+        X509Certificate cert = GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(certificateName);
+        if (cert == null) {
+            return null;
+        } else {
+            Base64 encoder = new Base64(64);
+            StringBuffer b = new StringBuffer();
+            b.append("-----BEGIN CERTIFICATE-----\n");
+            try {
+				b.append(encoder.encodeAsString(cert.getEncoded()));
+			} catch (CertificateEncodingException e) {
+                logger.warn("Could not decode certificate",e);
+                return null;
+			}
+            b.append("-----END CERTIFICATE-----");
+            return b.toString();
+        }
+        
     }
 }
