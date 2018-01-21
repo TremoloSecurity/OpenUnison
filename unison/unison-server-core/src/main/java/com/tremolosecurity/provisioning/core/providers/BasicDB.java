@@ -414,6 +414,10 @@ public class BasicDB implements BasicDBInterface {
 			foundUser = this.findUser(user.getUserID(), attributesForSearch,wfrequest);
 			//logger.info("Lookin up user result : " + foundUser);
 			
+			if (foundUser == null) {
+				this.createUser(user, attributes,wfrequest);
+				return;	
+			}
 		} catch (Exception e) {
 			//logger.info("Creating new user",e);
 			if (logger.isDebugEnabled()) {
