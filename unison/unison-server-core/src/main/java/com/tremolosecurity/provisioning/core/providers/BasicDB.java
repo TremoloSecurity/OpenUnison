@@ -857,7 +857,7 @@ public class BasicDB implements BasicDBInterface {
 				rs.close();
 				ps.close();
 				con.close();
-				throw new ProvisioningException("User " + userID + " not found");
+				return null;
 			}
 			
 			User user = new User(userID);
