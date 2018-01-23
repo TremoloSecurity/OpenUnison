@@ -124,7 +124,7 @@ public class BrokerHolder {
 			try {
 				littleholder.initDLQ();
 			} catch (Exception e) {
-				throw new ProvisioningException("Could not initiate DLQ checker",e);
+				logger.warn("Could not initiate DLQ checker",e);
 			}
 			holder = littleholder;
 			
@@ -137,21 +137,30 @@ public class BrokerHolder {
 	}
 	
 	private void initDLQ() throws Exception {
-		
-		javax.jms.Connection con;
-		
-		if (this.cfgMgr.getProvisioningEngine() == null) {
-			ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("vm://localhost/localhost");
-			con = cf.createConnection();
-			con.start();
-		} else {
-			con = this.cfgMgr.getProvisioningEngine().getQueueConnection();
+		if (this.qs == null) { 
+			try {
+				javax.jms.Connection con;
+				
+				if (this.cfgMgr.getProvisioningEngine() == null) {
+					ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("vm://localhost/localhost");
+					con = cf.createConnection();
+					con.start();
+				} else {
+					con = this.cfgMgr.getProvisioningEngine().getQueueConnection();
+				}
+				
+				this.dlqsession = con.createSession(true, Session.AUTO_ACKNOWLEDGE);
+				this.dlq = dlqsession.createQueue("ActiveMQ.DLQ");
+				this.mcdlq = dlqsession.createConsumer(dlq);
+				this.qs = new HashMap<String,MessageProducer>();
+			} catch (Throwable t) {
+				this.dlqsession = null;
+				this.dlq = null;
+				this.mcdlq = null;
+				this.qs = null;
+				throw t;
+			}
 		}
-		
-		this.dlqsession = con.createSession(true, Session.AUTO_ACKNOWLEDGE);
-		this.dlq = dlqsession.createQueue("ActiveMQ.DLQ");
-		this.mcdlq = dlqsession.createConsumer(dlq);
-		this.qs = new HashMap<String,MessageProducer>();
 		
 		
 		
@@ -168,6 +177,11 @@ public class BrokerHolder {
 		Thread.sleep(3000);
 		
 		Message m = null;
+
+		if (mcdlq == null) {
+			this.initDLQ();
+		}
+
 		while ((m = mcdlq.receiveNoWait()) != null) {
 							Enumeration enumer = m.getPropertyNames();
 							
