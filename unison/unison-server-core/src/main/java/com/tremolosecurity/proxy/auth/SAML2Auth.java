@@ -558,6 +558,10 @@ public class SAML2Auth implements AuthMechanism {
 			logger.debug(xml);
 			logger.debug("=========saml2resp============");
 		}
+
+
+		xml = xml.replaceAll("<!--.*-->", "");
+
 		
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware(true);
