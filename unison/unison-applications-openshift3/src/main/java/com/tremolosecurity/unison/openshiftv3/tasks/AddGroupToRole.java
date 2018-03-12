@@ -45,6 +45,8 @@ public class AddGroupToRole implements CustomTask {
 	String roleName;
 	String targetName;
 	
+	double openShiftVersion;
+
 	transient WorkflowTask task;
 
 	@Override
@@ -54,6 +56,16 @@ public class AddGroupToRole implements CustomTask {
 		this.roleName = params.get("roleName").getValues().get(0);
 		this.targetName = params.get("targetName").getValues().get(0);
 		
+		if (params.get("version") != null) {
+			String val = params.get("version").getValues().get(0);
+			this.openShiftVersion = Double.parseDouble(val);
+			if (this.openShiftVersion < 3.6 || this.openShiftVersion > 3.7) {
+				throw new ProvisioningException("OpenShift version must be between 3.6 and 3.7");
+			}
+		} else {
+			this.openShiftVersion = 3.7;
+		}
+
 		this.task = task;
 
 	}
@@ -84,7 +96,79 @@ public class AddGroupToRole implements CustomTask {
 			String token = os.getAuthToken();
 			con = os.createClient();
 			
-			String roleBindingUri = new StringBuilder().append("/oapi/v1/namespaces/").append(localProjectName).append("/policybindings").toString();
+			if (this.openShiftVersion == 3.6) {
+				addTo36Role(os,token,con,localProjectName,localPolicyName,localGroupName,approvalID);
+			} else {
+				addTo37Role(os,token,con,localProjectName,localPolicyName,localGroupName,approvalID);
+			}
+			
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not add group to role",e);
+		} finally {
+			if (con != null) {
+				con.getBcm().close();
+			}
+		}
+		
+		
+		
+		
+		
+		return true;
+	}
+
+
+	private void addTo37Role(OpenShiftTarget os, String token, HttpCon con, String localProjectName,
+			String localPolicyName, String localGroupName, int approvalID) throws Exception {
+
+		String roleBindingUri = new StringBuilder().append("/apis/rbac.authorization.k8s.io/v1beta1/namespaces/").append(localProjectName).append("/rolebindings/").append(localPolicyName).toString();
+		String json = os.callWS(token, con, roleBindingUri);
+			
+		if (logger.isDebugEnabled()) {
+			logger.debug("Policy binding : '" + json + "'");
+		}
+
+		JSONParser parser = new JSONParser();
+		JSONObject rb = (JSONObject) parser.parse(json);
+		if (rb.get("status") != null && rb.get("status").equals("Failure")) {
+			throw new ProvisioningException("Role binding : '" + localPolicyName + "' does not exist");
+		}
+
+		JSONArray subjects = (JSONArray) rb.get("subjects");
+		if (subjects != null) {
+			for (Object o : subjects) {
+				JSONObject jo = (JSONObject) o;
+				if (jo.get("kind").equals("Group") && jo.get("name").equals(localGroupName)) {
+					logger.warn(localGroupName + " already in policy " + localPolicyName + " on project " + localProjectName);
+					return;
+				}
+			}
+		} else {
+			subjects = new JSONArray();
+			rb.put("subjects", subjects);
+		}
+
+		JSONObject binding = new JSONObject();
+		binding.put("kind","Group");
+		binding.put("apiGroup", "rbac.authorization.k8s.io");
+		binding.put("name", localGroupName);
+
+		subjects.add(binding);
+
+		String jsonResp = os.callWSPut(token, con, roleBindingUri, rb.toJSONString());
+		Gson gson = new Gson();
+		Response resp = gson.fromJson(jsonResp, Response.class);
+		if (resp.getStatus() != null) {
+			throw new ProvisioningException("Could not add '" + localGroupName + "' to '" + localPolicyName + "' in project '" + localProjectName + "' - " + jsonResp);
+		} else {
+			this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ActionType.Add,  approvalID, this.task.getWorkflow(), "openshift-project.role.group", new StringBuilder().append(localProjectName).append('.').append(localPolicyName).append('.').append(localGroupName).toString());
+		}
+
+
+	}
+
+	private void addTo36Role(OpenShiftTarget os,String token,HttpCon con,String localProjectName,String localPolicyName,String localGroupName,int approvalID) throws Exception {
+		String roleBindingUri = new StringBuilder().append("/oapi/v1/namespaces/").append(localProjectName).append("/policybindings").toString();
 			String json = os.callWS(token, con, roleBindingUri);
 			
 			if (logger.isDebugEnabled()) {
@@ -116,7 +200,7 @@ public class AddGroupToRole implements CustomTask {
 					if (groupNames != null) {
 						for (Object o1 : groupNames) {
 							String groupName = (String) o1;
-							System.out.println(groupName);
+							
 							if (groupName.equalsIgnoreCase(localGroupName)) {
 								foundInGroupName = true;
 							}
@@ -231,20 +315,7 @@ public class AddGroupToRole implements CustomTask {
 				
 				
 			}
-			
-		} catch (Exception e) {
-			throw new ProvisioningException("Could not add group to role",e);
-		} finally {
-			if (con != null) {
-				con.getBcm().close();
-			}
-		}
-		
-		
-		
-		
-		
-		return true;
+
 	}
 
 }

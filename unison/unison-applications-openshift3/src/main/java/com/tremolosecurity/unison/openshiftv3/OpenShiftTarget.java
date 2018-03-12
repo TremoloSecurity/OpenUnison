@@ -169,9 +169,9 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			if (attributes.contains("fullName")) {
 				if (user.getAttribs().get("fullName") != null) {
 					String fullName = user.getAttribs().get("fullName").getValues().get(0);
-					String fromServerFullName = fromServer.getAttribs().get("fullName").getValues().get(0);
+					String fromServerFullName = fromServer.getAttribs().get("fullName") != null ? fromServer.getAttribs().get("fullName").getValues().get(0) : null;
 					
-					if (! fromServerFullName.equalsIgnoreCase(fullName)) {
+					if (fromServerFullName == null || ! fromServerFullName.equalsIgnoreCase(fullName)) {
 						try {
 							token = setFullName(user, approvalID, workflow, gson, b);
 						} catch (Exception e) {
@@ -332,7 +332,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 				b.append("/oapi/v1/users/").append(user.getUserID());
 				String json = this.callWSDelete(token, con, b.toString());
 				Response resp = gson.fromJson(json, Response.class);
-				if (resp.getCode() != 200) {
+				if (resp.getStatus() != null && ! resp.getStatus().equalsIgnoreCase("success")) {
 					throw new Exception("Unable to delete " + user.getUserID() + " - " + resp.getReason());
 				}
 				
@@ -412,7 +412,8 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 				return user;
 			} else {
 				if (user == null) {
-					user = new User(userID);
+					//user = new User(userID);
+					return null;
 				}
 				user.getGroups().addAll(groupsForUser);
 				return user;
