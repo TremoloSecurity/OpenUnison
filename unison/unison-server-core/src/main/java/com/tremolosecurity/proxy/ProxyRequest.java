@@ -46,6 +46,7 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload.servlet.ServletRequestContext;
 import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.util.NVP;
@@ -81,8 +82,12 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 		
 		this.session = session;
 		
+		ServletRequestContext reqCtx = new ServletRequestContext(req);
+		this.isMultiPart = "POST".equalsIgnoreCase(req.getMethod()) && reqCtx.getContentType() != null && reqCtx.getContentType().toLowerCase(Locale.ENGLISH).startsWith("multipart/form-data");
 		
-		this.isMultiPart = ServletFileUpload.isMultipartContent(req);
+		
+		
+		
 		
 		
 		
