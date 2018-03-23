@@ -25,6 +25,16 @@ public class OpenIDConnectTrust {
 	long accessTokenTimeToLive;
 	long accessTokenSkewMillis;
 
+	boolean verifyRedirect;
+
+	public boolean isVerifyRedirect() {
+		return this.verifyRedirect;
+	}
+
+	public void setVerifyRedirect(boolean verifyRedirect) {
+		this.verifyRedirect = verifyRedirect;
+	}
+
 	public boolean isPublicEndpoint() {
 		return publicEndpoint;
 	}

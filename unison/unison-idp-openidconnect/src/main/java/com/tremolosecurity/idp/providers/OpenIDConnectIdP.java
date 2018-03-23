@@ -202,6 +202,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			
 			OpenIDConnectTrust trust = trusts.get(clientID);
 			
+			
+
 			if (trust == null) {
 				StringBuffer b = new StringBuffer();
 				b.append(redirectURI).append("?error=unauthorized_client");
@@ -210,21 +212,29 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				return;
 			}
 			
-			if (! trust.getRedirectURI().equals(redirectURI)) {
-				StringBuffer b = new StringBuffer();
-				b.append(trust.getRedirectURI()).append("?error=unauthorized_client");
-				logger.warn("Invalid redirect");
-				
-				
-				AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() , "NONE");
-				
-				response.sendRedirect(b.toString());
-				return;
+			if (trust.isVerifyRedirect()) {
+
+				if (! trust.getRedirectURI().equals(redirectURI)) {
+					StringBuffer b = new StringBuffer();
+					b.append(trust.getRedirectURI()).append("?error=unauthorized_client");
+					logger.warn("Invalid redirect");
+					
+					
+					AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() , "NONE");
+					
+					response.sendRedirect(b.toString());
+					return;
+				}
+
+				transaction.setRedirectURI(trust.getRedirectURI());
+
+			} else {
+				transaction.setRedirectURI(redirectURI);
 			}
 			
 			if (transaction.getScope().size() == 0 || ! transaction.getScope().get(0).equals("openid")) {
 				StringBuffer b = new StringBuffer();
-				b.append(trust.getRedirectURI()).append("?error=invalid_scope");
+				b.append(transaction.getRedirectURI()).append("?error=invalid_scope");
 				logger.warn("First scope not openid");
 				AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() , "NONE");
 				response.sendRedirect(b.toString());
@@ -947,7 +957,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		
 		StringBuffer b = new StringBuffer();
-		b.append(trust.getRedirectURI())
+		b.append(transaction.getRedirectURI())
 			.append("?")
 			.append("code=").append(URLEncoder.encode(b64,"UTF-8"))
 			.append("&state=").append(URLEncoder.encode(transaction.getState(),"UTF-8"));
@@ -972,6 +982,13 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			trust.setCodeTokenTimeToLive(Long.parseLong(attrs.get("codeTokenSkewMilis").getValues().get(0)));
 			trust.setAccessTokenTimeToLive(Long.parseLong(attrs.get("accessTokenTimeToLive").getValues().get(0)));
 			trust.setAccessTokenSkewMillis(Long.parseLong(attrs.get("accessTokenSkewMillis").getValues().get(0)));
+
+			if (attrs.get("verifyRedirect") == null) {
+				trust.setVerifyRedirect(true);
+			} else {
+				trust.setVerifyRedirect(attrs.get("verifyRedirect").getValues().get(0).equalsIgnoreCase("true"));
+			}
+
 			trust.setTrustName(trustName);
 
 			if (attrs.get("publicEndpoint") != null && attrs.get("publicEndpoint").getValues().get(0).equalsIgnoreCase("true")) {
