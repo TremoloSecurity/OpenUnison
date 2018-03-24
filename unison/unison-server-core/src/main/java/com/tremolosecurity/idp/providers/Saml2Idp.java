@@ -53,6 +53,7 @@ import org.opensaml.core.config.InitializationService;
 import org.opensaml.core.xml.io.UnmarshallingException;
 import org.opensaml.saml.saml2.core.AuthnRequest;
 import org.opensaml.saml.saml2.core.impl.AuthnRequestUnmarshaller;
+import org.stringtemplate.v4.ST;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -742,12 +743,18 @@ public class Saml2Idp implements IdentityProvider {
 			request.setAttribute("relaystate", "");
 		}
 		
-		StringBuffer s = new StringBuffer();
-		s.append(cfg.getAuthPath()).append("fed/postauthnresp.jsp");
+
 		
-		//response.sendRedirect(s.toString());
+
+
+		String template = "<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<title>Completing Federation</title>\n</head>\n<body onload=\"document.forms[0].submit()\">\n<form method=\"post\" action=\"$postaction$\">\n<input name=\"SAMLResponse\" value=\"$postdata$\" type=\"hidden\"/>\n<input name=\"RelayState\" value=\"$relaystate$\" type=\"hidden\"/>\n</form>\n<center>\n<img src=\"/auth/forms/images/ts_logo.png\" /><br />\n<h2>Completing Federation...</h2>\n</center>\n</body>\n</html>";
+		ST st = new ST(template,'$','$');
+		st.add("relaystate", (String) request.getAttribute("relaystate"));
+		st.add("postdata",base64);
+		st.add("postaction",transaction.postToURL);
+		response.setContentType("text/html");
+		response.getWriter().write(st.render());
 		
-		request.getServletContext().getRequestDispatcher(s.toString()).forward(request, response);
 		
 		
 		
