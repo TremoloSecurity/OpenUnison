@@ -14,8 +14,10 @@ package com.tremolosecurity.provisioning.dynamicwf;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.logging.log4j.Logger;
 
@@ -31,7 +33,14 @@ import com.tremolosecurity.saml.Attribute;
 public class LDAPDynaicWorkflows implements DynamicWorkflow {
 	
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(LDAPDynaicWorkflows.class.getName());
-	
+	static HashSet<String> ignore = new HashSet<String>();
+
+	static {
+		ignore.add("uniquemember");
+		ignore.add("member");
+		ignore.add("memberof");
+	}
+
 	@Override
 	public List<Map<String, String>> generateWorkflows(WorkflowType wf, ConfigManager cfg,
 			HashMap<String, Attribute> params) throws ProvisioningException {
@@ -67,6 +76,17 @@ public class LDAPDynaicWorkflows implements DynamicWorkflow {
 				} else {
 					wfDef.put("descriptionAttribute", "");
 				}
+
+
+				for (Object o : group.getAttributeSet()) {
+					LDAPAttribute attr = (LDAPAttribute) o;
+					String lcasename = attr.getName().toLowerCase();
+					if (! LDAPDynaicWorkflows.ignore.contains(lcasename)) {
+						String attrName = attr.getName().replaceAll("[-]", "_");
+						wfDef.put(attrName, attr.getStringValue());
+					}	
+				}
+
 				
 				wfParams.add(wfDef);
 				
