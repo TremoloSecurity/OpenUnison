@@ -89,6 +89,8 @@ import com.tremolosecurity.saml.Saml2Assertion;
 
 public class Saml2Idp implements IdentityProvider {
 
+	private static String DEFAULT_SAML2_POST_TEMPLATE = "<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<title>Completing Federation</title>\n</head>\n<body onload=\"document.forms[0].submit()\">\n<form method=\"post\" action=\"$postaction$\">\n<input name=\"SAMLResponse\" value=\"$postdata$\" type=\"hidden\"/>\n<input name=\"RelayState\" value=\"$relaystate$\" type=\"hidden\"/>\n</form>\n<center>\n<img src=\"/auth/forms/images/ts_logo.png\" /><br />\n<h2>Completing Federation...</h2>\n</center>\n</body>\n</html>";
+
 	private static HashMap<String, String> xmlDigSigAlgs;
 
 	private static HashMap<String, String> javaDigSigAlgs;
@@ -121,6 +123,8 @@ public class Saml2Idp implements IdentityProvider {
 	private HashMap<String, Saml2Trust> trusts;
 
 	MapIdentity mapper;
+
+	private String saml2PostTemplate;
 	
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -570,7 +574,7 @@ public class Saml2Idp implements IdentityProvider {
 		this.idpName = idpName;
 		this.idpSigKeyName = init.get("sigKey").getValues().get(0);
 		this.requireSignedAuthn = init.get("requireSignedAuthn") != null && Boolean.parseBoolean(init.get("requireSignedAuthn").getValues().get(0));
-		
+		this.saml2PostTemplate = init.get("postTemplate") != null ? init.get("postTemplate").getValues().get(0) : Saml2Idp.DEFAULT_SAML2_POST_TEMPLATE;
 		try {
 			InitializationService.initialize();
 		} catch (InitializationException e) {
@@ -747,8 +751,8 @@ public class Saml2Idp implements IdentityProvider {
 		
 
 
-		String template = "<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<title>Completing Federation</title>\n</head>\n<body onload=\"document.forms[0].submit()\">\n<form method=\"post\" action=\"$postaction$\">\n<input name=\"SAMLResponse\" value=\"$postdata$\" type=\"hidden\"/>\n<input name=\"RelayState\" value=\"$relaystate$\" type=\"hidden\"/>\n</form>\n<center>\n<img src=\"/auth/forms/images/ts_logo.png\" /><br />\n<h2>Completing Federation...</h2>\n</center>\n</body>\n</html>";
-		ST st = new ST(template,'$','$');
+		
+		ST st = new ST(this.saml2PostTemplate,'$','$');
 		st.add("relaystate", (String) request.getAttribute("relaystate"));
 		st.add("postdata",base64);
 		st.add("postaction",transaction.postToURL);
