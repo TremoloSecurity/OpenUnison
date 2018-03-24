@@ -23,14 +23,14 @@
 		<opensaml.version>3.3.1</opensaml.version>
 		<xerces.version>2.11.0</xerces.version>
 		<alfresco-client.version>5.0.a</alfresco-client.version>
-		<javax.xml.rpc-api.version>1.1.1</javax.xml.rpc-api.version>
+		<javax.xml.rpc-api.version>1.1.2</javax.xml.rpc-api.version>
 		<google-api-client.version>1.23.0</google-api-client.version>
-		<google-api-services-plus.version>v1-rev539-1.23.0</google-api-services-plus.version>
-		<google-api-services-oauth2.version>v2-rev133-1.23.0</google-api-services-oauth2.version>
-		<google-api-services-admin-directory.version>directory_v1-rev91-1.23.0</google-api-services-admin-directory.version>
+		<google-api-services-plus.version>v1-rev543-1.23.0</google-api-services-plus.version>
+		<google-api-services-oauth2.version>v2-rev134-1.23.0</google-api-services-oauth2.version>
+		<google-api-services-admin-directory.version>directory_v1-rev93-1.23.0</google-api-services-admin-directory.version>
 		<json-simple.version>1.1.1</json-simple.version>
-		<twilio-java-sdk.version>7.17.7</twilio-java-sdk.version>
-		<restfb.version>2.1.1</restfb.version>
+		<twilio-java-sdk.version>7.18.0</twilio-java-sdk.version>
+		<restfb.version>2.3.0</restfb.version>
 		<jbosssx-bare.version>4.1.6.Final</jbosssx-bare.version>
 		<jbosssx-client.version>4.1.6.Final</jbosssx-client.version>
 		<jboss-as-logging.version>7.2.0.Final</jboss-as-logging.version>
@@ -50,29 +50,29 @@
 		<quartz.version>2.3.0</quartz.version>
 		<quartz-jobs.version>2.3.0</quartz-jobs.version>
 		<json-io.version>4.10.0</json-io.version>
-		<log4j.version>2.10.0</log4j.version>
+		<log4j.version>2.11.0</log4j.version>
 		<joda-time.version>2.9.9</joda-time.version>
 		<javax.mail-api.version>1.6.1</javax.mail-api.version>
-		<bcpkix-jdk15on.version>1.58</bcpkix-jdk15on.version>
+		<bcpkix-jdk15on.version>1.59</bcpkix-jdk15on.version>
 		<net.sourceforge.spnego.version>7.1</net.sourceforge.spnego.version>
 		<reflections.version>0.9.11</reflections.version>
 		<apache-log4j-extras.version>1.2.17</apache-log4j-extras.version>
 		<googleauth.version>1.1.5</googleauth.version>
 		<activemq.version>5.15.3</activemq.version>
 		<commons-pool2.version>2.5.0</commons-pool2.version>
-		<aws-java-sdk.version>1.11.276</aws-java-sdk.version>
+		<aws-java-sdk.version>1.11.301</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>1.0.4</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.0.2</stringtemplate.version>
-		<hibernate.version>5.2.13.Final</hibernate.version>
+		<hibernate.version>5.2.16.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
 		<org.apache.poi.version>3.17</org.apache.poi.version>
 		<jose4j.version>0.6.3</jose4j.version>
-		<mongodb-driver.version>3.6.2</mongodb-driver.version>
+		<mongodb-driver.version>3.6.3</mongodb-driver.version>
 		<xalan.version>2.7.2</xalan.version>
 		<jackson.version>2.9.4</jackson.version>
 		<slf4j.version>1.7.25</slf4j.version>
-		<guava.version>24.0-jre</guava.version>
-		<undertow.version>1.4.22.Final</undertow.version>
+		<guava.version>24.1-jre</guava.version>
+		<undertow.version>2.0.3.Final</undertow.version>
 	  	<jastow.version>2.1.0.Final</jastow.version>
 	  	<jboss-jstl-api_1.2_spec.version>1.1.4.Final</jboss-jstl-api_1.2_spec.version>
 	  	<xmlsec.version>2.0.5</xmlsec.version>
