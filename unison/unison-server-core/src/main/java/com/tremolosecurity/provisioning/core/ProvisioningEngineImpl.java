@@ -1186,14 +1186,25 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	 */
 	@Override
 	public void sendNotification(String email,String msgTxt,User user) throws Exception {
-		this.sendNotification(email, msgTxt, this.smtpSubject,user);
+		this.sendNotification(email, msgTxt, this.smtpSubject,user,null);
+	}
+
+	@Override
+	public void sendNotification(String email,String msgTxt,User user,String contentType) throws Exception {
+		this.sendNotification(email, msgTxt, this.smtpSubject,user,contentType);
 	}
 	
+	@Override
+	public void sendNotification(String email,String msgTxt,String subject,User user) throws Exception {
+		this.sendNotification(email,msgTxt,subject,user,null);
+	}
+
+
 	/* (non-Javadoc)
 	 * @see com.tremolosecurity.provisioning.core.ProvisioningEngine#sendNotification(java.lang.String, java.lang.String, java.lang.String, com.tremolosecurity.provisioning.core.User)
 	 */
 	@Override
-	public void sendNotification(String email,String msgTxt,String subject,User user) throws Exception {
+	public void sendNotification(String email,String msgTxt,String subject,User user,String contentType) throws Exception {
 		
 		
 		StringBuffer msgToSend = new StringBuffer();
@@ -1228,6 +1239,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		msg.from = this.smtpFrom;
 		msg.subject = subject;
 		msg.msg = msgToSend.toString();
+		msg.contentType = contentType;
 		
 		this.st.enqEmail(msg);
 		
@@ -2015,8 +2027,14 @@ class SendMessageThread implements MessageListener {
 		msgToSend.setFrom(new InternetAddress(msg.from));
 		msgToSend.addRecipient( Message.RecipientType.TO, new InternetAddress(msg.to));
 		msgToSend.setSubject(msg.subject);
-		msgToSend.setText(msg.msg);
 		
+		
+		if (msg.contentType != null) {
+			msgToSend.setContent(msg.msg, msg.contentType);
+		} else {
+			msgToSend.setText(msg.msg);
+		}
+
 		msgToSend.saveChanges();
 		Transport.send(msgToSend);
 		

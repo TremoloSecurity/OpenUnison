@@ -36,6 +36,7 @@ public class NotifyUser extends WorkflowTaskImpl {
 	String subject;
 	String msg;
 	String mailAttr;
+	String contentType;
 	
 	public NotifyUser() {
 		
@@ -52,7 +53,7 @@ public class NotifyUser extends WorkflowTaskImpl {
 		this.subject = nut.getSubject();
 		this.mailAttr = nut.getMailAttrib();
 		this.msg = nut.getMsg();
-
+		this.contentType = nut.getContentType();
 	}
 
 	@Override
@@ -72,7 +73,7 @@ public class NotifyUser extends WorkflowTaskImpl {
 			String localMsg = this.renderTemplate(msg, request);
 			
 			try {
-				this.getConfigManager().getProvisioningEngine().sendNotification(mail, localMsg,localSubject,this.getWorkflow().getRequester());
+				this.getConfigManager().getProvisioningEngine().sendNotification(mail, localMsg,localSubject,this.getWorkflow().getRequester(),this.contentType);
 			} catch (Exception e) {
 				throw new ProvisioningException("Could not send user notification",e);
 			}
@@ -86,7 +87,7 @@ public class NotifyUser extends WorkflowTaskImpl {
 		String localMsg = this.renderTemplate(msg, request);
 		
 		try {
-			this.getConfigManager().getProvisioningEngine().sendNotification(mail, localMsg,localSubject,user);
+			this.getConfigManager().getProvisioningEngine().sendNotification(mail, localMsg,localSubject,user,this.contentType);
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not send user notification",e);
 		}

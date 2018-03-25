@@ -80,8 +80,14 @@ public interface ProvisioningEngine {
 	public abstract void sendNotification(String email, String msgTxt, User user)
 			throws Exception;
 
+	public abstract void sendNotification(String email, String msgTxt, User user,String contentType)
+			throws Exception;
+
 	public abstract void sendNotification(String email, String msgTxt,
 			String subject, User user) throws Exception;
+
+			public abstract void sendNotification(String email, String msgTxt,
+			String subject, User user,String contentType) throws Exception;
 
 	public abstract String getSmtpHost();
 

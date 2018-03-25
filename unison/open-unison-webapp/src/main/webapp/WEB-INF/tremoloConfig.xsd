@@ -1755,6 +1755,11 @@
 						</documentation>
 					</annotation>
 				</attribute>
+				<attribute name="contentType" type="string">
+					<annotation>
+						<documentation>If specified, used as the content type of the email</documentation>
+					</annotation>
+				</attribute>
 			</extension>
 		</complexContent>
 	</complexType>

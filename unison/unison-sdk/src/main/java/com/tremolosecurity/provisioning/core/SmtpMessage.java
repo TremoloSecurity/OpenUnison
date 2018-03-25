@@ -27,6 +27,7 @@ public class SmtpMessage  {
 	String to;
 	String from;
 	String msg;
+	public String contentType;
 	
 	public SmtpMessage() {
 		
