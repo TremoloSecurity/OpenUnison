@@ -89,7 +89,7 @@ import com.tremolosecurity.saml.Saml2Assertion;
 
 public class Saml2Idp implements IdentityProvider {
 
-	private static String DEFAULT_SAML2_POST_TEMPLATE = "<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<title>Completing Federation</title>\n</head>\n<body onload=\"document.forms[0].submit()\">\n<form method=\"post\" action=\"$postaction$\">\n<input name=\"SAMLResponse\" value=\"$postdata$\" type=\"hidden\"/>\n<input name=\"RelayState\" value=\"$relaystate$\" type=\"hidden\"/>\n</form>\n<center>\n<img src=\"/auth/forms/images/ts_logo.png\" /><br />\n<h2>Completing Federation...</h2>\n</center>\n</body>\n</html>";
+	public static String DEFAULT_SAML2_POST_TEMPLATE = "<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<title>Completing Federation</title>\n</head>\n<body onload=\"document.forms[0].submit()\">\n<form method=\"post\" action=\"$postaction$\">\n<input name=\"SAMLResponse\" value=\"$postdata$\" type=\"hidden\"/>\n<input name=\"RelayState\" value=\"$relaystate$\" type=\"hidden\"/>\n</form>\n<center>\n<img src=\"/auth/forms/images/ts_logo.png\" /><br />\n<h2>Completing Federation...</h2>\n</center>\n</body>\n</html>";
 
 	private static HashMap<String, String> xmlDigSigAlgs;
 
