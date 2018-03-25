@@ -1,3 +1,21 @@
+## 1.0.13-2018032401
+
+**Tasks:**
+ - 1.0.13 Build [\#287](https://github.com/TremoloSecurity/OpenUnison/issues/287)
+ - Add all attributes from LDAP group to dynamic workflows [\#281](https://github.com/TremoloSecurity/OpenUnison/issues/281)
+
+**enhancements:**
+ - Support html for email notifications [\#284](https://github.com/TremoloSecurity/OpenUnison/issues/284)
+ - saml2 idp eliminate jsp [\#286](https://github.com/TremoloSecurity/OpenUnison/issues/286)
+ - "Dev" mode for openid connect to not validate redirect_uri [\#285](https://github.com/TremoloSecurity/OpenUnison/issues/285)
+ - Update openshift AddGroupToRole task for openshift 3.7 [\#282](https://github.com/TremoloSecurity/OpenUnison/issues/282)
+ - 1.0.12 build [\#243](https://github.com/TremoloSecurity/OpenUnison/issues/243)
+
+**bugs:**
+ - ScaleJS Main - user service does not return attributes in the order they're defined [\#288](https://github.com/TremoloSecurity/OpenUnison/issues/288)
+ - check for multipart upload breaks multipart application data [\#283](https://github.com/TremoloSecurity/OpenUnison/issues/283)
+ - Strip comments from inbound SAML2 assertions [\#279](https://github.com/TremoloSecurity/OpenUnison/issues/279)
+
 ## 1.0.12-2018010801
 **bugs:**
  - bug in dlq checker [\#276](https://github.com/TremoloSecurity/OpenUnison/issues/276)
