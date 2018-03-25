@@ -203,3 +203,7 @@ IgnoreLexer.java~
 .gradle
 
 .vscode
+unison/null/unison-mq-local/lock
+unison/null/unison-mq-local/db-1.log
+unison/null/unison-mq-local/db.redo
+unison/null/unison-mq-local/db.data
