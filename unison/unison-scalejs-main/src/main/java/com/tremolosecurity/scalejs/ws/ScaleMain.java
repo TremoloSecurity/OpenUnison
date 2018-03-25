@@ -1323,7 +1323,7 @@ public class ScaleMain implements HttpFilter {
 		
 		
 		
-		for (String attrName : this.scaleConfig.getAttributes().keySet()) {
+		for (String attrName : this.scaleConfig.getUserAttributeList()) {
 			
 			if (allowedAttrs == null || allowedAttrs.contains(attrName)) {
 				Attribute attr = new Attribute(attrName);
@@ -1483,6 +1483,7 @@ public class ScaleMain implements HttpFilter {
 			
 			
 			scaleConfig.getAttributes().put(attributeName, scaleAttr);
+			scaleConfig.getUserAttributeList().add(attributeName);
 		}
 		
 		

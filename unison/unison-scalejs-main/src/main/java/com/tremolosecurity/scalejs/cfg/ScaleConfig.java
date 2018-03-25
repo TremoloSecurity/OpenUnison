@@ -15,7 +15,9 @@
  *******************************************************************************/
 package com.tremolosecurity.scalejs.cfg;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.tremolosecurity.scalejs.sdk.UiDecisions;
@@ -29,6 +31,7 @@ public class ScaleConfig {
 	String logoutURL;
 	
 	transient String workflowName;
+	transient List<String> userAttributeList;
 	Map<String,ScaleAttribute> attributes;
 	transient Map<String,ScaleAttribute> approvalAttributes;
 	String roleAttribute;
@@ -61,12 +64,14 @@ public class ScaleConfig {
 		this.warnMinutesLeft = from.warnMinutesLeft;
 		this.canDelegate = from.canDelegate;
 		this.canPreApprove = from.canPreApprove;
+		this.userAttributeList = from.userAttributeList;
 	}
 	
 	public ScaleConfig() {
 		this.attributes = new HashMap<String,ScaleAttribute>();
 		this.approvalAttributes = new HashMap<String,ScaleAttribute>();
 		this.frontPage = new ScaleFrontPage();
+		this.userAttributeList = new ArrayList<String>();
 	}
 
 	
@@ -117,6 +122,10 @@ public class ScaleConfig {
 
 	public void setAttributes(Map<String, ScaleAttribute> attributes) {
 		this.attributes = attributes;
+	}
+
+	public List<String> getUserAttributeList() {
+		return this.userAttributeList;
 	}
 
 	public String getUidAttributeName() {
