@@ -96,7 +96,7 @@ public class BasicValidator implements PasswordValidator {
 		}
 
 		if (this.maxChars > -1 && password.length() > this.maxChars) {
-			errors.add("Password can not be more then " + this.minChars
+			errors.add("Password can not be more then " + this.maxChars
 					+ " characters long");
 			return errors;
 		}
