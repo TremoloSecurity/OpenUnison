@@ -144,7 +144,7 @@ public class AuthMgrSys {
 			
 			if (! request.getRequestURI().endsWith(mech2.getUri())) {
 				logger.warn("Attempted double post");
-				response.sendRedirect("/auth/forms/resetChain.jsp");
+				response.sendRedirect(new StringBuilder().append(cfgMgr.getAuthFormsPath()).append("resetChain.jsp").toString());
 				return;
 			}
 			
