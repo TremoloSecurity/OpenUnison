@@ -195,6 +195,8 @@ public class AuthMgrSys {
 			mech.doHead(request, response,as);
 		} else if (request.getMethod().equalsIgnoreCase("options")) {
 			mech.doOptions(request, response,as);
+		} else {
+			mech.doGet(request, response,as);
 		}
 		
 		
