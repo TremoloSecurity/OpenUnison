@@ -87,7 +87,7 @@ public class BasicDatabase extends MultiNameSpaceInsert implements JdbcPool {
 			nsProps.put("server." + userdb + ".jdbc.config.user",props.get("user"));
 			nsProps.put("server." + userdb + ".jdbc.config.password",props.getProperty("password"));
 			nsProps.put("server." + userdb + ".jdbc.config.maxCons",props.getProperty("maxCons"));
-			nsProps.put("server." + userdb + ".jdbc.config.maxConsIdle",props.getProperty("maxConsIdle"));
+			nsProps.put("server." + userdb + ".jdbc.config.maxIdleCons",props.getProperty("maxConsIdle"));
 			nsProps.put("server." + userdb + ".jdbc.config.rdn","uid");
 			nsProps.put("server." + userdb + ".jdbc.config.mapping",props.getProperty("user-mapping"));
 			nsProps.put("server." + userdb + ".jdbc.config.objectClass",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getUserObjectClass());
@@ -125,7 +125,7 @@ public class BasicDatabase extends MultiNameSpaceInsert implements JdbcPool {
 			nsProps.put("server." + groupdb + ".jdbc.config.password",props.getProperty("password"));
 			nsProps.put("server." + groupdb + ".jdbc.config.rdn","cn");
 			nsProps.put("server." + groupdb + ".jdbc.config.maxCons",props.getProperty("maxCons"));
-			nsProps.put("server." + groupdb + ".jdbc.config.maxConsIdle",props.getProperty("maxConsIdle"));
+			nsProps.put("server." + groupdb + ".jdbc.config.maxIdleCons",props.getProperty("maxConsIdle"));
 			nsProps.put("server." + groupdb + ".jdbc.config.mapping",props.getProperty("group-mapping"));
 			nsProps.put("server." + groupdb + ".jdbc.config.objectClass",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupObjectClass());
 			nsProps.put("server." + groupdb + ".jdbc.config.sql",getGroupSelect(props));
