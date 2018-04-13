@@ -1,3 +1,13 @@
+## 1.0.13.2-2018041201
+
+**Tasks:**
+ - 1.0.13 Build [\#287](https://github.com/TremoloSecurity/OpenUnison/issues/287)
+
+**bugs:**
+ - basicdb - maxidlecons not being set based on config [\#291](https://github.com/TremoloSecurity/OpenUnison/issues/291)
+ - scalejs password reset giving number of minimum characters on too many characters [\#290](https://github.com/TremoloSecurity/OpenUnison/issues/290)
+
+
 ## 1.0.13-2018032401
 
 **Tasks:**
