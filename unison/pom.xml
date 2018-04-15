@@ -10,12 +10,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.tremolosecurity.unison</groupId>
 	<artifactId>unison</artifactId>
-	<version>1.0.13.2</version>
+	<version>1.0.13.3</version>
 	<name>Unison</name>
 	<packaging>pom</packaging>
 
 	<properties>
-		<openunison.version>1.0.13.2</openunison.version>
+		<openunison.version>1.0.13.3</openunison.version>
 		<servlet.api.version>3.1.0</servlet.api.version>
 		<servlet.2x.api.version>2.5-6.0.2</servlet.2x.api.version>
 		<commons-collections.version>3.2.2</commons-collections.version>
@@ -40,7 +40,7 @@
 		<bcprov-ext-jdk15on.version>1.59</bcprov-ext-jdk15on.version>
 		<catalina.version>6.0.53</catalina.version>
 		<undertow-1x.version>1.0.0.Final</undertow-1x.version>
-		<myvd-server.version>1.0.2</myvd-server.version>
+		<myvd-server.version>1.0.3</myvd-server.version>
 		<jldap.version>1.0.0</jldap.version>
 		<httpclient.version>4.5.5</httpclient.version>
 		<httpcore.version>4.4.9</httpcore.version>

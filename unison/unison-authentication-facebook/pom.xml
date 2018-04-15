@@ -18,7 +18,7 @@
   <parent>
     <groupId>com.tremolosecurity.unison</groupId>
     <artifactId>unison</artifactId>
-    <version>1.0.13.2</version>
+    <version>1.0.13.3</version>
     
   </parent>
   <artifactId>unison-authentication-facebook</artifactId>
