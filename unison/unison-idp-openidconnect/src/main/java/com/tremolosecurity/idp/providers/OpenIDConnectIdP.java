@@ -1040,8 +1040,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		int maxCons = Integer.parseInt(init.get("maxCons").getValues().get(0));
 		logger.info("Max Cons : " + maxCons);
-		int maxIdleCons = Integer.parseInt(init.get("maxIdleCons").getValues().get(0));
-		logger.info("maxIdleCons : " + maxIdleCons);
+		
 		
 		String dialect = init.get("dialect").getValues().get(0);
 		logger.info("Hibernate Dialect : '" + dialect + "'");
@@ -1055,7 +1054,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		String hibernateCreateSchema = init.get("hibernateCreateSchema") != null ? init.get("hibernateCreateSchema").getValues().get(0) : null;
 		logger.info("Can create schema : '" + hibernateCreateSchema + "'");
         
-        this.initializeHibernate(driver, user, pwd, url, dialect, maxCons, maxIdleCons, validationQuery,hibernateConfig,hibernateCreateSchema);
+        this.initializeHibernate(driver, user, pwd, url, dialect, maxCons, validationQuery,hibernateConfig,hibernateCreateSchema);
 
 	}
 
@@ -1160,7 +1159,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		return claims;
 	}
 	
-	private void initializeHibernate(String driver, String user,String password,String url,String dialect,int maxCons,int maxIdleCons,String validationQuery,String mappingFile,String createSchema) {
+	private void initializeHibernate(String driver, String user,String password,String url,String dialect,int maxCons,String validationQuery,String mappingFile,String createSchema) {
 		StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder();
 		
 		
@@ -1179,10 +1178,12 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		config.setProperty("hibernate.current_session_context_class", "thread");
 		
 		config.setProperty("hibernate.c3p0.max_size", Integer.toString(maxCons));
-		config.setProperty("hibernate.c3p0.maxIdleTimeExcessConnections", Integer.toString(maxIdleCons));
+		
 		
 		if (validationQuery != null && ! validationQuery.isEmpty()) {
-			config.setProperty("hibernate.c3p0.testConnectionOnCheckout", "true");
+			config.setProperty("hibernate.c3p0.testConnectionOnCheckin", "true");
+			config.setProperty("hibernate.c3p0.idleConnectionTestPeriod", "30");
+			config.setProperty("hibernate.c3p0.preferredTestQuery", validationQuery);
 		}
 		config.setProperty("hibernate.c3p0.autoCommitOnClose", "true");
 		

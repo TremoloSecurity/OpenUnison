@@ -267,10 +267,12 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		config.setProperty("hibernate.current_session_context_class", "thread");
 		
 		config.setProperty("hibernate.c3p0.max_size", Integer.toString(adbt.getMaxConns()));
-		config.setProperty("hibernate.c3p0.maxIdleTimeExcessConnections", Integer.toString(adbt.getMaxIdleConns()));
+		//config.setProperty("hibernate.c3p0.maxIdleTimeExcessConnections", Integer.toString(adbt.getMaxIdleConns()));
 		
 		if (adbt.getValidationQuery() != null && ! adbt.getValidationQuery().isEmpty()) {
-			config.setProperty("hibernate.c3p0.testConnectionOnCheckout", "true");
+			config.setProperty("hibernate.c3p0.testConnectionOnCheckin", "true");
+			config.setProperty("hibernate.c3p0.idleConnectionTestPeriod", "30");
+			config.setProperty("hibernate.c3p0.preferredTestQuery", adbt.getValidationQuery());
 		}
 		config.setProperty("hibernate.c3p0.autoCommitOnClose", "true");
 		

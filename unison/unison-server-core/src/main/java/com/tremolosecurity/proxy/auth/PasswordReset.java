@@ -133,10 +133,12 @@ public class PasswordReset implements AuthMechanism {
 		config.setProperty("hibernate.current_session_context_class", "thread");
 		
 		config.setProperty("hibernate.c3p0.max_size", Integer.toString(maxCons));
-		config.setProperty("hibernate.c3p0.maxIdleTimeExcessConnections", Integer.toString(maxIdleCons));
+		//config.setProperty("hibernate.c3p0.maxIdleTimeExcessConnections", Integer.toString(maxIdleCons));
 		
 		if (validationQuery != null && ! validationQuery.isEmpty()) {
-			config.setProperty("hibernate.c3p0.testConnectionOnCheckout", "true");
+			config.setProperty("hibernate.c3p0.testConnectionOnCheckin", "true");
+			config.setProperty("hibernate.c3p0.idleConnectionTestPeriod", "30");
+			config.setProperty("hibernate.c3p0.preferredTestQuery", validationQuery);
 		}
 		
 		
