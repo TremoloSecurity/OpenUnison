@@ -146,16 +146,29 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 			ks = KeyStore.getInstance("PKCS12");
 			String ksPath = unisonConfig.getKeyStorePath();
 			
-			InputStream in;
-			
-			if (ksPath.startsWith("WEB-INF")) {
-				in = ctx.getResourceAsStream("/" + ksPath);
-			} else {
-				in = new FileInputStream(ksPath);
-			}
-			
-			ks.load(in, unisonConfig.getKeyStorePassword().toCharArray());
-			
+			try {
+				InputStream in;
+				
+				if (ksPath.startsWith("WEB-INF")) {
+					in = ctx.getResourceAsStream("/" + ksPath);
+				} else {
+					in = new FileInputStream(ksPath);
+				}
+				
+				ks.load(in, unisonConfig.getKeyStorePassword().toCharArray());
+			} catch (Throwable t) {
+				ks = KeyStore.getInstance("JCEKS");
+				InputStream in;
+				
+				if (ksPath.startsWith("WEB-INF")) {
+					in = ctx.getResourceAsStream("/" + ksPath);
+				} else {
+					in = new FileInputStream(ksPath);
+				}
+				
+				ks.load(in, unisonConfig.getKeyStorePassword().toCharArray());
+
+			} 
 			KeyStore cacerts = KeyStore.getInstance(KeyStore.getDefaultType());
 			String cacertsPath = System.getProperty("javax.net.ssl.trustStore");
 			if (cacertsPath == null) {
