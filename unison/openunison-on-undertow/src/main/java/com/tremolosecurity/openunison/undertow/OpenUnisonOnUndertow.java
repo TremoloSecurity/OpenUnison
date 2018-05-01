@@ -368,11 +368,14 @@ public class OpenUnisonOnUndertow {
 	private static void setupTlsListener(OpenUnisonConfig config, TremoloType unisonConfiguration,
 			Builder buildUndertow) throws KeyStoreException, IOException, NoSuchAlgorithmException,
 			CertificateException, FileNotFoundException, UnrecoverableKeyException, KeyManagementException {
-		KeyStore keystore = KeyStore.getInstance("JCEKS");
-		
-		keystore.load(new FileInputStream(unisonConfiguration.getKeyStorePath()), unisonConfiguration.getKeyStorePassword().toCharArray());
-		
-		KeyStore forUndertow = KeyStore.getInstance("JCEKS");
+		KeyStore keystore = KeyStore.getInstance("PKCS12");
+		try {
+			keystore.load(new FileInputStream(unisonConfiguration.getKeyStorePath()), unisonConfiguration.getKeyStorePassword().toCharArray());
+		} catch (Throwable t) {
+			keystore = KeyStore.getInstance("JCEKS");
+			keystore.load(new FileInputStream(unisonConfiguration.getKeyStorePath()), unisonConfiguration.getKeyStorePassword().toCharArray());
+		}
+		KeyStore forUndertow = KeyStore.getInstance("PKCS12");
 		forUndertow.load(null);
 		Key key = keystore.getKey(config.getSecureKeyAlias(), unisonConfiguration.getKeyStorePassword().toCharArray());
 		
@@ -394,7 +397,7 @@ public class OpenUnisonOnUndertow {
 		
 		
 		
-		KeyStore trustStore = KeyStore.getInstance("JCEKS");
+		KeyStore trustStore = KeyStore.getInstance("PKCS12");
 		trustStore.load(null);
 		
 		HashSet<X500Principal> issuers = new HashSet<X500Principal>();

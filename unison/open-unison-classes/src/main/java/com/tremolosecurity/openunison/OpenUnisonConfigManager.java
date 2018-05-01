@@ -143,7 +143,7 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 	public void loadKeystore(String path, String myVdPath) throws Exception {
 		if (unisonConfig.getKeyStorePath() != null && unisonConfig.getKeyStorePath().length() > 0) {
 			
-			ks = KeyStore.getInstance("JCEKS");
+			ks = KeyStore.getInstance("PKCS12");
 			String ksPath = unisonConfig.getKeyStorePath();
 			
 			InputStream in;

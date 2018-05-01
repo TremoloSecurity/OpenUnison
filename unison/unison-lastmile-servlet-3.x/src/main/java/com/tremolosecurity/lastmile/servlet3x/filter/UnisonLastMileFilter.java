@@ -280,9 +280,14 @@ HttpServletRequest httpRequest = (HttpServletRequest) request;
 				throw new ServletException("Could not load tremolo keystore : '" + fullPath + "'");
 			}
 			
-			ks = KeyStore.getInstance("JCEKS");
-			//ks.load(new FileInputStream(pathToKeyStore), password.toCharArray());
-			ks.load(new FileInputStream(new File(fullPath)), password.toCharArray());
+			ks = KeyStore.getInstance("PKCS12");
+			try {
+				ks.load(new FileInputStream(new File(fullPath)), password.toCharArray());
+			} catch (Throwable t) {
+				ks = KeyStore.getInstance("JCEKS");
+				ks.load(new FileInputStream(new File(fullPath)), password.toCharArray());
+			}
+			
 			this.encryptionKey = (SecretKey) ks.getKey(encKeyAlias, password.toCharArray());
 			
 			if (this.encryptionKey == null) {

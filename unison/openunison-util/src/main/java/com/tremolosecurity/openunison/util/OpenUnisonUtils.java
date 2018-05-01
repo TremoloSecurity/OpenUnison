@@ -216,7 +216,7 @@ public class OpenUnisonUtils {
 			logger.info("Loading new keystore password");
 			String ksPassword = loadOption(cmd,"newKeystorePassword",options);
 			
-			KeyStore newKS = KeyStore.getInstance("JCEKS");
+			KeyStore newKS = KeyStore.getInstance("PKCS12");
 			newKS.load(null, ttRead.getKeyStorePassword().toCharArray());
 			newKS.setKeyEntry(alias, key, ksPassword.toCharArray(),null);
 			newKS.store(new FileOutputStream(pathToNewKeystore), ksPassword.toCharArray());
@@ -1009,10 +1009,15 @@ public class OpenUnisonUtils {
 	
 	
 	private static KeyStore loadKeyStore(String ksPath, TremoloType tt) throws Exception {
-		KeyStore ks = KeyStore.getInstance("JCEKS");
-		
-		InputStream in = new FileInputStream(ksPath);
-		ks.load(in, tt.getKeyStorePassword().toCharArray());
+		KeyStore ks = KeyStore.getInstance("PKCS12");
+		try {
+			InputStream in = new FileInputStream(ksPath);
+			ks.load(in, tt.getKeyStorePassword().toCharArray());
+		} catch (Throwable t) {
+			ks = KeyStore.getInstance("JCEKS");
+			InputStream in = new FileInputStream(ksPath);
+			ks.load(in, tt.getKeyStorePassword().toCharArray());
+		}
 		
 		return ks;
 	}

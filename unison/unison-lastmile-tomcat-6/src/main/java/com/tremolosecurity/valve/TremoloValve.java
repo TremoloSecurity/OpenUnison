@@ -326,9 +326,13 @@ public class TremoloValve extends ValveBase {
 						throw new ServletException("Could not load tremolo keystore : '" + fullPath + "'");
 					}
 					
-					ks = KeyStore.getInstance("JCEKS");
-					//ks.load(new FileInputStream(pathToKeyStore), password.toCharArray());
-					ks.load(new FileInputStream(f), keyPass.toCharArray());
+					ks = KeyStore.getInstance("PKCS12");
+					try {
+						ks.load(new FileInputStream(f), keyPass.toCharArray());
+					} catch (Throwable t) {
+						ks = KeyStore.getInstance("JCEKS");
+						ks.load(new FileInputStream(f), keyPass.toCharArray());
+					}
 					this.encryptionKey = (SecretKey) ks.getKey(this.encryptionKeyName, keyPass.toCharArray());
 					
 					if (this.encryptionKey == null) {
