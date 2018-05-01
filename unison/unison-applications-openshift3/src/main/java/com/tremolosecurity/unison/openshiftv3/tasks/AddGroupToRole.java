@@ -59,11 +59,11 @@ public class AddGroupToRole implements CustomTask {
 		if (params.get("version") != null) {
 			String val = params.get("version").getValues().get(0);
 			this.openShiftVersion = Double.parseDouble(val);
-			if (this.openShiftVersion < 3.6 || this.openShiftVersion > 3.7) {
+			if (this.openShiftVersion < 3.6 || this.openShiftVersion > 3.9) {
 				throw new ProvisioningException("OpenShift version must be between 3.6 and 3.7");
 			}
 		} else {
-			this.openShiftVersion = 3.7;
+			this.openShiftVersion = 3.9;
 		}
 
 		this.task = task;
@@ -99,7 +99,7 @@ public class AddGroupToRole implements CustomTask {
 			if (this.openShiftVersion == 3.6) {
 				addTo36Role(os,token,con,localProjectName,localPolicyName,localGroupName,approvalID);
 			} else {
-				addTo37Role(os,token,con,localProjectName,localPolicyName,localGroupName,approvalID);
+				addToRBACRole(os,token,con,localProjectName,localPolicyName,localGroupName,approvalID);
 			}
 			
 		} catch (Exception e) {
@@ -118,10 +118,10 @@ public class AddGroupToRole implements CustomTask {
 	}
 
 
-	private void addTo37Role(OpenShiftTarget os, String token, HttpCon con, String localProjectName,
+	private void addToRBACRole(OpenShiftTarget os, String token, HttpCon con, String localProjectName,
 			String localPolicyName, String localGroupName, int approvalID) throws Exception {
 
-		String roleBindingUri = new StringBuilder().append("/apis/rbac.authorization.k8s.io/v1beta1/namespaces/").append(localProjectName).append("/rolebindings/").append(localPolicyName).toString();
+		String roleBindingUri = new StringBuilder().append(this.openShiftVersion == 3.9 ? "/apis/rbac.authorization.k8s.io/v1/namespaces/" : "/apis/rbac.authorization.k8s.io/v1beta1/namespaces/").append(localProjectName).append("/rolebindings/").append(localPolicyName).toString();
 		String json = os.callWS(token, con, roleBindingUri);
 			
 		if (logger.isDebugEnabled()) {
