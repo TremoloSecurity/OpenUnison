@@ -34,6 +34,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
@@ -48,6 +49,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
+import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.ServletException;
@@ -73,6 +75,7 @@ import org.apache.logging.log4j.Logger;
 
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.apache.xml.security.utils.Base64;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.cryptacular.codec.Base64Decoder;
 import org.opensaml.saml.saml2.core.impl.AuthnRequestMarshaller;
 import org.opensaml.saml.saml2.metadata.AssertionConsumerService;
@@ -149,7 +152,7 @@ public class OpenUnisonUtils {
 		options.addOption("idpName", true, "The name of the identity provider application");
 		options.addOption("pathToMetaData", true, "The full path to the saml2 metadata file");
 		options.addOption("createDefault", false, "If set, add default parameters");
-		options.addOption("action", true, "export-sp-metadata, import-sp-metadata, export-secretkey, print-secretkey, import-idp-metadata, export-idp-metadata, clear-dlq, import-secretkey");
+		options.addOption("action", true, "export-sp-metadata, import-sp-metadata, export-secretkey, print-secretkey, import-idp-metadata, export-idp-metadata, clear-dlq, import-secretkey, create-secretkey");
 		options.addOption("urlBase",true,"Base URL, no URI; https://host:port");
 		options.addOption("alias",true,"Key alias");
 		options.addOption("newKeystorePath",true,"Path to the new keystore");
@@ -205,6 +208,18 @@ public class OpenUnisonUtils {
 			printSecreyKey(options, cmd, ttRead, ks);
 		} else if (action.equalsIgnoreCase("import-secretkey")) {
 			importSecreyKey(options, cmd, ttRead, ks,ksPath);
+		} else if (action.equalsIgnoreCase("create-secretkey")) {
+			Security.addProvider(new BouncyCastleProvider());
+			logger.info("Creating AES-256 secret key");
+			String alias = loadOption(cmd,"alias",options);
+			logger.info("Alias : '" + alias + "'");
+			KeyGenerator kg = KeyGenerator.getInstance("AES", "BC");
+			kg.init(256, new SecureRandom());
+			SecretKey sk = kg.generateKey();
+			ks.setKeyEntry(alias, sk, ttRead.getKeyStorePassword().toCharArray(), null);
+			logger.info("Saving key");
+			ks.store(new FileOutputStream(ksPath), ttRead.getKeyStorePassword().toCharArray());
+			logger.info("Finished");
 		} else  if (action.equalsIgnoreCase("export-secretkey")) {
 			logger.info("Export Secret Key");
 			
