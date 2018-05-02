@@ -54,6 +54,16 @@ public class CertData {
 	
 	SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
 
+	boolean caCert;
+
+    public boolean isCaCert() {
+		return this.caCert;
+	}
+
+	public void setCaCert(boolean caCert) {
+		this.caCert = caCert;
+	}
+
 	public String getAlias() {
 		return alias;
 	}
