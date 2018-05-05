@@ -1,3 +1,23 @@
+## 1.0.14-2018050402
+
+**Tasks:**
+ - 1.0.14 build [\#297](https://github.com/TremoloSecurity/OpenUnison/issues/297)
+ - 1.0.13 Build [\#287](https://github.com/TremoloSecurity/OpenUnison/issues/287)
+ - Add all attributes from LDAP group to dynamic workflows [\#281](https://github.com/TremoloSecurity/OpenUnison/issues/281)
+
+**enhancements:**
+ - add configuration for db connection timeouts [\#299](https://github.com/TremoloSecurity/OpenUnison/issues/299)
+ - Add secret key generation to OpenUnison utils [\#296](https://github.com/TremoloSecurity/OpenUnison/issues/296)
+ - Add flag for cert data to allow cert to be for CA [\#300](https://github.com/TremoloSecurity/OpenUnison/issues/300)
+ - Move from JCEKS to PKCS12 [\#294](https://github.com/TremoloSecurity/OpenUnison/issues/294)
+ - Support OpenShift 3.9 [\#298](https://github.com/TremoloSecurity/OpenUnison/issues/298)
+ - Support html for email notifications [\#284](https://github.com/TremoloSecurity/OpenUnison/issues/284)
+ - saml2 idp eliminate jsp [\#286](https://github.com/TremoloSecurity/OpenUnison/issues/286)
+ - "Dev" mode for openid connect to not validate redirect_uri [\#285](https://github.com/TremoloSecurity/OpenUnison/issues/285)
+
+**bugs:**
+ - ScaleJS Main - user service does not return attributes in the order they're defined [\#288](https://github.com/TremoloSecurity/OpenUnison/issues/288)
+
 ## 1.0.13-2018032401
 
 **Tasks:**
