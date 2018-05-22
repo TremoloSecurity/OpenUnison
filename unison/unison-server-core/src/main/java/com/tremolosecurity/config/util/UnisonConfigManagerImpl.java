@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.security.Certificate;
+import java.security.Key;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -149,6 +150,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	
 	private List<StopableThread> threads;
 	
+	private Map<String,Key> secretKeyCache;
 
 	
 	
@@ -281,6 +283,8 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		} else {
 			this.ctxPath = "/";
 		}
+
+		this.secretKeyCache = new HashMap<String,Key>();
 		
 	}
 	
@@ -577,7 +581,14 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	@Override
 	public SecretKey getSecretKey(String alias)  {
 		try {
-			return (SecretKey) this.ks.getKey(alias, this.cfg.getKeyStorePassword().toCharArray());
+			if (this.secretKeyCache.containsKey(alias)) {
+				return (SecretKey) this.secretKeyCache.get(alias);
+			} else {
+				this.secretKeyCache.put(alias,(SecretKey) this.ks.getKey(alias, this.cfg.getKeyStorePassword().toCharArray()));
+				return (SecretKey) this.secretKeyCache.get(alias);
+			}
+			
+			
 		} catch (Throwable t) {
 			logger.error("Could not load secret key", t);
 			return null;
@@ -774,7 +785,12 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	@Override
 	public PrivateKey getPrivateKey(String alias) {
 		try {
-			return (PrivateKey) this.ks.getKey(alias,this.cfg.getKeyStorePassword().toCharArray());
+			if (this.secretKeyCache.containsKey(alias)) {
+				return (PrivateKey) this.secretKeyCache.get(alias);
+			} else {
+				this.secretKeyCache.put(alias,(SecretKey) this.ks.getKey(alias, this.cfg.getKeyStorePassword().toCharArray()));
+				return (PrivateKey) this.secretKeyCache.get(alias);
+			}
 		} catch (Throwable t) {
 			logger.error("Could not load certificate " + alias,t);
 			return null;
