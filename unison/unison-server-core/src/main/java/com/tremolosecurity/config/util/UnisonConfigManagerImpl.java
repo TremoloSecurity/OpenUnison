@@ -788,7 +788,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 			if (this.secretKeyCache.containsKey(alias)) {
 				return (PrivateKey) this.secretKeyCache.get(alias);
 			} else {
-				this.secretKeyCache.put(alias,(SecretKey) this.ks.getKey(alias, this.cfg.getKeyStorePassword().toCharArray()));
+				this.secretKeyCache.put(alias,(PrivateKey) this.ks.getKey(alias, this.cfg.getKeyStorePassword().toCharArray()));
 				return (PrivateKey) this.secretKeyCache.get(alias);
 			}
 		} catch (Throwable t) {
