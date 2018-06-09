@@ -113,6 +113,8 @@ public class OpenUnisonOnUndertow {
 		}
 
 		logger.info("Config Open Port : '" + config.getOpenPort() + "'");
+		logger.info("Disable HTTP2 : '" + config.isDisableHttp2() + "'");
+		logger.info("Allow unescaped characters : '" + config.isAllowUnEscapedChars() + "'");
 		logger.info("Config Open External Port : '" + config.getOpenExternalPort() + "'");
 		logger.info("Config Secure Port : '" + config.getSecurePort() + "'");
 		logger.info("Config Secure External Port : '" + config.getSecureExternalPort() + "'");
@@ -195,6 +197,13 @@ public class OpenUnisonOnUndertow {
 
 		buildUndertow.setServerOption(UndertowOptions.NO_REQUEST_TIMEOUT,60000);
 		
+		logger.info("Check if enabling HTTP2 - " + config.isDisableHttp2());
+		if (! config.isDisableHttp2()) {
+			logger.info("Enabling HTTP2");
+			buildUndertow.setServerOption(UndertowOptions.ENABLE_HTTP2, true);
+			
+		}
+
 		if (config.getOpenPort() > 0) {
 			buildUndertow.addHttpListener(config.getOpenPort(), "0.0.0.0");
 			logger.info("Adding open port : '" + config.getOpenPort() + "'");
@@ -260,6 +269,12 @@ public class OpenUnisonOnUndertow {
 
 		}
 
+		
+
+
+		if (config.isAllowUnEscapedChars()) {
+			buildUndertow.setServerOption(UndertowOptions.ALLOW_UNESCAPED_CHARACTERS_IN_URL, true);
+		}
 
 		undertow = buildUndertow.build();
 		
@@ -368,6 +383,10 @@ public class OpenUnisonOnUndertow {
 	private static void setupTlsListener(OpenUnisonConfig config, TremoloType unisonConfiguration,
 			Builder buildUndertow) throws KeyStoreException, IOException, NoSuchAlgorithmException,
 			CertificateException, FileNotFoundException, UnrecoverableKeyException, KeyManagementException {
+		
+		
+
+
 		KeyStore keystore = KeyStore.getInstance("PKCS12");
 		try {
 			keystore.load(new FileInputStream(unisonConfiguration.getKeyStorePath()), unisonConfiguration.getKeyStorePassword().toCharArray());

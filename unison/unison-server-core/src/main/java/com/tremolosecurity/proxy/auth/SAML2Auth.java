@@ -26,6 +26,7 @@ import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -75,6 +76,7 @@ import org.opensaml.saml.saml2.core.AuthnContextComparisonTypeEnumeration;
 import org.opensaml.saml.saml2.core.AuthnRequest;
 import org.opensaml.saml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml.saml2.core.Issuer;
+import org.opensaml.saml.saml2.core.LogoutRequest;
 import org.opensaml.saml.saml2.core.LogoutResponse;
 import org.opensaml.saml.saml2.core.NameIDPolicy;
 import org.opensaml.saml.saml2.core.RequestedAuthnContext;
@@ -83,6 +85,7 @@ import org.opensaml.saml.saml2.core.impl.AuthnContextClassRefBuilder;
 import org.opensaml.saml.saml2.core.impl.AuthnRequestBuilder;
 import org.opensaml.saml.saml2.core.impl.AuthnRequestMarshaller;
 import org.opensaml.saml.saml2.core.impl.IssuerBuilder;
+import org.opensaml.saml.saml2.core.impl.LogoutRequestUnmarshaller;
 import org.opensaml.saml.saml2.core.impl.LogoutResponseUnmarshaller;
 import org.opensaml.saml.saml2.core.impl.NameIDPolicyBuilder;
 import org.opensaml.saml.saml2.core.impl.RequestedAuthnContextBuilder;
@@ -996,8 +999,17 @@ public class SAML2Auth implements AuthMechanism {
 			StringBuffer url = new StringBuffer();
 			url.append(request.getRequestURL()).append('?').append(request.getQueryString());
 			
+			boolean isResponse = request.getParameter("SAMLResponse") != null;
+
+			String saml = null;
+
+			if (isResponse) {
+				saml = this.inflate(request.getParameter("SAMLResponse"));
+			} else {
+				saml = this.inflate(request.getParameter("SAMLRequest"));
+			}
+
 			
-			String saml = this.inflate(request.getParameter("SAMLResponse"));
 			if (logger.isDebugEnabled()) {
 				logger.debug(saml);
 			}
@@ -1015,8 +1027,11 @@ public class SAML2Auth implements AuthMechanism {
 			
 			String relayState = request.getParameter("RelayState");
 			
-			
-			return procLogoutResp(request, response, factory, saml, relayState,url.toString());
+			if (isResponse) {
+				return procLogoutResp(request, response, factory, saml, relayState,url.toString());
+			} else {
+				return procLogoutReq(request, response, factory, saml, relayState,url.toString());
+			}
 			
 			
 			
@@ -1131,9 +1146,137 @@ public class SAML2Auth implements AuthMechanism {
 				throw new Exception("Invalid signature algorithm : '" + sigAlg + "'");
 			}
 			
-			if (! logout.getDestination().equals(request.getRequestURL().toString())) {
+			/*if (! logout.getDestination().equals(request.getRequestURL().toString())) {
 				throw new Exception("Invalid destination");
+			}*/
+			
+			java.security.Signature sigv = java.security.Signature.getInstance(SAML2Auth.javaDigSigAlgs.get(algType));
+			
+			
+			
+			sigv.initVerify(cert.getPublicKey());
+			sigv.update(query.toString().getBytes("UTF-8"));
+			
+			if (! sigv.verify(Base64.decodeBase64(authnSig.getBytes("UTF-8")))) {
+				throw new Exception("Signature verification failed");
 			}
+			
+		} 
+		
+		response.sendRedirect(logoutURL);
+		
+		return logoutURL;
+	}
+
+	private String procLogoutReq(HttpServletRequest request,
+			HttpServletResponse response, DocumentBuilderFactory factory,
+			String saml, String relayState, String url)
+			throws ParserConfigurationException, SAXException, IOException,
+			UnmarshallingException, Exception, UnsupportedEncodingException,
+			NoSuchAlgorithmException, InvalidKeyException, SignatureException,
+			ServletException {
+		
+		
+		
+		
+		LogoutRequestUnmarshaller marshaller = new LogoutRequestUnmarshaller();
+		DocumentBuilder builder = factory.newDocumentBuilder();
+
+		Element root = builder
+				.parse(new InputSource(new StringReader(saml)))
+				.getDocumentElement();
+		
+				org.opensaml.saml.saml2.core.impl.LogoutRequestImpl logout = (org.opensaml.saml.saml2.core.impl.LogoutRequestImpl) marshaller.unmarshall(root);
+		
+		String issuer = logout.getIssuer().getValue();
+		
+		boolean found = false;
+		
+		String algType = null;
+		String logoutURL = null;
+		String sigKeyName = null;
+		
+		//Search for the right mechanism configuration
+		for (String chainname : cfgMgr.getAuthChains().keySet()) {
+			AuthChainType act = cfgMgr.getAuthChains().get(chainname);
+			for (AuthMechType amt : act.getAuthMech()) {
+				for (ParamType pt : amt.getParams().getParam()) {
+					if (pt.getName().equalsIgnoreCase("entityID") && pt.getValue().equalsIgnoreCase(issuer)) {
+						//found the correct mechanism
+						found = true;
+						
+						
+						
+						
+						for (ParamType ptx : amt.getParams().getParam()) {
+							if (ptx.getName().equalsIgnoreCase("sigAlg")) {
+								algType = ptx.getValue();
+							} else if (ptx.getName().equalsIgnoreCase("triggerLogoutURL")) {
+								logoutURL = ptx.getValue();
+							} else if (ptx.getName().equalsIgnoreCase("idpSigKeyName")) {
+								sigKeyName = ptx.getValue();
+							}
+						}
+						
+						break;
+						
+					}
+				}
+				
+				if (found) {
+					break;
+				}
+			}
+			
+			if (found) {
+				break;
+			}
+		}
+		
+		
+		if (! found) {
+			throw new ServletException("Entity ID '" + issuer + "' not found");
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		String authnSig = request.getParameter("Signature");
+		if (authnSig != null) {
+			String sigAlg = request.getParameter("SigAlg");
+			StringBuffer query = new StringBuffer();
+			
+			String qs = request.getQueryString();
+			query.append(OpenSAMLUtils.getRawQueryStringParameter(qs, "SAMLRequest"));
+			query.append('&');
+			if (request.getParameter("RelayState") != null) {
+				query.append(OpenSAMLUtils.getRawQueryStringParameter(qs, "RelayState"));
+				query.append('&');
+			}
+			
+			query.append(OpenSAMLUtils.getRawQueryStringParameter(qs, "SigAlg"));
+			
+
+			
+			
+			
+			java.security.cert.X509Certificate cert = this.cfgMgr.getCertificate(sigKeyName);
+			
+			String xmlAlg = SAML2Auth.xmlDigSigAlgs.get(algType);
+			
+			
+			if (! sigAlg.equalsIgnoreCase(xmlAlg)) {
+				throw new Exception("Invalid signature algorithm : '" + sigAlg + "'");
+			}
+			
+			/*if (! logout.getDestination().equals(request.getRequestURL().toString())) {
+				throw new Exception("Invalid destination");
+			}*/
 			
 			java.security.Signature sigv = java.security.Signature.getInstance(SAML2Auth.javaDigSigAlgs.get(algType));
 			

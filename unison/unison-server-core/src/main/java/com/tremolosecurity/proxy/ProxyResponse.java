@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletResponseWrapper;
 import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.UrlHolder;
+import com.tremolosecurity.proxy.cookies.UnisonCookie;
 import com.tremolosecurity.proxy.util.ProxyTools;
 import com.tremolosecurity.saml.Attribute;
 
@@ -215,13 +216,20 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 				if (holder == null || holder.getApp().getCookieConfig() == null) {
 					//i don't think this is possible
 				} else {
-					String domain = holder.getApp().getCookieConfig().getDomain();
-					if (! domain.equalsIgnoreCase("*")) {
-						cookie.setDomain(domain);
+					boolean setDomainInfo = true;
+					if (cookie instanceof UnisonCookie) {
+						setDomainInfo = ! ((UnisonCookie) cookie).isOverrideValues();
 					}
-					
-					cookie.setSecure(holder.getApp().getCookieConfig().isSecure());
-					cookie.setHttpOnly(holder.getApp().getCookieConfig().isHttpOnly() != null && holder.getApp().getCookieConfig().isHttpOnly());
+
+					if (setDomainInfo) {
+						String domain = holder.getApp().getCookieConfig().getDomain();
+						if (! domain.equalsIgnoreCase("*")) {
+							cookie.setDomain(domain);
+						}
+						
+						cookie.setSecure(holder.getApp().getCookieConfig().isSecure());
+						cookie.setHttpOnly(holder.getApp().getCookieConfig().isHttpOnly() != null && holder.getApp().getCookieConfig().isHttpOnly());
+					}
 				}
 				
 				

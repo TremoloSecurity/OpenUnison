@@ -43,6 +43,9 @@ public class OpenUnisonConfig {
 	String socketShutdownCommand;
 
 	String contextRoot;
+
+	boolean disableHttp2;
+	boolean allowUnEscapedChars;
 	
 	public int getOpenPort() {
 		return openPort;
@@ -159,5 +162,33 @@ public class OpenUnisonConfig {
 
 	public void setContextRoot(String contextRoot) {
 		this.contextRoot = contextRoot;
+	}
+
+	/**
+	 * @return the disableHttp2
+	 */
+	public boolean isDisableHttp2() {
+		return disableHttp2;
+	}
+
+	/**
+	 * @param disableHttp2 the disableHttp2 to set
+	 */
+	public void setDisableHttp2(boolean disableHttp2) {
+		this.disableHttp2 = disableHttp2;
+	}
+
+	/**
+	 * @return the allowUnEscapedChars
+	 */
+	public boolean isAllowUnEscapedChars() {
+		return allowUnEscapedChars;
+	}
+
+	/**
+	 * @param allowUnEscapedChars the allowUnEscapedChars to set
+	 */
+	public void setAllowUnEscapedChars(boolean allowUnEscapedChars) {
+		this.allowUnEscapedChars = allowUnEscapedChars;
 	}
 }
