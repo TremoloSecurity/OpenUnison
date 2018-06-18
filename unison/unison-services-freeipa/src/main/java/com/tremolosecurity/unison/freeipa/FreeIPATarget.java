@@ -54,8 +54,10 @@ import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.unison.freeipa.json.IPABatchResponse;
 import com.tremolosecurity.unison.freeipa.json.IPACall;
 import com.tremolosecurity.unison.freeipa.json.IPAResponse;
+import com.tremolosecurity.unison.freeipa.json.IPATopResult;
 import com.tremolosecurity.unison.freeipa.util.IPAException;
 
 import net.sourceforge.myvd.util.PBKDF2;
@@ -83,54 +85,95 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 	
 	private void addGroup(UserPrincipal principal, String groupName,
 			HttpCon con, int approvalID, Workflow workflow) throws Exception {
-		
-		
-		IPACall addGroup = new IPACall();
-		addGroup.setId(0);
-		addGroup.setMethod("group_add_member");
-		ArrayList<String> groupNames = new ArrayList<String>();
-		groupNames.add(groupName);
-		
-		addGroup.getParams().add(groupNames);
-		
-		
-		HashMap<String,Object> nvps = new HashMap<String,Object>();
-		ArrayList<String> users = new ArrayList<String>();
-		users.add(principal.getUid());
-		nvps.put("user", users);
-		
-		addGroup.getParams().add(nvps);
-		
-		IPAResponse resp = this.executeIPACall(addGroup, con);
-		
-		this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Add,  approvalID, workflow, "group", groupName);
-		
+		if (principal.isPrimaryDomain()) {
+			
+			IPACall addGroup = new IPACall();
+			addGroup.setId(0);
+			addGroup.setMethod("group_add_member");
+			ArrayList<String> groupNames = new ArrayList<String>();
+			groupNames.add(groupName);
+			
+			addGroup.getParams().add(groupNames);
+			
+			
+			HashMap<String,Object> nvps = new HashMap<String,Object>();
+			ArrayList<String> users = new ArrayList<String>();
+			users.add(principal.getUid());
+			nvps.put("user", users);
+			
+			addGroup.getParams().add(nvps);
+			
+			IPAResponse resp = this.executeIPACall(addGroup, con);
+			
+			this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Add,  approvalID, workflow, "group", groupName);
+		} else {
+			IPACall addGroup = new IPACall();
+			addGroup.setId(0);
+			addGroup.setMethod("group_add_member");
+			ArrayList<String> groupNames = new ArrayList<String>();
+			groupNames.add(groupName);
+			
+			addGroup.getParams().add(groupNames);
+			
+			
+			HashMap<String,Object> nvps = new HashMap<String,Object>();
+			ArrayList<String> users = new ArrayList<String>();
+			users.add(principal.getUid());
+			nvps.put("ipaexternalmember", principal.getUPN());
+			
+			addGroup.getParams().add(nvps);
+			
+			IPAResponse resp = this.executeIPACall(addGroup, con);
+			
+			this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Add,  approvalID, workflow, "group", groupName);
+		}
 	}
 	
 	private void removeGroup(UserPrincipal principal, String groupName,
 			HttpCon con, int approvalID, Workflow workflow) throws Exception {
-		
-		IPACall addGroup = new IPACall();
-		addGroup.setId(0);
-		addGroup.setMethod("group_remove_member");
-		
-		ArrayList<String> groupNames = new ArrayList<String>();
-		groupNames.add(groupName);
-		
-		addGroup.getParams().add(groupNames);
-		
-		
-		HashMap<String,Object> nvps = new HashMap<String,Object>();
-		ArrayList<String> users = new ArrayList<String>();
-		users.add(principal.getUid());
-		nvps.put("user", users);
-		
-		addGroup.getParams().add(nvps);
-		
-		IPAResponse resp = this.executeIPACall(addGroup, con);
-		
-		this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Delete,  approvalID, workflow, "group", groupName);
-		
+		if (principal.isPrimaryDomain()) {
+			IPACall addGroup = new IPACall();
+			addGroup.setId(0);
+			addGroup.setMethod("group_remove_member");
+			
+			ArrayList<String> groupNames = new ArrayList<String>();
+			groupNames.add(groupName);
+			
+			addGroup.getParams().add(groupNames);
+			
+			
+			HashMap<String,Object> nvps = new HashMap<String,Object>();
+			ArrayList<String> users = new ArrayList<String>();
+			users.add(principal.getUid());
+			nvps.put("user", users);
+			
+			addGroup.getParams().add(nvps);
+			
+			IPAResponse resp = this.executeIPACall(addGroup, con);
+			
+			this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Delete,  approvalID, workflow, "group", groupName);
+		} else {
+			IPACall addGroup = new IPACall();
+			addGroup.setId(0);
+			addGroup.setMethod("group_remove_member");
+			
+			ArrayList<String> groupNames = new ArrayList<String>();
+			groupNames.add(groupName);
+			
+			addGroup.getParams().add(groupNames);
+			
+			
+			HashMap<String,Object> nvps = new HashMap<String,Object>();
+			ArrayList<String> users = new ArrayList<String>();
+			users.add(principal.getUPN());
+			nvps.put("ipaexternalmember", users);
+			
+			addGroup.getParams().add(nvps);
+			
+			IPAResponse resp = this.executeIPACall(addGroup, con);
+			
+			this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Delete,  approvalID, workflow, "group", groupName);
+		}
 	}
 	
 	
@@ -358,10 +401,85 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 			}
 			return user;
 		} else {
-			return null;
+			IPACall listGroups = new IPACall();
+			listGroups.setId(0);
+			listGroups.setMethod("group_find");
+
+			ArrayList<String> userArray = new ArrayList<String>();
+			userArray.add("");
+			listGroups.getParams().add(userArray);
+			
+			HashMap<String,String> additionalParams = new HashMap<String,String>();
+			additionalParams.put("pkey_only", "true");
+			additionalParams.put("sizelimit", "0");
+			listGroups.getParams().add(additionalParams);
+			
+			IPAResponse resp = this.executeIPACall(listGroups, con);
+
+			List<Map> groups = (List<Map>) resp.getResult().getResult();
+			List<IPACall> groupsToFind = new ArrayList<IPACall>();
+
+			for (Map group : groups) {
+				IPACall showGroup = new IPACall();
+				showGroup.setId(0);
+				showGroup.setMethod("group_show");
+				ArrayList<String> groupName = new ArrayList<String>();
+				groupName.add(((List)group.get("cn")).get(0).toString());
+				showGroup.getParams().add(groupName);
+
+				additionalParams = new HashMap<String,String>();
+				additionalParams.put("no_members", "true");
+				showGroup.getParams().add(additionalParams);
+
+				groupsToFind.add(showGroup);
+			}
+
+			IPACall groupDetails = new IPACall();
+			groupDetails.setId(0);
+			groupDetails.setMethod("batch");
+			groupDetails.getParams().add(groupsToFind);
+
+			additionalParams = new HashMap<String,String>();
+			
+			groupDetails.getParams().add(additionalParams);
+
+			IPABatchResponse batchResp = this.executeIPABatchCall(groupDetails, con);
+
+			User user = new User();
+			user.setUserID(userID);
+			user.getAttribs().put("uid",new Attribute("uid",userID));
+
+			if (batchResp.getResult() != null) {
+				for (IPATopResult res : batchResp.getResult().getResults()) {
+					String groupName = (String) res.getValue();
+					if (((Map)res.getResult()).containsKey("ipaexternalmember")) {
+						List<String> vals = (List<String>) ((Map)res.getResult()).get("ipaexternalmember");
+						for (String val : vals) {
+							if (val.equalsIgnoreCase(userID)) {
+								user.getGroups().add(groupName);
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			return user;
 		}
 	}
 	
+	public IPAResponse executeIPACall(IPACall ipaCall) throws Exception {
+		HttpCon con = null;
+		try {
+			con = this.createClient();
+			return this.executeIPACall(ipaCall, con);
+		} finally {
+			if (con != null) {
+				con.getBcm().shutdown();
+			}
+		}
+	} 
+
 	private IPAResponse executeIPACall(IPACall ipaCall,HttpCon con) throws IPAException, ClientProtocolException, IOException {
 		
 		Gson gson = new Gson();
@@ -392,13 +510,62 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 		}
 		
 		if (logger.isDebugEnabled()) {
-			logger.info("Inbound JSON : " + b.toString());
+			logger.debug("Inbound JSON : " + b.toString());
 		}
 		
 		EntityUtils.consumeQuietly(resp.getEntity());
 		httppost.completed();
 		
 		IPAResponse ipaResponse = gson.fromJson(b.toString(), IPAResponse.class);
+		
+		if (ipaResponse.getError() != null) {
+			IPAException ipaException = new IPAException(ipaResponse.getError().getMessage());
+			ipaException.setCode(ipaResponse.getError().getCode());
+			ipaException.setName(ipaResponse.getError().getName());
+			throw ipaException;
+		} else {
+			return ipaResponse;
+		}
+		
+	}
+
+	private IPABatchResponse executeIPABatchCall(IPACall ipaCall,HttpCon con) throws IPAException, ClientProtocolException, IOException {
+		
+		Gson gson = new Gson();
+		String json = gson.toJson(ipaCall);
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("Outbound JSON : '" + json + "'");
+		}
+		
+		HttpClient http = con.getHttp();
+		
+		StringEntity str = new StringEntity(json,ContentType.APPLICATION_JSON);
+		HttpPost httppost = new HttpPost(this.url + "/ipa/session/json");
+		httppost.addHeader("Referer", this.url + "/ipa/ui/");
+		httppost.setEntity(str);
+		HttpResponse resp = http.execute(httppost);
+		
+		
+		
+		
+		
+		
+		BufferedReader in = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
+		StringBuffer b = new StringBuffer();
+		String line = null;
+		while ((line = in.readLine()) != null) {
+			b.append(line);
+		}
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("Inbound JSON : " + b.toString());
+		}
+		
+		EntityUtils.consumeQuietly(resp.getEntity());
+		httppost.completed();
+		
+		IPABatchResponse ipaResponse = gson.fromJson(b.toString(), IPABatchResponse.class);
 		
 		if (ipaResponse.getError() != null) {
 			IPAException ipaException = new IPAException(ipaResponse.getError().getMessage());
@@ -659,25 +826,29 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 			Workflow workflow = (Workflow) request.get("WORKFLOW");
 			
 			if (fromIPA == null) {
-				this.createUser(user, attributes, request);
+				if (principal.isPrimaryDomain()) {
+					this.createUser(user, attributes, request);
+				}
 			} else {
-				//check to see if the attributes from the incoming object match
-				for (String attrName : attributes) {
-					if (attrName.equalsIgnoreCase("uid")) {
-						continue;
+				if (principal.isPrimaryDomain()) {
+					//check to see if the attributes from the incoming object match
+					for (String attrName : attributes) {
+						if (attrName.equalsIgnoreCase("uid")) {
+							continue;
+						}
+						
+						Attribute attrNew = checkAttribute(principal,user, fromIPA, con,
+								approvalID, workflow, attrName, addOnly);
+						
 					}
 					
-					Attribute attrNew = checkAttribute(principal,user, fromIPA, con,
-							approvalID, workflow, attrName, addOnly);
-					
-				}
-				
-				if (! addOnly) {
-					for (String attrToDel : fromIPA.getAttribs().keySet()) {
-						if (! attrToDel.equalsIgnoreCase("uid")) {
-							//These attributes were no longer on the user, delete them
-							this.deleteAttribute(principal, attrToDel, con, approvalID, workflow);
-							this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Delete,  approvalID, workflow, attrToDel, "");
+					if (! addOnly) {
+						for (String attrToDel : fromIPA.getAttribs().keySet()) {
+							if (! attrToDel.equalsIgnoreCase("uid")) {
+								//These attributes were no longer on the user, delete them
+								this.deleteAttribute(principal, attrToDel, con, approvalID, workflow);
+								this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Delete,  approvalID, workflow, attrToDel, "");
+							}
 						}
 					}
 				}
@@ -699,12 +870,13 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 					}
 				}
 				
-				
-				if (this.createShadowAccount) {
-					String password = new BigInteger(130, random).toString(32);
-					password = PBKDF2.generateHash(password);
-					user.setPassword(password);
-					this.setUserPassword(user, request);
+				if (principal.isPrimaryDomain()) {
+					if (this.createShadowAccount) {
+						String password = new BigInteger(130, random).toString(32);
+						password = PBKDF2.generateHash(password);
+						user.setPassword(password);
+						this.setUserPassword(user, request);
+					}
 				}
 				
 			}
@@ -926,6 +1098,7 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 class UserPrincipal {
 	String uid;
 	String domain;
+	String upn;
 	boolean primaryDomain;
 
 	public UserPrincipal(String upn,boolean isMultiDomain,String primaryDomain) {
@@ -933,11 +1106,17 @@ class UserPrincipal {
 			uid = upn.substring(0,upn.indexOf('@'));
 			domain = upn.substring(upn.indexOf('@') + 1);
 			this.primaryDomain = domain.equalsIgnoreCase(primaryDomain);
+			this.upn = upn;
 		} else {
 			uid = upn;
 			domain = primaryDomain;
 			this.primaryDomain = true;
+			this.upn = upn;
 		}
+	}
+
+	public String getUPN() {
+		return this.upn;
 	}
 
 	/**
