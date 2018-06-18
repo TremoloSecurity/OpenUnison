@@ -148,10 +148,13 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				approver.type = ApproverType.DynamicGroup;
 			} else if (azr.getScope().equalsIgnoreCase("custom")) {
 				approver.type = ApproverType.Custom;
+				
 			}
 			
 			approver.constraint = azr.getConstraint();
 			
+			setupCustomParameters(approver);
+
 			this.approvers.add(approver);
 			
 			AzRule rule = new AzRule(azr.getScope(),azr.getConstraint(),azr.getClassName(),cfg,wf);
@@ -229,7 +232,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 					
 					
 					approver.constraint = azr.getConstraint();
-					
+					setupCustomParameters(approver);
 					//this.approvers.add(approver);
 					
 					AzRule rule = new AzRule(azr.getScope(),azr.getConstraint(),azr.getClassName(),cfg,wf);
@@ -270,7 +273,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 							
 							
 							approver.constraint = azr.getConstraint();
-							
+							setupCustomParameters(approver);
 							//this.approvers.add(approver);
 							
 							AzRule rule = new AzRule(azr.getScope(),azr.getConstraint(),azr.getClassName(),cfg,wf);
@@ -289,6 +292,22 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 			}
 		}
 		
+	}
+
+	private void setupCustomParameters(Approver approver) {
+		if (approver.type == ApproverType.Custom) {
+				if (approver.constraint.contains("!")) {
+					String[] vals = approver.constraint.split("[!]");
+					approver.params = new String[vals.length - 1];
+					approver.constraint = vals[0];
+
+					for (int i=0;i<approver.params.length;i++) {
+						approver.params[i] = vals[i+1];
+					}
+				} else {
+					approver.params = new String[0];
+				}
+			}
 	}
 
 	@Override
@@ -368,13 +387,18 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				
 				String localTemplate = this.renderTemplate(this.emailTemplate, request);
 				
+				
+				
 				for (Approver approver : this.approvers) {
+					String[] localParams = null;
+					localParams = renderCustomParameters(request, approver, localParams);
+
 					String constraintRendered = this.renderTemplate(approver.constraint, request);
 					switch (approver.type) {
 						case StaticGroup : AzUtils.loadStaticGroupApprovers(approval,localTemplate,this.getConfigManager(),session,id,constraintRendered,sendNotification); break;
 						case Filter : AzUtils.loadFilterApprovers(approval,localTemplate,this.getConfigManager(),session,id,constraintRendered,sendNotification); break;
 						case DN : AzUtils.loadDNApprovers(approval,localTemplate,this.getConfigManager(),session,id,constraintRendered,sendNotification);break;
-						case Custom : AzUtils.loadCustomApprovers(approval,localTemplate,this.getConfigManager(),session,id,constraintRendered,sendNotification,approver.customAz);break;
+						case Custom : AzUtils.loadCustomApprovers(approval,localTemplate,this.getConfigManager(),session,id,constraintRendered,sendNotification,approver.customAz,localParams);break;
 					}
 				}
 				
@@ -518,7 +542,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 								} 
 								
 								approver.constraint = azr.getConstraint();
-								
+								setupCustomParameters(approver);
 								this.approvers.add(approver);
 							}
 							
@@ -540,6 +564,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 									} else if (azr.getScope() == ScopeType.Custom) {
 										approver.type = ApproverType.Custom;
 										approver.customAz = azr.getCustomAuthorization();
+										approver.params = azr.getCustomParameters();
 									} 
 									
 									approver.constraint = azr.getConstraint();
@@ -587,11 +612,15 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 		}
 		for (Approver approver : this.approvers) {
 			String constraintRendered = this.renderTemplate(approver.constraint, request);
+			
+			String[] localParams = null;
+			localParams = renderCustomParameters(request, approver, localParams);
+			
 			switch (approver.type) {
 				case StaticGroup : foundApprovers |= AzUtils.loadStaticGroupApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false); break;
 				case Filter : foundApprovers |= AzUtils.loadFilterApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false); break;
 				case DN : foundApprovers |= AzUtils.loadDNApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false);break;
-				case Custom : foundApprovers |= AzUtils.loadCustomApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false,approver.customAz);break;
+				case Custom : foundApprovers |= AzUtils.loadCustomApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false,approver.customAz,localParams);break;
 			}
 		}
 		
@@ -614,6 +643,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 					} else if (azr.getScope() == ScopeType.Custom) {
 						approver.type = ApproverType.Custom;
 						approver.customAz = azr.getCustomAuthorization();
+						approver.params = azr.getCustomParameters();
 					} 
 					
 					approver.constraint = azr.getConstraint();
@@ -623,11 +653,15 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 			
 			for (Approver approver : this.approvers) {
 				String constraintRendered = this.renderTemplate(approver.constraint, request);
+
+				String[] localParams = null;
+				localParams = renderCustomParameters(request, approver, localParams);
+
 				switch (approver.type) {
 					case StaticGroup : AzUtils.loadStaticGroupApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false); break;
 					case Filter : AzUtils.loadFilterApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false); break;
 					case DN : AzUtils.loadDNApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false);break;
-					case Custom : AzUtils.loadCustomApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false,approver.customAz);break;
+					case Custom : AzUtils.loadCustomApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false,approver.customAz,localParams);break;
 				}
 			}
 			
@@ -635,6 +669,16 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 		}
 		
 		return updateObj;
+	}
+
+	private String[] renderCustomParameters(Map<String, Object> request, Approver approver, String[] localParams) {
+		if (approver.type == ApproverType.Custom) {
+					localParams = new String[approver.params.length];
+					for (int i = 0;i<approver.params.length;i++) {
+						localParams[i] = this.renderTemplate(approver.params[i], request);
+					}
+				}
+		return localParams;
 	}
 
 	public String getEmailTemplate() {
@@ -719,7 +763,12 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 
 class Approver  {
 
+	public Approver() {
+
+	}
+
 	ApproverType type;
 	String constraint;
 	CustomAuthorization customAz;
+	String[] params;
 }

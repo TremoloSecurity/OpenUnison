@@ -57,6 +57,11 @@ public class BrokerHolder {
 	}
 	
 	public static synchronized BrokerService getInstance(ConfigManager cfgMgr,String name,ProvisioningEngineImpl engine) throws ProvisioningException {
+		
+		if (System.getenv("UNISON_NO_BROKER") != null && System.getenv("UNISON_NO_BROKER").equals("true")) {
+			return null;
+		}
+		
 		if (holder != null) {
 			logger.info("Broker already initialized");
 			return holder.broker;

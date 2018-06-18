@@ -380,14 +380,14 @@ public class AzUtils {
 
 	public static boolean loadCustomApprovers(Approvals approval, String emailTemplate,
 			ConfigManager cfg, Session session, int userID,
-			String constraint, boolean sendNotification,CustomAuthorization caz) throws ProvisioningException {
+			String constraint, boolean sendNotification,CustomAuthorization caz,String customParams[]) throws ProvisioningException {
 		boolean found = false;
 		try {
 			caz.loadConfigManager(cfg);
 		
 			
 			
-			List<String> approvalDNs = caz.listPossibleApprovers();
+			List<String> approvalDNs = caz.listPossibleApprovers(customParams);
 			for (String approverDN : approvalDNs) {
 				
 				Approvers approver = getApproverByDN(approval,emailTemplate,cfg,session,approverDN,sendNotification);

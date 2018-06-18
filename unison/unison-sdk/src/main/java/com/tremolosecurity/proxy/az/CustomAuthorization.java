@@ -56,16 +56,20 @@ public interface CustomAuthorization {
 	/**
 	 * Determines if the subject in the parameter is authorized by this rule
 	 * @param subject Subject to be tested
+	 * @param params List of optional values specific to this call
 	 * @return True if authorized, False if not
 	 * @throws AzException
 	 */
-	public abstract boolean isAuthorized(AuthInfo subject) throws AzException;
+	public abstract boolean isAuthorized(AuthInfo subject,String ...params) throws AzException;
 	
 	/**
 	 * Provides a list of subjects that could be authorized based on this rule.  The value of each list item should be
 	 * the distinguished name of the user in Unison
+	 * @param params List of optional values specific to this call
 	 * @return
 	 */
-	public abstract List<String> listPossibleApprovers() throws AzException;
+	public abstract List<String> listPossibleApprovers(String...params) throws AzException;
+
+
 	
 }

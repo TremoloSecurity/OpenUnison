@@ -48,6 +48,8 @@ public class AzRule  {
 	private UUID guid;
 	private String className;
 	private CustomAuthorization customAz;
+
+	private String[] customParams;
 	
 	public AzRule(String scopeType,String constraint, String className,ConfigManager cfgMgr,Workflow wf) throws ProvisioningException {
 		if (scopeType.equalsIgnoreCase("group")) {
@@ -57,7 +59,19 @@ public class AzRule  {
 		} else if (scopeType.equalsIgnoreCase("dn")) {
 			scope = ScopeType.DN;
 		} else if (scopeType.equalsIgnoreCase("custom")) {
-		 	scope = ScopeType.Custom;
+			 scope = ScopeType.Custom;
+			 
+			 if (constraint.contains("!")) {
+				String[] vals = constraint.split("[!]");
+				this.customParams = new String[vals.length - 1];
+				constraint = vals[0];
+
+				for (int i=0;i<this.customParams.length;i++) {
+					this.customParams[i] = vals[i+1];
+ 				}
+			 } else {
+				 this.customParams = new String[0];
+			 }
 		 	
 			CustomAuthorization caz = cfgMgr.getCustomAuthorizations().get(constraint);
 			
@@ -108,6 +122,10 @@ public class AzRule  {
 	
 	public CustomAuthorization getCustomAuthorization() {
 		return this.customAz;
+	}
+
+	public String[] getCustomParameters() {
+		return this.customParams;
 	}
 	
 }

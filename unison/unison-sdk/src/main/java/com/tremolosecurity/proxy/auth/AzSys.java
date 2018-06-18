@@ -322,7 +322,7 @@ public class AzSys {
 					OK = false;
 				} else {
 					try {
-						if (customAz.isAuthorized(authData)) {
+						if (customAz.isAuthorized(authData,rule.getCustomParameters())) {
 							OK = true;
 							if (azCache != null) {
 								azCache.put(rule.getGuid(), new DateTime().plus(at.getAzTimeoutMillis()));

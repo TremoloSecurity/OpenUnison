@@ -92,7 +92,7 @@ public class ManagerAuthorization implements CustomAuthorization {
 	}
 
 	@Override
-	public boolean isAuthorized(AuthInfo subject) throws AzException {
+	public boolean isAuthorized(AuthInfo subject,String...params) throws AzException {
 		DN subjectDN = new DN(subject.getUserDN());
 		
 		List<User> managers;
@@ -115,7 +115,7 @@ public class ManagerAuthorization implements CustomAuthorization {
 	}
 
 	@Override
-	public List<String> listPossibleApprovers() throws AzException {
+	public List<String> listPossibleApprovers(String...params) throws AzException {
 		List<String> managers = new ArrayList<String>();
 		
 		List<User> managerUser = null;
@@ -201,6 +201,8 @@ public class ManagerAuthorization implements CustomAuthorization {
 			}
 		}
 	}
+
+	
 	
 	
 
