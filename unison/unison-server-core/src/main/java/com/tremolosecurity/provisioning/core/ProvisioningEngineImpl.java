@@ -1980,17 +1980,27 @@ class SendMessageThread implements MessageListener {
 	
 	private void sendEmail(SmtpMessage msg) throws MessagingException {
 		Properties props = new Properties();
-		
+		boolean doAuth = false;
 		props.setProperty("mail.smtp.host", prov.getSmtpHost());
 		props.setProperty("mail.smtp.port", Integer.toString(prov.getSmtpPort()));
-		props.setProperty("mail.smtp.user", prov.getSmtpUser());
-		props.setProperty("mail.smtp.auth", "true");
+		if (prov.getSmtpUser() != null && ! prov.getSmtpUser().isEmpty()) {
+			logger.debug("SMTP user found '" + prov.getSmtpUser() + "', enabling authentication");
+			props.setProperty("mail.smtp.user", prov.getSmtpUser());
+			props.setProperty("mail.smtp.auth", "true");
+			doAuth = true;
+		} else {
+			logger.debug("No SMTP user, disabling authentication");
+			doAuth = false;
+			props.setProperty("mail.smtp.auth", "false");
+		}
 		props.setProperty("mail.transport.protocol", "smtp");
 		props.setProperty("mail.smtp.starttls.enable", Boolean.toString(prov.isSmtpTLS()));
-		//props.setProperty("mail.debug", "true");
-		//props.setProperty("mail.socket.debug", "true");
+		if (logger.isDebugEnabled()) {
+			props.setProperty("mail.debug", "true");
+			props.setProperty("mail.socket.debug", "true");
+		}
 		
-		if (prov.getLocalhost() != null) {
+		if (prov.getLocalhost() != null && ! prov.getLocalhost().isEmpty()) {
 			props.setProperty("mail.smtp.localhost", prov.getLocalhost());
 		}
 		
@@ -2010,14 +2020,22 @@ class SendMessageThread implements MessageListener {
 		
 		//Session session = Session.getInstance(props, new SmtpAuthenticator(this.smtpUser,this.smtpPassword));
 		
-		Session session = Session.getInstance(props, 
+		Session session = null;
+		if (doAuth) {
+		logger.debug("Creating authenticated session");
+		Session.getInstance(props, 
                 new Authenticator(){
             protected PasswordAuthentication getPasswordAuthentication() {
                return new PasswordAuthentication(prov.getSmtpUser(), prov.getSmtpPassword());
-            }});
-		//Session session = Session.getInstance(props, null);
-		session.setDebugOut(System.out);
-		//session.setDebug(true);
+			}});
+		} else {
+			logger.debug("Creating unauthenticated session");
+		 session = Session.getInstance(props);
+		}
+		if (logger.isDebugEnabled()) {
+			session.setDebugOut(System.out);
+			session.setDebug(true);
+		}
 		//Transport tr = session.getTransport("smtp");
 		//tr.connect();
 		
