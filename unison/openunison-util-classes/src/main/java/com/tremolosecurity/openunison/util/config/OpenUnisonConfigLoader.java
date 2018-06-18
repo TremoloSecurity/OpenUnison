@@ -91,6 +91,10 @@ public class OpenUnisonConfigLoader {
                 value = System.getProperty(envVarName);
             }
 
+            if (value == null) {
+                value = "";
+            }
+
             if (logger.isDebugEnabled()) {
                 logger.debug("Environment Variable '" + envVarName + "'='" + value + "'");
             }
