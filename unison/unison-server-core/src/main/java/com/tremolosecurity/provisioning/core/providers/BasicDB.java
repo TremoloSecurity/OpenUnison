@@ -17,6 +17,7 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.core.providers;
 
+import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -34,12 +35,12 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.dbcp.cpdsadapter.DriverAdapterCPDS;
-import org.apache.commons.dbcp.datasources.SharedPoolDataSource;
+
 import org.apache.commons.net.ntp.TimeStamp;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.format.ISODateTimeFormat;
 
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.novell.ldap.LDAPException;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.TargetType;
@@ -51,8 +52,10 @@ import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.providers.db.CustomDB;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.StopableThread;
 
 import net.sourceforge.myvd.util.PBKDF2;
+import net.sourceforge.myvd.inserts.jdbc.JdbcInsert;
 
 
 
@@ -954,16 +957,46 @@ public class BasicDB implements BasicDBInterface {
 		ps.close();
 	}
 
+
+	private String loadOption(String name,String defaultValue, Map<String, Attribute> cfg) {
+		if (cfg.get(name) != null ) {
+			return cfg.get(name).getValues().get(0);
+		} else {
+			return defaultValue;
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see com.tremolosecurity.provisioning.core.providers.BasicDB#init(java.util.Map, com.tremolosecurity.config.util.ConfigManager, java.lang.String)
 	 */
-	
 	@Override
 	public void init(Map<String, Attribute> cfg, ConfigManager cfgMgr,String name)
 			throws ProvisioningException {
 		
 		this.cfgMgr = cfgMgr;
 		
+
+		this.cfgMgr.addThread(new StopableThread(){
+		
+			@Override
+			public void run() {
+				
+			}
+		
+			@Override
+			public void stop() {
+				synchronized(JdbcInsert.getPoolCache()) {
+					for (String key : JdbcInsert.getPoolCache().keySet()) {
+						ComboPooledDataSource ds = JdbcInsert.getPoolCache().get(key);
+						ds.close();
+					}
+
+					JdbcInsert.getPoolCache().clear();
+				}
+
+			}
+		});
+
 		this.name = name;
 		
 		driver = cfg.get("driver").getValues().get(0);
@@ -979,42 +1012,49 @@ public class BasicDB implements BasicDBInterface {
 		
 		this.maxCons = Integer.parseInt(cfg.get("maxCons").getValues().get(0));
 		logger.info("Max Cons : " + this.maxCons);
-		this.maxIdleCons = Integer.parseInt(cfg.get("maxIdleCons").getValues().get(0));
-		logger.info("maxIdleCons : " + this.maxIdleCons);
 		
 		
-		DriverAdapterCPDS pool = new DriverAdapterCPDS();
+		String poolKey = (url+user).toLowerCase();
+
+		synchronized(JdbcInsert.getPoolCache()) {
+			if (JdbcInsert.getPoolCache().get(poolKey) != null ) {
+				logger.info(this.name + " - using existing connection pool");
+				this.ds = JdbcInsert.getPoolCache().get(poolKey);
+			} else {
+				logger.info(this.name + " - creating connection pool");
+				ComboPooledDataSource cpds = new ComboPooledDataSource();
+				try {
+					cpds.setDriverClass(driver);
+				} catch (PropertyVetoException e1) {
+					throw new ProvisioningException("Could not load driver",e1);
+				}
+				cpds.setJdbcUrl(url);
+				cpds.setUser(user);
+				cpds.setPassword(pwd);
+				cpds.setMaxPoolSize(this.maxCons);
+				//cpds.setma(this.maxIdleCons);
+				cpds.setPreferredTestQuery(loadOption("validationQuery", "SELECT 1", cfg));
+				cpds.setTestConnectionOnCheckin(true);
+				int testPeriod = Integer.parseInt(loadOption("idleConnectionTestPeriod","30",cfg));
+				cpds.setIdleConnectionTestPeriod(testPeriod);
+				int unreturnedConnectionTimeout = Integer.parseInt(loadOption("unreturnedConnectionTimeout","30",cfg));
+				cpds.setUnreturnedConnectionTimeout(unreturnedConnectionTimeout);
+				cpds.setDebugUnreturnedConnectionStackTraces(true);
+
+				int checkoutTimeout = Integer.parseInt(loadOption("checkoutTimeout","30000",cfg));
+				cpds.setCheckoutTimeout(checkoutTimeout);
+
+
+				this.ds = cpds;
+				JdbcInsert.getPoolCache().put(poolKey, cpds);
+			}
 		
-		try {
-			pool.setDriver(driver);
-		} catch (ClassNotFoundException e) {
-			throw new ProvisioningException("Could not load JDBC Driver",e);
 		}
-		pool.setUrl(url);
-		pool.setUser(user);
-		pool.setPassword(pwd);
-		pool.setMaxActive(maxCons);
-		pool.setMaxIdle(maxIdleCons);
 		
-		
-		SharedPoolDataSource tds = new SharedPoolDataSource();
-        tds.setConnectionPoolDataSource(pool);
-        tds.setMaxActive(maxCons);
-        tds.setMaxWait(50);
-        
-        
-        if (cfg.get("validationQuery") == null) {
-        	this.validationQuery = "SELECT 1";
-        } else {
-        	this.validationQuery = cfg.get("validationQuery").getValues().get(0);
-        }
-        
-        logger.info("validationQuery : " + this.validationQuery);
-        
-        tds.setValidationQuery(this.validationQuery);
-        
-        tds.setTestOnBorrow(true);
-        this.ds = tds;
+
+
+
+
         if (cfg.get("userTable") != null && ! cfg.get("userTable").getValues().get(0).isEmpty()) {
 	        this.userTable = cfg.get("userTable").getValues().get(0);
 	        logger.info("User table name : " + this.userTable);
