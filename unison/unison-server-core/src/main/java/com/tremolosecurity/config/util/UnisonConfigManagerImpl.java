@@ -491,7 +491,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 			return ret;
 		}
 		
-		URL urlObj =  new URL(url);
+		URL urlObj =  new URL(url.toLowerCase());
 		
 		if (urlObj.getPath().startsWith(this.authPath) && ! urlObj.getPath().startsWith(this.authIdP)) {
 			return null;
@@ -532,7 +532,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 				if (ret != null) {
 					
 				}
-				if (urlObj.getPath().startsWith( holder.getUrl().getUri())) {
+				if (urlObj.getPath().startsWith( holder.getLowerCasePath())) {
 					if (ret != null && ((ret.getWeight() < holder.getWeight()) || ((ret.getWeight() == holder.getWeight()) &&  (ret.getUrl().getUri().length() < holder.getUrl().getUri().length())))) {
 						ret = holder;
 					} else if (ret == null) {

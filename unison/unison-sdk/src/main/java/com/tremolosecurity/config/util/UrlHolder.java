@@ -54,6 +54,7 @@ public class UrlHolder {
 	boolean inited;
 	boolean isSSL;
 	
+	String lowerCasePath;
 	
 	ArrayList<UrlComp> proxyToURL;
 	
@@ -152,6 +153,7 @@ public class UrlHolder {
 	 */
 	public void init() throws Exception {
 		if (! this.inited) {
+			this.lowerCasePath = url.getUri().toLowerCase();
 			this.filterChain = new ArrayList<HttpFilter>();
 			List<FilterConfigType> filterCfgs= url.getFilterChain().getFilter();
 			
@@ -283,6 +285,13 @@ public class UrlHolder {
 	
 	public boolean isOverrideReferer() {
 		return this.overrideReferer;
+	}
+
+	/**
+	 * @return the lowerCasePath
+	 */
+	public String getLowerCasePath() {
+		return lowerCasePath;
 	}
 	
 }
