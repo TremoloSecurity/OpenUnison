@@ -2023,7 +2023,7 @@ class SendMessageThread implements MessageListener {
 		Session session = null;
 		if (doAuth) {
 		logger.debug("Creating authenticated session");
-		Session.getInstance(props, 
+		session = Session.getInstance(props, 
                 new Authenticator(){
             protected PasswordAuthentication getPasswordAuthentication() {
                return new PasswordAuthentication(prov.getSmtpUser(), prov.getSmtpPassword());
