@@ -283,7 +283,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			}
 			
 			
-		} else if (action.contentEquals("completeFed")) {
+		} else if (action.contentEquals("completefed")) {
 			this.completeFederation(request, response);
 		} else if (action.equalsIgnoreCase("userinfo")) {
 			try {
@@ -326,7 +326,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		String url = req.getRequestURL().substring(0,req.getRequestURL().indexOf("/",8));
 		StringBuffer b = new StringBuffer(url);
-		b.append(cfg.getAuthIdPPath()).append(this.idpName).append("/completeFed");
+		b.append(cfg.getAuthIdPPath()).append(this.idpName).append("/completefed");
 		
 		if (logger.isDebugEnabled()) {
 			logger.debug("final url : '" + b + "'");
@@ -350,7 +350,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		
 		String action = (String) request.getAttribute(IDP.ACTION_NAME);
-		if (action.contentEquals("completeFed")) {
+		if (action.contentEquals("completefed")) {
 			this.completeFederation(request, response);
 		} else if (action.equalsIgnoreCase("token")) {
 			String code = request.getParameter("code");

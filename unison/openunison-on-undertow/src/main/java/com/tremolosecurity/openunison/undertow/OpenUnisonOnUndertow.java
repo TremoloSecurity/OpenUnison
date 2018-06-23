@@ -132,7 +132,7 @@ public class OpenUnisonOnUndertow {
 		logger.info("Config TLS Ciphers : '" + config.getCiphers() + "'");
 		logger.info("Config Path to Deployment : '" + config.getPathToDeployment() + "'");
 		logger.info("Config Path to Environment File : '" + config.getPathToEnvFile() + "'");
-		
+		logger.info("Redirect to contex root : '" + config.isRedirectToContextRoot() + "'");
 		logger.info("Support socket shutdown : " + config.isSocketShutdownListener());
 		if (config.isSocketShutdownListener()) {
 			logger.info("Socket shutdown host : '" + config.getSocketShutdownHost() + "'");
@@ -287,16 +287,22 @@ public class OpenUnisonOnUndertow {
 
 
 		if (! config.getContextRoot().equals("/")) {
-			/*servletBuilder = Servlets.deployment()
-					.setClassLoader(OpenUnisonOnUndertow.class.getClassLoader())
-					.setEagerFilterInit(true)
-					.setContextPath("/")
-					.setDeploymentName("root");
-			manager = Servlets.defaultContainer().addDeployment(servletBuilder);
-			manager.deploy();
+			if (! config.isRedirectToContextRoot()) {
+				logger.info("Not redirecting to context");
+				servletBuilder = Servlets.deployment()
+						.setClassLoader(OpenUnisonOnUndertow.class.getClassLoader())
+						.setEagerFilterInit(true)
+						.setContextPath("/")
+						.setDeploymentName("root");
+				manager = Servlets.defaultContainer().addDeployment(servletBuilder);
+				manager.deploy();
 
-			path.addPrefixPath("/",manager.start());*/
-			path.addPrefixPath("/", new RedirectHandler(config.getContextRoot()));
+				path.addPrefixPath("/",manager.start());
+			} else {
+				logger.info("Redirecting to context");
+				path.addPrefixPath("/", new RedirectHandler(config.getContextRoot()));
+			}
+			
 
 
 		}

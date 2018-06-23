@@ -946,6 +946,8 @@ public class ScaleMain implements HttpFilter {
 										errors.append("Error, user " + subject + " does not exist;");
 									
 								}
+
+								while (searchRes.hasMore()) searchRes.next();
 							
 							}
 							
@@ -984,6 +986,7 @@ public class ScaleMain implements HttpFilter {
 		if (req.isDoPreApproval() && preCheckResp.isCanPreApprove()) {
 			wfCall.getRequestParams().put(Approval.IMMEDIATE_ACTION, req.isApproved());
 			wfCall.getRequestParams().put(Approval.REASON, req.getApprovalReason());
+			wfCall.getRequestParams().put(Approval.SEND_NOTIFICATION,"false");
 		}
 		
 		try {

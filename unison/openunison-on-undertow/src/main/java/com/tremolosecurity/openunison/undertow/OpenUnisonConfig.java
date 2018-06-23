@@ -53,6 +53,8 @@ public class OpenUnisonConfig {
 
 	List<ErrorPageConfig> errorPages;
 
+	boolean redirectToContextRoot;
+
 	/**
 	 * @return the forceToLowerCase
 	 */
@@ -239,5 +241,19 @@ public class OpenUnisonConfig {
 	 */
 	public void setErrorPages(List<ErrorPageConfig> errorPages) {
 		this.errorPages = errorPages;
+	}
+
+	/**
+	 * @return the redirectToContextRoot
+	 */
+	public boolean isRedirectToContextRoot() {
+		return redirectToContextRoot;
+	}
+
+	/**
+	 * @param redirectToContextRoot the redirectToContextRoot to set
+	 */
+	public void setRedirectToContextRoot(boolean redirectToContextRoot) {
+		this.redirectToContextRoot = redirectToContextRoot;
 	}
 }

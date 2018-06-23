@@ -73,7 +73,7 @@ public class NotifyUser extends WorkflowTaskImpl {
 			String localMsg = this.renderTemplate(msg, request);
 			
 			try {
-				this.getConfigManager().getProvisioningEngine().sendNotification(mail, localMsg,localSubject,this.getWorkflow().getRequester(),this.contentType);
+				this.getConfigManager().getProvisioningEngine().sendNotification(mail, localMsg,localSubject,user,this.contentType);
 			} catch (Exception e) {
 				throw new ProvisioningException("Could not send user notification",e);
 			}
