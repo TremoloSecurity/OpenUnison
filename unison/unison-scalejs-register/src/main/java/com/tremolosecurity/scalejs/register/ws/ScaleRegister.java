@@ -72,7 +72,7 @@ public class ScaleRegister implements HttpFilter {
 	public void doFilter(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain)
 			throws Exception {
 		Gson gson = new Gson();
-		
+		request.getServletRequest().setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
 		if (request.getRequestURI().endsWith("/register/config")) {
 			response.setContentType("application/json");
 			ScaleJSUtils.addCacheHeaders(response);

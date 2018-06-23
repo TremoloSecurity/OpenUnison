@@ -269,6 +269,17 @@
 				instance</documentation>
 		</annotation>
 		<sequence maxOccurs="1" minOccurs="1">
+			<element name="errorPage" minOccurs="0" maxOccurs="unbounded">
+				<annotation><documentation>Redirect the user to an error page</documentation></annotation>
+				<complexType>
+				<attribute name="code" type="int" default="0">
+					<annotation><documentation>If 0, this is a "catch all"</documentation></annotation>
+				</attribute>
+				<attribute name="location" type="string" >
+					<annotation><documentation>URL to redirect to</documentation></annotation>
+				</attribute>
+				</complexType>
+			</element>
 			<element name="application" type="tns:applicationType"
 				maxOccurs="unbounded" minOccurs="0">
 			</element>

@@ -266,7 +266,16 @@ public class ConfigSys  {
 						nextSys.nextSys(req, presp);
 						presp.pushHeadersAndCookies(null);
 					} else {
-						resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+						
+						
+						String redirectLocation = cfg.getErrorPages().get(HttpServletResponse.SC_NOT_FOUND);
+						if (redirectLocation != null) {
+							resp.sendRedirect(redirectLocation);
+						} else {
+							resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+						}
+
+						
 						AccessLog.log(AccessEvent.NotFound, null, req, null, "Resource Not Found");
 						
 					}
@@ -359,10 +368,18 @@ public class ConfigSys  {
 			req.setAttribute("TREMOLO_ERROR_EXCEPTION", e);
 			logger.error("Could not process request",e);
 			
-			StringBuffer b = new StringBuffer();
-			b.append(cfg.getAuthFormsPath()).append("error.jsp");
-			resp.setStatus(500);
-			req.getRequestDispatcher(b.toString()).forward(req, resp);
+			String redirectLocation = cfg.getErrorPages().get(500);
+
+			if (redirectLocation != null) {
+				resp.sendRedirect(redirectLocation);
+			} else {
+				StringBuffer b = new StringBuffer();
+				b.append(cfg.getAuthFormsPath()).append("error.jsp");
+				resp.setStatus(500);
+				req.getRequestDispatcher(b.toString()).forward(req, resp);
+			}
+
+			
 			
 		}
 	}

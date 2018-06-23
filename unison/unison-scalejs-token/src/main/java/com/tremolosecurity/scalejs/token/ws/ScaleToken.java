@@ -47,7 +47,7 @@ public class ScaleToken implements HttpFilter {
 		
 		
 		
-		
+		request.getServletRequest().setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
 		
 		if (request.getRequestURI().endsWith("/token/config")) {
 			response.setContentType("application/json");

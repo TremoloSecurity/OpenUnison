@@ -22,6 +22,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.ServletOutputStream;
@@ -36,6 +37,7 @@ import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.proxy.cookies.UnisonCookie;
 import com.tremolosecurity.proxy.util.ProxyTools;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.util.NVP;
 
 public class ProxyResponse extends HttpServletResponseWrapper {
 
@@ -238,15 +240,39 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 				
 			
 		}
+
 		
 		
+		int status = ((HttpServletResponse) this.getResponse()).getStatus();
+		String redirectLocation = null;
+		if ((status < 200 || status > 299)	 && status != 302 && status != 301) {
+			redirectLocation = holder.getConfig().getErrorPages().get(status);
+			
+		}
 		
-		
-		Iterator<Attribute> itAttr = this.headers.values().iterator();
-		while (itAttr.hasNext()) {
-			Attribute attr = itAttr.next();
-			Iterator<String> vals = attr.getValues().iterator();
-			this.resp.addHeader(attr.getName(), vals.next());
+		boolean isHtml = redirectLocation != null &&  req.getAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError") == null;
+
+
+		List<NVP> localHeaders = new ArrayList<NVP>();
+		for (Attribute attr : this.headers.values()) {
+			String val = attr.getValues().get(0);
+			if (redirectLocation != null) {
+				if (attr.getName().toLowerCase().contains("content-type")) {
+					isHtml = val.toLowerCase().contains("html");
+				} else if (attr.getName().equalsIgnoreCase("Location")) {
+					continue;
+				}
+			}
+			localHeaders.add(new NVP(attr.getName(),val));
+		}
+
+		if (isHtml) {
+			resp.setStatus(302);
+			localHeaders.add(new NVP("Location",redirectLocation));
+		}
+
+		for (NVP nvp : localHeaders) {
+			this.resp.addHeader(nvp.getName(), nvp.getValue());
 		}
 		
 		this.cookies.clear();

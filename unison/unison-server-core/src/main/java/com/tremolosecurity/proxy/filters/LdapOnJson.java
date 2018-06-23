@@ -46,7 +46,7 @@ public class LdapOnJson implements HttpFilter {
     public void doFilter(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain) throws Exception {
         //every request is distinct, logout immediately
         chain.setLogout(true);
-
+        request.setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
 
         response.setContentType("application/json");
         try {

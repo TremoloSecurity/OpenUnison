@@ -50,6 +50,7 @@ public class CheckSession implements HttpFilter {
 	@Override
 	public void doFilter(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain)
 			throws Exception {
+				request.setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
 		ArrayList<Cookie> sessionCookies = request.getCookies(this.cookieName);
 		if (sessionCookies == null || sessionCookies.isEmpty()) {
 			response.sendError(401);

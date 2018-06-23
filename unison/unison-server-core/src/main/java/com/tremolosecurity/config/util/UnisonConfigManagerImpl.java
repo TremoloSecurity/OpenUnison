@@ -94,6 +94,7 @@ import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.config.xml.MechanismType;
 import com.tremolosecurity.config.xml.ResultGroupType;
 import com.tremolosecurity.config.xml.UrlType;
+import com.tremolosecurity.config.xml.ApplicationsType.ErrorPage;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningEngineImpl;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
@@ -173,7 +174,14 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	
 	private HashMap<String,CustomAuthorization> customAzRules;
 
+	private Map<Integer, String> errorPages;
+
 	
+	@Override
+	public  Map<Integer,String> getErrorPages() {
+		return this.errorPages;
+	}
+
 	/* (non-Javadoc)
 	 * @see com.tremolosecurity.config.util.ConfigManager#getConfigXmlPath()
 	 */
@@ -264,17 +272,21 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		this.name = name;
 
 		
+		
+
 		this.notifiers = new ArrayList<ReloadNotification>();
 		
-		if (ctx != null) {
-			if (ctx.getContextPath().equalsIgnoreCase("/")) {
-				this.authPath = "/auth/";
+		
+			if (ctx != null) {
+				if (ctx.getContextPath().equalsIgnoreCase("/")) {
+					this.authPath = "/auth/";
+				} else {
+					this.authPath = ctx.getContextPath() + "/auth/";
+				}
 			} else {
-				this.authPath = ctx.getContextPath() + "/auth/";
+				this.authPath =  "/auth/";
 			}
-		} else {
-			this.authPath =  "/auth/";
-		}
+		
 		this.authForms = this.authPath + "forms/";
 		this.authIdP = this.authPath + "idp/";
 		
@@ -343,6 +355,13 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		this.initSSL();
 		
 		this.loadMyVD(path, myVdPath);
+
+		this.errorPages = new HashMap<Integer,String>();
+		if (cfg.getApplications().getErrorPage() != null) {
+			for (ErrorPage ep : cfg.getApplications().getErrorPage()) {
+				this.errorPages.put(ep.getCode(), ep.getLocation());
+			}
+		}
 		
 		this.customAzRules = new HashMap<String,CustomAuthorization>();
 		if (this.cfg.getCustomAzRules() != null) {

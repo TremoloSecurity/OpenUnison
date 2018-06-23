@@ -64,7 +64,10 @@ import com.tremolosecurity.server.StopableThread;
  */
 public interface ConfigManager {
 
-	
+	/**
+	 * Returns the error pages
+	 */
+	public abstract Map<Integer,String> getErrorPages();
 
 	/**
 	 * Returns the full path to Unison's XML configuration

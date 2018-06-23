@@ -52,7 +52,7 @@ public class ScaleSingleRequest implements HttpFilter {
 		Gson gson = new Gson();
 		
 		
-		
+		request.getServletRequest().setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
 		
 		
 		if (request.getRequestURI().endsWith("/singlerequest/config")) {

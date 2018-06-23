@@ -134,6 +134,7 @@ public class ScaleMain implements HttpFilter {
 			throws Exception {
 		Gson gson = new Gson();
 		
+		request.getServletRequest().setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
 		
 		
 		try {

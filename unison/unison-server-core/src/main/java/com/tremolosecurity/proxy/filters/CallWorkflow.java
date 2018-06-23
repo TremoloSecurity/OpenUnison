@@ -41,6 +41,7 @@ public class CallWorkflow implements HttpFilter {
 	@Override
 	public void doFilter(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain)
 			throws Exception {
+				request.setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
 		if (request.getServletRequest().getMethod().equalsIgnoreCase("POST")) {
 			AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
 			response.setContentType("application/json");
