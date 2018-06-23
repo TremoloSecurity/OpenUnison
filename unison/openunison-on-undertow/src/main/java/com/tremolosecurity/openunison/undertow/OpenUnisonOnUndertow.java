@@ -76,10 +76,12 @@ import io.undertow.Undertow.Builder;
 import io.undertow.jsp.HackInstanceManager;
 import io.undertow.jsp.JspServletBuilder;
 import io.undertow.server.handlers.PathHandler;
+import io.undertow.server.handlers.RedirectHandler;
 import io.undertow.server.handlers.resource.FileResourceManager;
 import io.undertow.servlet.Servlets;
 import io.undertow.servlet.api.DeploymentInfo;
 import io.undertow.servlet.api.DeploymentManager;
+import io.undertow.servlet.api.ErrorPage;
 
 public class OpenUnisonOnUndertow {
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(OpenUnisonOnUndertow.class.getName());
@@ -111,6 +113,8 @@ public class OpenUnisonOnUndertow {
 		if (config.getContextRoot() == null) {
 			config.setContextRoot("/");
 		}
+
+		
 
 		logger.info("Config Open Port : '" + config.getOpenPort() + "'");
 		logger.info("Disable HTTP2 : '" + config.isDisableHttp2() + "'");
@@ -154,6 +158,8 @@ public class OpenUnisonOnUndertow {
 		if (config.getQuartzDir() != null) {
 			unisonServiceProps.put("com.tremolosecurity.openunison.quartzdir", config.getQuartzDir());
 		}
+
+		
 		
 		unisonServiceProps.store(new FileOutputStream(f), "OpenUnison Configuration");
 		System.getProperties().put("com.tremolosecurity.unison.unisonServicePropsPath", f.getAbsolutePath());
@@ -237,7 +243,26 @@ public class OpenUnisonOnUndertow {
                 .addServlet(
                 		Servlets.servlet("identityProvider",com.tremolosecurity.idp.server.IDP.class)
                 		.addMapping("/auth/idp/*")
-                		);
+						);
+						
+		if (config.getWelcomePages() != null) {
+			servletBuilder.addWelcomePages(config.getWelcomePages());
+		}
+
+		if (config.getErrorPages() != null) {
+			logger.info("Adding error pages");
+			ArrayList<ErrorPage> errorPages = new ArrayList<ErrorPage>();
+			for (ErrorPageConfig ep : config.getErrorPages()) {
+				if (ep.getCode() == 0) {
+					logger.info("Adding default page: " + ep.getLocation());
+					errorPages.add(new ErrorPage(ep.getLocation()));
+				} else {
+					logger.info("Adding page for " + ep.getCode() + " : " + ep.getLocation());
+					errorPages.add(new ErrorPage(ep.getLocation(),ep.getCode()));
+				}
+			}
+			servletBuilder.addErrorPages(errorPages);
+		}
 		
 		
 		JspServletBuilder.setupDeployment(servletBuilder, new HashMap<String, JspPropertyGroup>(), new HashMap<String, TagLibraryInfo>(), new HackInstanceManager());
@@ -250,13 +275,19 @@ public class OpenUnisonOnUndertow {
 		
 		
 		PathHandler path = Handlers.path(Handlers.redirect(config.getContextRoot()))
-		        .addPrefixPath(config.getContextRoot(), manager.start());
-         
-		buildUndertow.setHandler(path);
+				.addPrefixPath(config.getContextRoot(), manager.start());
+				
+		
+
+        if (config.isForceToLowerCase()) {
+			buildUndertow.setHandler(new OpenUnisonPathHandler(path));
+		} else {
+			buildUndertow.setHandler(path);
+		}
 
 
 		if (! config.getContextRoot().equals("/")) {
-			servletBuilder = Servlets.deployment()
+			/*servletBuilder = Servlets.deployment()
 					.setClassLoader(OpenUnisonOnUndertow.class.getClassLoader())
 					.setEagerFilterInit(true)
 					.setContextPath("/")
@@ -264,7 +295,8 @@ public class OpenUnisonOnUndertow {
 			manager = Servlets.defaultContainer().addDeployment(servletBuilder);
 			manager.deploy();
 
-			path.addPath("/",manager.start());
+			path.addPrefixPath("/",manager.start());*/
+			path.addPrefixPath("/", new RedirectHandler(config.getContextRoot()));
 
 
 		}

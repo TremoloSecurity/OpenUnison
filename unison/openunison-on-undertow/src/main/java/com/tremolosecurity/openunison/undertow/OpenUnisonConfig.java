@@ -46,6 +46,26 @@ public class OpenUnisonConfig {
 
 	boolean disableHttp2;
 	boolean allowUnEscapedChars;
+
+	boolean forceToLowerCase;
+
+	List<String> welcomePages;
+
+	List<ErrorPageConfig> errorPages;
+
+	/**
+	 * @return the forceToLowerCase
+	 */
+	public boolean isForceToLowerCase() {
+		return forceToLowerCase;
+	}
+
+	/**
+	 * @param forceToLowerCase the forceToLowerCase to set
+	 */
+	public void setForceToLowerCase(boolean forceToLowerCase) {
+		this.forceToLowerCase = forceToLowerCase;
+	}
 	
 	public int getOpenPort() {
 		return openPort;
@@ -190,5 +210,34 @@ public class OpenUnisonConfig {
 	 */
 	public void setAllowUnEscapedChars(boolean allowUnEscapedChars) {
 		this.allowUnEscapedChars = allowUnEscapedChars;
+	}
+
+	
+	/**
+	 * @return the welcomePages
+	 */
+	public List<String> getWelcomePages() {
+		return welcomePages;
+	}
+
+	/**
+	 * @param welcomePages the welcomePages to set
+	 */
+	public void setWelcomePages(List<String> welcomePages) {
+		this.welcomePages = welcomePages;
+	}
+
+	/**
+	 * @return the errorPages
+	 */
+	public List<ErrorPageConfig> getErrorPages() {
+		return errorPages;
+	}
+
+	/**
+	 * @param errorPages the errorPages to set
+	 */
+	public void setErrorPages(List<ErrorPageConfig> errorPages) {
+		this.errorPages = errorPages;
 	}
 }
