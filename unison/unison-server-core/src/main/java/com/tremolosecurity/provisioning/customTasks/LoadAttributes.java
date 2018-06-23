@@ -42,6 +42,8 @@ public class LoadAttributes implements CustomTask {
 	String nameAttr;
 	transient ConfigManager cfg;
 	
+	String base;
+
 	@Override
 	public void init(WorkflowTask task, Map<String, Attribute> params)
 			throws ProvisioningException {
@@ -56,6 +58,10 @@ public class LoadAttributes implements CustomTask {
 		this.nameAttr = params.get("nameAttr").getValues().get(0);
 		
 		this.cfg = task.getConfigManager();
+
+		if (params.get("base") != null) {
+			this.base = params.get("base").getValues().get(0);
+		}
 
 	}
 
@@ -78,7 +84,10 @@ public class LoadAttributes implements CustomTask {
 		params.addAll(this.attrs);
 		
 		try {
-			LDAPSearchResults res = this.cfg.getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, equal(this.nameAttr,user.getUserID()).toString(), params);
+			if (this.base == null) {
+				this.base = this.cfg.getCfg().getLdapRoot();
+			}
+			LDAPSearchResults res = this.cfg.getMyVD().search(this.base, 2, equal(this.nameAttr,user.getUserID()).toString(), params);
 			if (res.hasMore()) {
 				LDAPEntry entry = res.next();
 				LDAPAttributeSet attrs = entry.getAttributeSet();

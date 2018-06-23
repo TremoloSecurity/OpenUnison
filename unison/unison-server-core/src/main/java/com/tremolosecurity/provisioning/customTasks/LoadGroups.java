@@ -44,6 +44,7 @@ public class LoadGroups implements CustomTask {
 	String nameAttr;
 	boolean inverse;
 	transient ConfigManager cfg;
+	String base;
 
 	@Override
 	public void init(WorkflowTask task, Map<String, Attribute> params) throws ProvisioningException {
@@ -57,6 +58,9 @@ public class LoadGroups implements CustomTask {
 
 		this.cfg = task.getConfigManager();
 
+		if (params.get("base") != null) {
+			this.base = params.get("base").getValues().get(0);
+		}
 	}
 
 	@Override
@@ -85,8 +89,12 @@ public class LoadGroups implements CustomTask {
 				user.getGroups().clear();
 			}
 
+			if (this.base == null) {
+				this.base = this.cfg.getCfg().getLdapRoot();
+			}
+
 			LDAPSearchResults res = this.cfg.getMyVD().search(
-					GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, filter.toString(),
+					this.base, 2, filter.toString(),
 					params);
 
 			if (res.hasMore()) {
@@ -103,7 +111,7 @@ public class LoadGroups implements CustomTask {
 				params.add("cn");
 
 				res = this.cfg.getMyVD().search(
-						GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2,
+						this.base, 2,
 						filter.toString(), params);
 
 				while (res.hasMore()) {
