@@ -82,6 +82,7 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 
 	private String name;
 	
+	private String trustViewName;
 	
 	private void addGroup(UserPrincipal principal, String groupName,
 			HttpCon con, int approvalID, Workflow workflow) throws Exception {
@@ -252,7 +253,44 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 						this.setUserPassword(user, request);
 					}
 				} else {
-					//TODO implement multidomain
+					IPACall idOveride = new IPACall();
+					idOveride.setId(0);
+					idOveride.setMethod("idoverrideuser_add");
+					List<String> params = new ArrayList<String>();
+					params.add(this.trustViewName);
+					params.add(principal.getUPN());
+					idOveride.getParams().add(params);
+					Map<String,Object> param2 = new HashMap<String,Object>();
+
+					
+					for (String attrName : attributes) {
+						Attribute attr = user.getAttribs().get(attrName);
+						if (attr != null) {
+							param2.put(attr.getName(),attr.getValues().get(0));
+						}
+					}
+
+					idOveride.getParams().add(param2);
+
+					IPAResponse resp = this.executeIPACall(idOveride, con);
+
+					this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Add,  approvalID, workflow, "uid", user.getUserID());
+					this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Add,  approvalID, workflow, "uid", user.getUserID());
+					
+					for (String attrName : attributes) {
+						Attribute attr = user.getAttribs().get(attrName);
+						if (attr != null) {
+							this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Add,  approvalID, workflow, attrName, attr.getValues().get(0));
+						}
+					}
+
+					
+					
+					
+					
+					for (String group : user.getGroups()) {
+						this.addGroup(principal, group, con, approvalID, workflow);
+					}
 				}
 				
 			} finally {
@@ -298,7 +336,23 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 					
 					this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Delete,  approvalID, workflow, "uid", user.getUserID());
 				} else {
-					//TODO Implemnt multidomain
+					IPACall idOveride = new IPACall();
+					idOveride.setId(0);
+					idOveride.setMethod("idoverrideuser_del");
+					List<String> params = new ArrayList<String>();
+					params.add(this.trustViewName);
+					params.add(principal.getUPN());
+					idOveride.getParams().add(params);
+					Map<String,Object> param2 = new HashMap<String,Object>();
+					idOveride.getParams().add(param2);
+
+					try {
+						IPAResponse resp = this.executeIPACall(idOveride, con);
+					} catch (IPAException e) {
+						if (! e.getMessage().equalsIgnoreCase("no modifications to be performed")) {
+							throw e;
+						}
+					}
 				}
 			} finally {
 				if (con != null) {
@@ -317,7 +371,7 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 			HttpCon con = this.createClient();
 			
 			try {
-				return findUser(userID, attributes, con);
+				return findUser(userID, attributes, con,request);
 				
 			} finally {
 				if (con != null) {
@@ -332,7 +386,7 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 		
 	}
 
-	private User findUser(String userID, Set<String> attributes, HttpCon con)
+	private User findUser(String userID, Set<String> attributes, HttpCon con,Map<String,Object> request)
 			throws IPAException, ClientProtocolException, IOException {
 		
 		UserPrincipal principal = new UserPrincipal(userID, multiDomain, primaryDomain);
@@ -463,6 +517,43 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 					}
 				}
 			}
+
+			//call id_override
+			IPACall idOveride = new IPACall();
+			idOveride.setId(0);
+			idOveride.setMethod("idoverrideuser_show");
+			List<String> params = new ArrayList<String>();
+			params.add(this.trustViewName);
+			params.add(userID);
+			idOveride.getParams().add(params);
+			Map<String,Object> param2 = new HashMap<String,Object>();
+			param2.put("all", true);
+			param2.put("rights",false);
+			idOveride.getParams().add(param2);
+
+			resp = null;
+			
+			try {
+				resp = this.executeIPACall(idOveride, con);
+
+				Map<String,List<String>> attrFromIpa = (Map<String, List<String>>) resp.getResult().getResult();
+				
+				for (String attrName : attrFromIpa.keySet()) {
+					if (attributes.contains(attrName)) {
+						Attribute attrToAdd = new Attribute(attrName);
+						attrToAdd.getValues().addAll(attrFromIpa.get(attrName));
+						user.getAttribs().put(attrName,attrToAdd);
+					}
+				}
+			} catch (IPAException e) {
+				if (! e.getMessage().contains("User ID override not found")) {
+					throw e;
+				} else {
+					request.put("freeipa.exists", false);
+				}
+			}
+
+
 
 			return user;
 		}
@@ -597,6 +688,11 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 
 		if (this.multiDomain) {
 			this.primaryDomain = this.loadOption("primaryDomain", cfg, false);
+			if (cfg.get("trustView") != null) {
+				this.trustViewName = this.loadOption("trustView", cfg, false);
+			} else {
+				this.trustViewName = "Default Trust View";
+			}
 		}
 		
 		
@@ -767,7 +863,28 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 				}
 			}
 		} else {
-			//TODO implement multidomain
+			IPACall idOveride = new IPACall();
+			idOveride.setId(0);
+			idOveride.setMethod("idoverrideuser_mod");
+			List<String> params = new ArrayList<String>();
+			params.add(this.trustViewName);
+			params.add(principal.getUPN());
+			idOveride.getParams().add(params);
+			Map<String,Object> param2 = new HashMap<String,Object>();
+			param2.put("all", true);
+			param2.put("rights",false);
+			param2.put(attrNew.getName(), attrNew.getValues().get(0));
+			idOveride.getParams().add(param2);
+
+			try {
+				IPAResponse resp = this.executeIPACall(idOveride, con);
+			} catch (IPAException e) {
+				if (! e.getMessage().equalsIgnoreCase("no modifications to be performed")) {
+					throw e;
+				}
+			}
+
+			
 		}
 	}
 	
@@ -791,7 +908,26 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 			
 			IPAResponse resp = this.executeIPACall(modify, con);
 		} else {
-			//TODO implement multidomain
+			IPACall idOveride = new IPACall();
+			idOveride.setId(0);
+			idOveride.setMethod("idoverrideuser_mod");
+			List<String> params = new ArrayList<String>();
+			params.add(this.trustViewName);
+			params.add(principal.getUPN());
+			idOveride.getParams().add(params);
+			Map<String,Object> param2 = new HashMap<String,Object>();
+			param2.put("all", true);
+			param2.put("rights",false);
+			param2.put(attrName, "");
+			idOveride.getParams().add(param2);
+
+			try {
+				IPAResponse resp = this.executeIPACall(idOveride, con);
+			} catch (IPAException e) {
+				if (! e.getMessage().equalsIgnoreCase("no modifications to be performed")) {
+					throw e;
+				}
+			}
 		}
 	}
 	
@@ -830,7 +966,12 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 					this.createUser(user, attributes, request);
 				}
 			} else {
-				if (principal.isPrimaryDomain()) {
+				if (! principal.isPrimaryDomain() && request.get("freeipa.exists") != null && ((Boolean)request.get("freeipa.exists")) == false) {
+					this.createUser(user, attributes, request);
+					return;
+				}
+
+				//if (principal.isPrimaryDomain()) {
 					//check to see if the attributes from the incoming object match
 					for (String attrName : attributes) {
 						if (attrName.equalsIgnoreCase("uid")) {
@@ -851,7 +992,7 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 							}
 						}
 					}
-				}
+				//}
 				
 				//check groups
 				HashSet<String> curGroups = new HashSet<String>();
