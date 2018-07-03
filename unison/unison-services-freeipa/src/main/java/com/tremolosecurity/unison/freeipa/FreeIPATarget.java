@@ -266,7 +266,12 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 					for (String attrName : attributes) {
 						Attribute attr = user.getAttribs().get(attrName);
 						if (attr != null) {
-							param2.put(attr.getName(),attr.getValues().get(0));
+							if (attr.getName().equalsIgnoreCase("uid") && ! attr.getValues().get(0).equals(user.getUserID())) {
+								param2.put(attr.getName(),attr.getValues().get(0));
+							} else if (! attr.getName().equalsIgnoreCase("uid")) {
+								param2.put(attr.getName(),attr.getValues().get(0));
+							}
+							
 						}
 					}
 
@@ -863,6 +868,11 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 				}
 			}
 		} else {
+
+			if (attrNew.getName().equalsIgnoreCase("uid") && attrNew.getValues().get(0).equals(principal.getUPN())) {
+				return;
+			} 
+
 			IPACall idOveride = new IPACall();
 			idOveride.setId(0);
 			idOveride.setMethod("idoverrideuser_mod");
