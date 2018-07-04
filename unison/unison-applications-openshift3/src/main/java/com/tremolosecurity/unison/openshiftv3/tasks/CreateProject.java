@@ -77,22 +77,25 @@ public class CreateProject implements CustomTask {
 			String token = os.getAuthToken();
 			con = os.createClient();
 			
-			String respJSON = os.callWSPost(token, con, "/oapi/v1/projectrequests", localTemplate);
-			
-			if (logger.isDebugEnabled()) {
-				logger.debug("Response for creating project : '" + respJSON + "'");
-			}
-			
-			JSONParser parser = new JSONParser();
-			JSONObject resp = (JSONObject) parser.parse(respJSON);
-			String kind = (String) resp.get("kind");
-			String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
-			
-			
-			if (! kind.equalsIgnoreCase("Project")) {
-				throw new ProvisioningException("Could not create project with json '" + localTemplate + "' - '" + respJSON + "'" );
-			} else {
-				this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ActionType.Add,  approvalID, this.task.getWorkflow(), "openshift-project", projectName);
+			if (! os.isObjectExists(token, con, "/apis/project.openshift.io/v1/projects", localTemplate)) {
+
+				String respJSON = os.callWSPost(token, con, "/oapi/v1/projectrequests", localTemplate);
+				
+				if (logger.isDebugEnabled()) {
+					logger.debug("Response for creating project : '" + respJSON + "'");
+				}
+				
+				JSONParser parser = new JSONParser();
+				JSONObject resp = (JSONObject) parser.parse(respJSON);
+				String kind = (String) resp.get("kind");
+				String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
+				
+				
+				if (! kind.equalsIgnoreCase("Project")) {
+					throw new ProvisioningException("Could not create project with json '" + localTemplate + "' - '" + respJSON + "'" );
+				} else {
+					this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ActionType.Add,  approvalID, this.task.getWorkflow(), "openshift-project", projectName);
+				}
 			}
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not create project",e);

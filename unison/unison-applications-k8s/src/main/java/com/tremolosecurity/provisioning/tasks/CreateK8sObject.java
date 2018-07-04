@@ -78,22 +78,25 @@ public class CreateK8sObject implements CustomTask {
             String token = os.getAuthToken();
             con = os.createClient();
 
-            String respJSON = os.callWSPost(token, con, localURL, localTemplate);
+            if (! os.isObjectExists(token, con, localURL,localTemplate)) {
 
-            if (logger.isDebugEnabled()) {
-                logger.debug("Response for creating project : '" + respJSON + "'");
-            }
+                String respJSON = os.callWSPost(token, con, localURL, localTemplate);
 
-            JSONParser parser = new JSONParser();
-            JSONObject resp = (JSONObject) parser.parse(respJSON);
-            String kind = (String) resp.get("kind");
-            String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Response for creating project : '" + respJSON + "'");
+                }
+
+                JSONParser parser = new JSONParser();
+                JSONObject resp = (JSONObject) parser.parse(respJSON);
+                String kind = (String) resp.get("kind");
+                String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
 
 
-            if (! kind.equalsIgnoreCase(this.kind)) {
-                throw new ProvisioningException("Could not create " + kind + " with json '" + localTemplate + "' - '" + respJSON + "'" );
-            } else {
-                this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ProvisioningUtil.ActionType.Add,  approvalID, this.task.getWorkflow(), label, projectName);
+                if (! kind.equalsIgnoreCase(this.kind)) {
+                    throw new ProvisioningException("Could not create " + kind + " with json '" + localTemplate + "' - '" + respJSON + "'" );
+                } else {
+                    this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ProvisioningUtil.ActionType.Add,  approvalID, this.task.getWorkflow(), label, projectName);
+                }
             }
         } catch (Exception e) {
             throw new ProvisioningException("Could not create " + kind,e);

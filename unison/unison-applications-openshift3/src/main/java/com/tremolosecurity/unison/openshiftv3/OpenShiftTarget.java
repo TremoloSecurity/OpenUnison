@@ -43,6 +43,9 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -436,6 +439,36 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		String json = EntityUtils.toString(resp.getEntity());
 		return json;
 	}
+
+	public boolean isObjectExists(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException,ProvisioningException, ParseException {
+		
+		JSONParser parser = new JSONParser();
+		JSONObject root = (JSONObject) parser.parse(json);
+		JSONObject metadata = (JSONObject) root.get("metadata");
+
+		String name = (String) metadata.get("name");
+
+		
+		
+		StringBuffer b = new StringBuffer();
+		
+		b.append(uri).append('/').append(name);
+		
+		
+		json = this.callWS(token, con, b.toString());
+		
+
+		root = (JSONObject) parser.parse(json);
+		if (root.containsKey("kind") && root.get("kind").equals("Status") && ((Long) root.get("code")) == 404) {
+			return false;
+		} else {
+			return true;
+		}
+			
+
+		
+		
+	}
 	
 	public String callWSDelete(String token, HttpCon con,String uri) throws IOException, ClientProtocolException {
 		StringBuffer b = new StringBuffer();
@@ -667,27 +700,34 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			Gson gson = new Gson();
 			
 			
-			
-			com.tremolosecurity.unison.openshiftv3.model.groups.Group group = new com.tremolosecurity.unison.openshiftv3.model.groups.Group();
-			group.setKind("Group");
-			group.setApiVersion("v1");
-			group.setMetadata(new HashMap<String,String>());
-			group.getMetadata().put("name", name);
-			group.getMetadata().put("creationTimestamp", null);
-			group.setUsers(null);
-			String jsonInput = gson.toJson(group);
-			String json = this.callWSPost(token, con, "/oapi/v1/groups", jsonInput);
+			//first lets see if the group exists
+			StringBuilder sb = new StringBuilder();
+			sb.append("/oapi/v1/groups/").append(name);
 
-			Response resp = gson.fromJson(json, Response.class);
+			com.tremolosecurity.unison.openshiftv3.model.groups.Group group = new com.tremolosecurity.unison.openshiftv3.model.groups.Group();
+				group.setKind("Group");
+				group.setApiVersion("v1");
+				group.setMetadata(new HashMap<String,String>());
+				group.getMetadata().put("name", name);
+				group.getMetadata().put("creationTimestamp", null);
+				group.setUsers(null);
+				String jsonInput = gson.toJson(group);
+
+			if (! this.isObjectExists(token, con, "/oapi/v1/groups",jsonInput)) {
+
+				
+				String json = this.callWSPost(token, con, "/oapi/v1/groups", jsonInput);
+
+				Response resp = gson.fromJson(json, Response.class);
+				
+				
+				if (resp.getKind().equalsIgnoreCase("Group")) {
+					this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Add,  approvalID, workflow, "group-object", name);
+				} else {
+					throw new ProvisioningException("Unknown response : '" + json + "'");
+				}
 			
-			
-			if (resp.getKind().equalsIgnoreCase("Group")) {
-				this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Add,  approvalID, workflow, "group-object", name);
-			} else {
-				throw new ProvisioningException("Unknown response : '" + json + "'");
 			}
-			
-			
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not load group",e);
 		} finally {
