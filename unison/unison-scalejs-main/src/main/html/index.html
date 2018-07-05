@@ -182,7 +182,11 @@ limitations under the License.
 							<form name="saveUserForm">
 								<div class="row" ng-repeat="attributeConfig in scale.config.attributes">
 										<div class="col-md-4">{{ attributeConfig.displayName}}</div>
-										<div class="col-md-4" ng-hide="attributeConfig.readOnly" ><input type="text" ng-model="scale.userToSave[attributeConfig.name].value"  aria-label="{{ attributeConfig.displayName }}" /></div>
+										<div class="col-md-4" ng-hide="attributeConfig.readOnly" >
+											<input type="text" ng-show="attributeConfig.type == 'text'" ng-model="scale.userToSave[attributeConfig.name].value"  aria-label="{{ attributeConfig.displayName }}" />
+											<textarea rows="10" cols="30" ng-show="attributeConfig.type == 'textarea'" ng-model="scale.userToSave[attributeConfig.name]"  aria-label="{{ attributeConfig.displayName }}">{{scale.userToSave[attributeConfig.name].value}}</textarea>
+											<select ng-show="attributeConfig.type == 'list'" ng-model="scale.userToSave[attributeConfig.name]"  aria-label="{{ attributeConfig.displayName }}" ng-options="option.name for option in attributeConfig.values track by option.value" convert-to-string></select>
+										</div>
 										<div class="col-md-4" ng-show="attributeConfig.readOnly"><label>{{ scale.attributes[attributeConfig.name] }}</label></div>
 								</div>
 								<div  class="row">

@@ -120,6 +120,7 @@ import com.tremolosecurity.scalejs.data.WorkflowRequest;
 import com.tremolosecurity.scalejs.sdk.UiDecisions;
 import com.tremolosecurity.scalejs.util.ScaleJSUtils;
 import com.tremolosecurity.server.GlobalEntries;
+import com.tremolosecurity.util.NVP;
 
 public class ScaleMain implements HttpFilter {
 
@@ -1483,6 +1484,20 @@ public class ScaleMain implements HttpFilter {
 			val = this.loadOptionalAttributeValue(attributeName + ".mxnChars", attributeName + " Maximum Characters", config);
 			if (val != null) {
 				scaleAttr.setMaxChars(Integer.parseInt(val));
+			}
+
+			val = this.loadOptionalAttributeValue(attributeName + ".type", attributeName + " Attribute Type", config);
+			if (val != null) {
+				scaleAttr.setType(val);
+			}
+			
+			Attribute attrVals = config.getAttribute(attributeName + ".values");
+			if (attrVals != null) {
+				for (String attrVal : attrVals.getValues()) {
+					String valLabel = attrVal.substring(0,attrVal.indexOf('='));
+					String valValue = attrVal.substring(attrVal.indexOf('=') + 1);
+					scaleAttr.getValues().add(new NVP(valLabel,valValue));
+				}
 			}
 			
 			
