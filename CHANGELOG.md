@@ -1,3 +1,31 @@
+## 1.0.15-2018070601
+
+**Tasks:**
+ - 1.0.15 build [\#312](https://github.com/TremoloSecurity/OpenUnison/issues/312)
+ - 1.0.14 build [\#297](https://github.com/TremoloSecurity/OpenUnison/issues/297)
+
+**enhancements:**
+ - Support multiple requests with the same password reset email [\#322](https://github.com/TremoloSecurity/OpenUnison/issues/322)
+ - reuse myvd db pools in db target [\#311](https://github.com/TremoloSecurity/OpenUnison/issues/311)
+ - add support for undertow welcome files [\#317](https://github.com/TremoloSecurity/OpenUnison/issues/317)
+ - ScaleJS Main - support textarea and lists for profile updates [\#321](https://github.com/TremoloSecurity/OpenUnison/issues/321)
+ - Allow parameters for custom authorizations [\#310](https://github.com/TremoloSecurity/OpenUnison/issues/310)
+ - add support for catching error pages [\#315](https://github.com/TremoloSecurity/OpenUnison/issues/315)
+ - Check if k8s/openshift objects exist before creation [\#320](https://github.com/TremoloSecurity/OpenUnison/issues/320)
+ - create task to copy environment variables into workflow request [\#319](https://github.com/TremoloSecurity/OpenUnison/issues/319)
+ - FreeIPA Target - add support for id override [\#318](https://github.com/TremoloSecurity/OpenUnison/issues/318)
+ - support case-insensitive routing [\#314](https://github.com/TremoloSecurity/OpenUnison/issues/314)
+ - Support trusts with freeipa for provisioning [\#301](https://github.com/TremoloSecurity/OpenUnison/issues/301)
+ - provide mechanism for ou to NOT set domain,secure,etc on cookies [\#308](https://github.com/TremoloSecurity/OpenUnison/issues/308)
+ - clear all groups provisioning task [\#307](https://github.com/TremoloSecurity/OpenUnison/issues/307)
+ - enable http2 support in undertow [\#304](https://github.com/TremoloSecurity/OpenUnison/issues/304)
+ - enable unencoded urls in undertow [\#305](https://github.com/TremoloSecurity/OpenUnison/issues/305)
+ - Create key cache [\#302](https://github.com/TremoloSecurity/OpenUnison/issues/302)
+
+**bugs:**
+ - can't send emails to exchange server that won't allow username and password [\#313](https://github.com/TremoloSecurity/OpenUnison/issues/313)
+ - SAML2 - Support multi rp single logout [\#309](https://github.com/TremoloSecurity/OpenUnison/issues/309)
+
 ## 1.0.14-2018050402
 
 **Tasks:**
