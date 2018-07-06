@@ -26,7 +26,7 @@ public class PasswordResetRequest {
 	private String resetKey;
 	private String email;
 	private java.sql.Timestamp ts;
-	
+	private int numRequests;
 	
 	public PasswordResetRequest() {
 		
@@ -66,6 +66,21 @@ public class PasswordResetRequest {
 	}
 	public void setTs(java.sql.Timestamp ts) {
 		this.ts = ts;
+	}
+
+	@Column(name="numRequests")
+	/**
+	 * @return the numRequests
+	 */
+	public int getNumRequests() {
+		return numRequests;
+	}
+
+	/**
+	 * @param numRequests the numRequests to set
+	 */
+	public void setNumRequests(int numRequests) {
+		this.numRequests = numRequests;
 	}
 	
 	

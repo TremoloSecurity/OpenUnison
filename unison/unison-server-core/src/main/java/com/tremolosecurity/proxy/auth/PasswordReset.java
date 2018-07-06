@@ -335,13 +335,21 @@ public class PasswordReset implements AuthMechanism {
 
 		HashMap<String,Attribute> authParams = (HashMap<String,Attribute>) session.getAttribute(ProxyConstants.AUTH_MECH_PARAMS);
 
+		int maxChecks = 0;
+
+		if (authParams.containsKey("maxChecks")) {
+			maxChecks = Integer.parseInt(authParams.get("maxChecks").getValues().get(0));
+		} else {
+			maxChecks = 1;
+		}
 
 		DateTime now = new DateTime().minusMinutes(minValidKey);
 		
 		
-		Query query = con.createQuery("FROM PasswordResetRequest r WHERE r.resetKey = :resetkey AND r.ts > :ts");
+		Query query = con.createQuery("FROM PasswordResetRequest r WHERE r.resetKey = :resetkey AND r.ts > :ts AND r.numRequests < :numRequests");
 		query.setParameter("resetkey", key);
 		query.setParameter("ts", new Timestamp(now.getMillis()));
+		query.setParameter("numRequests", maxChecks);
 		
 		List<PasswordResetRequest> resetRequests = query.list();
 		
@@ -401,7 +409,12 @@ public class PasswordReset implements AuthMechanism {
 			}
 			
 			con.beginTransaction();
-			con.delete(req);
+			req.setNumRequests(req.getNumRequests() + 1);
+			if (req.getNumRequests() < maxChecks) {
+				con.save(req);
+			} else {
+				con.delete(req);
+			}
 			con.getTransaction().commit();
 			
 			
