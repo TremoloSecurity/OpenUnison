@@ -813,6 +813,27 @@ public class PasswordReset implements AuthMechanism {
 	public String getLookupAttributeName() {
 		return lookupAttributeName;
 	}
+
+	public void clearUserRequests(String id) {
+		org.hibernate.Session con = null;
+			try {
+				con = this.sessionFactory.openSession();
+				
+				con.beginTransaction();
+				Query delq = con.createQuery("DELETE FROM PasswordResetRequest r WHERE r.email = :email");
+				delq.setParameter("email", id);
+				delq.executeUpdate();
+				con.getTransaction().commit();
+				
+			
+			} finally {
+				if (con != null) {
+					
+						con.close();
+					
+				}
+			}
+	}
 }
 
 class TokenCleanup implements StopableThread {
