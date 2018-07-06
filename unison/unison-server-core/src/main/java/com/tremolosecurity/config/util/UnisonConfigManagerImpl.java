@@ -267,6 +267,8 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	 * @throws Exception
 	 */
 	public UnisonConfigManagerImpl(String configXML,ServletContext ctx,String name) throws Exception {
+		this.errorPages = new HashMap<Integer,String>();
+		
 		this.configXML = configXML;
 		this.ctx = ctx;
 		this.name = name;
@@ -356,7 +358,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		
 		this.loadMyVD(path, myVdPath);
 
-		this.errorPages = new HashMap<Integer,String>();
+		
 		if (cfg.getApplications().getErrorPage() != null) {
 			for (ErrorPage ep : cfg.getApplications().getErrorPage()) {
 				this.errorPages.put(ep.getCode(), ep.getLocation());
