@@ -46,6 +46,8 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
 		
+		String k8sUserId = K8sUser.sub2uid(user.getUserID());
+		
 		int approvalID = 0;
 		
 		
@@ -60,7 +62,7 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 		createObject.put("kind","User");
 		HashMap<String,Object> metaData = new HashMap<String,Object>();
 		createObject.put("metadata", metaData);
-		metaData.put("name", user.getUserID());
+		metaData.put("name", k8sUserId);
 		metaData.put("namespace",this.nameSpace);
 		
 		HashMap<String,Object> spec = new HashMap<String,Object>();
@@ -83,7 +85,7 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 		}
 		
 		if (attributes.contains("uid")) {
-			spec.put("uid", user.getAttribs().get("uid").getValues().get(0));
+			spec.put("uid", k8sUserId);
 		}
 		
 		
@@ -135,7 +137,7 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 				}
 				
 				if (attributes.contains("uid")) {
-					GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().logAction(this.name,false, ActionType.Add, approvalID, workflow,"uid", user.getAttribs().get("uid").getValues().get(0));
+					GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().logAction(this.name,false, ActionType.Add, approvalID, workflow,"uid", k8sUserId);
 					
 				}
 				
@@ -173,6 +175,9 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 		if (fromServer == null) {
 			this.createUser(user, attributes, request);
 		} else {
+			
+			String k8sUserId = K8sUser.sub2uid(user.getUserID());
+			
 			int approvalID = 0;
 			
 			
@@ -190,7 +195,7 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 				throw new ProvisioningException("Could not connect to kubernetes",e1);
 			}
 			
-			String url = new StringBuilder().append("/apis/openunison.tremolo.io/v1/namespaces/").append(this.nameSpace).append("/users/").append(user.getUserID()).toString();
+			String url = new StringBuilder().append("/apis/openunison.tremolo.io/v1/namespaces/").append(this.nameSpace).append("/users/").append(k8sUserId).toString();
 			
 			HashMap<String,Object> patch = new HashMap<String,Object>();
 			if (attributes.contains("first_name")) {
@@ -284,6 +289,8 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 
 	@Override
 	public void deleteUser(User user, Map<String, Object> request) throws ProvisioningException {
+		String k8sUserId = K8sUser.sub2uid(user.getUserID());
+		
 		int approvalID = 0;
 		
 		
@@ -301,7 +308,7 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 			throw new ProvisioningException("Could not connect to kubernetes",e1);
 		}
 		
-		String url = new StringBuilder().append("/apis/openunison.tremolo.io/v1/namespaces/").append(this.nameSpace).append("/users/").append(user.getUserID()).toString();
+		String url = new StringBuilder().append("/apis/openunison.tremolo.io/v1/namespaces/").append(this.nameSpace).append("/users/").append(k8sUserId).toString();
 		try {
 			HttpCon con = k8s.createClient();
 			
@@ -325,6 +332,7 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 	@Override
 	public User findUser(String userID, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
+		String k8sUserId = K8sUser.sub2uid(userID);
 		OpenShiftTarget k8s = null;
 		try {
 			k8s = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(this.k8sTarget).getProvider();
@@ -333,7 +341,7 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 			throw new ProvisioningException("Could not connect to kubernetes",e1);
 		}
 		
-		String url = new StringBuilder().append("/apis/openunison.tremolo.io/v1/namespaces/").append(this.nameSpace).append("/users/").append(userID).toString();
+		String url = new StringBuilder().append("/apis/openunison.tremolo.io/v1/namespaces/").append(this.nameSpace).append("/users/").append(k8sUserId).toString();
 		ArrayList<Entry> ret = new ArrayList<Entry>();
 		try {
 			HttpCon con = k8s.createClient();
