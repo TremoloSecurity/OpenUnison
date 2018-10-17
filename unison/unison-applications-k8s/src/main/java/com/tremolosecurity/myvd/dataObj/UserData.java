@@ -1,6 +1,6 @@
 package com.tremolosecurity.myvd.dataObj;
 
-public class UserResponse {
+public class UserData {
 	
 	String kind;
 	K8sUser spec;

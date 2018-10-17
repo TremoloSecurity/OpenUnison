@@ -32,6 +32,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
@@ -494,6 +495,24 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		put.addHeader(new BasicHeader("Authorization","Bearer " + token));
 		
 		StringEntity str = new StringEntity(json,ContentType.APPLICATION_JSON);
+		put.setEntity(str);
+		
+		HttpResponse resp = con.getHttp().execute(put);
+		
+		json = EntityUtils.toString(resp.getEntity());
+		return json;
+	}
+	
+	public String callWSPatchJson(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
+		StringBuffer b = new StringBuffer();
+		
+		b.append(this.url).append(uri);
+		HttpPatch put = new HttpPatch(b.toString());
+		b.setLength(0);
+		b.append("Bearer ").append(token);
+		put.addHeader(new BasicHeader("Authorization","Bearer " + token));
+		
+		StringEntity str = new StringEntity(json,ContentType.create("application/merge-patch+json"));
 		put.setEntity(str);
 		
 		HttpResponse resp = con.getHttp().execute(put);

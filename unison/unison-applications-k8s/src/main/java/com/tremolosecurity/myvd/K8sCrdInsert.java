@@ -29,7 +29,7 @@ import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.util.DN;
 import com.novell.ldap.util.RDN;
 import com.tremolosecurity.myvd.dataObj.K8sUser;
-import com.tremolosecurity.myvd.dataObj.UserResponse;
+import com.tremolosecurity.myvd.dataObj.UserData;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.server.GlobalEntries;
@@ -189,7 +189,7 @@ public class K8sCrdInsert implements Insert {
 				
 				
 				
-				K8sUser k8sUser = gson.fromJson(jsonResp, UserResponse.class).getSpec();
+				K8sUser k8sUser = gson.fromJson(jsonResp, UserData.class).getSpec();
 				
 				
 				if (k8sUser == null) {
