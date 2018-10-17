@@ -20,6 +20,8 @@ public class K8sUser {
 	String firstName;
 	String lastName;
 	String email;
+	String uid;
+	
 	List<String> groups;
 	
 	public K8sUser() {
@@ -64,6 +66,14 @@ public class K8sUser {
 
 	public void setGroups(List<String> groups) {
 		this.groups = groups;
+	}
+
+	public String getUid() {
+		return uid;
+	}
+
+	public void setUid(String uid) {
+		this.uid = uid;
 	}
 	
 	

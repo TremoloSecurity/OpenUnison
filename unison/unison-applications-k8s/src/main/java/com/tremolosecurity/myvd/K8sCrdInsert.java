@@ -169,7 +169,7 @@ public class K8sCrdInsert implements Insert {
         	if (base.getDN().equals(this.baseDN)) {
         		String name = userFromFilter(filter.getRoot());
         		
-        		loadUserFromK8sCrd(chain, base, scope, filter, attributes, typesOnly, results, constraints, k8s, name,new StringBuilder().append("sub=").append(name).append(",").append(base.getDN().toString()).toString(),false);
+        		loadUserFromK8sCrd(chain, base, scope, filter, attributes, typesOnly, results, constraints, k8s, name,new StringBuilder().append("uid=").append(name).append(",").append(base.getDN().toString()).toString(),false);
 				return;
         	}
         }
@@ -201,6 +201,7 @@ public class K8sCrdInsert implements Insert {
 				
 					LDAPEntry ldapUser = new LDAPEntry(entryDN);
 					ldapUser.getAttributeSet().add(new LDAPAttribute("objectClass",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getUserObjectClass()));
+					ldapUser.getAttributeSet().add(new LDAPAttribute("uid",k8sUser.getUid()));
 					ldapUser.getAttributeSet().add(new LDAPAttribute("sub",k8sUser.getSub()));
 					ldapUser.getAttributeSet().add(new LDAPAttribute("first_name",k8sUser.getFirstName()));
 					ldapUser.getAttributeSet().add(new LDAPAttribute("last_name",k8sUser.getLastName()));
@@ -273,7 +274,7 @@ public class K8sCrdInsert implements Insert {
 	private String userFromFilter(FilterNode node) {
 		switch (node.getType()) {
 			case EQUALS:
-				if (node.getName().equalsIgnoreCase("sub")) {
+				if (node.getName().equalsIgnoreCase("uid")) {
 					return node.getValue();
 				}
 				break;

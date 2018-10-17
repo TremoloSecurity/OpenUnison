@@ -82,6 +82,10 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 			spec.put("email", user.getAttribs().get("email").getValues().get(0));
 		}
 		
+		if (attributes.contains("uid")) {
+			spec.put("uid", user.getAttribs().get("uid").getValues().get(0));
+		}
+		
 		
 		spec.put("groups",user.getGroups());
 		
@@ -127,6 +131,11 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 				
 				if (attributes.contains("email")) {
 					GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().logAction(this.name,false, ActionType.Add, approvalID, workflow,"email", user.getAttribs().get("email").getValues().get(0));
+					
+				}
+				
+				if (attributes.contains("uid")) {
+					GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().logAction(this.name,false, ActionType.Add, approvalID, workflow,"uid", user.getAttribs().get("uid").getValues().get(0));
 					
 				}
 				
@@ -357,6 +366,10 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 					
 					if (attributes.contains("email")) {
 						user.getAttribs().put("email", new Attribute("email",k8sUser.getEmail()));
+					}
+					
+					if (attributes.contains("uid")) {
+						user.getAttribs().put("uid", new Attribute("uid",k8sUser.getUid()));
 					}
 					
 					
