@@ -49,6 +49,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.log4j.Category;
 import org.apache.log4j.Logger;
 import org.apache.xml.security.utils.Base64;
 import org.hibernate.Query;
@@ -81,9 +82,12 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.AuthChainType;
+import com.tremolosecurity.idp.providers.oidc.db.DbOidcSessionStore;
 import com.tremolosecurity.idp.providers.oidc.model.OIDCSession;
+import com.tremolosecurity.idp.providers.oidc.model.OidcSessionState;
 import com.tremolosecurity.idp.providers.oidc.model.OpenIDConnectConfig;
 import com.tremolosecurity.idp.providers.oidc.session.ClearOidcSessionOnLogout;
+import com.tremolosecurity.idp.providers.oidc.model.OidcSessionStore;
 import com.tremolosecurity.idp.server.IDP;
 import com.tremolosecurity.idp.server.IdentityProvider;
 import com.tremolosecurity.json.Token;
@@ -125,9 +129,13 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	HashMap<String,OpenIDConnectTrust> trusts;
 	String jwtSigningKeyName;
 
-	private SessionFactory sessionFactory;
+	OidcSessionStore sessionStore;
+	
 	
 	private MapIdentity mapper;
+	
+	
+	private String sessionKeyName;
 	
 	public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
@@ -288,7 +296,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		} else if (action.equalsIgnoreCase("userinfo")) {
 			try {
 				processUserInfoRequest(request, response);
-			} catch (JoseException | InvalidJwtException e) {
+			} catch (Exception e) {
 				throw new ServletException("Could not process userinfo request",e);
 			}
 			
@@ -360,9 +368,14 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			String grantType = request.getParameter("grant_type");
 			String refreshToken = request.getParameter("refresh_token");
 
+			
+			logger.info("Client ID : '" + clientID + "'");
+			
 			if (clientID == null) {
+				logger.info("no client id parameter");
 				//this means that the clientid is in the Authorization header
 				String azHeader = request.getHeader("Authorization");
+				logger.info("authorization header :'" + azHeader + "'");
 				azHeader = azHeader.substring(azHeader.indexOf(' ') + 1).trim();
 				azHeader = new String(org.apache.commons.codec.binary.Base64.decodeBase64(azHeader));
 				clientID = azHeader.substring(0,azHeader.indexOf(':'));
@@ -370,6 +383,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			}
 
 
+			logger.info("Final Client ID : '" + clientID + "'");
+			
 			AuthController ac = (AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL);
 			UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
 			
@@ -380,9 +395,11 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			if (refreshToken != null) {
 				try {
 					refreshToken(response, clientID, clientSecret, refreshToken, holder, request, ac.getAuthInfo());
-				} catch (Exception e) {
-					throw new ServletException("Could not refresh token",e);
-				}
+				} catch (Exception e1) {
+					logger.warn("Could not refresh token",e1);
+					AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() ,  "NONE");
+					response.sendError(401);
+				} 
 				
 				
 			} else {
@@ -395,7 +412,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	}
 
 	private void processUserInfoRequest(HttpServletRequest request, HttpServletResponse response)
-			throws IOException, JoseException, InvalidJwtException, UnsupportedEncodingException {
+			throws Exception {
 		AuthController ac = (AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL);
 		UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
 		
@@ -411,7 +428,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		String accessToken = header.substring("Bearer ".length());
 		
-		OIDCSession dbSession = this.getSessionByAccessToken(accessToken);
+		OidcSessionState dbSession = this.getSessionByAccessToken(accessToken);
 		if (dbSession == null) {
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() ,  "NONE");
 			response.sendError(401);
@@ -419,7 +436,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		}
 		
 		JsonWebSignature jws = new JsonWebSignature();
-		jws.setCompactSerialization(dbSession.getIdToken());
+		jws.setCompactSerialization(this.decryptToken(this.trusts.get(dbSession.getClientID()).getCodeLastmileKeyName(), new Gson(), dbSession.getEncryptedIdToken()));
 		jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.jwtSigningKeyName).getPublicKey());
 		
 		if (! jws.verifySignature()) {
@@ -467,10 +484,17 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		byte[] encBytes = org.bouncycastle.util.encoders.Base64.decode(token.getEncryptedRequest());
 		String decryptedRefreshToken = new String(cipher.doFinal(encBytes));
-		
-		OIDCSession session = this.getSessionByRefreshToken(decryptedRefreshToken);
+		logger.info("Decrypted session id : '" + decryptedRefreshToken + "'");
+		OidcSessionState session = this.getSessionByRefreshToken(decryptedRefreshToken);
 
 		if (session == null) {
+			logger.warn("Session does not exist from refresh_token");
+			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
+			response.sendError(401);
+			return;
+		}
+		
+		if (! session.getRefreshToken().equals(refreshToken)) {
 			logger.warn("Session does not exist from refresh_token");
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
 			response.sendError(401);
@@ -488,8 +512,16 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			}
 		}
 		
+		if (session.getExpires().isBeforeNow()) {
+			logger.warn("Session expired");
+			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData, "NONE");
+			response.sendError(401);
+			this.sessionStore.deleteSession(session.getSessionID());
+			return;
+		}
+		
 		JsonWebSignature jws = new JsonWebSignature();
-		jws.setCompactSerialization(session.getIdToken());
+		jws.setCompactSerialization(this.decryptToken(this.trusts.get(session.getClientID()).getCodeLastmileKeyName(), gson, session.getEncryptedIdToken()));
 		jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.jwtSigningKeyName).getPublicKey());
 		
 		if (! jws.verifySignature()) {
@@ -510,12 +542,12 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		jws.setPayload(claims.toJson());
 		jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getPrivateKey(this.jwtSigningKeyName));
 		jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
-		
-		session.setIdToken(jws.getCompactSerialization());
+		String newIdToken = jws.getCompactSerialization();
+		session.setEncryptedIdToken(this.encryptToken( this.trusts.get(session.getClientID()).getCodeLastmileKeyName()  , gson, newIdToken));
 		
 		jws = new JsonWebSignature();
 		jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.jwtSigningKeyName).getPublicKey());
-		jws.setCompactSerialization(session.getAccessToken());
+		jws.setCompactSerialization(this.decryptToken(this.trusts.get(session.getClientID()).getCodeLastmileKeyName(), gson, session.getEncryptedAccessToken()));
 		if (! jws.verifySignature()) {
 			logger.warn("access_token tampered with");
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
@@ -535,48 +567,23 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getPrivateKey(this.jwtSigningKeyName));
 		jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
 		jws.setKeyIdHeaderValue(this.buildKID(GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.jwtSigningKeyName)));
-		session.setAccessToken(jws.getCompactSerialization());
+		String newAccessToken = jws.getCompactSerialization();
+		session.setEncryptedAccessToken( this.encryptToken(trust.getCodeLastmileKeyName(),gson,newAccessToken));
 		
-		UUID newRefreshToken = UUID.randomUUID();
-		session.setRefreshToken(newRefreshToken.toString());
 		
-		String b64 = encryptToken(trusts.get(clientID).getCodeLastmileKeyName(), gson, newRefreshToken);
-		session.setEncryptedRefreshToken(b64);
 		
-		Session db = null;
-		try {
-			db = this.sessionFactory.openSession();
-			
-			OIDCSession loadSession = db.get(OIDCSession.class, session.getId());
-			
-			loadSession.setIdToken(session.getIdToken());
-			loadSession.setAccessToken(session.getAccessToken());
-			loadSession.setRefreshToken(session.getRefreshToken());
-			loadSession.setEncryptedRefreshToken(session.getEncryptedRefreshToken());
-			loadSession.setClientID(session.getClientID());
-			loadSession.setUserDN(session.getUserDN());
-			
-			db.beginTransaction();
-			db.save(loadSession);
-			db.getTransaction().commit();
-			
-			
-		} finally {
-			if (db != null) {
-				if (db.getTransaction() != null && db.getTransaction().isActive()) {
-					db.getTransaction().rollback();
-				}
-				db.close();
-			}
-		}
+		String b64 = encryptToken(trusts.get(clientID).getCodeLastmileKeyName(), gson, session.getSessionID());
+		session.setRefreshToken(b64);
+		
+		this.sessionStore.resetSession(session);
 		
 		OpenIDConnectAccessToken access = new OpenIDConnectAccessToken();
 		
-		access.setAccess_token(session.getAccessToken());
+		access.setAccess_token(newAccessToken);
 		access.setExpires_in((int) (trusts.get(clientID).getAccessTokenTimeToLive() / 1000));
-		access.setId_token(session.getIdToken());
+		access.setId_token(newIdToken);
 		access.setToken_type("Bearer");
-		access.setRefresh_token(session.getEncryptedRefreshToken());
+		access.setRefresh_token(session.getRefreshToken());
 		
 		json = gson.toJson(access);
 		
@@ -636,7 +643,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		Attribute dn = null;
 		Attribute scopes = null;
-		String nonce = null;
+		Attribute nonce = null;
 		
 		for (Attribute attr : lmreq.getAttributes()) {
 			if (attr.getName().equalsIgnoreCase("dn")) {
@@ -644,8 +651,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			} else if (attr.getName().equalsIgnoreCase("scope")) {
 				scopes = attr;
 			} else if (attr.getName().equalsIgnoreCase("nonce")) {
-				nonce = attr.getValues().get(0);
-			}
+				nonce = attr;
+			} 
 		}
 		
 		
@@ -664,6 +671,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			throw new ServletException("Could not request access token",e);
 		}
 		
+		OpenIDConnectAccessToken access = new OpenIDConnectAccessToken();
 		
 		/*
 		lmreq.getAttributes().add(new Attribute("dn",dn.getValues().get(0)));
@@ -676,39 +684,17 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		}*/
 		
 		String accessToken = null;
-		try {
-			accessToken = this.produceJWT(this.generateClaims(dn.getValues().get(0),  cfgMgr, new URL(request.getRequestURL().toString()), trust,nonce),cfgMgr).getCompactSerialization();
-		} catch (JoseException | LDAPException | ProvisioningException e1) {
-			throw new ServletException("Could not generate jwt",e1);
-		} 
+		
+		OidcSessionState oidcSession = createUserSession(request, clientID, holder, trust, dn.getValues().get(0), cfgMgr, access,(nonce != null ? nonce.getValues().get(0) : UUID.randomUUID().toString())); 
 		
 		
 		
 		
 		
 		
-		OpenIDConnectAccessToken access = new OpenIDConnectAccessToken();
 		
-		access.setAccess_token(accessToken);
-		access.setExpires_in((int) (trust.getAccessTokenTimeToLive() / 1000));
-		try {
-			access.setId_token(this.produceJWT(this.generateClaims(dn.getValues().get(0),  cfgMgr, new URL(request.getRequestURL().toString()), trust,nonce),cfgMgr).getCompactSerialization());
-		} catch (Exception e) {
-			throw new ServletException("Could not generate JWT",e);
-		} 
+		access.setRefresh_token(oidcSession.getRefreshToken());
 		
-		access.setToken_type("Bearer");
-		OIDCSession oidcSession = null;
-		
-		try {
-			oidcSession = this.storeSession(access,holder.getApp(),trust.getCodeLastmileKeyName(),request,dn.getValues().get(0),clientID);
-		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException
-				| BadPaddingException e) {
-			throw new ServletException("Could not store session",e);
-		}
-		
-		
-		access.setRefresh_token(oidcSession.getEncryptedRefreshToken());
 		
 		Gson gson = new Gson();
 		String json = gson.toJson(access);
@@ -725,10 +711,84 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		AuthInfo remUser = new AuthInfo();
 		remUser.setUserDN(dn.getValues().get(0));
 		
+		
+		request.getSession().setAttribute(new StringBuilder().append("OIDC_SESSION_ID_").append(this.idpName).toString(), oidcSession.getSessionID());
+		
 		AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, remUser ,  "NONE");
 	}
 
-	public OIDCSession storeSession(OpenIDConnectAccessToken access,ApplicationType app,String codeTokenKeyName,HttpServletRequest request,String userDN,String clientID) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
+	public OidcSessionState createUserSession(HttpServletRequest request, String clientID, UrlHolder holder,
+			OpenIDConnectTrust trust, String dn,  ConfigManager cfgMgr, OpenIDConnectAccessToken access,String nonce)
+			throws UnsupportedEncodingException, IOException, ServletException, MalformedURLException {
+		
+		
+		
+		String sessionID = UUID.randomUUID().toString();
+		String encryptedSessionID = null;
+		
+		try {
+			encryptedSessionID = this.encryptToken(this.sessionKeyName, new Gson(), sessionID);
+		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException
+				| BadPaddingException e2) {
+			throw new ServletException("Could not generate session id",e2);
+		}
+		
+		
+		HashMap<String,String> extraAttribs = new HashMap<String,String>();
+		extraAttribs.put("session_id", encryptedSessionID);
+		String accessToken = null;
+		try {
+			accessToken = this.produceJWT(this.generateClaims(dn,  cfgMgr, new URL(request.getRequestURL().toString()), trust,nonce,extraAttribs),cfgMgr).getCompactSerialization();
+		} catch (JoseException | LDAPException | ProvisioningException e1) {
+			throw new ServletException("Could not generate jwt",e1);
+		} 
+		
+		
+		
+		
+		
+		
+		
+		
+		access.setAccess_token(accessToken);
+		access.setExpires_in((int) (trust.getAccessTokenTimeToLive() / 1000));
+		try {
+			access.setId_token(this.produceJWT(this.generateClaims(dn,  cfgMgr, new URL(request.getRequestURL().toString()), trust,nonce,null),cfgMgr).getCompactSerialization());
+		} catch (Exception e) {
+			throw new ServletException("Could not generate JWT",e);
+		} 
+		
+		access.setToken_type("Bearer");
+		OidcSessionState oidcSession = null;
+		
+		try {			
+			oidcSession = this.storeSession(access, holder.getApp(), trust.getCodeLastmileKeyName(), clientID,dn,sessionID);
+		} catch (Exception e) {
+			throw new ServletException("Could not store session",e);
+		}
+		
+		
+		LogoutUtil.insertFirstLogoutHandler(request, new ClearOidcSessionOnLogout(oidcSession,this));
+		
+		return oidcSession;
+	}
+	
+	public OidcSessionState storeSession(OpenIDConnectAccessToken access,ApplicationType app,String codeTokenKeyName,String clientID, String userDN, String sessionID) throws Exception {
+		Gson gson = new Gson();
+		OidcSessionState sessionState = new OidcSessionState();
+		sessionState.setSessionID(sessionID);
+		sessionState.setEncryptedIdToken(encryptToken(codeTokenKeyName, gson, access.getId_token()));
+		sessionState.setEncryptedAccessToken(encryptToken(codeTokenKeyName, gson, access.getAccess_token()));
+		sessionState.setExpires(new DateTime().plusSeconds(app.getCookieConfig().getTimeout()));
+		sessionState.setUserDN(userDN);
+		sessionState.setRefreshToken(this.encryptToken(codeTokenKeyName, gson, sessionID));
+		sessionState.setClientID(clientID);
+		this.sessionStore.saveUserSession(sessionState);
+		return sessionState;
+		
+	}
+
+	/*public OIDCSession storeSession(OpenIDConnectAccessToken access,ApplicationType app,String codeTokenKeyName,HttpServletRequest request,String userDN,String clientID) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
 		Gson gson = new Gson();
 		
 		OIDCSession session = new OIDCSession();
@@ -771,7 +831,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			}
 		}
 		
-	}
+	}*/
 
 	
 	private String decryptToken(String codeTokenKeyName, Gson gson, String encrypted) throws Exception {
@@ -787,6 +847,38 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		byte[] decBytes = org.bouncycastle.util.encoders.Base64.decode(token.getEncryptedRequest());
 		
 		return new String(cipher.doFinal(decBytes));
+	}
+	
+	private String encryptToken(String codeTokenKeyName, Gson gson, String data)
+			throws UnsupportedEncodingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
+			IllegalBlockSizeException, BadPaddingException, IOException {
+		byte[] bjson = data.getBytes("UTF-8");
+		
+		Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+		cipher.init(Cipher.ENCRYPT_MODE, GlobalEntries.getGlobalEntries().getConfigManager().getSecretKey(codeTokenKeyName));
+		
+		byte[] encJson = cipher.doFinal(bjson);
+		String base64d = new String(org.bouncycastle.util.encoders.Base64.encode(encJson));
+		
+		Token token = new Token();
+		token.setEncryptedRequest(base64d);
+		token.setIv(new String(org.bouncycastle.util.encoders.Base64.encode(cipher.getIV())));
+		
+		
+		byte[] bxml = gson.toJson(token).getBytes("UTF-8");
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		
+		DeflaterOutputStream compressor  = new DeflaterOutputStream(baos,new Deflater(Deflater.BEST_COMPRESSION,true));
+		
+		compressor.write(bxml);
+		compressor.flush();
+		compressor.close();
+		
+		
+		
+		String b64 = new String( org.bouncycastle.util.encoders.Base64.encode(baos.toByteArray()));
+		return b64;
 	}
 	
 	private String encryptToken(String codeTokenKeyName, Gson gson, UUID refreshToken)
@@ -1022,41 +1114,31 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			public void stop() {
 				HashMap<String,OpenIDConnectIdP> oidcIdPs = (HashMap<String, OpenIDConnectIdP>) GlobalEntries.getGlobalEntries().get(UNISON_OPENIDCONNECT_IDPS);
 				if (oidcIdPs != null) {
-					oidcIdPs.remove(localIdPName);
+					OpenIDConnectIdP me = oidcIdPs.remove(localIdPName);
+					try {
+						me.getSessionStore().shutdown();
+					} catch (Exception e) {
+						logger.error("Could not shutdown session store",e);
+					}
 				}
 				
 			}});
 		
-		String driver = init.get("driver").getValues().get(0);
-		logger.info("Driver : '" + driver + "'");
 		
-		String url = init.get("url").getValues().get(0);;
-		logger.info("URL : " + url);
-		String user = init.get("user").getValues().get(0);;
-		logger.info("User : " + user);
-		String pwd = init.get("password").getValues().get(0);;
-		logger.info("Password : **********");
-		
-		
-		int maxCons = Integer.parseInt(init.get("maxCons").getValues().get(0));
-		logger.info("Max Cons : " + maxCons);
-		int maxIdleCons = Integer.parseInt(init.get("maxIdleCons").getValues().get(0));
-		logger.info("maxIdleCons : " + maxIdleCons);
-		
-		String dialect = init.get("dialect").getValues().get(0);
-		logger.info("Hibernate Dialect : '" + dialect + "'");
-		
-		String validationQuery = init.get("validationQuery").getValues().get(0);
-		logger.info("Validation Query : '" + validationQuery + "'");
-		
-		String hibernateConfig = init.get("hibernateConfig") != null ? init.get("hibernateConfig").getValues().get(0) : null;
-		logger.info("HIbernate mapping file : '" + hibernateConfig + "'");
-		
-		String hibernateCreateSchema = init.get("hibernateCreateSchema") != null ? init.get("hibernateCreateSchema").getValues().get(0) : null;
-		logger.info("Can create schema : '" + hibernateCreateSchema + "'");
+        DbOidcSessionStore dbSessionStore = new DbOidcSessionStore();
+        this.sessionStore = dbSessionStore;
+        try {
+			this.sessionStore.init(localIdPName, ctx, init, trustCfg, mapper);
+		} catch (Exception e) {
+			logger.error("Could not initialize session store",e);
+		}
         
-        this.initializeHibernate(driver, user, pwd, url, dialect, maxCons, maxIdleCons, validationQuery,hibernateConfig,hibernateCreateSchema);
+        this.sessionKeyName = GlobalEntries.getGlobalEntries().getConfigManager().getApp(this.idpName).getCookieConfig().getKeyAlias();
 
+	}
+
+	public OidcSessionStore getSessionStore() {
+		return this.sessionStore;
 	}
 
 	public JsonWebSignature generateJWS(JwtClaims claims) throws JoseException, LDAPException, ProvisioningException, MalformedURLException {
@@ -1073,7 +1155,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			url = url.substring(0,end);
 		}
 		
-		return generateClaims(user.getUserDN(), cfg, new URL(url), this.trusts.get(trustName), null);
+		return generateClaims(user.getUserDN(), cfg, new URL(url), this.trusts.get(trustName), null,null);
 	}
 	
 	
@@ -1110,7 +1192,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	    return jws;
 	}
 
-	private JwtClaims generateClaims(String dn, ConfigManager cfg, URL url, OpenIDConnectTrust trust, String nonce)
+	private JwtClaims generateClaims(String dn, ConfigManager cfg, URL url, OpenIDConnectTrust trust, String nonce, HashMap<String, String> extraAttribs)
 			throws LDAPException, ProvisioningException {
 		StringBuffer issuer = new StringBuffer();
 		issuer.append(url.getProtocol()).append("://").append(url.getHost());
@@ -1157,116 +1239,26 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		    	}
 	    	}
 	    }
+	    
+	    
+	    
+	    if (extraAttribs != null) {
+	    	for (String key : extraAttribs.keySet()) {
+	    		claims.setClaim(key, extraAttribs.get(key));
+	    	}
+	    }
+	    
+	    
 		return claims;
 	}
 	
-	private void initializeHibernate(String driver, String user,String password,String url,String dialect,int maxCons,int maxIdleCons,String validationQuery,String mappingFile,String createSchema) {
-		StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder();
-		
-		
-		Configuration config = new Configuration();
-		config.setProperty("hibernate.connection.driver_class", driver);
-		config.setProperty("hibernate.connection.password", password);
-		config.setProperty("hibernate.connection.url", url);
-		config.setProperty("hibernate.connection.username", user);
-		config.setProperty("hibernate.dialect", dialect);
-		
-		if (createSchema == null || createSchema.equalsIgnoreCase("true")) {
-			config.setProperty("hibernate.hbm2ddl.auto", "update");
-		}
-		
-		config.setProperty("show_sql", "true");
-		config.setProperty("hibernate.current_session_context_class", "thread");
-		
-		config.setProperty("hibernate.c3p0.max_size", Integer.toString(maxCons));
-		config.setProperty("hibernate.c3p0.maxIdleTimeExcessConnections", Integer.toString(maxIdleCons));
-		
-		if (validationQuery != null && ! validationQuery.isEmpty()) {
-			config.setProperty("hibernate.c3p0.testConnectionOnCheckout", "true");
-		}
-		config.setProperty("hibernate.c3p0.autoCommitOnClose", "true");
-		
+	
 
-		
-		//config.setProperty("hibernate.c3p0.debugUnreturnedConnectionStackTraces", "true");
-		//config.setProperty("hibernate.c3p0.unreturnedConnectionTimeout", "30");
-		
-		
-		
-		if (validationQuery == null) {
-			validationQuery = "SELECT 1";
-		}
-		config.setProperty("hibernate.c3p0.preferredTestQuery", validationQuery);
-		
-		
-		LoadedConfig lc = null;
-		
-		if (mappingFile == null || mappingFile.trim().isEmpty()) {
-			JaxbCfgHibernateConfiguration jaxbCfg = new JaxbCfgHibernateConfiguration();
-			jaxbCfg.setSessionFactory(new JaxbCfgSessionFactory());
-			
-			JaxbCfgMappingReferenceType mrt = new JaxbCfgMappingReferenceType();
-			mrt.setClazz(OIDCSession.class.getName());
-			jaxbCfg.getSessionFactory().getMapping().add(mrt);
-			
-			lc = LoadedConfig.consume(jaxbCfg);
-		} else {
-			lc = LoadedConfig.baseline(); 
-		}
-		
-		
-		StandardServiceRegistry registry = builder.configure(lc).applySettings(config.getProperties()).build();
+	public void removeSession(OidcSessionState oidcSession) {
 		try {
-			if (mappingFile == null || mappingFile.trim().isEmpty()) {
-				sessionFactory = new MetadataSources( registry ).buildMetadata().buildSessionFactory();
-			} else {
-				sessionFactory = new MetadataSources( registry ).addResource(mappingFile).buildMetadata().buildSessionFactory();
-			}
-			
-			GlobalEntries.getGlobalEntries().getConfigManager().addThread(new StopableThread() {
-
-				@Override
-				public void run() {
-					
-					
-				}
-
-				@Override
-				public void stop() {
-					logger.info("Stopping hibernate");
-					sessionFactory.close();
-					
-				}
-				
-			});
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			// The registry would be destroyed by the SessionFactory, but we had trouble building the SessionFactory
-			// so destroy it manually.
-			StandardServiceRegistryBuilder.destroy( registry );
-		}
-	}
-
-	public void removeSession(OIDCSession session) {
-		Session db = null;
-		try {
-			db = this.sessionFactory.openSession();
-			
-			//check to see if the object still exists
-			OIDCSession lsession = db.get(OIDCSession.class, session.getId());
-			if (lsession != null) {
-				db.beginTransaction();
-				db.delete(lsession);
-				db.getTransaction().commit();
-			}
-		} finally {
-			if (db != null) {
-				if (db.getTransaction() != null && db.getTransaction().isActive()) {
-					db.getTransaction().rollback();
-				}
-				db.close();
-			}
+			this.sessionStore.deleteSession(oidcSession.getSessionID());
+		} catch (Exception e) {
+			logger.error("Could not delete session",e);
 		}
 		
 	}
@@ -1275,101 +1267,34 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		return trusts;
 	}
 
-	public OIDCSession getSessionByRefreshToken(String refreshToken) {
-		Session db = null;
-		try {
-			db = this.sessionFactory.openSession();
-			String hql = "FROM OIDCSession o WHERE o.refreshToken = :refresh_token";
-			Query query = db.createQuery(hql);
-			query.setParameter("refresh_token",refreshToken);
-			List<OIDCSession> results = query.list();
-			if (results == null || results.isEmpty()) {
-				return null;
-			}
-			
-			OIDCSession session = results.get(0);
-			if (new DateTime(session.getSessionExpires()).isBeforeNow()) {
-				db.beginTransaction();
-				db.delete(session);
-				db.getTransaction().commit();
-				return null;
-			} else {
-				return session;
-			}
-		} finally {
-			if (db != null) {
-				if (db.getTransaction() != null && db.getTransaction().isActive()) {
-					db.getTransaction().rollback();
-				}
-				db.close();
-			}
-		}
+	public OidcSessionState getSessionByRefreshToken(String refreshToken) throws Exception {
+		return this.sessionStore.getSession(refreshToken);
 	}
 	
-	public OIDCSession getSessionByAccessToken(String accessToken) {
-		Session db = null;
-		try {
-			db = this.sessionFactory.openSession();
-			String hql = "FROM OIDCSession o WHERE o.accessToken = :access_token";
-			Query query = db.createQuery(hql);
-			query.setParameter("access_token",accessToken);
-			List<OIDCSession> results = query.list();
-			if (results == null || results.isEmpty()) {
-				return null;
-			}
-			
-			OIDCSession session = results.get(0);
-			if (new DateTime(session.getSessionExpires()).isBeforeNow()) {
-				db.beginTransaction();
-				db.delete(session);
-				db.getTransaction().commit();
-				return null;
-			} else {
-				return session;
-			}
-		} finally {
-			if (db != null) {
-				if (db.getTransaction() != null && db.getTransaction().isActive()) {
-					db.getTransaction().rollback();
-				}
-				db.close();
-			}
+	public OidcSessionState getSessionByAccessToken(String accessToken) throws Exception {
+		
+		
+		
+		
+		
+		JsonWebSignature jws = new JsonWebSignature();
+		jws.setCompactSerialization(accessToken);
+		jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.jwtSigningKeyName).getPublicKey());
+		
+		if (! jws.verifySignature()) {
+			throw new Exception("Invalid access_token signature");
 		}
+		
+		JwtClaims claims = JwtClaims.parse(jws.getPayload());
+		String encryptedSessionID = claims.getStringClaimValue("session_id");
+		
+		String sessionID = this.decryptToken(this.sessionKeyName, new Gson(), encryptedSessionID);
+		return this.sessionStore.getSession(sessionID);
+		
 	}
 
-	public void updateToken(OIDCSession session) {
-		Session db = null;
-		ApplicationType app = null;
-		for (ApplicationType at : GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getApplications().getApplication()) {
-			if (at.getName().equals(session.getApplicationName())) {
-				app = at;
-			}
-		}
-		
-		
-		try {
-			db = this.sessionFactory.openSession();
-			
-			//check to see if the object still exists
-			OIDCSession lsession = db.get(OIDCSession.class, session.getId());
-			if (lsession != null) {
-				db.beginTransaction();
-				
-				lsession.setAccessToken(session.getAccessToken());
-				lsession.setIdToken(session.getIdToken());
-				lsession.setSessionExpires(new Timestamp(System.currentTimeMillis() + (app.getCookieConfig().getTimeout() * 1000)));
-				db.save(lsession);
-				
-				db.getTransaction().commit();
-			}
-		} finally {
-			if (db != null) {
-				if (db.getTransaction() != null && db.getTransaction().isActive()) {
-					db.getTransaction().rollback();
-				}
-				db.close();
-			}
-		}
+	public void updateToken(OidcSessionState session) throws Exception {
+		this.sessionStore.resetSession(session);
 		
 	}
 
@@ -1377,46 +1302,17 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		return this.decryptToken(keyName, new Gson(), encryptedClientSecret);
 	}
 
-	public OIDCSession reloadSession(OIDCSession oidcSession) {
-		Session db = null;
-		try {
-			db = this.sessionFactory.openSession();
-			
-			//check to see if the object still exists
-			OIDCSession lsession = db.get(OIDCSession.class, oidcSession.getId());
-			return lsession;
-		} finally {
-			if (db != null) {
-				if (db.getTransaction() != null && db.getTransaction().isActive()) {
-					db.getTransaction().rollback();
-				}
-				db.close();
-			}
-		}
-	}
+	
 
 	public String getJwtSigningKeyName() {
 		return this.jwtSigningKeyName;
 	}
 
 	public void clearExpiredSessions() {
-		Session db = null;
 		try {
-			db = this.sessionFactory.openSession();
-			db.beginTransaction();
-			String hql = "DELETE FROM OIDCSession o WHERE o.sessionExpires <= :exp_ts";
-			Query query = db.createQuery(hql);
-			query.setParameter("exp_ts",new Timestamp(System.currentTimeMillis()));
-			
-			query.executeUpdate();
-			db.getTransaction().commit();
-		} finally {
-			if (db != null) {
-				if (db.getTransaction() != null && db.getTransaction().isActive()) {
-					db.getTransaction().rollback();
-				}
-				db.close();
-			}
+			this.sessionStore.cleanOldSessions();
+		} catch (Exception e) {
+			logger.error("Could not clear sessions",e);
 		}
 		
 	}

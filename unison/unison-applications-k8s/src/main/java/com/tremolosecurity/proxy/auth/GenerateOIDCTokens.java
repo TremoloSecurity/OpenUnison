@@ -87,13 +87,13 @@ public class GenerateOIDCTokens implements AuthMechanism {
 		String trustName = authParams.get("trustName").getValues().get(0);
 		
 		OpenIDConnectToken token = new OpenIDConnectToken(idpName,trustName,request.getRequestURL().toString());
-		
 		try {
-			token.createToken(request);
-		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException
-				| BadPaddingException | MalformedClaimException | JoseException | LDAPException | ProvisioningException e) {
+			token.generateToken(request);
+		} catch (MalformedClaimException | JoseException | LDAPException | ProvisioningException e) {
 			throw new ServletException("Could not generate token",e);
 		}
+		
+		
 			
 		
 		

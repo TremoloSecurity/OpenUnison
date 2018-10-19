@@ -18,20 +18,22 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.tremolosecurity.idp.providers.OpenIDConnectIdP;
 import com.tremolosecurity.idp.providers.oidc.model.OIDCSession;
+import com.tremolosecurity.idp.providers.oidc.model.OidcSessionState;
 import com.tremolosecurity.proxy.logout.LogoutHandler;
 
 public class ClearOidcSessionOnLogout implements LogoutHandler {
 
-	OIDCSession session;
+	OidcSessionState session;
 	OpenIDConnectIdP idp;
 	
-	public ClearOidcSessionOnLogout(OIDCSession session,OpenIDConnectIdP idp) {
+	public ClearOidcSessionOnLogout(OidcSessionState session,OpenIDConnectIdP idp) {
 		this.session = session;
 		this.idp = idp;
 	}
 	
 	@Override
 	public void handleLogout(HttpServletRequest request, HttpServletResponse response) throws ServletException {
+		
 		idp.removeSession(session);
 
 	}

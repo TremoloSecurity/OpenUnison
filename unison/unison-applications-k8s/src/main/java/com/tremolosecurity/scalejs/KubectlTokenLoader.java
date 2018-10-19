@@ -85,14 +85,7 @@ public class KubectlTokenLoader implements TokenLoader {
             return new HashMap<String,String>();
         } else {
 
-            synchronized (token) {
-
-                token.loadFromDB(session);
-
-                if (token.isExpired()) {
-                    token.generateToken(session);
-                }
-            }
+            
 
             /*String kubectlTemplate = "kubectl config set-credentials " + user.getAttribs().get(this.uidAttributeName).getValues().get(0) + "  \\\n" +
                     "        --auth-provider=oidc  \\\n" +

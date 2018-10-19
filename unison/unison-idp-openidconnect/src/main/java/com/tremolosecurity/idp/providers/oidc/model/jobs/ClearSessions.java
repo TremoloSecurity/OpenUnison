@@ -27,6 +27,8 @@ public class ClearSessions extends UnisonJob {
 	@Override
 	public void execute(ConfigManager cfg, JobExecutionContext job) throws ProvisioningException {
 		
+		
+		
 		String idpName = job.getJobDetail().getJobDataMap().getString("idpName");
 		HashMap<String,OpenIDConnectIdP> oidcIdPs = (HashMap<String, OpenIDConnectIdP>) GlobalEntries.getGlobalEntries().get(OpenIDConnectIdP.UNISON_OPENIDCONNECT_IDPS);
 		if (oidcIdPs == null) {

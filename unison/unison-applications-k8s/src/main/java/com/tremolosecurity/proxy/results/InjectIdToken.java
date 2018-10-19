@@ -44,7 +44,7 @@ public class InjectIdToken implements CustomResult {
 			synchronized(token) {
 				if (token.isExpired()) {
 					try {
-						token.generateToken(request.getSession());
+						token.refreshProxyToken(request);
 					} catch (MalformedURLException | MalformedClaimException | JoseException | LDAPException
 							| ProvisioningException e) {
 						throw new ServletException("Could not generate id_token",e);
