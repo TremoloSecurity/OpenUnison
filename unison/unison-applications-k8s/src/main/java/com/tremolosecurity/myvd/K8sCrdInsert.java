@@ -165,13 +165,19 @@ public class K8sCrdInsert implements Insert {
         	}
 
             
-        } else if (scope.getValue() == 1 || scope.getValue() == 2) {
+        } else if (scope.getValue() == 1) {
         	if (base.getDN().equals(this.baseDN)) {
         		String name = userFromFilter(filter.getRoot());
         		
         		loadUserFromK8sCrd(chain, base, scope, filter, attributes, typesOnly, results, constraints, k8s, name,new StringBuilder().append("uid=").append(name).append(",").append(base.getDN().toString()).toString(),false);
 				return;
         	}
+        } else {
+        	//only subtree left
+        	String name = userFromFilter(filter.getRoot());
+    		
+    		loadUserFromK8sCrd(chain, base, scope, filter, attributes, typesOnly, results, constraints, k8s, name,new StringBuilder().append("uid=").append(name).append(",").append(this.baseDN.toString()).toString(),false);
+			return;
         }
 
     }

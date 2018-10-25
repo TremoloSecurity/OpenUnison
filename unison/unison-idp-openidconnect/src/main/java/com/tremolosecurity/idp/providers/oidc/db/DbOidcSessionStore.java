@@ -83,11 +83,11 @@ public class DbOidcSessionStore implements OidcSessionStore {
 			db = this.sessionFactory.openSession();
 			
 			OidcDbSession dbSession = db.get(OidcDbSession.class, sessionId);
-			
-			db.beginTransaction();
-			db.delete(dbSession);
-			db.getTransaction().commit();
-			
+			if (dbSession != null) {
+				db.beginTransaction();
+				db.delete(dbSession);
+				db.getTransaction().commit();
+			}
 		} finally {
 			if (db != null) {
 				if (db.getTransaction() != null && db.getTransaction().isActive()) {

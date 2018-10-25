@@ -369,13 +369,13 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			String refreshToken = request.getParameter("refresh_token");
 
 			
-			logger.info("Client ID : '" + clientID + "'");
+			
 			
 			if (clientID == null) {
-				logger.info("no client id parameter");
+				
 				//this means that the clientid is in the Authorization header
 				String azHeader = request.getHeader("Authorization");
-				logger.info("authorization header :'" + azHeader + "'");
+				
 				azHeader = azHeader.substring(azHeader.indexOf(' ') + 1).trim();
 				azHeader = new String(org.apache.commons.codec.binary.Base64.decodeBase64(azHeader));
 				clientID = azHeader.substring(0,azHeader.indexOf(':'));
@@ -383,7 +383,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			}
 
 
-			logger.info("Final Client ID : '" + clientID + "'");
+			
 			
 			AuthController ac = (AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL);
 			UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
@@ -484,7 +484,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		byte[] encBytes = org.bouncycastle.util.encoders.Base64.decode(token.getEncryptedRequest());
 		String decryptedRefreshToken = new String(cipher.doFinal(encBytes));
-		logger.info("Decrypted session id : '" + decryptedRefreshToken + "'");
+		
 		OidcSessionState session = this.getSessionByRefreshToken(decryptedRefreshToken);
 
 		if (session == null) {
@@ -1125,9 +1125,10 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			}});
 		
 		
-        DbOidcSessionStore dbSessionStore = new DbOidcSessionStore();
-        this.sessionStore = dbSessionStore;
+        String sessionStoreClassName = init.get("sessionStoreClassName") != null ? init.get("sessionStoreClassName").getValues().get(0) : "com.tremolosecurity.idp.providers.oidc.db.DbOidcSessionStore";
+        
         try {
+        	this.sessionStore = (OidcSessionStore) Class.forName(sessionStoreClassName).newInstance();
 			this.sessionStore.init(localIdPName, ctx, init, trustCfg, mapper);
 		} catch (Exception e) {
 			logger.error("Could not initialize session store",e);
@@ -1256,6 +1257,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 	public void removeSession(OidcSessionState oidcSession) {
 		try {
+			
 			this.sessionStore.deleteSession(oidcSession.getSessionID());
 		} catch (Exception e) {
 			logger.error("Could not delete session",e);

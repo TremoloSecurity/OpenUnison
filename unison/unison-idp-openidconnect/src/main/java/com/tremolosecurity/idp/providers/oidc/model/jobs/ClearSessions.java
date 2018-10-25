@@ -35,7 +35,10 @@ public class ClearSessions extends UnisonJob {
 			throw new ProvisioningException("No identity providers");
 		}
 		
+		
 		OpenIDConnectIdP idp = oidcIdPs.get(idpName);
+		
+		
 		
 		idp.clearExpiredSessions();
 		

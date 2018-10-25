@@ -1,0 +1,39 @@
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: oidc-sessions.openunison.tremolo.io
+spec:
+  group: openunison.tremolo.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+  version: v1
+  scope: Namespaced
+  names:
+    plural: oidc-sessions
+    singular: oidc-session
+    kind: OidcSession
+    shortNames:
+    - oidc
+  validation:
+   # openAPIV3Schema is the schema for validating custom objects.
+    openAPIV3Schema:
+      properties:
+        spec:
+          properties:
+            session_id:
+              type: string
+            client_id:
+              type: string
+            encrypted_id_token:
+              type: string
+            encrypted_access_token:
+              type: string
+            expires:
+              type: string
+            user_dn:
+              type: string
+            refresh_token:
+              type: string
