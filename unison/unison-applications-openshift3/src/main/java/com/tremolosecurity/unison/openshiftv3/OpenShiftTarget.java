@@ -14,6 +14,9 @@ package com.tremolosecurity.unison.openshiftv3;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -79,6 +82,8 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	private boolean useToken;
 
 	private String osToken;
+
+	private boolean localToken;
 
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
@@ -551,7 +556,21 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			this.userName = this.loadOption("userName", cfg, false);
 			this.password = this.loadOption("password", cfg, true);
 		} else {
-			this.osToken = this.loadOption("token", cfg, true);
+			
+		
+			
+			this.osToken = this.loadOptionalAttributeValue("token", "Token",cfg);
+			
+			if (this.osToken == null || this.osToken.isEmpty()) {
+				this.localToken = true;
+				try {
+					this.osToken = new String(Files.readAllBytes(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/token")), StandardCharsets.UTF_8);
+				} catch (IOException e) {
+					throw new ProvisioningException("Could not load token",e);
+				}
+			}
+			
+			
 		}
 
 		
