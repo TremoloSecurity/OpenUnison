@@ -549,6 +549,11 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		this.url = this.loadOption("url", cfg, false);
 		
 		
+		if (this.url.isEmpty()) {
+			this.url = new StringBuilder().append("https://").append(System.getenv("KUBERNETES_SERVICE_HOST")).append(":").append(System.getenv("KUBERNETES_SERVICE_PORT")).toString();
+		}
+		
+		
 		String tmpUseToken = this.loadOptionalAttributeValue("useToken", "Use Token", cfg);
 		this.useToken = tmpUseToken != null && tmpUseToken.equalsIgnoreCase("true");
 		
