@@ -217,7 +217,10 @@ public class K8sSessionStore implements OidcSessionStore {
 				
 				logger.info("json response from deleting object : " + jsonResp);
 				Map ret = gson.fromJson(jsonResp, Map.class);
+				Map obj = new HashMap();
+				
 				Map spec = (Map) ret.get("spec");
+				obj.put("spec", spec);
 				
 				if (spec == null) {
 					return;
@@ -230,7 +233,7 @@ public class K8sSessionStore implements OidcSessionStore {
 				
 				
 				
-				jsonResp = k8s.callWSPatchJson(k8s.getAuthToken(), con, url,gson.toJson(spec));
+				jsonResp = k8s.callWSPatchJson(k8s.getAuthToken(), con, url,gson.toJson(obj));
 				logger.info("json response from patch : '" + jsonResp + "'");
 			} finally {
 				con.getHttp().close();

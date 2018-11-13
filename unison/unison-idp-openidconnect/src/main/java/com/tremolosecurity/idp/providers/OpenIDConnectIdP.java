@@ -575,6 +575,9 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		String b64 = encryptToken(trusts.get(clientID).getCodeLastmileKeyName(), gson, session.getSessionID());
 		session.setRefreshToken(b64);
 		
+		session.setExpires(new DateTime().plusSeconds(holder.getApp().getCookieConfig().getTimeout()));
+		
+		
 		this.sessionStore.resetSession(session);
 		
 		OpenIDConnectAccessToken access = new OpenIDConnectAccessToken();
