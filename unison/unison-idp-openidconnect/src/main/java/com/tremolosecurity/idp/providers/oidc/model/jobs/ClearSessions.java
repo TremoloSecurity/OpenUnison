@@ -18,12 +18,15 @@ import org.quartz.JobExecutionContext;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.idp.providers.OpenIDConnectIdP;
+import com.tremolosecurity.idp.providers.oidc.db.DbOidcSessionStore;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.scheduler.UnisonJob;
 import com.tremolosecurity.server.GlobalEntries;
 
 public class ClearSessions extends UnisonJob {
 
+	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(ClearSessions.class.getName());
+	
 	@Override
 	public void execute(ConfigManager cfg, JobExecutionContext job) throws ProvisioningException {
 		
@@ -32,7 +35,7 @@ public class ClearSessions extends UnisonJob {
 		String idpName = job.getJobDetail().getJobDataMap().getString("idpName");
 		HashMap<String,OpenIDConnectIdP> oidcIdPs = (HashMap<String, OpenIDConnectIdP>) GlobalEntries.getGlobalEntries().get(OpenIDConnectIdP.UNISON_OPENIDCONNECT_IDPS);
 		if (oidcIdPs == null) {
-			throw new ProvisioningException("No identity providers");
+			logger.warn("No openid connect identity providers available yet");
 		}
 		
 		
