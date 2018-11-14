@@ -36,6 +36,7 @@ public class ClearSessions extends UnisonJob {
 		HashMap<String,OpenIDConnectIdP> oidcIdPs = (HashMap<String, OpenIDConnectIdP>) GlobalEntries.getGlobalEntries().get(OpenIDConnectIdP.UNISON_OPENIDCONNECT_IDPS);
 		if (oidcIdPs == null) {
 			logger.warn("No openid connect identity providers available yet");
+			return;
 		}
 		
 		
