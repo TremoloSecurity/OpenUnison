@@ -81,12 +81,12 @@
 	<repositories>
 		<repository>
 			<id>tremolosecurity-dependencies</id>
-			<url>https://www.tremolosecurity.com/nexus/content/repositories/dependencies/</url>
+			<url>https://nexus.tremolo.io/repository/dependencies/</url>
 		</repository>
 		<repository>
-			<id>deployment</id>
-			<name>Tremolo Security Releases</name>
-			<url>https://www.tremolosecurity.com/nexus/content/repositories/betas/</url>
+			<id>nexus.tremolo.io</id>
+			<name>tremolo.io-releases</name>
+			<url>https://nexus.tremolo.io/repository/betas/</url>
 		</repository>
 
 		<!-- <repository>
@@ -103,9 +103,9 @@
 
 	<distributionManagement>
 		<repository>
-			<id>deployment</id>
-			<name>Tremolo Security Releases</name>
-			<url>https://www.tremolosecurity.com/nexus/content/repositories/betas</url>
+			<id>nexus.tremolo.io</id>
+			<name>tremolo.io-releases</name>
+			<url>https://nexus.tremolo.io/repository/betas/</url>
 		</repository>
 
 	</distributionManagement>
