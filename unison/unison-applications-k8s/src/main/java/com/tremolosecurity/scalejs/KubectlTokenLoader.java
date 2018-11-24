@@ -85,6 +85,17 @@ public class KubectlTokenLoader implements TokenLoader {
             return new HashMap<String,String>();
         } else {
 
+        	HashMap<String,String> tokens = new HashMap<String,String>();
+        	
+        	String k8sCert = this.cert2pem(this.k8sCaCertName);
+            if (k8sCert != null) {
+                tokens.put("Kubernetes API Server CA Certificate", k8sCert);
+            }
+
+            String ouCert = this.cert2pem(this.unisonCaCertName);
+            if (ouCert != null) {
+                tokens.put("OpenUnison Server CA Certificate",ouCert);
+            }
             
 
             /*String kubectlTemplate = "kubectl config set-credentials " + user.getAttribs().get(this.uidAttributeName).getValues().get(0) + "  \\\n" +
@@ -100,22 +111,19 @@ public class KubectlTokenLoader implements TokenLoader {
             templateObjects.put("user",user);
             templateObjects.put("token",token);
             templateObjects.put("user_id",user.getAttribs().get(this.uidAttributeName).getValues().get(0));
+            templateObjects.put("k8s_b64_cert", new String(Base64.encodeBase64(k8sCert.getBytes("UTF-8"))));
+            templateObjects.put("ou_b64_cert",new String(Base64.encodeBase64(ouCert.getBytes("UTF-8"))));
+            templateObjects.put("k8s_newline_cert",k8sCert.replace("\n", "\\n"));
 
+            
+            
+            
 
-
-            HashMap<String,String> tokens = new HashMap<String,String>();
+            
             tokens.put("kubectl Command",this.renderTemplate(this.kubectlTemplate,templateObjects));
             tokens.put("Usage",this.kubectlUsage);
             
-            String k8sCert = this.cert2pem(this.k8sCaCertName);
-            if (k8sCert != null) {
-                tokens.put("Kubernetes API Server CA Certificate", k8sCert);
-            }
-
-            String ouCert = this.cert2pem(this.unisonCaCertName);
-            if (ouCert != null) {
-                tokens.put("OpenUnison Server CA Certificate",ouCert);
-            }
+            
 
             return tokens;
 
