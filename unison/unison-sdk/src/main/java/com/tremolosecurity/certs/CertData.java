@@ -55,6 +55,8 @@ public class CertData {
 	SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
 
 	boolean caCert;
+	
+	List<String> subjectAlternativeNames = new ArrayList<String>();
 
     public boolean isCaCert() {
 		return this.caCert;
@@ -198,4 +200,14 @@ public class CertData {
 	public static String escpaeRDN(String rdn) {
 		return rdn.replaceAll("[,]", "\\\\,").replaceAll("[+]", "\\\\+").replaceAll("[=]", "\\\\=");
 	}
+
+	public List<String> getSubjectAlternativeNames() {
+		return subjectAlternativeNames;
+	}
+
+	public void setSubjectAlternativeNames(List<String> subjectAlternativeNames) {
+		this.subjectAlternativeNames = subjectAlternativeNames;
+	}
+	
+	
 }
