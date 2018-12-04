@@ -1,5 +1,5 @@
 /*
-Copyright 2015 Tremolo Security, Inc.
+Copyright 2015, 2018 Tremolo Security, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import java.util.Map;
 
 import javax.crypto.SecretKey;
 import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpSession;
@@ -52,6 +53,7 @@ import com.tremolosecurity.config.xml.ResultGroupType;
 import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
+import com.tremolosecurity.proxy.HttpUpgradeRequestManager;
 import com.tremolosecurity.proxy.auth.AuthMechanism;
 import com.tremolosecurity.proxy.auth.sys.AuthManager;
 import com.tremolosecurity.proxy.az.CustomAuthorization;
@@ -356,5 +358,18 @@ public interface ConfigManager {
 	 * @return
 	 */
 	public abstract Map<String,CustomAuthorization> getCustomAuthorizations();
+
+	/**
+	 * Returns an implementation of the upgrade manager
+	 * @return
+	 */
+	public abstract HttpUpgradeRequestManager getUpgradeManager();
+	
+	
+	/**
+	 * Returns the SSLContext
+	 * @return
+	 */
+	public abstract SSLContext getSSLContext();
 
 }

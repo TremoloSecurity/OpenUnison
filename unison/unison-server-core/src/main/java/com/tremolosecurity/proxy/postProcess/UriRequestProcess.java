@@ -1,5 +1,5 @@
 /*
-Copyright 2015 Tremolo Security, Inc.
+Copyright 2015, 2017 Tremolo Security, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.servlet.http.HttpServletRequest;
 
+import com.tremolosecurity.proxy.HttpUpgradeRequestManager;
 import com.tremolosecurity.proxy.ProxySys;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
@@ -66,6 +67,7 @@ import com.tremolosecurity.proxy.ssl.TremoloSSLSocketFactory;
 import com.tremolosecurity.proxy.ssl.TremoloTrustManager;
 import com.tremolosecurity.proxy.util.ProxyTools;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.util.NVP;
 
 public class UriRequestProcess extends PostProcess {
@@ -96,20 +98,40 @@ public class UriRequestProcess extends PostProcess {
 			proxyToURL.append(p.getName()).append('=').append(URLEncoder.encode(p.getValue(),"UTF-8"));
 		}
 		
-		CloseableHttpClient httpclient = this.getHttp(proxyTo, req.getServletRequest(), holder.getConfig());
 		
-		//HttpGet httpget = new HttpGet(proxyToURL.toString());
 		
-		HttpRequestBase httpMethod = new UriMethod(req.getMethod(),proxyToURL.toString());//this.getHttpMethod(proxyToURL.toString());
 		
-		req.setAttribute("TREMOLO_FINAL_URL", proxyToURL.toString());
 		
-		setHeadersCookies(req, holder, httpMethod,proxyToURL.toString());
+		com.tremolosecurity.proxy.HttpUpgradeRequestManager upgradeRequestManager = GlobalEntries.getGlobalEntries().getConfigManager().getUpgradeManager();
+		
+		if (req.getHeader("Connection") != null && req.getHeader("Connection").getValues().get(0).equalsIgnoreCase("Upgrade")) {
+			
+			upgradeRequestManager.proxyWebSocket(req, resp.getServletResponse(),proxyToURL.toString());
+			
+		} else {
+			CloseableHttpClient httpclient = this.getHttp(proxyTo, req.getServletRequest(), holder.getConfig());
+			
+			//HttpGet httpget = new HttpGet(proxyToURL.toString());
+			
+			HttpRequestBase httpMethod = new UriMethod(req.getMethod(),proxyToURL.toString());//this.getHttpMethod(proxyToURL.toString());
+			
+			req.setAttribute("TREMOLO_FINAL_URL", proxyToURL.toString());
+			
+			setHeadersCookies(req, holder, httpMethod,proxyToURL.toString());
 
-		HttpContext ctx = (HttpContext) req.getSession().getAttribute(ProxySys.HTTP_CTX);
-		HttpResponse response = httpclient.execute(httpMethod,ctx);
+			HttpContext ctx = (HttpContext) req.getSession().getAttribute(ProxySys.HTTP_CTX);
+			HttpResponse response = httpclient.execute(httpMethod,ctx);
+			
+			postProcess(req, resp, holder, response,proxyToURL.toString(),chain,httpMethod);
+			
+		}
 		
-		postProcess(req, resp, holder, response,proxyToURL.toString(),chain,httpMethod);
+		
+		
+		
+		
+		
+		
 
 	}
 	

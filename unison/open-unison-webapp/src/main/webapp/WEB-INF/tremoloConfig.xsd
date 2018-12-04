@@ -261,6 +261,11 @@
 				<documentation>Determines the number of threads per route per session.  Defaults to 6 (based on Chrome).  For best performance, should be equal to whichever browser being used most.</documentation>
 			</annotation>
 		</attribute>
+		<attribute name="upgradeHandler" type="string" default="com.tremolosecurity.proxy.undertow.UndertowUpgradeRequestManager">
+			<annotation>
+				<documentation>Implementation of com.tremolosecurity.proxy.HttpUpgradeRequestManager</documentation>
+			</annotation>
+		</attribute>
 	</complexType>
 
 	<complexType name="applicationsType">

@@ -1,5 +1,5 @@
 /*
-Copyright 2015 Tremolo Security, Inc.
+Copyright 2015, 2018 Tremolo Security, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -98,6 +98,7 @@ import com.tremolosecurity.config.xml.ApplicationsType.ErrorPage;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningEngineImpl;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
+import com.tremolosecurity.proxy.HttpUpgradeRequestManager;
 import com.tremolosecurity.proxy.auth.AnonAuth;
 import com.tremolosecurity.proxy.auth.AuthMechanism;
 import com.tremolosecurity.proxy.auth.sys.AuthManager;
@@ -175,7 +176,18 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	private HashMap<String,CustomAuthorization> customAzRules;
 
 	private Map<Integer, String> errorPages;
+	
+	
+	private HttpUpgradeRequestManager upgradeManager;
 
+	private SSLContext sslctx;
+
+	
+	@Override
+	public HttpUpgradeRequestManager getUpgradeManager() {
+		return this.upgradeManager;
+	}
+	
 	
 	@Override
 	public  Map<Integer,String> getErrorPages() {
@@ -219,7 +231,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 			this.ks.setCertificateEntry(alias, cert);
 		}
 		
-		SSLContext sslctx = SSLContexts.custom().loadTrustMaterial(this.ks).loadKeyMaterial(this.ks,this.cfg.getKeyStorePassword().toCharArray()).build();
+		sslctx = SSLContexts.custom().loadTrustMaterial(this.ks).loadKeyMaterial(this.ks,this.cfg.getKeyStorePassword().toCharArray()).build();
 		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslctx,SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 		
 		PlainConnectionSocketFactory sf = PlainConnectionSocketFactory.getSocketFactory();
@@ -343,6 +355,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		this.cache = new HashMap<String,UrlHolder>();
 		
 		
+		this.upgradeManager = (HttpUpgradeRequestManager) Class.forName(this.cfg.getUpgradeHandler()).newInstance();
 		
 		
 		
@@ -1118,6 +1131,12 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	@Override
 	public Map<String, CustomAuthorization> getCustomAuthorizations() {
 		return this.customAzRules;
+	}
+
+
+	@Override
+	public SSLContext getSSLContext() {
+		return this.sslctx;
 	}
 	
 	
