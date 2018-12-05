@@ -43,6 +43,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.restfb.DefaultFacebookClient;
 import com.restfb.FacebookClient;
+import com.restfb.Version;
 import com.restfb.types.User;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UrlHolder;
@@ -118,7 +119,7 @@ public class FacebookLogin implements AuthMechanism {
 			try {
 			session.removeAttribute("AUTOIDM_FB_GETCODE");
 			String accessToken = getFBAccessToken(req, applicationID, applicationSecret, redirectURL,httpClientManager,as);
-			FacebookClient facebookClient = new DefaultFacebookClient(accessToken);
+			FacebookClient facebookClient = new DefaultFacebookClient(accessToken,Version.LATEST);
 			
 				User user = facebookClient.fetchObject("me", User.class);
 				
