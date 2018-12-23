@@ -24,15 +24,48 @@
 	<artifactId>openunison-on-undertow</artifactId>
 
 	<dependencies>
+	<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>${json-simple.version}</version>
+		</dependency>
 	    <dependency>
 	    	<groupId>com.tremolosecurity.unison</groupId>
 	    	<artifactId>unison-service-undertow</artifactId>
 	    	<version>${openunison.version}</version>
 	    </dependency>
+	    <dependency>
+	    	<groupId>com.tremolosecurity.unison</groupId>
+	    	<artifactId>openunison-util-classes</artifactId>
+	    	<version>${openunison.version}</version>
+	    	<exclusions>
+      <exclusion>
+        <groupId>*</groupId>
+        <artifactId>*</artifactId>
+      </exclusion> 
+    </exclusions>
+	    </dependency>
+	    <dependency>
+	    	<groupId>com.tremolosecurity.unison</groupId>
+	    	<artifactId>unison-server-core</artifactId>
+	    	<version>${openunison.version}</version>
+	    	<exclusions>
+      <exclusion>
+        <groupId>*</groupId>
+        <artifactId>*</artifactId>
+      </exclusion> 
+    </exclusions>
+	    </dependency>
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>open-unison-classes</artifactId>
 			<version>${openunison.version}</version>
+			<exclusions>
+      <exclusion>
+        <groupId>*</groupId>
+        <artifactId>*</artifactId>
+      </exclusion> 
+    </exclusions>
 		</dependency>
 				<dependency>
 			<groupId>org.yaml</groupId>

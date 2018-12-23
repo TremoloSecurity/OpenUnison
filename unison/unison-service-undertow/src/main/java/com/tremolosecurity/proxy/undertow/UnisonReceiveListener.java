@@ -40,7 +40,7 @@ import org.xnio.Options;
 import org.xnio.Xnio;
 import org.xnio.XnioWorker;
 
-import com.tremolosecurity.config.util.UnisonConfigManagerImpl;
+
 import com.tremolosecurity.proxy.filter.HttpFilterRequest;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;

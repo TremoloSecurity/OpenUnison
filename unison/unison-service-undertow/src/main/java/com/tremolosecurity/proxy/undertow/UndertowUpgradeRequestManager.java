@@ -44,7 +44,7 @@ import io.undertow.websockets.core.protocol.version08.Hybi08Handshake;
 import io.undertow.websockets.core.protocol.version13.Hybi13Handshake;
 import io.undertow.websockets.spi.WebSocketHttpExchange;
 
-import com.tremolosecurity.embedd.EmbRequest;
+
 
 public class UndertowUpgradeRequestManager implements HttpUpgradeRequestManager {
 

@@ -61,7 +61,7 @@
 		
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
-			<artifactId>unison-server-core</artifactId>
+			<artifactId>unison-sdk</artifactId>
 			<version>${openunison.version}</version>
 			<exclusions>
 				<exclusion>
