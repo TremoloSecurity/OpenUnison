@@ -283,7 +283,7 @@ public class K8sCrdInsert implements Insert {
 				if (node.getName().equalsIgnoreCase("uid")) {
 					return node.getValue();
 				} else if (node.getName().equalsIgnoreCase("sub")) {
-					return K8sUser.sub2uid(node.getValue());
+					return OpenShiftTarget.sub2uid(node.getValue());
 				}
 				break;
 			case AND:
