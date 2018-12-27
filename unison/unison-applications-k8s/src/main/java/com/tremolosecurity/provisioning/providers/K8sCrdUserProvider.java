@@ -61,7 +61,7 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
 		
-		String k8sUserId = K8sUser.sub2uid(user.getUserID());
+		String k8sUserId = OpenShiftTarget.sub2uid(user.getUserID());
 		
 		int approvalID = 0;
 		
@@ -191,7 +191,7 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 			this.createUser(user, attributes, request);
 		} else {
 			
-			String k8sUserId = K8sUser.sub2uid(user.getUserID());
+			String k8sUserId = OpenShiftTarget.sub2uid(user.getUserID());
 			
 			int approvalID = 0;
 			
@@ -304,7 +304,7 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 
 	@Override
 	public void deleteUser(User user, Map<String, Object> request) throws ProvisioningException {
-		String k8sUserId = K8sUser.sub2uid(user.getUserID());
+		String k8sUserId = OpenShiftTarget.sub2uid(user.getUserID());
 		
 		int approvalID = 0;
 		
@@ -347,7 +347,7 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 	@Override
 	public User findUser(String userID, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
-		String k8sUserId = K8sUser.sub2uid(userID);
+		String k8sUserId = OpenShiftTarget.sub2uid(userID);
 		OpenShiftTarget k8s = null;
 		try {
 			k8s = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(this.k8sTarget).getProvider();
