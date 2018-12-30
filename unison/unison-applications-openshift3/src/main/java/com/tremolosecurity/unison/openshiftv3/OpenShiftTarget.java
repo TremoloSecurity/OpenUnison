@@ -849,4 +849,24 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			}
 		}
 	}
+	
+	public static String sub2uid(String sub) {
+		StringBuilder uid = new StringBuilder();
+		for (Character c : sub.toCharArray()) {
+			if (c == '.' || c == '-' || (c >= 'a' && c <= 'z')) {
+				uid.append(c);
+			} else if (c >= 'A' && c <= 'Z') {
+ 				uid.append(Character.toLowerCase(c));
+ 			} else {
+ 				uid.append("x-").append(String.valueOf((int) c.charValue())).append("-x");
+ 			}
+			
+			
+		}
+		
+		
+		
+		return uid.toString();
+		
+	}
 }
