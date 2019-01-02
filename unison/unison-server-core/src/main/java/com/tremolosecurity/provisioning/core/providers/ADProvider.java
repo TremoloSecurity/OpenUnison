@@ -42,8 +42,10 @@ import com.novell.ldap.LDAPSearchResults;
 import com.novell.ldap.LDAPSocketFactory;
 import com.novell.ldap.connectionpool.PoolManager;
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.json.Request;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
+import com.tremolosecurity.provisioning.core.ProvisioningUtil;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.UserStoreProvider;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
@@ -325,7 +327,7 @@ public class ADProvider implements UserStoreProvider {
 					HashSet<String> done = new HashSet<String>();
 					
 					syncUser(user, fromUserOnly, attributes, con, approvalID,
-							workflow, mods, done, ldapUser,isExternal);
+							workflow, mods, done, ldapUser,isExternal,request);
 				}
 			} else {
 				this.createUser(user,attributes,request);
@@ -367,7 +369,7 @@ public class ADProvider implements UserStoreProvider {
 			
 			
 			syncUser(user, fromUserOnly, attributes, con, approvalID,
-					workflow, mods, done, ldapUser,isExternal);
+					workflow, mods, done, ldapUser,isExternal,request);
 			
 		}
 	}
@@ -376,7 +378,7 @@ public class ADProvider implements UserStoreProvider {
 			Set<String> attributes, LDAPConnection con,
 			 int approvalID, Workflow workflow,
 			ArrayList<LDAPModification> mods, HashSet<String> done,
-			LDAPEntry ldapUser, boolean isExternal) throws LDAPException, ProvisioningException {
+			LDAPEntry ldapUser, boolean isExternal,Map<String, Object> request) throws LDAPException, ProvisioningException {
 		
 		
 		
@@ -388,7 +390,19 @@ public class ADProvider implements UserStoreProvider {
 		}
 
 		
+		String syncGroups = (String) request.get(ProvisioningUtil.SKIP_SYNC_GROUPS);
 		
+		if (syncGroups == null || ! syncGroups.equalsIgnoreCase("true")) {
+		
+		
+			syncGroups(user, fromUserOnly, con, approvalID, workflow, done, ldapUser, isExternal);
+		
+		}
+	}
+
+	private void syncGroups(User user, boolean fromUserOnly, LDAPConnection con, int approvalID, Workflow workflow,
+			HashSet<String> done, LDAPEntry ldapUser, boolean isExternal) throws LDAPException, ProvisioningException {
+		LDAPSearchResults res;
 		if (isExternal) {
 			
 			String fdn = ldapUser.getDN();

@@ -37,6 +37,9 @@ public class ProvisioningUtil {
 		 */
 		Replace
 	}
+	
+	
+	public static final String SKIP_SYNC_GROUPS = "com.tremolosecurity.unison.provisioning.SkipSyncGroups";
 }
 
 
