@@ -105,6 +105,9 @@ public class ADProvider implements UserStoreProvider {
 			
 			if (! attributes.contains(attrName)) {
 				continue;
+			} else if (attrName.equalsIgnoreCase("userAccountControl") && request.containsKey(ProvisioningUtil.SET_PASSWORD)) {
+				//we need set this AFTER the password
+				continue;
 			}
 			
 			LDAPAttribute ldap = new LDAPAttribute(attrName);
@@ -386,7 +389,7 @@ public class ADProvider implements UserStoreProvider {
 		
 		if (! isExternal) {
 			syncUserAttributes(user, fromUserOnly, attributes, con, approvalID,
-					workflow, mods, done, ldapUser);
+					workflow, mods, done, ldapUser,request);
 		}
 
 		
@@ -544,7 +547,7 @@ public class ADProvider implements UserStoreProvider {
 	private void syncUserAttributes(User user, boolean fromUserOnly,
 			Set<String> attributes, LDAPConnection con, int approvalID,
 			Workflow workflow, List<LDAPModification> mods,
-			HashSet<String> done, LDAPEntry ldapUser) throws LDAPException,
+			HashSet<String> done, LDAPEntry ldapUser,Map<String,Object> request) throws LDAPException,
 			ProvisioningException {
 		LDAPAttributeSet attrs = ldapUser.getAttributeSet();
 		Iterator<LDAPAttribute> it = attrs.iterator();
@@ -558,7 +561,10 @@ public class ADProvider implements UserStoreProvider {
 				} else {
 					mods.add(new LDAPModification(LDAPModification.DELETE,new LDAPAttribute(ldapAttr.getName())));
 				}
-			} else {
+			} else if (userAttr.getName().equalsIgnoreCase("userAccountControl") && request.containsKey(ProvisioningUtil.SET_PASSWORD)) {
+				//we need set this AFTER the password
+				continue;
+			}  else {
 				HashSet<String> vals = new HashSet<String>();
 				HashSet<String> valslcase = new HashSet<String>();
 				
@@ -567,7 +573,7 @@ public class ADProvider implements UserStoreProvider {
 					if (! valslcase.contains(vlcase)) {
 						vals.add(v);
 						valslcase.add(vlcase);
-					}
+					} 
 				}
 				
 				
@@ -1156,17 +1162,31 @@ public class ADProvider implements UserStoreProvider {
 		
 		int val = Integer.parseInt(attr.getStringValue());
 		
-		if ((val & 2) == 2) {
-			val -= 2;
+		
+		
+		if (! user.getAttribs().containsKey("userAccountControl")) {
+			if ((val & 2) == 2) {
+				val -= 2;
+			}
+			
+			if ((val & 65536) != 65536) {
+				val += 65536;
+			}
+			
+			mod = new LDAPModification(LDAPModification.REPLACE,new LDAPAttribute("userAccountControl",Integer.toString(val)));
+			this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Replace, approvalID, workflow, "userAccountControl",Integer.toString(val));
+			con.modify(dn, mod);
+		} else {
+			int userAccountControlFromUser = Integer.parseInt(user.getAttribs().get("userAccountControl").getValues().get(0));
+			if (val != userAccountControlFromUser) {
+				mod = new LDAPModification(LDAPModification.REPLACE,new LDAPAttribute("userAccountControl",Integer.toString(userAccountControlFromUser)));
+				this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Replace, approvalID, workflow, "userAccountControl",Integer.toString(userAccountControlFromUser));
+				con.modify(dn, mod);
+			}
 		}
 		
-		if ((val & 65536) != 65536) {
-			val += 65536;
-		}
 		
-		mod = new LDAPModification(LDAPModification.REPLACE,new LDAPAttribute("userAccountControl",Integer.toString(val)));
-		this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Replace, approvalID, workflow, "userAccountControl",Integer.toString(val));
-		con.modify(dn, mod);
+		
 	}
 	
 	public LdapConnection checkoutConnection() throws ProvisioningException {

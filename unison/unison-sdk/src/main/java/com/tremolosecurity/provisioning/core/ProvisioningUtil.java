@@ -40,6 +40,8 @@ public class ProvisioningUtil {
 	
 	
 	public static final String SKIP_SYNC_GROUPS = "com.tremolosecurity.unison.provisioning.SkipSyncGroups";
+	
+	public static final String SET_PASSWORD = "com.tremolosecurity.unison.provisioning.SetPassword";
 }
 
 

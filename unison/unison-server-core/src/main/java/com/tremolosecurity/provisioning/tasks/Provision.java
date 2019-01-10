@@ -26,6 +26,7 @@ import com.tremolosecurity.config.xml.WorkflowTaskType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.ProvisioningParams;
 import com.tremolosecurity.provisioning.core.ProvisioningTarget;
+import com.tremolosecurity.provisioning.core.ProvisioningUtil;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.WorkflowTaskImpl;
@@ -102,6 +103,11 @@ public class Provision extends WorkflowTaskImpl {
 		} else {
 			this.target.createUser(user);
 		}*/
+		
+		
+		if (this.setPassword) {
+			request.put(ProvisioningUtil.SET_PASSWORD, Boolean.TRUE);
+		}
 		
 		this.target.syncUser(user, ! this.isSync,request);
 		
