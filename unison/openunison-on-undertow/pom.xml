@@ -73,4 +73,13 @@
 			<version>1.23</version>
 		</dependency>
 	</dependencies>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>xalan</groupId>
+				<artifactId>xalan</artifactId>
+				<version>${xalan.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 </project>
