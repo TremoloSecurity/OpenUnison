@@ -23,51 +23,7 @@
   <artifactId>open-unison-classes</artifactId>
   <name>com.tremolosecurity.unison</name>
   <dependencies>
-  <dependency>
-			<groupId>com.tremolosecurity.unison</groupId>
-			<artifactId>unison-applications-alfresco-4.x</artifactId>
-			<version>${openunison.version}</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>commons-collections</artifactId>
-					<groupId>commons-collections</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>commons-codec</artifactId>
-					<groupId>commons-codec</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>commons-io</artifactId>
-					<groupId>commons-io</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>spring-asm</artifactId>
-					<groupId>org.springframework</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>spring-core</artifactId>
-					<groupId>org.springframework</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>xmlsec</artifactId>
-					<groupId>org.apache.santuario</groupId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.servlet</groupId>
-					<artifactId>servlet-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.servlet</groupId>
-					<artifactId>jstl</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>commons-el</groupId>
-					<artifactId>commons-el</artifactId>
-				</exclusion>
-				
-				
-			</exclusions>
-		</dependency> 
+  
 		
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>

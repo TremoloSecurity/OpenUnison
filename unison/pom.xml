@@ -118,7 +118,6 @@
 		<module>unison-lastmile-tomcat-6</module>
 		<module>unison-applications-drupal</module>
 		<module>unison-applications-sharepoint2007</module>
-		<module>unison-applications-alfresco-4.x</module>
 		<module>unison-applications-sugarcrm-6.x</module>
 		<module>unison-lastmile-sdk</module>
 		<module>unison-provisioning-sdk</module>
