@@ -29,7 +29,6 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -172,7 +171,7 @@ public  class PushRequestProcess extends PostProcess {
 		
 		
 		
-		MultipartRequestEntity frm;
+	
 		
 		CloseableHttpClient httpclient = this.getHttp(proxyToURL.toString(), req.getServletRequest(), holder.getConfig());
 		
