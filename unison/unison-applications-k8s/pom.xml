@@ -77,6 +77,12 @@
 			<version>${openunison.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-scalejs-register</artifactId>
+			<version>${openunison.version}</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 </project>

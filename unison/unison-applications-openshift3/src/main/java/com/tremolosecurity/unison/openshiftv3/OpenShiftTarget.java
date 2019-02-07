@@ -476,6 +476,34 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 	}
 	
+	public boolean isObjectExistsByName(String token, HttpCon con,String uri,String name) throws IOException, ClientProtocolException,ProvisioningException, ParseException {
+		
+		JSONParser parser = new JSONParser();
+		
+		
+
+		
+		
+		StringBuffer b = new StringBuffer();
+		
+		b.append(uri).append('/').append(name);
+		
+		
+		String json = this.callWS(token, con, b.toString());
+		
+
+		JSONObject root = (JSONObject) parser.parse(json);
+		if (root.containsKey("kind") && root.get("kind").equals("Status") && ((Long) root.get("code")) == 404) {
+			return false;
+		} else {
+			return true;
+		}
+			
+
+		
+		
+	}
+	
 	public String callWSDelete(String token, HttpCon con,String uri) throws IOException, ClientProtocolException {
 		StringBuffer b = new StringBuffer();
 		
