@@ -742,7 +742,7 @@ public class SAML2Auth implements AuthMechanism {
 				
 				
 				
-				Saml2SingleLogout handler = new Saml2SingleLogout(logoutURL,sessionIndex,nameID,nameIDFormat,samlResponse.getDestination(),authParams.get("spSigKey").getValues().get(0),authParams.get("sigAlg").getValues().get(0));
+				Saml2SingleLogout handler = new Saml2SingleLogout(logoutURL,sessionIndex,nameID,nameIDFormat,samlResponse.getDestination(),authParams.get("spSigKey").getValues().get(0),authParams.get("sigAlg").getValues().get(0),authParams.get("entityID").getValues().get(0));
 				LogoutUtil.addLogoutHandler(req, handler);
 				
 			}
@@ -1195,6 +1195,7 @@ public class SAML2Auth implements AuthMechanism {
 		String algType = null;
 		String logoutURL = null;
 		String sigKeyName = null;
+		String entityID = null;
 		
 		//Search for the right mechanism configuration
 		for (String chainname : cfgMgr.getAuthChains().keySet()) {
@@ -1204,6 +1205,8 @@ public class SAML2Auth implements AuthMechanism {
 					if (pt.getName().equalsIgnoreCase("entityID") && pt.getValue().equalsIgnoreCase(issuer)) {
 						//found the correct mechanism
 						found = true;
+						
+						 
 						
 						
 						
@@ -1215,7 +1218,7 @@ public class SAML2Auth implements AuthMechanism {
 								logoutURL = ptx.getValue();
 							} else if (ptx.getName().equalsIgnoreCase("idpSigKeyName")) {
 								sigKeyName = ptx.getValue();
-							}
+							} 
 						}
 						
 						break;
@@ -1291,9 +1294,12 @@ public class SAML2Auth implements AuthMechanism {
 			
 		} 
 		
-		response.sendRedirect(logoutURL);
+		response.sendRedirect(new StringBuilder().append(logoutURL).append("?logoutreq=").append(URLEncoder.encode(logout.getID(), "UTF-8")).toString());
 		
-		return logoutURL;
+		
+		
+		//return logoutURL;
+		return null;
 	}
 	
 	private String inflate(String saml) throws Exception {

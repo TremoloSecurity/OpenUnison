@@ -226,6 +226,13 @@ static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonServl
 					if (authMech != null) {
 						String finalURL = authMech.getFinalURL(pr, resp);
 						
+						
+						if (resp.getStatus() == 302) {
+							//redirect sent, stop processing
+							return;
+						}
+						
+						
 						if (finalURL != null) {
 						
 							holder = cfg.findURL(finalURL);

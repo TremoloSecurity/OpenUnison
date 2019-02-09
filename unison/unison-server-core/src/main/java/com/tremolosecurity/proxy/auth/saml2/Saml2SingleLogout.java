@@ -22,27 +22,36 @@ import java.net.URLEncoder;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
+import java.util.Enumeration;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
+import org.opensaml.core.xml.XMLObject;
 import org.opensaml.core.xml.io.Marshaller;
 import org.opensaml.saml.saml2.core.Issuer;
 import org.opensaml.saml.saml2.core.LogoutRequest;
+import org.opensaml.saml.saml2.core.LogoutResponse;
 import org.opensaml.saml.saml2.core.NameID;
 import org.opensaml.saml.saml2.core.SessionIndex;
+import org.opensaml.saml.saml2.core.Status;
+import org.opensaml.saml.saml2.core.StatusCode;
 import org.opensaml.saml.saml2.core.impl.IssuerBuilder;
 import org.opensaml.saml.saml2.core.impl.LogoutRequestBuilder;
 import org.opensaml.saml.saml2.core.impl.LogoutRequestMarshaller;
+import org.opensaml.saml.saml2.core.impl.LogoutResponseBuilder;
 import org.opensaml.saml.saml2.core.impl.NameIDBuilder;
 import org.opensaml.saml.saml2.core.impl.SessionIndexBuilder;
+import org.opensaml.saml.saml2.core.impl.StatusBuilder;
+import org.opensaml.saml.saml2.core.impl.StatusCodeBuilder;
 import org.w3c.dom.Element;
 
 import com.tremolosecurity.config.util.ConfigManager;
@@ -65,6 +74,7 @@ public class Saml2SingleLogout implements LogoutHandler {
 	String assertionConsumerServiceURL;
 	String signingKeyAlias;
 	String digSigAlg;
+	String entityID;
 	
 	private static SecureRandom random;
 	
@@ -76,7 +86,7 @@ public class Saml2SingleLogout implements LogoutHandler {
 		}
 	}
 	
-	public Saml2SingleLogout(String logoutURL,String sessionIndex,String nameID,String nameIDFormat,String assertionConsumerServiceURL,String signingKeyAlias,String digSigAlg) {
+	public Saml2SingleLogout(String logoutURL,String sessionIndex,String nameID,String nameIDFormat,String assertionConsumerServiceURL,String signingKeyAlias,String digSigAlg,String entityID) {
 		this.logoutURL = logoutURL;
 		this.sessionIndex = sessionIndex;
 		this.nameID = nameID;
@@ -84,6 +94,7 @@ public class Saml2SingleLogout implements LogoutHandler {
 		this.assertionConsumerServiceURL = assertionConsumerServiceURL;
 		this.signingKeyAlias = signingKeyAlias;
 		this.digSigAlg = digSigAlg;
+		this.entityID = entityID;
 	}
 	
 	@Override
@@ -109,47 +120,105 @@ public class Saml2SingleLogout implements LogoutHandler {
 		ConfigManager cfgMgr = holder.getConfig();
 		
 		
-		LogoutRequestBuilder lrb = new LogoutRequestBuilder();
-		LogoutRequest lr = lrb.buildObject();
 		
-		DateTime dt = new DateTime();
-		lr.setIssueInstant(dt);
-		
-		lr.setDestination(logoutURL);
-		
+		XMLObject xmlObj = null;
 		byte[] idBytes = new byte[20];
-		random.nextBytes(idBytes);
 		
-		String id = "f" + Hex.encodeHexString(idBytes);
-		lr.setID(id);
 		
-		IssuerBuilder ib = new IssuerBuilder();
-		Issuer issuer = ib.buildObject();
-		issuer.setValue(assertionConsumerServiceURL);
-		lr.setIssuer(issuer);
 		
-		NameIDBuilder nidbpb = new NameIDBuilder();
-		NameID nid = nidbpb.buildObject();
-		//nidp.setFormat("urn:oasis:names:tc:SAML:2.0:nameid-format:unspecified");
-		nid.setFormat(nameIDFormat);
+		String respToKey = request.getParameter("logoutreq");
 		
-		//nid.setSPNameQualifier(assertionConsumerServiceURL);
-		nid.setValue(nameID);
-		lr.setNameID(nid);
+		if (respToKey != null) {
+			LogoutResponseBuilder lrb = new LogoutResponseBuilder();
+			LogoutResponse lr = lrb.buildObject();
+			
+			DateTime dt = new DateTime();
+			lr.setIssueInstant(dt);
+			lr.setInResponseTo(respToKey);
+			lr.setDestination(logoutURL);
+			
+			
+			random.nextBytes(idBytes);
+			
+			String id = "f" + Hex.encodeHexString(idBytes);
+			lr.setID(id);
+			
+			IssuerBuilder ib = new IssuerBuilder();
+			Issuer issuer = ib.buildObject();
+			issuer.setValue(assertionConsumerServiceURL);
+			lr.setIssuer(issuer);
+			
+			
+			
+			StatusCodeBuilder scb = new StatusCodeBuilder();
+			StatusCode statusCode = scb.buildObject();
+			statusCode.setValue("urn:oasis:names:tc:SAML:2.0:status:Success");
+			
+			StatusBuilder sb = new StatusBuilder();
+			Status status = sb.buildObject();
+			status.setStatusCode(statusCode);
+			
+			lr.setStatus(status);
+			
+			xmlObj = lr;
+			
+		} else {
+			LogoutRequestBuilder lrb = new LogoutRequestBuilder();
+			LogoutRequest lr = lrb.buildObject();
+			
+			DateTime dt = new DateTime();
+			lr.setIssueInstant(dt);
+			
+			lr.setDestination(logoutURL);
+			
+			
+			random.nextBytes(idBytes);
+			
+			String id = "f" + Hex.encodeHexString(idBytes);
+			lr.setID(id);
+			
+			IssuerBuilder ib = new IssuerBuilder();
+			Issuer issuer = ib.buildObject();
+			issuer.setValue(assertionConsumerServiceURL);
+			lr.setIssuer(issuer);
+			
+			NameIDBuilder nidbpb = new NameIDBuilder();
+			NameID nid = nidbpb.buildObject();
+			//nidp.setFormat("urn:oasis:names:tc:SAML:2.0:nameid-format:unspecified");
+			nid.setFormat(nameIDFormat);
+			
+			//nid.setSPNameQualifier(assertionConsumerServiceURL);
+			nid.setValue(nameID);
+			lr.setNameID(nid);
+			
+			SessionIndexBuilder sib = new SessionIndexBuilder();
+			SessionIndex si = sib.buildObject();
+			si.setSessionIndex(sessionIndex);
+			lr.getSessionIndexes().add(si);
+			
+			xmlObj = lr;
+		}
 		
-		SessionIndexBuilder sib = new SessionIndexBuilder();
-		SessionIndex si = sib.buildObject();
-		si.setSessionIndex(sessionIndex);
-		lr.getSessionIndexes().add(si);
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		try {
-			// Get the Subject marshaller
-			Marshaller marshaller = new LogoutRequestMarshaller();
+			 
 
-			// Marshall the Subject
-			//Element assertionElement = marshaller.marshall(lr);
+			
 
-			String xml = OpenSAMLUtils.xml2str(lr);
+			String xml = OpenSAMLUtils.xml2str(xmlObj);
 			xml = xml.substring(xml.indexOf("?>") + 2);
 			
 			
@@ -179,7 +248,13 @@ public class Saml2SingleLogout implements LogoutHandler {
 			idBytes = new byte[20];
 			random.nextBytes(idBytes);
 			
-			query.append("SAMLRequest=").append(URLEncoder.encode(b64,"UTF-8")).append("&RelayState=").append(URLEncoder.encode(Hex.encodeHexString(idBytes),"UTF-8"));
+			if (respToKey != null) {
+				query.append("SAMLResponse=");
+			} else {
+				query.append("SAMLRequest=");
+			}
+			
+			query.append(URLEncoder.encode(b64,"UTF-8")).append("&RelayState=").append(URLEncoder.encode(Hex.encodeHexString(idBytes),"UTF-8"));
 			
 			query.append("&SigAlg=").append(URLEncoder.encode(xmlAlg,"UTF-8"));
 			//http://www.w3.org/2000/09/xmldsig#rsa-sha1
