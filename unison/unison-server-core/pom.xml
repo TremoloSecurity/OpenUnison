@@ -116,12 +116,12 @@
 		<dependency>
 			<groupId>com.sun.mail</groupId>
 			<artifactId>mailapi</artifactId>
-			<version>${javax.mail-api.version}</version>
+			<version>${sun.mail-api.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.mail</groupId>
 			<artifactId>smtp</artifactId>
-			<version>${javax.mail-api.version}</version>
+			<version>${sun.mail-api.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.warrenstrange</groupId>

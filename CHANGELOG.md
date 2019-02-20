@@ -1,3 +1,32 @@
+## 1.0.16-2019022001
+
+**Tasks:**
+ - 1.0.16 Build [\#324](https://github.com/TremoloSecurity/OpenUnison/issues/324)
+ - 1.0.15 build [\#312](https://github.com/TremoloSecurity/OpenUnison/issues/312)
+
+**bugs:**
+ - custom mappings fail in idp configs [\#347](https://github.com/TremoloSecurity/OpenUnison/issues/347)
+ - SAML2 auth mech SLO not working properly [\#346](https://github.com/TremoloSecurity/OpenUnison/issues/346)
+ - double groups in db fails to allow login [\#343](https://github.com/TremoloSecurity/OpenUnison/issues/343)
+ - speed up openunison builds [\#336](https://github.com/TremoloSecurity/OpenUnison/issues/336)
+
+**enhancements:**
+ - k8s new project validator [\#345](https://github.com/TremoloSecurity/OpenUnison/issues/345)
+ - AWS Services, integrate s3 proxy [\#51](https://github.com/TremoloSecurity/OpenUnison/issues/51)
+ - Remove support for alfresco [\#344](https://github.com/TremoloSecurity/OpenUnison/issues/344)
+ - better userAccountControl support [\#341](https://github.com/TremoloSecurity/OpenUnison/issues/341)
+ - skip sync groups for AD [\#340](https://github.com/TremoloSecurity/OpenUnison/issues/340)
+ - OpenShift insert for MyVD [\#339](https://github.com/TremoloSecurity/OpenUnison/issues/339)
+ - make oidc idp backend plugable, support CRDs [\#327](https://github.com/TremoloSecurity/OpenUnison/issues/327)
+ - MyVD - Support Kubernetes CRD [\#325](https://github.com/TremoloSecurity/OpenUnison/issues/325)
+ - CRD provisioning target [\#326](https://github.com/TremoloSecurity/OpenUnison/issues/326)
+ - openshift target - pull k8s host from environment variables [\#329](https://github.com/TremoloSecurity/OpenUnison/issues/329)
+ - integrate k8s openunison classes [\#334](https://github.com/TremoloSecurity/OpenUnison/issues/334)
+ - create way to delete k8s objects on a timer [\#335](https://github.com/TremoloSecurity/OpenUnison/issues/335)
+ - Support UPGRADE and websockets [\#332](https://github.com/TremoloSecurity/OpenUnison/issues/332)
+ - scalejs k8s token viewer - make kubectl command that includes certs [\#331](https://github.com/TremoloSecurity/OpenUnison/issues/331)
+ - make no oidc idp a warning, not an exception [\#330](https://github.com/TremoloSecurity/OpenUnison/issues/330)
+
 ## 1.0.15-2018070601
 
 **Tasks:**
