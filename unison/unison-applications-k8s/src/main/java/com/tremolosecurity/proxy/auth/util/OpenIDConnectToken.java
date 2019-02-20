@@ -139,7 +139,7 @@ public class OpenIDConnectToken {
 	}
 
 	public String getEncodedIdJSON() {
-		System.out.println("in encoded json : '" + this.idEncodedJSON + "'");
+		//System.out.println("in encoded json : '" + this.idEncodedJSON + "'");
 		return idEncodedJSON;
 	}
 
