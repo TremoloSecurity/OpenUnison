@@ -130,8 +130,10 @@ public class K8sSessionStore implements OidcSessionStore {
 				
 				String jsonResp = k8s.callWSDelete(k8s.getAuthToken(), con, url);
 				
-				logger.info("json response from deleting object : " + jsonResp);
-				//TODO do something?
+				if (logger.isDebugEnabled()) {
+					logger.info("json response from deleting object : " + jsonResp);
+				}
+				
 			} finally {
 				con.getHttp().close();
 				con.getBcm().close();
