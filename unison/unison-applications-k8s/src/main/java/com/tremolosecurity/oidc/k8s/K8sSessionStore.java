@@ -94,8 +94,9 @@ public class K8sSessionStore implements OidcSessionStore {
 			try {
 				String jsonReq = this.gson.toJson(createObject);
 				String jsonResp = k8s.callWSPost(k8s.getAuthToken(), con, url,jsonReq);
-				
-				logger.info("json response from creating object : " + jsonResp);
+				if (logger.isDebugEnabled()) {
+					logger.debug("json response from creating object : " + jsonResp);
+				}
 				//TODO do something?
 			} finally {
 				con.getHttp().close();
@@ -131,7 +132,7 @@ public class K8sSessionStore implements OidcSessionStore {
 				String jsonResp = k8s.callWSDelete(k8s.getAuthToken(), con, url);
 				
 				if (logger.isDebugEnabled()) {
-					logger.info("json response from deleting object : " + jsonResp);
+					logger.debug("json response from deleting object : " + jsonResp);
 				}
 				
 			} finally {
@@ -166,8 +167,9 @@ public class K8sSessionStore implements OidcSessionStore {
 			try {
 				
 				String jsonResp = k8s.callWS(k8s.getAuthToken(), con, url);
-				
-				logger.info("json response from deleting object : " + jsonResp);
+				if (logger.isDebugEnabled()) {
+					logger.debug("json response from deleting object : " + jsonResp);
+				}
 				Map ret = gson.fromJson(jsonResp, Map.class);
 				Map spec = (Map) ret.get("spec");
 				
@@ -216,8 +218,9 @@ public class K8sSessionStore implements OidcSessionStore {
 			try {
 				
 				String jsonResp = k8s.callWS(k8s.getAuthToken(), con, url);
-				
-				logger.info("json response from deleting object : " + jsonResp);
+				if (logger.isDebugEnabled()) {
+					logger.debug("json response from deleting object : " + jsonResp);
+				}
 				Map ret = gson.fromJson(jsonResp, Map.class);
 				Map obj = new HashMap();
 				
@@ -236,7 +239,9 @@ public class K8sSessionStore implements OidcSessionStore {
 				
 				
 				jsonResp = k8s.callWSPatchJson(k8s.getAuthToken(), con, url,gson.toJson(obj));
-				logger.info("json response from patch : '" + jsonResp + "'");
+				if (logger.isDebugEnabled()) {
+					logger.debug("json response from patch : '" + jsonResp + "'");
+				}
 			} finally {
 				con.getHttp().close();
 				con.getBcm().close();

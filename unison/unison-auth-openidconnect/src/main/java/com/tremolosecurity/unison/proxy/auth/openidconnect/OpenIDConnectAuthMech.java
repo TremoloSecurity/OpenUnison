@@ -45,7 +45,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.log4j.Logger;
-
+import org.jose4j.json.internal.json_simple.JSONArray;
+import org.jose4j.json.internal.json_simple.JSONObject;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
@@ -405,7 +406,24 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 		
 		for (Object o : jwtNVP.keySet()) {
 			String s = (String) o;
-			Attribute attr = new Attribute(s,jwtNVP.get(s).toString());
+			
+			Attribute attr;
+			
+			Object oAttr = jwtNVP.get(s);
+			
+			logger.info(s + " type - '" + oAttr.getClass().getName() + "'");
+			
+			if (oAttr.getClass().isArray()) {
+				attr = new Attribute(s);
+				Object[] objArray = (Object[]) oAttr;
+				for (Object v : objArray) {
+					attr.getValues().add(v.toString());
+				}
+			} else {
+				attr = new Attribute(s,oAttr.toString());
+			}
+			
+			 
 			authInfo.getAttribs().put(attr.getName(), attr);
 			
 		}
