@@ -76,6 +76,8 @@ public class K8sCrdInsert implements Insert {
 	
 	Gson gson;
 
+	private boolean alwaysMapUIDInFilter;
+	
     @Override
     public String getName() {
         return name;
@@ -92,6 +94,8 @@ public class K8sCrdInsert implements Insert {
         this.nameSpace = props.getProperty("nameSpace");
         
         this.k8sTarget = props.getProperty("k8sTargetName");
+        
+        this.alwaysMapUIDInFilter = props.getProperty("alwaysMapUIDInFilter") != null && props.getProperty("alwaysMapUIDInFilter").equalsIgnoreCase("true");
         
 
     }
@@ -281,7 +285,12 @@ public class K8sCrdInsert implements Insert {
 		switch (node.getType()) {
 			case EQUALS:
 				if (node.getName().equalsIgnoreCase("uid")) {
-					return node.getValue();
+					
+					if (this.alwaysMapUIDInFilter) {
+						return OpenShiftTarget.sub2uid(node.getValue());
+					} else {
+						return node.getValue();
+					}
 				} else if (node.getName().equalsIgnoreCase("sub")) {
 					return OpenShiftTarget.sub2uid(node.getValue());
 				}
