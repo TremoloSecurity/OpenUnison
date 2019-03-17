@@ -1409,8 +1409,15 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				ConnectionFactory cf = (ConnectionFactory) Class.forName(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getConnectionFactory()).newInstance();
 				for (ParamType pt : this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getParam()) {
 					String methodName = "set" + pt.getName().toUpperCase().charAt(0) + pt.getName().substring(1);
-					Method m = Class.forName(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getConnectionFactory()).getMethod(methodName, String.class);
-					m.invoke(cf, pt.getValue());
+					
+					try {
+						Method m = Class.forName(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getConnectionFactory()).getMethod(methodName, String.class);
+						m.invoke(cf, pt.getValue());
+					} catch (NoSuchMethodException e) {
+						//lets try int
+						Method m = Class.forName(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getConnectionFactory()).getMethod(methodName, int.class);
+						m.invoke(cf, Integer.parseInt(pt.getValue()));
+					}
 				}
 				
 				javax.jms.Connection con = cf.createConnection();
