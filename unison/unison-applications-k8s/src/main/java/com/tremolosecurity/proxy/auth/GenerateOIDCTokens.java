@@ -85,8 +85,15 @@ public class GenerateOIDCTokens implements AuthMechanism {
 		
 		String idpName = authParams.get("idpName").getValues().get(0);
 		String trustName = authParams.get("trustName").getValues().get(0);
+		String overrideURL = request.getRequestURL().toString();
 		
-		OpenIDConnectToken token = new OpenIDConnectToken(idpName,trustName,request.getRequestURL().toString());
+		if (authParams.get("overrideURL") != null) {
+			overrideURL = authParams.get("overrideURL").getValues().get(0);
+		}
+		
+		
+		
+		OpenIDConnectToken token = new OpenIDConnectToken(idpName,trustName,overrideURL);
 		try {
 			token.generateToken(request);
 		} catch (MalformedClaimException | JoseException | LDAPException | ProvisioningException e) {
