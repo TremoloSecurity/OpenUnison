@@ -4,15 +4,8 @@
  - 1.0.16 Build [\#324](https://github.com/TremoloSecurity/OpenUnison/issues/324)
  - 1.0.15 build [\#312](https://github.com/TremoloSecurity/OpenUnison/issues/312)
 
-**bugs:**
- - support integers in jms factory methods [\#350](https://github.com/TremoloSecurity/OpenUnison/issues/350)
- - multi-valued attributes not loading from claims for oidc auth mech [\#348](https://github.com/TremoloSecurity/OpenUnison/issues/348)
- - custom mappings fail in idp configs [\#347](https://github.com/TremoloSecurity/OpenUnison/issues/347)
- - SAML2 auth mech SLO not working properly [\#346](https://github.com/TremoloSecurity/OpenUnison/issues/346)
- - double groups in db fails to allow login [\#343](https://github.com/TremoloSecurity/OpenUnison/issues/343)
- - speed up openunison builds [\#336](https://github.com/TremoloSecurity/OpenUnison/issues/336)
-
 **enhancements:**
+ - genoidctokens needs host override [\#352](https://github.com/TremoloSecurity/OpenUnison/issues/352)
  - k8s myvd - add flag for always mapping uid [\#349](https://github.com/TremoloSecurity/OpenUnison/issues/349)
  - k8s new project validator [\#345](https://github.com/TremoloSecurity/OpenUnison/issues/345)
  - AWS Services, integrate s3 proxy [\#51](https://github.com/TremoloSecurity/OpenUnison/issues/51)
@@ -30,6 +23,13 @@
  - scalejs k8s token viewer - make kubectl command that includes certs [\#331](https://github.com/TremoloSecurity/OpenUnison/issues/331)
  - make no oidc idp a warning, not an exception [\#330](https://github.com/TremoloSecurity/OpenUnison/issues/330)
 
+**bugs:**
+ - support integers in jms factory methods [\#350](https://github.com/TremoloSecurity/OpenUnison/issues/350)
+ - multi-valued attributes not loading from claims for oidc auth mech [\#348](https://github.com/TremoloSecurity/OpenUnison/issues/348)
+ - custom mappings fail in idp configs [\#347](https://github.com/TremoloSecurity/OpenUnison/issues/347)
+ - SAML2 auth mech SLO not working properly [\#346](https://github.com/TremoloSecurity/OpenUnison/issues/346)
+ - double groups in db fails to allow login [\#343](https://github.com/TremoloSecurity/OpenUnison/issues/343)
+ - speed up openunison builds [\#336](https://github.com/TremoloSecurity/OpenUnison/issues/336)
 
 ## 1.0.15-2018070601
 
