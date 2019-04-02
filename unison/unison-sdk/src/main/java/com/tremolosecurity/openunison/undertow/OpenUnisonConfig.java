@@ -14,33 +14,23 @@ package com.tremolosecurity.openunison.undertow;
 
 import java.util.List;
 
-public class OpenUnisonConfig {
+import com.tremolosecurity.openunison.myvd.ListenerConfig;
+
+public class OpenUnisonConfig extends ListenerConfig {
 	
 	
 	
-	int openPort;
+	
 	int openExternalPort;
-	int securePort;
+	
 	int secureExternalPort;
 	boolean forceToSecure;
 	String activemqDir;
-	String secureKeyAlias;
 	
-	String clientAuth;
-	List<String> allowedClientNames;
-	List<String> ciphers;
-	
-	String pathToDeployment;
-	String pathToEnvFile;
-	
-	List<String> allowedTlsProtocols;
 	
 	String quartzDir;
 	
-	boolean socketShutdownListener;
-	String socketShutdownHost;
-	int socketShutdownPort;
-	String socketShutdownCommand;
+	
 
 	String contextRoot;
 
@@ -69,24 +59,14 @@ public class OpenUnisonConfig {
 		this.forceToLowerCase = forceToLowerCase;
 	}
 	
-	public int getOpenPort() {
-		return openPort;
-	}
-	public void setOpenPort(int openPort) {
-		this.openPort = openPort;
-	}
+	
 	public int getOpenExternalPort() {
 		return openExternalPort;
 	}
 	public void setOpenExternalPort(int openExternalPort) {
 		this.openExternalPort = openExternalPort;
 	}
-	public int getSecurePort() {
-		return securePort;
-	}
-	public void setSecurePort(int securePort) {
-		this.securePort = securePort;
-	}
+	
 	public int getSecureExternalPort() {
 		return secureExternalPort;
 	}
@@ -105,78 +85,14 @@ public class OpenUnisonConfig {
 	public void setActivemqDir(String activemqDir) {
 		this.activemqDir = activemqDir;
 	}
-	public String getClientAuth() {
-		return clientAuth;
-	}
-	public void setClientAuth(String clientAuth) {
-		this.clientAuth = clientAuth;
-	}
-	public List<String> getAllowedClientNames() {
-		return allowedClientNames;
-	}
-	public void setAllowedClientNames(List<String> allowedClientNames) {
-		this.allowedClientNames = allowedClientNames;
-	}
-	public List<String> getCiphers() {
-		return ciphers;
-	}
-	public void setCiphers(List<String> ciphers) {
-		this.ciphers = ciphers;
-	}
-	public String getPathToDeployment() {
-		return pathToDeployment;
-	}
-	public void setPathToDeployment(String pathToDeployment) {
-		this.pathToDeployment = pathToDeployment;
-	}
-	public String getPathToEnvFile() {
-		return pathToEnvFile;
-	}
-	public void setPathToEnvFile(String pathToEnvFile) {
-		this.pathToEnvFile = pathToEnvFile;
-	}
-	public String getSecureKeyAlias() {
-		return secureKeyAlias;
-	}
-	public void setSecureKeyAlias(String secureKeyAlias) {
-		this.secureKeyAlias = secureKeyAlias;
-	}
-	public List<String> getAllowedTlsProtocols() {
-		return allowedTlsProtocols;
-	}
-	public void setAllowedTlsProtocols(List<String> allowedTlsProtocols) {
-		this.allowedTlsProtocols = allowedTlsProtocols;
-	}
+	
 	public String getQuartzDir() {
 		return quartzDir;
 	}
 	public void setQuartzDir(String quartzDir) {
 		this.quartzDir = quartzDir;
 	}
-	public boolean isSocketShutdownListener() {
-		return socketShutdownListener;
-	}
-	public void setSocketShutdownListener(boolean socketShutdownListener) {
-		this.socketShutdownListener = socketShutdownListener;
-	}
-	public String getSocketShutdownHost() {
-		return socketShutdownHost;
-	}
-	public void setSocketShutdownHost(String socketShutdownHost) {
-		this.socketShutdownHost = socketShutdownHost;
-	}
-	public int getSocketShutdownPort() {
-		return socketShutdownPort;
-	}
-	public void setSocketShutdownPort(int socketShutdownPort) {
-		this.socketShutdownPort = socketShutdownPort;
-	}
-	public String getSocketShutdownCommand() {
-		return socketShutdownCommand;
-	}
-	public void setSocketShutdownCommand(String socketShutdownCommand) {
-		this.socketShutdownCommand = socketShutdownCommand;
-	}
+	
 
 	public String getContextRoot() {
 		return contextRoot;
