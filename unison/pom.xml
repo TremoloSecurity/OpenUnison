@@ -40,7 +40,7 @@
 		<bcprov-ext-jdk15on.version>1.61</bcprov-ext-jdk15on.version>
 		<catalina.version>6.0.53</catalina.version>
 		<undertow-1x.version>1.0.0.Final</undertow-1x.version>
-		<myvd-server.version>1.0.5</myvd-server.version>
+		<myvd-server.version>1.0.6</myvd-server.version>
 		<jldap.version>1.0.0</jldap.version>
 		<httpclient.version>4.5.7</httpclient.version>
 		<httpcore.version>4.4.11</httpcore.version>
@@ -162,6 +162,7 @@
 		<module>openunison-on-undertow</module>
 		<module>openunison-util-classes</module>
 		<module>unison-service-undertow</module>
+		<module>myvirtualdirectory-server</module>
 	</modules>
 	<build>
 		<plugins>
