@@ -838,6 +838,51 @@ limitations under the License.
 			$scope.scale.showModal = true;
 			
       };
+      
+      this.cleanPortalOrgs = function(org) {
+    	  var to_keep = [];
+    	  for (var i=0;i<org.subOrgs.length;i++) {
+    		  if (org.subOrgs[i].showInPortal) {
+    			  to_keep.push(org.subOrgs[i]);
+    			  $scope.scale.cleanPortalOrgs(org.subOrgs[i]);
+    		  } 
+    	  }
+    	  
+    	  org.subOrgs = to_keep;
+    	  
+    	  return org;
+    	  
+      };
+      
+      this.cleanRequestOrgs = function(org) {
+    	  var to_keep = [];
+    	  for (var i=0;i<org.subOrgs.length;i++) {
+    		  if (org.subOrgs[i].showInRequest) {
+    			  to_keep.push(org.subOrgs[i]);
+    			  $scope.scale.cleanRequestOrgs(org.subOrgs[i]);
+    		  } 
+    	  }
+    	  
+    	  org.subOrgs = to_keep;
+    	  
+    	  return org;
+    	  
+      };
+      
+      this.cleanReportOrgs = function(org) {
+    	  var to_keep = [];
+    	  for (var i=0;i<org.subOrgs.length;i++) {
+    		  if (org.subOrgs[i].showInReports) {
+    			  to_keep.push(org.subOrgs[i]);
+    			  $scope.scale.cleanReportOrgs(org.subOrgs[i]);
+    		  } 
+    	  }
+    	  
+    	  org.subOrgs = to_keep;
+    	  
+    	  return org;
+    	  
+      };
 
       angular.element(document).ready(function () {
 
@@ -910,18 +955,18 @@ limitations under the License.
 
                 $http.get('main/orgs').
                   then(function(response) {
-                    $scope.scale.orgs = [response.data];
+                    $scope.scale.orgs = [$scope.scale.cleanRequestOrgs(JSON.parse(JSON.stringify(response.data)))];
                     $scope.scale.requestAccessOrgsSelectedNode = $scope.scale.orgs[0];
                     $scope.scale.requestAccessOrgsExpandedNodes =[$scope.scale.orgs[0]];
                     $scope.scale.selectRequestAccessOrg($scope.scale.orgs[0]);
 
-                    $scope.scale.reportOrgs = [JSON.parse(JSON.stringify(response.data))];
+                    $scope.scale.reportOrgs = [$scope.scale.cleanReportOrgs(JSON.parse(JSON.stringify(response.data)))];
                     $scope.scale.reportOrgsSelectedNode = $scope.scale.reportOrgs[0];
                     $scope.scale.reportOrgsExpandedNodes = [$scope.scale.reportOrgs[0]];
                     $scope.scale.selectReportOrg($scope.scale.reportOrgsSelectedNode);
 
                     if ($scope.scale.config.showPortalOrgs) {
-                      $scope.scale.portalOrgs = [JSON.parse(JSON.stringify(response.data))];
+                      $scope.scale.portalOrgs = [$scope.scale.cleanPortalOrgs(JSON.parse(JSON.stringify(response.data)))];
                       $scope.scale.portalOrgsSelectedNode = $scope.scale.portalOrgs[0];
                       $scope.scale.portalOrgsExpandedNodes = [$scope.scale.portalOrgs[0]];
                       $scope.scale.selectPortalOrgs($scope.scale.portalOrgsSelectedNode);

@@ -26,6 +26,10 @@ public class Organization {
 	String name;
 	String description;
 	
+	boolean showInPortal;
+	boolean showInRequest;
+	boolean showInReports;
+	
 	List<Organization> subOrgs;
 	
 	public Organization() {
@@ -62,6 +66,30 @@ public class Organization {
 
 	public void setSubOrgs(List<Organization> subOrgs) {
 		this.subOrgs = subOrgs;
+	}
+
+	public boolean isShowInPortal() {
+		return showInPortal;
+	}
+
+	public void setShowInPortal(boolean showInPortal) {
+		this.showInPortal = showInPortal;
+	}
+
+	public boolean isShowInRequest() {
+		return showInRequest;
+	}
+
+	public void setShowInRequest(boolean showInRequest) {
+		this.showInRequest = showInRequest;
+	}
+
+	public boolean isShowInReports() {
+		return showInReports;
+	}
+
+	public void setShowInReports(boolean showInReports) {
+		this.showInReports = showInReports;
 	}
 	
 	

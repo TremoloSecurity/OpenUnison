@@ -1864,6 +1864,21 @@
 				</documentation>
 			</annotation>
 		</attribute>
+		<attribute name="showInPortal" type="boolean" default="true">
+			<annotation>
+				<documentation>If true, shown on the portal screen in scalejs</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="showInRequestsAccess" type="boolean" default="true">
+			<annotation>
+				<documentation>If true, shown on the request access screen in scalejs</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="showInReports" type="boolean" default="true">
+			<annotation>
+				<documentation>If true, shown on the reports screen in scalejs</documentation>
+			</annotation>
+		</attribute>
 	</complexType>
 
 

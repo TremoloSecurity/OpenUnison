@@ -1181,6 +1181,9 @@ public class ScaleMain implements HttpFilter {
 		org.setId(ot.getUuid());
 		org.setName(ot.getName());
 		org.setDescription(ot.getDescription());
+		org.setShowInPortal(ot.isShowInPortal());
+		org.setShowInReports(ot.isShowInReports());
+		org.setShowInRequest(ot.isShowInRequestsAccess());
 		
 		for (OrgType child : ot.getOrgs()) {
 			Organization sub = new Organization();
