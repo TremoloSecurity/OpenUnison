@@ -17,6 +17,7 @@ import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 
 import org.apache.http.NameValuePair;
@@ -58,6 +59,7 @@ import com.tremolosecurity.scalejs.register.data.NewUserRequest;
 import com.tremolosecurity.scalejs.register.data.ReCaptchaResponse;
 import com.tremolosecurity.scalejs.register.data.SubmitResponse;
 import com.tremolosecurity.scalejs.register.sdk.CreateRegisterUser;
+import com.tremolosecurity.scalejs.sdk.SourceList;
 import com.tremolosecurity.scalejs.util.ScaleJSUtils;
 import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.util.NVP;
@@ -76,7 +78,28 @@ public class ScaleRegister implements HttpFilter {
 		if (request.getRequestURI().endsWith("/register/config")) {
 			response.setContentType("application/json");
 			ScaleJSUtils.addCacheHeaders(response);
-			response.getWriter().println(gson.toJson(scaleConfig).trim());
+			
+			ScaleJSRegisterConfig localCfg = gson.fromJson(gson.toJson(this.scaleConfig), ScaleJSRegisterConfig.class);
+			
+			for (String attrName : scaleConfig.getAttributes().keySet()) {
+				ScaleAttribute fromMainCfg = scaleConfig.getAttributes().get(attrName);
+				if (fromMainCfg.getDynamicSource() != null) {
+					ScaleAttribute fromLocalCfg = localCfg.getAttributes().get(attrName);
+					fromLocalCfg.setValues(fromMainCfg.getDynamicSource().getSourceList(request));
+				}
+			}
+			
+			
+			
+			response.getWriter().println(gson.toJson(localCfg).trim());
+			
+		} else if (request.getRequestURI().endsWith("/register/values")) {
+			String attributeName = request.getParameter("name").getValues().get(0);
+			List<NVP> values = this.scaleConfig.getAttributes().get(attributeName).getDynamicSource().getSourceList(request);
+			response.setContentType("application/json");
+			ScaleJSUtils.addCacheHeaders(response);
+			response.getWriter().println(gson.toJson(values).trim());
+			
 			
 		} else if (request.getRequestURI().endsWith("/register/submit")) {
 			ScaleError errors = new ScaleError();
@@ -198,6 +221,13 @@ public class ScaleRegister implements HttpFilter {
 						errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " is not available");
 					}
 					while (res.hasMore()) res.next();
+				}
+				
+				if (this.scaleConfig.getAttributes().get(attributeName).getDynamicSource() != null ) {
+					String error = this.scaleConfig.getAttributes().get(attributeName).getDynamicSource().validate(value, request);
+					if (error != null) {
+						errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " - " + error);
+					}
 				}
 			}
 			
@@ -431,6 +461,31 @@ public class ScaleRegister implements HttpFilter {
 					String valValue = attrVal.substring(attrVal.indexOf('=') + 1);
 					scaleAttr.getValues().add(new NVP(valLabel,valValue));
 				}
+			}
+			
+			if (config.getAttribute(attributeName + ".dynamicValueSource.className") != null && ! config.getAttribute(attributeName + ".dynamicValueSource.className").getValues().get(0).equalsIgnoreCase("")) {
+				String className = config.getAttribute(attributeName + ".dynamicValueSource.className").getValues().get(0);
+				Attribute cfgOptions = config.getAttribute(attributeName + ".dynamicValueSource.config");
+				Map<String,Attribute> dynConfig = new HashMap<String,Attribute>();
+				if (cfgOptions != null) {
+					for (String attrVal : cfgOptions.getValues()) {
+						String valLabel = attrVal.substring(0,attrVal.indexOf('='));
+						String valValue = attrVal.substring(attrVal.indexOf('=') + 1);
+						
+						Attribute cfgattr = dynConfig.get(valLabel);
+						if (cfgattr == null) {
+							cfgattr = new Attribute(valLabel);
+							dynConfig.put(valLabel, cfgattr);
+							
+						}
+						
+						cfgattr.getValues().add(valValue);
+						
+					}
+				}
+				
+				scaleAttr.setDynamicSource((SourceList) Class.forName(className).newInstance());
+				scaleAttr.getDynamicSource().init(scaleAttr, dynConfig);
 			}
 			
 			

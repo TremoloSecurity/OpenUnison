@@ -177,7 +177,20 @@ limitations under the License.
 							<div class="col-md-4">{{ attributeConfig.displayName}}</div>
 							<div class="col-md-8">
 
-								<input type="text" ng-show="attributeConfig.type == 'text'" ng-model="scale.newUser.attributes[attributeConfig.name]"  aria-label="{{ attributeConfig.displayName }}" />
+								<input type="text" ng-show="attributeConfig.type == 'text'" ng-model="scale.newUser.attributes[attributeConfig.name]"  aria-label="{{ attributeConfig.displayName }}"  />
+								<input type="text" ng-show="attributeConfig.type == 'text-list'" ng-model="scale.newUser.attributes[attributeConfig.name]"  aria-label="{{ attributeConfig.displayName }}" ng-change="scale.change_text_control(attributeConfig)"/>
+								
+								<div class="row" ng-show="attributeConfig.type == 'text-list'" ng-repeat="vals in attributeConfig.values">
+									
+									<div class="col-md-8">
+										<a href="#" ng-click="scale.newUser.attributes[attributeConfig.name] = vals.value;scale.change_text_control(attributeConfig);">{{vals.name}}</a>
+									</div>
+								</div>
+								
+								
+								
+								
+								
 								<select ng-show="attributeConfig.type == 'list'" ng-model="scale.newUser.attributes[attributeConfig.name]"  aria-label="{{ attributeConfig.displayName }}" ng-options="option.name for option in attributeConfig.values track by option.value" convert-to-string></select>
 								<textarea rows="10" cols="50" ng-show="attributeConfig.type == 'textarea'" ng-model="scale.newUser.attributes[attributeConfig.name]"  aria-label="{{ attributeConfig.displayName }}"><</textarea>
 							</div>

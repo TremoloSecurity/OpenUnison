@@ -20,7 +20,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.tremolosecurity.scalejs.sdk.SourceList;
 import com.tremolosecurity.util.NVP;
+
 
 public class ScaleAttribute {
 	String name;
@@ -34,6 +36,8 @@ public class ScaleAttribute {
 	boolean unique;
 	String type;
 	List<NVP> values;
+	transient SourceList dynamicSource;
+	
 	
 	
 	private transient Pattern pattern;
@@ -135,6 +139,14 @@ public class ScaleAttribute {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	public SourceList getDynamicSource() {
+		return dynamicSource;
+	}
+
+	public void setDynamicSource(SourceList dynamicSource) {
+		this.dynamicSource = dynamicSource;
 	}
 	
 	
