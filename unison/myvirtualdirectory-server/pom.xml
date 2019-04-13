@@ -58,7 +58,11 @@
         <version>1.0.2</version>
         <configuration>
           <from>
-            <image>tremolosecurity/myvd-jib-builder:latest</image>
+            <image>${env.OU_CONTAINER_SOURCE}</image>
+            <auth>
+              <username>${env.OU_SRC_REG_USER}</username>
+              <password>${env.OU_SRC_REG_PASSWORD}</password>
+            </auth> 
           </from> 
           <container>
             <user>431</user>
@@ -66,11 +70,11 @@
             <entrypoint>/usr/local/myvd/bin/run_myvd.sh</entrypoint>
           </container>
           <to>
-            <image>mlbiam/myvirtualdirectory</image>
-            <!-- <auth>
+            <image>${env.OU_CONTAINER_DEST}</image>
+            <auth>
               <username>${env.OU_REG_USER}</username>
               <password>${env.OU_REG_PASSWORD}</password>
-            </auth> -->
+            </auth> 
           </to> 
         </configuration>
       </plugin>
