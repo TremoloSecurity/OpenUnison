@@ -88,7 +88,7 @@
 		<repository>
 			<id>nexus.tremolo.io</id>
 			<name>tremolo.io-releases</name>
-			<url>https://nexus.tremolo.io/repository/releases/</url>
+			<url>https://nexus.tremolo.io/repository/betas/</url>
 		</repository>
 
 		<!-- <repository>
@@ -107,7 +107,7 @@
 		<repository>
 			<id>nexus.tremolo.io</id>
 			<name>tremolo.io-releases</name>
-			<url>https://nexus.tremolo.io/repository/releases/</url>
+			<url>https://nexus.tremolo.io/repository/betas/</url>
 		</repository>
 
 	</distributionManagement>
