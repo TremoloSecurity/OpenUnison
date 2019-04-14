@@ -68,6 +68,20 @@
             <user>431</user>
             <appRoot>/usr/local/myvd</appRoot>
             <entrypoint>/usr/local/myvd/bin/run_myvd.sh</entrypoint>
+            <labels>
+            	<name>MyVirtualDirectory</name>
+            	<vendor>Tremolo Security, Inc.</vendor>
+            	<version>1.0.6</version>
+            	<release>latest</release>
+            	<url>https://www.tremolosecurity.com/myvirtualdirectory/</url>
+            	<summary>MyVirtualDirectory standard image.  You can use this image if you do not need any custom classes</summary>
+            	<description>MyVirtualDirectory is an LDAP virtual directory and LDAP proxy</description>
+            	<run>docker run -v /etc/myvd:/path/to/myvdsecrets -v /etc/myvd-config:/path/to/configs image</run>
+            	<io.k8s.description>MyVirtualDirectory</io.k8s.description>
+            	<io.k8s.display-name>MyVirtualDirectory</io.k8s.display-name>
+            	<io.openshift.expose-services>10389:10636</io.openshift.expose-services>
+            	<io.openshift.tags>ldap,virtual directory,identity management</io.openshift.tags>
+            </labels>
           </container>
           <to>
             <image>${env.OU_CONTAINER_DEST}</image>
@@ -75,6 +89,7 @@
               <username>${env.OU_REG_USER}</username>
               <password>${env.OU_REG_PASSWORD}</password>
             </auth> 
+            
           </to> 
         </configuration>
       </plugin>
