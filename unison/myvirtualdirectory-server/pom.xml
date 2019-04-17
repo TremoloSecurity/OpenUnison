@@ -55,7 +55,7 @@
 			<plugin>
         <groupId>com.google.cloud.tools</groupId>
         <artifactId>jib-maven-plugin</artifactId>
-        <version>1.0.2</version>
+        <version>1.1.1</version>
         <configuration>
           <from>
             <image>${env.OU_CONTAINER_SOURCE}</image>
