@@ -115,7 +115,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			try {
 				String json = gson.toJson(osUser);
 				StringBuffer b = new StringBuffer();
-				b.append("/oapi/v1/users");
+				b.append("/apis/user.openshift.io/v1/users");
 				osUser = gson.fromJson(this.callWSPost(token, con, b.toString(), json),com.tremolosecurity.unison.openshiftv3.model.users.User.class);
 				
 				if (! osUser.getKind().equals("User")) {
@@ -268,7 +268,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		token = this.getAuthToken();
 		HttpCon con = this.createClient();
 		try {
-			b.append("/oapi/v1/users/").append(user.getUserID());
+			b.append("/apis/user.openshift.io/v1/users/").append(user.getUserID());
 			String json = callWS(token,con,b.toString());
 			com.tremolosecurity.unison.openshiftv3.model.users.User osUser = gson.fromJson(json, com.tremolosecurity.unison.openshiftv3.model.users.User.class);
 			osUser.setFullName(null);
@@ -298,7 +298,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		token = this.getAuthToken();
 		HttpCon con = this.createClient();
 		try {
-			b.append("/oapi/v1/users/").append(user.getUserID());
+			b.append("/apis/user.openshift.io/v1/users/").append(user.getUserID());
 			String json = callWS(token,con,b.toString());
 			com.tremolosecurity.unison.openshiftv3.model.users.User osUser = gson.fromJson(json, com.tremolosecurity.unison.openshiftv3.model.users.User.class);
 			osUser.setFullName(user.getAttribs().get("fullName").getValues().get(0));
@@ -338,7 +338,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			Gson gson = new Gson();
 			try {
 				StringBuffer b = new StringBuffer();
-				b.append("/oapi/v1/users/").append(user.getUserID());
+				b.append("/apis/user.openshift.io/v1/users/").append(user.getUserID());
 				String json = this.callWSDelete(token, con, b.toString());
 				Response resp = gson.fromJson(json, Response.class);
 				if (resp.getStatus() != null && ! resp.getStatus().equalsIgnoreCase("success")) {
@@ -379,12 +379,12 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			
 			try {
 				
-				String json = callWS(token, con,"/oapi/v1/groups");
+				String json = callWS(token, con,"/apis/user.openshift.io/v1/groups");
 				Gson gson = new Gson();
 				TypeToken<com.tremolosecurity.unison.openshiftv3.model.List<GroupItem>> tokenType = new TypeToken<com.tremolosecurity.unison.openshiftv3.model.List<GroupItem>>() {};
 				groupList = gson.fromJson(json, tokenType.getType());
 				
-				b.append("/oapi/v1/users/").append(userID);
+				b.append("/apis/user.openshift.io/v1/users/").append(userID);
 				json = callWS(token,con,b.toString());
 				
 				
@@ -711,7 +711,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	public void addUserToGroup(String token,HttpCon con,String userName,String groupName,int approvalID,Workflow workflow) throws Exception {
 		Gson gson = new Gson();
 		StringBuffer b = new StringBuffer();
-		b.append("/oapi/v1/groups/").append(groupName);
+		b.append("/apis/user.openshift.io/v1/groups/").append(groupName);
 		String json = this.callWS(token, con, b.toString());
 		com.tremolosecurity.unison.openshiftv3.model.groups.Group group = gson.fromJson(json, com.tremolosecurity.unison.openshiftv3.model.groups.Group.class);
 		if (group.getUsers() == null) {
@@ -734,7 +734,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	public void removeUserFromGroup(String token,HttpCon con,String userName,String groupName,int approvalID,Workflow workflow) throws Exception {
 		Gson gson = new Gson();
 		StringBuffer b = new StringBuffer();
-		b.append("/oapi/v1/groups/").append(groupName);
+		b.append("/apis/user.openshift.io/v1/groups/").append(groupName);
 		String json = this.callWS(token, con, b.toString());
 		com.tremolosecurity.unison.openshiftv3.model.groups.Group group = gson.fromJson(json, com.tremolosecurity.unison.openshiftv3.model.groups.Group.class);
 		if (group.getUsers() == null) {
@@ -773,7 +773,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			
 			//first lets see if the group exists
 			StringBuilder sb = new StringBuilder();
-			sb.append("/oapi/v1/groups/").append(name);
+			sb.append("/apis/user.openshift.io/v1/groups/").append(name);
 
 			com.tremolosecurity.unison.openshiftv3.model.groups.Group group = new com.tremolosecurity.unison.openshiftv3.model.groups.Group();
 				group.setKind("Group");
@@ -784,10 +784,10 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 				group.setUsers(null);
 				String jsonInput = gson.toJson(group);
 
-			if (! this.isObjectExists(token, con, "/oapi/v1/groups",jsonInput)) {
+			if (! this.isObjectExists(token, con, "/apis/user.openshift.io/v1/groups",jsonInput)) {
 
 				
-				String json = this.callWSPost(token, con, "/oapi/v1/groups", jsonInput);
+				String json = this.callWSPost(token, con, "/apis/user.openshift.io/v1/groups", jsonInput);
 
 				Response resp = gson.fromJson(json, Response.class);
 				
@@ -827,7 +827,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			
 			Gson gson = new Gson();
 			StringBuffer b = new StringBuffer();
-			b.append("/oapi/v1/groups/").append(name);
+			b.append("/apis/user.openshift.io/v1/groups/").append(name);
 			String json = this.callWSDelete(token, con, b.toString());
 			Response resp = gson.fromJson(json, Response.class);
 			
@@ -857,7 +857,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			
 			Gson gson = new Gson();
 			StringBuffer b = new StringBuffer();
-			b.append("/oapi/v1/groups/").append(name);
+			b.append("/apis/user.openshift.io/v1/groups/").append(name);
 			String json = this.callWS(token, con, b.toString());
 			com.tremolosecurity.unison.openshiftv3.model.groups.Group group = gson.fromJson(json, com.tremolosecurity.unison.openshiftv3.model.groups.Group.class);
 			
