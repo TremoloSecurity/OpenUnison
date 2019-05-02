@@ -50,7 +50,11 @@ public class LoadFromDatabaseTarget implements SourceList {
 		paramSQL = config.get("paramSQL").getValues().get(0);
 		nameField = config.get("nameField").getValues().get(0);
 		valueField = config.get("valueField").getValues().get(0);
-		maxEntries = Integer.parseInt(config.get("maxEntrie").getValues().get(0));
+		if (config.get("maxEntrie") == null) {
+			maxEntries = Integer.parseInt(config.get("maxEntries").getValues().get(0));
+		} else {
+			maxEntries = Integer.parseInt(config.get("maxEntrie").getValues().get(0));
+		}
 		exactSQL = config.get("exactSQL").getValues().get(0);
 		errorMessage = config.get("errorMessage").getValues().get(0);
 		
@@ -89,7 +93,7 @@ public class LoadFromDatabaseTarget implements SourceList {
 				ArrayList<NVP> toReturn = new ArrayList<NVP>();
 				
 				PreparedStatement stmt = con.prepareStatement(this.paramSQL);
-				stmt.setString(1, request.getParameter("search").getValues().get(0) + "%");
+				stmt.setString(1, "%" + request.getParameter("search").getValues().get(0) + "%");
 				ResultSet rs = stmt.executeQuery();
 				
 				while (rs.next()) {
