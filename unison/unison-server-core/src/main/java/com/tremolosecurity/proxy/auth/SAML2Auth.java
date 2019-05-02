@@ -34,6 +34,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.SignatureException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -45,7 +46,7 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
-import javax.security.cert.X509Certificate;
+import java.security.cert.X509Certificate;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -65,6 +66,7 @@ import org.opensaml.core.config.InitializationException;
 import org.opensaml.core.config.InitializationService;
 import org.opensaml.core.xml.XMLObject;
 import org.opensaml.core.xml.io.Marshaller;
+import org.opensaml.core.xml.io.MarshallingException;
 import org.opensaml.core.xml.io.UnmarshallerFactory;
 import org.opensaml.core.xml.io.UnmarshallingException;
 import org.opensaml.core.xml.schema.XSAny;
@@ -91,12 +93,28 @@ import org.opensaml.saml.saml2.core.impl.NameIDPolicyBuilder;
 import org.opensaml.saml.saml2.core.impl.RequestedAuthnContextBuilder;
 import org.opensaml.saml.saml2.core.impl.ResponseMarshaller;
 import org.opensaml.saml.saml2.encryption.Decrypter;
+import org.opensaml.saml.saml2.metadata.AssertionConsumerService;
+import org.opensaml.saml.saml2.metadata.KeyDescriptor;
+import org.opensaml.saml.saml2.metadata.SingleLogoutService;
+import org.opensaml.saml.saml2.metadata.impl.AssertionConsumerServiceBuilder;
+import org.opensaml.saml.saml2.metadata.impl.EntityDescriptorBuilder;
+import org.opensaml.saml.saml2.metadata.impl.EntityDescriptorImpl;
+import org.opensaml.saml.saml2.metadata.impl.EntityDescriptorMarshaller;
+import org.opensaml.saml.saml2.metadata.impl.KeyDescriptorBuilder;
+import org.opensaml.saml.saml2.metadata.impl.SPSSODescriptorBuilder;
+import org.opensaml.saml.saml2.metadata.impl.SPSSODescriptorImpl;
+import org.opensaml.saml.saml2.metadata.impl.SingleLogoutServiceBuilder;
 import org.opensaml.saml.security.impl.SAMLSignatureProfileValidator;
 import org.opensaml.security.credential.BasicCredential;
 import org.opensaml.security.credential.Credential;
 import org.opensaml.security.credential.UsageType;
 import org.opensaml.xmlsec.encryption.support.InlineEncryptedKeyResolver;
 import org.opensaml.xmlsec.keyinfo.impl.StaticKeyInfoCredentialResolver;
+import org.opensaml.xmlsec.signature.KeyInfo;
+import org.opensaml.xmlsec.signature.X509Data;
+import org.opensaml.xmlsec.signature.impl.KeyInfoBuilder;
+import org.opensaml.xmlsec.signature.impl.X509CertificateBuilder;
+import org.opensaml.xmlsec.signature.impl.X509DataBuilder;
 import org.opensaml.xmlsec.signature.support.SignatureValidator;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -166,6 +184,7 @@ public class SAML2Auth implements AuthMechanism {
 			throws ServletException, IOException {
 		HttpSession session = req.getSession(true);
 
+		
 		if (req.getParameter("SAMLResponse") != null) {
 			String[] resps = req.getParameterValues("SAMLResponse");
 
@@ -944,7 +963,9 @@ public class SAML2Auth implements AuthMechanism {
 	public String getFinalURL(HttpServletRequest request,
 			HttpServletResponse response) {
 		
-		if (request.getMethod().equalsIgnoreCase("GET")) {
+		if (request.getMethod().equalsIgnoreCase("GET") ) {
+			
+			
 			//processing a logout request
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setNamespaceAware(true);

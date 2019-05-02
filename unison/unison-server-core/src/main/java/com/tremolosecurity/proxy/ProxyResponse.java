@@ -246,7 +246,9 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 		int status = ((HttpServletResponse) this.getResponse()).getStatus();
 		String redirectLocation = null;
 		if ((status < 200 || status > 299)	 && status != 302 && status != 301) {
-			redirectLocation = holder.getConfig().getErrorPages().get(status);
+			if (holder != null) {
+				redirectLocation = holder.getConfig().getErrorPages().get(status);
+			}
 			
 		}
 		

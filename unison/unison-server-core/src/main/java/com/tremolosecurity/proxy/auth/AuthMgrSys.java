@@ -119,16 +119,19 @@ public class AuthMgrSys {
 		if (actl != null && actl.getHolder() != null) {
 			actName = actl.getHolder().getAuthChainName();
 		} else {
-			
-			actName = holder.getUrl().getAuthChain();
+			if (holder != null) {
+				actName = holder.getUrl().getAuthChain();
+			} else {
+				actName = null;
+			}
 			
 		}
 		
 		
-		AuthChainType act = cfgMgr.getAuthChains().get(actName);
+		AuthChainType act = actName != null ? cfgMgr.getAuthChains().get(actName) : null;
 		
 		AuthMechanism mech = cfgMgr.getAuthMech(uri);
-		if (mech == null) {
+		if (mech == null || act == null) {
 			nextSys.nextSys(request, response);
 			return;
 		}
