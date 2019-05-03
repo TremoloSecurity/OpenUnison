@@ -99,7 +99,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 		
 		osUser.setKind("User");
-		osUser.setApiVersion("v1");
+		osUser.setApiVersion("user.openshift.io/v1");
 		osUser.getMetadata().put("name", user.getUserID());
 		if (user.getAttribs().get("fullName") != null) {
 			osUser.setFullName(user.getAttribs().get("fullName").getValues().get(0));
@@ -777,7 +777,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 
 			com.tremolosecurity.unison.openshiftv3.model.groups.Group group = new com.tremolosecurity.unison.openshiftv3.model.groups.Group();
 				group.setKind("Group");
-				group.setApiVersion("v1");
+				group.setApiVersion("user.openshift.io/v1");
 				group.setMetadata(new HashMap<String,String>());
 				group.getMetadata().put("name", name);
 				group.getMetadata().put("creationTimestamp", null);
