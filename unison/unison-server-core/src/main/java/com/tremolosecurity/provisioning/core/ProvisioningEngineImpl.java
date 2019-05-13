@@ -1663,7 +1663,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 		scheduleProps.setProperty("org.quartz.scheduler.instanceName", sct.getInstanceLabel());
 		
-		String instanceLabel = null;
+		/*String instanceLabel = null;
 		try {
 			Enumeration<NetworkInterface> enumer = NetworkInterface.getNetworkInterfaces();
 			while (enumer.hasMoreElements()) {
@@ -1683,9 +1683,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		if (instanceLabel == null) {
 			logger.warn("No IP starts with '" + sct.getInstanceIPMask() + "'");
 			instanceLabel = "AUTO";
-		}
+		}*/
 		
-		scheduleProps.setProperty("org.quartz.scheduler.instanceId", instanceLabel);
+		scheduleProps.setProperty("org.quartz.scheduler.instanceId", UUID.randomUUID().toString());
 		scheduleProps.setProperty("org.quartz.threadPool.threadCount", Integer.toString(sct.getThreadCount()));
 		
 		if (sct.isUseDB()) {

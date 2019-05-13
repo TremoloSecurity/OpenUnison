@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2015, 2017 Tremolo Security, Inc.
+ * Copyright 2015, 2017, 2019 Tremolo Security, Inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,10 +22,12 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -36,17 +38,25 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.message.BasicHeader;
 import org.apache.log4j.Logger;
 import org.jose4j.json.internal.json_simple.JSONArray;
 import org.jose4j.json.internal.json_simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
@@ -73,9 +83,9 @@ import com.tremolosecurity.unison.proxy.auth.openidconnect.sdk.LoadUserData;
 
 
 
-public class OpenIDConnectAuthMech implements AuthMechanism {
+public class GithubAuthMech implements AuthMechanism {
 
-	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(OpenIDConnectAuthMech.class.getName());
+	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(GithubAuthMech.class.getName());
 	
 	
 	
@@ -101,14 +111,14 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 		String bearerTokenName = authParams.get("bearerTokenName").getValues().get(0);
 		String clientid = authParams.get("clientid").getValues().get(0);
 		String secret = authParams.get("secretid").getValues().get(0);
-		String idpURL = authParams.get("idpURL").getValues().get(0);
-		String responseType = authParams.get("responseType").getValues().get(0);
+		String idpURL = authParams.get("idpURL") != null ? authParams.get("idpURL").getValues().get(0) : "https://github.com/login/oauth/authorize";
+		
 		String scope = authParams.get("scope").getValues().get(0);
 		boolean linkToDirectory = Boolean.parseBoolean(authParams.get("linkToDirectory").getValues().get(0));
 		String noMatchOU = authParams.get("noMatchOU").getValues().get(0);
 		String uidAttr = authParams.get("uidAttr").getValues().get(0);
 		String lookupFilter = authParams.get("lookupFilter").getValues().get(0);
-		String userLookupClassName = authParams.get("userLookupClassName").getValues().get(0);
+		
 		
 		String defaultObjectClass = authParams.get("defaultObjectClass").getValues().get(0);
 		
@@ -145,8 +155,8 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 		b.append(holder.getConfig().getContextPath()).append(cfg.getAuthMechs().get(authMechName).getUri());
 		
 		
-		String hd = authParams.get("hd").getValues().get(0);
-		String loadTokenURL = authParams.get("loadTokenURL").getValues().get(0);
+		
+		String loadTokenURL = authParams.get("loadTokenURL") != null ? authParams.get("loadTokenURL").getValues().get(0) : "https://github.com/login/oauth/access_token";
 		
 		
 		if (request.getParameter("state") == null) {
@@ -158,18 +168,8 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			StringBuffer redirToSend = new StringBuffer();
 			redirToSend.append(idpURL)
 						.append("?client_id=").append(URLEncoder.encode(clientid,"UTF-8"))
-						.append("&response_type=").append(URLEncoder.encode(responseType, "UTF-8"))
 						.append("&scope=").append(URLEncoder.encode(scope,"UTF-8"))
-						.append("&redirect_uri=").append(URLEncoder.encode(b.toString(),"UTF-8"))
 						.append("&state=").append(URLEncoder.encode("security_token=","UTF-8")).append(URLEncoder.encode(state, "UTF-8"));
-			
-			if (forceAuth) {
-				redirToSend.append("&max_age=0");
-			}
-			
-			if (! hd.isEmpty()) {
-				redirToSend.append("&hd=").append(hd);
-			}
 			
 			response.sendRedirect(redirToSend.toString());
 						
@@ -192,8 +192,6 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 				        .addParameter("code", request.getParameter("code"))
 				        .addParameter("client_id", clientid)
 				        .addParameter("client_secret", secret)
-				        .addParameter("redirect_uri", b.toString())
-				        .addParameter("grant_type", "authorization_code")
 				        .build();
 			} catch (URISyntaxException e) {
 				throw new ServletException("Could not create post request");
@@ -202,75 +200,212 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(GlobalEntries.getGlobalEntries().getConfigManager().getHttpClientSocketRegistry());
 			RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
 			CloseableHttpClient http = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(rc).build();
-			    
-			CloseableHttpResponse httpResp = http.execute(post);
-			
-			BufferedReader in = new BufferedReader(new InputStreamReader(httpResp.getEntity().getContent()));
-			
-			StringBuffer token = new StringBuffer();
-			
-			
-			String line = null;
-			while ((line = in.readLine()) != null) {
-				token.append(line);
-			}
-			
-			
-			
-			
-			httpResp.close();
-			bhcm.close();
-			
-			Gson gson = new Gson();
-			
-			Map tokenNVP = com.cedarsoftware.util.io.JsonReader.jsonToMaps(token.toString());
-			
-			String accessToken;
-			
-			//Store the bearer token for use by Unison
-			request.getSession().setAttribute(bearerTokenName, tokenNVP.get("access_token"));
-			
-			
-			
-			Map jwtNVP = null;
-			LoadUserData loadUser = null;
+			  
 			try {
-				loadUser = (LoadUserData) Class.forName(userLookupClassName).newInstance();
-				jwtNVP = loadUser.loadUserAttributesFromIdP(request, response, cfg, authParams, tokenNVP);
-			} catch (Exception e) {
-				throw new ServletException("Could not load user data",e);
-			} 
-			
-			
-			if (jwtNVP == null) {
-				as.setSuccess(false);
-			} else {
-				if (! linkToDirectory) {
-					loadUnlinkedUser(session, noMatchOU, uidAttr, act, jwtNVP,defaultObjectClass);
-					
-					as.setSuccess(true);
-
-					
-				} else {
-					lookupUser(as, session, myvd, noMatchOU, uidAttr, lookupFilter, act, jwtNVP,defaultObjectClass);
+				CloseableHttpResponse httpResp = http.execute(post);
+				
+				BufferedReader in = new BufferedReader(new InputStreamReader(httpResp.getEntity().getContent()));
+				
+				StringBuffer token = new StringBuffer();
+				
+				
+				String line = null;
+				while ((line = in.readLine()) != null) {
+					token.append(line);
 				}
 				
 				
-				String redirectToURL = request.getParameter("target");
-				if (redirectToURL != null && ! redirectToURL.isEmpty()) {
-					reqHolder.setURL(redirectToURL);
+				
+				List<NameValuePair> params = URLEncodedUtils.parse(token.toString(), Charset.defaultCharset());
+				
+				String accessToken = null;
+				
+				for (NameValuePair nvp : params) {
+					if (nvp.getName().equals("access_token")) {
+						accessToken = nvp.getValue();
+					}
+				}
+				
+				if (accessToken == null) {
+					throw new ServletException("Could not get authorization toekn : " + token);
+				}
+				
+				
+				
+				httpResp.close();
+				
+				
+				Gson gson = new Gson();
+				
+				
+				HttpGet get = new HttpGet("https://api.github.com/user?access_token=" + URLEncoder.encode(accessToken, "UTF-8"));
+				
+				
+				
+				
+				//Store the bearer token for use by Unison
+				request.getSession().setAttribute(bearerTokenName, accessToken);
+				
+				
+				httpResp = http.execute(get);
+				
+				in = new BufferedReader(new InputStreamReader(httpResp.getEntity().getContent()));
+				
+				token.setLength(0);
+				
+				
+				line = null;
+				while ((line = in.readLine()) != null) {
+					token.append(line);
+				}
+				
+				
+				httpResp.close();
+				
+				
+				
+				
+				Map jwtNVP = com.cedarsoftware.util.io.JsonReader.jsonToMaps(token.toString());;
+				
+				
+				
+				
+				if (jwtNVP == null) {
+					as.setSuccess(false);
+				} else {
+					
+					get = new HttpGet("https://api.github.com/user/emails?access_token=" + URLEncoder.encode(accessToken, "UTF-8"));
+					httpResp = http.execute(get);
+					in = new BufferedReader(new InputStreamReader(httpResp.getEntity().getContent()));
+					token.setLength(0);
+					line = null;
+					while ((line = in.readLine()) != null) {
+						token.append(line);
+					}
+					
+					
+					
+					httpResp.close();
+					
+					
+					JSONParser parser = new JSONParser();
+					org.json.simple.JSONArray emails = (org.json.simple.JSONArray) parser.parse(token.toString());
+					
+					
+					
+					for (Object o : emails) {
+						org.json.simple.JSONObject emailObj = (org.json.simple.JSONObject) o;
+						boolean isPrimary = (Boolean) emailObj.get("primary");
+						if (isPrimary) {
+							jwtNVP.put("mail", emailObj.get("email"));
+						}
+						
+					}
+					
+					
+					if (! linkToDirectory) {
+						loadUnlinkedUser(session, noMatchOU, uidAttr, act, jwtNVP,defaultObjectClass);
+						
+						as.setSuccess(true);
+	
+						
+					} else {
+						lookupUser(as, session, myvd, noMatchOU, uidAttr, lookupFilter, act, jwtNVP,defaultObjectClass);
+					}
+					
+					get = new HttpGet("https://api.github.com/user/orgs?access_token=" + URLEncoder.encode(accessToken, "UTF-8"));
+					httpResp = http.execute(get);
+					in = new BufferedReader(new InputStreamReader(httpResp.getEntity().getContent()));
+					token.setLength(0);
+					line = null;
+					while ((line = in.readLine()) != null) {
+						token.append(line);
+					}
+					httpResp.close();
+					
+					parser = new JSONParser();
+					org.json.simple.JSONArray orgs = (org.json.simple.JSONArray) parser.parse(token.toString());
+					
+					Attribute userOrgs = new Attribute("githubOrgs");
+					Attribute userTeams = new Attribute("githubTeams");
+					
+					for (Object o : orgs) {
+						org.json.simple.JSONObject org = (org.json.simple.JSONObject) o;
+						String orgName = (String) org.get("login");
+						userOrgs.getValues().add(orgName);
+						
+						
+						HttpUriRequest graphql = RequestBuilder.post()
+								.addHeader(new BasicHeader("Authorization","Bearer " + accessToken))
+								.setUri("https://api.github.com/graphql")
+								.setEntity(new StringEntity("{\"query\":\"{organization(login: \\\"" + orgName + "\\\") { teams(first: 100, userLogins: [\\\"" + jwtNVP.get("login") + "\\\"]) { totalCount edges {node {name description}}}}}\"}")).build();
+			
+						
+						httpResp = http.execute(graphql);
+						in = new BufferedReader(new InputStreamReader(httpResp.getEntity().getContent()));
+						token.setLength(0);
+						line = null;
+						while ((line = in.readLine()) != null) {
+							token.append(line);
+						}
+						
+						
+						
+						httpResp.close();
+						
+						org.json.simple.JSONObject root = (org.json.simple.JSONObject) parser.parse(token.toString());
+						org.json.simple.JSONObject data = (org.json.simple.JSONObject) root.get("data");
+						org.json.simple.JSONObject organization = (org.json.simple.JSONObject) data.get("organization");
+						org.json.simple.JSONObject teams = (org.json.simple.JSONObject) organization.get("teams");
+						org.json.simple.JSONArray edges = (org.json.simple.JSONArray) teams.get("edges"); 
+						
+						for (Object oi : edges) {
+							org.json.simple.JSONObject edge = (org.json.simple.JSONObject) oi;
+							org.json.simple.JSONObject node = (org.json.simple.JSONObject) edge.get("node");
+							userTeams.getValues().add(orgName + "/" + node.get("name"));
+						}
+						
+						
+					}
+					
+					
+										
+							
+							
+							
+							
+							
+					
+					
+					
+					((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo().getAttribs().put("githubOrgs", userOrgs);
+					((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo().getAttribs().put("githubTeams", userTeams);
+					
+					String redirectToURL = request.getParameter("target");
+					if (redirectToURL != null && ! redirectToURL.isEmpty()) {
+						reqHolder.setURL(redirectToURL);
+					}
+				}
+				
+				
+				
+				
+				
+				
+				
+				holder.getConfig().getAuthManager().nextAuth(request, response,session,false);
+			
+			} catch (ParseException e) {
+				throw new ServletException("Could not parse orgs",e);
+			} finally {
+				if (bhcm != null) {
+					bhcm.close();
+				}
+				
+				if (http != null) {
+					http.close();
 				}
 			}
-			
-			
-			
-			
-			
-			
-			
-			holder.getConfig().getAuthManager().nextAuth(request, response,session,false);
-			
-			
 			
 			
 		}
@@ -412,21 +547,22 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			
 			Object oAttr = jwtNVP.get(s);
 			
-			logger.info(s + " type - '" + oAttr.getClass().getName() + "'");
-			
-			if (oAttr.getClass().isArray()) {
-				attr = new Attribute(s);
-				Object[] objArray = (Object[]) oAttr;
-				for (Object v : objArray) {
-					attr.getValues().add(v.toString());
+			if (oAttr != null) {
+				logger.info(s + " type - '" + oAttr.getClass().getName() + "'");
+				
+				if (oAttr.getClass().isArray()) {
+					attr = new Attribute(s);
+					Object[] objArray = (Object[]) oAttr;
+					for (Object v : objArray) {
+						attr.getValues().add(v.toString());
+					}
+				} else {
+					attr = new Attribute(s,oAttr.toString());
 				}
-			} else {
-				attr = new Attribute(s,oAttr.toString());
+				
+				 
+				authInfo.getAttribs().put(attr.getName(), attr);
 			}
-			
-			 
-			authInfo.getAttribs().put(attr.getName(), attr);
-			
 		}
 		
 		authInfo.getAttribs().put("objectClass", new Attribute("objectClass",defaultObjectClass));

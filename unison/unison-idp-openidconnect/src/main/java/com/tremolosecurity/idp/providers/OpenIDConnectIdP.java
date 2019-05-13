@@ -448,18 +448,19 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		JwtClaims claims = JwtClaims.parse(jws.getPayload());
 		
-		claims.setGeneratedJwtId(); // a unique identifier for the token
-		claims.setIssuedAtToNow();  // when the token was issued/created (now)
-		claims.setNotBeforeMinutesInThePast(trusts.get(dbSession.getClientID()).getAccessTokenSkewMillis() / 1000 / 60); // time before which the token is not yet valid (2 minutes ago)
-		claims.setExpirationTimeMinutesInTheFuture(trusts.get(dbSession.getClientID()).getAccessTokenTimeToLive() / 1000 / 60); // time when the token will expire (10 minutes from now)
 		
-		jws = new JsonWebSignature();
-		jws.setPayload(claims.toJson());
-		jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getPrivateKey(this.jwtSigningKeyName));
-		jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+
+		
+		
+		
+		
+		
+		
 		
 		response.setContentType("application/jwt");
-		response.getOutputStream().write(jws.getCompactSerialization().getBytes("UTF-8"));
+		String jwt = claims.toJson();
+		logger.info("Generated JWT :'" + jwt + "'");
+		response.getOutputStream().write(jwt.getBytes("UTF-8"));
 		
 		AuthInfo remUser = new AuthInfo();
 		remUser.setUserDN(dbSession.getUserDN());
