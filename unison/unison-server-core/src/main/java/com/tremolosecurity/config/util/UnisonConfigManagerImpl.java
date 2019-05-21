@@ -500,6 +500,10 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 						this.byHost.put(host, hostUrls);
 					}
 					
+					if (logger.isDebugEnabled()) {
+						logger.debug("Configuring Application : '" + app.getName() + "'");
+						logger.debug("Configuring URL : '" + url.getHost().toString() + "' / '" + url.getUri() + "'");
+					}
 					hostUrls.add(new UrlHolder(app,url,this));
 				}
 			}
