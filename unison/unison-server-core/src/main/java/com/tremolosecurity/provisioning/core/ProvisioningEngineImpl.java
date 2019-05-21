@@ -1414,9 +1414,15 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 						Method m = Class.forName(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getConnectionFactory()).getMethod(methodName, String.class);
 						m.invoke(cf, pt.getValue());
 					} catch (NoSuchMethodException e) {
+						try {
 						//lets try int
 						Method m = Class.forName(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getConnectionFactory()).getMethod(methodName, int.class);
 						m.invoke(cf, Integer.parseInt(pt.getValue()));
+						} catch (NoSuchMethodException e1) {
+							//lets try long
+							Method m = Class.forName(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getConnectionFactory()).getMethod(methodName, long.class);
+							m.invoke(cf, Long.parseLong(pt.getValue()));
+						}
 					}
 				}
 				
