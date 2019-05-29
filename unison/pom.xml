@@ -78,6 +78,7 @@
 	  	<jboss-jstl-api_1.2_spec.version>1.1.4.Final</jboss-jstl-api_1.2_spec.version>
 	  	<xmlsec.version>2.0.5</xmlsec.version>
 	  	<snakeyaml.version>1.23</snakeyaml.version>
+	  	<prometheus.version>0.1.0</prometheus.version>
 	</properties>
 
 	<repositories>
@@ -163,6 +164,7 @@
 		<module>openunison-util-classes</module>
 		<module>unison-service-undertow</module>
 		<module>myvirtualdirectory-server</module>
+		<module>unison-applications-prometheus</module>
 	</modules>
 	<build>
 		<plugins>
