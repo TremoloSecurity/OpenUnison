@@ -44,7 +44,8 @@ public class Attribute implements Serializable {
 		intNum,
 		longNum,
 		date,
-		timeStamp
+		timeStamp,
+		booleanVal,
 	};
 
 	List<String> values;
