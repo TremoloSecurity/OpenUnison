@@ -46,7 +46,7 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.logging.log4j.Logger;
-import org.fusesource.hawtbuf.ByteArrayInputStream;
+
 
 public class PullListener extends UnisonMessageListener {
     PullMetrics pull;

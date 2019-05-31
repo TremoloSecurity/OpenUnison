@@ -106,6 +106,12 @@
 			<artifactId>unison-applications-openstack</artifactId>
 			<version>${openunison.version}</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-prometheus</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>

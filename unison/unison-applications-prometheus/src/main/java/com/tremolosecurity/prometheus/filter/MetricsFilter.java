@@ -17,7 +17,7 @@ limitations under the License.
 package com.tremolosecurity.prometheus.filter;
 
 import com.tremolosecurity.proxy.SessionManager;
-import com.tremolosecurity.proxy.SessionManagerImpl;
+
 import com.tremolosecurity.proxy.filter.HttpFilter;
 import com.tremolosecurity.proxy.filter.HttpFilterChain;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;

@@ -5,8 +5,8 @@
     <artifactId>unison</artifactId>
     <version>1.0.17</version>
   </parent>
-  <artifactId>unison-prometheus</artifactId>
-  <name>unison-prometheus</name>
+  <artifactId>unison-applications-prometheus</artifactId>
+  <name>unison-applications-prometheus</name>
 
 
 
@@ -15,7 +15,7 @@
 
 	<dependency>
 		<groupId>com.tremolosecurity.unison</groupId>
-		<artifactId>unison-server-core</artifactId>
+		<artifactId>unison-sdk</artifactId>
 		<version>${openunison.version}</version>
     <scope>provided</scope>  
 	</dependency>
