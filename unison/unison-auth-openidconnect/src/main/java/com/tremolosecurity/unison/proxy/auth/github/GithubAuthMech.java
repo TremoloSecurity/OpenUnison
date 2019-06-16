@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package com.tremolosecurity.unison.proxy.auth.openidconnect;
+package com.tremolosecurity.unison.proxy.auth.github;
 
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 
