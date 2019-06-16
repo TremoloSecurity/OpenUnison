@@ -100,6 +100,12 @@ public class OpenUnisonConfigLoader {
             end = originalConfig.indexOf(']',begin + 2);
 
             String envVarName = originalConfig.substring(begin + 2,end);
+            String defaultValue = "";
+            if (envVarName.contains(":")) {
+            	defaultValue = envVarName.substring(envVarName.indexOf(":") + 1);
+            	envVarName = envVarName.substring(0, envVarName.indexOf(":"));
+            }
+            
             String value = System.getenv(envVarName);
 
             if (value == null) {
@@ -107,7 +113,7 @@ public class OpenUnisonConfigLoader {
             }
 
             if (value == null) {
-                value = "";
+                value = defaultValue;
             }
 
             if (logger.isDebugEnabled()) {
