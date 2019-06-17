@@ -165,6 +165,7 @@
 		<module>unison-service-undertow</module>
 		<module>myvirtualdirectory-server</module>
 		<module>unison-applications-prometheus</module>
+		<module>ibm-mq-connection-factory</module>
 	</modules>
 	<build>
 		<plugins>
