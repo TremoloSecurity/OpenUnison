@@ -118,6 +118,12 @@
 			<artifactId>unison-lastmile-servlet-3.x</artifactId>
 			<version>${openunison.version}</version>
 		</dependency>
+		
+		    <dependency>
+            <groupId>com.tremolosecurity.unison</groupId>
+            <artifactId>ibm-mq-connection-factory</artifactId>
+            <version>${openunison.version}</version>
+        </dependency>
 
 		<dependency>
 			<groupId>com.sun.mail</groupId>
