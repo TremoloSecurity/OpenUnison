@@ -414,6 +414,10 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	private void processUserInfoRequest(HttpServletRequest request, HttpServletResponse response)
 			throws Exception {
 		AuthController ac = (AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL);
+		
+		
+		
+		
 		UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
 		
 		holder.getApp().getCookieConfig().getTimeout();
@@ -434,6 +438,9 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			response.sendError(401);
 			return;
 		}
+		
+		
+		OpenIDConnectTrust trust = trusts.get(dbSession.getClientID());
 		
 		JsonWebSignature jws = new JsonWebSignature();
 		jws.setCompactSerialization(this.decryptToken(this.trusts.get(dbSession.getClientID()).getCodeLastmileKeyName(), new Gson(), dbSession.getEncryptedIdToken()));
@@ -458,8 +465,21 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		
 		response.setContentType("application/jwt");
-		String jwt = claims.toJson();
-		logger.info("Generated JWT :'" + jwt + "'");
+		String jwt = null;
+		
+		if (trust.isSignedUserInfo()) {
+			jws = new JsonWebSignature();	
+	 		jws.setPayload(claims.toJson());	
+	 		jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getPrivateKey(this.jwtSigningKeyName));	
+	 		jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+	 		
+			jwt = jws.getCompactSerialization();
+		} else {
+			jwt = claims.toJson();
+		}
+		
+		
+
 		response.getOutputStream().write(jwt.getBytes("UTF-8"));
 		
 		AuthInfo remUser = new AuthInfo();
@@ -1079,6 +1099,12 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			trust.setAccessTokenTimeToLive(Long.parseLong(attrs.get("accessTokenTimeToLive").getValues().get(0)));
 			trust.setAccessTokenSkewMillis(Long.parseLong(attrs.get("accessTokenSkewMillis").getValues().get(0)));
 
+			
+			trust.setSignedUserInfo(attrs.get("signedUserInfo") != null && attrs.get("signedUserInfo").getValues().get(0).equalsIgnoreCase("true"));
+			
+			
+			
+			
 			if (attrs.get("verifyRedirect") == null) {
 				trust.setVerifyRedirect(true);
 			} else {

@@ -26,6 +26,8 @@ public class OpenIDConnectTrust {
 	long accessTokenSkewMillis;
 
 	boolean verifyRedirect;
+	
+	boolean signedUserInfo;
 
 	public boolean isVerifyRedirect() {
 		return this.verifyRedirect;
@@ -106,6 +108,14 @@ public class OpenIDConnectTrust {
 	}
 	public void setAccessTokenSkewMillis(long accessTokenSkewMillis) {
 		this.accessTokenSkewMillis = accessTokenSkewMillis;
+	}
+
+	public boolean isSignedUserInfo() {
+		return signedUserInfo;
+	}
+
+	public void setSignedUserInfo(boolean signedUserInfo) {
+		this.signedUserInfo = signedUserInfo;
 	}
 	
 	
