@@ -438,7 +438,7 @@ public class ScaleRegister implements HttpFilter {
 				scaleAttr.setMinChars(Integer.parseInt(val));
 			}
 			
-			val = this.loadOptionalAttributeValue(attributeName + ".mxnChars", attributeName + " Maximum Characters", config);
+			val = this.loadOptionalAttributeValue(attributeName + ".maxChars", attributeName + " Maximum Characters", config);
 			if (val != null) {
 				scaleAttr.setMaxChars(Integer.parseInt(val));
 			}
