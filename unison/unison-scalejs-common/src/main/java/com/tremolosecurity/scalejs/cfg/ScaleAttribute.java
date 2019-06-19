@@ -16,10 +16,13 @@
 package com.tremolosecurity.scalejs.cfg;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.scalejs.sdk.SourceList;
 import com.tremolosecurity.util.NVP;
 
@@ -37,6 +40,8 @@ public class ScaleAttribute {
 	String type;
 	List<NVP> values;
 	transient SourceList dynamicSource;
+	transient String dynamicSourceClassName;
+	transient Map<String,Attribute> dynamicSourceConfig;
 	
 	
 	
@@ -44,6 +49,7 @@ public class ScaleAttribute {
 	
 	public ScaleAttribute() {
 		this.values = new ArrayList<NVP>();
+		this.dynamicSourceConfig = new HashMap<String,Attribute>();
 	}
 
 	public String getName() {
@@ -147,6 +153,22 @@ public class ScaleAttribute {
 
 	public void setDynamicSource(SourceList dynamicSource) {
 		this.dynamicSource = dynamicSource;
+	}
+
+	public String getDynamicSourceClassName() {
+		return dynamicSourceClassName;
+	}
+
+	public void setDynamicSourceClassName(String dynamicSourceClassName) {
+		this.dynamicSourceClassName = dynamicSourceClassName;
+	}
+
+	public Map<String, Attribute> getDynamicSourceConfig() {
+		return dynamicSourceConfig;
+	}
+
+	public void setDynamicSourceConfig(Map<String, Attribute> dynamicSourceConfig) {
+		this.dynamicSourceConfig = dynamicSourceConfig;
 	}
 	
 	

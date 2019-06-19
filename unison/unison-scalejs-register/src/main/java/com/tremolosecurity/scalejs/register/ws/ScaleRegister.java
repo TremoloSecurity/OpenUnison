@@ -463,8 +463,11 @@ public class ScaleRegister implements HttpFilter {
 				}
 			}
 			
-			if (config.getAttribute(attributeName + ".dynamicValueSource.className") != null && ! config.getAttribute(attributeName + ".dynamicValueSource.className").getValues().get(0).equalsIgnoreCase("")) {
+			if (config.getAttribute(attributeName + ".dynamicValueSource.className") != null && config.getAttribute(attributeName + ".dynamicValueSource.className").getValues() != null && config.getAttribute(attributeName + ".dynamicValueSource.className").getValues().size() != 0 && config.getAttribute(attributeName + ".dynamicValueSource.className").getValues().get(0) != null && ! config.getAttribute(attributeName + ".dynamicValueSource.className").getValues().get(0).equalsIgnoreCase("")) {
 				String className = config.getAttribute(attributeName + ".dynamicValueSource.className").getValues().get(0);
+				
+				scaleAttr.setDynamicSourceClassName(className);
+				
 				Attribute cfgOptions = config.getAttribute(attributeName + ".dynamicValueSource.config");
 				Map<String,Attribute> dynConfig = new HashMap<String,Attribute>();
 				if (cfgOptions != null) {
@@ -480,6 +483,14 @@ public class ScaleRegister implements HttpFilter {
 						}
 						
 						cfgattr.getValues().add(valValue);
+						
+						Attribute dcfgattr = scaleAttr.getDynamicSourceConfig().get(valLabel);
+						if (dcfgattr == null) {
+							dcfgattr = new Attribute(valLabel);
+							scaleAttr.getDynamicSourceConfig().put(valLabel, dcfgattr);
+						}
+						
+						dcfgattr.getValues().add(valValue);
 						
 					}
 				}
