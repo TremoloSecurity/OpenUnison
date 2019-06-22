@@ -105,6 +105,13 @@
 			<version>${openunison.version}</version>
 			<type>jar</type>
 		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-scalejs-operators</artifactId>
+			<version>${openunison.version}</version>
+			<type>jar</type>
+		</dependency>
 		 
         <dependency>
 			<groupId>com.tremolosecurity.unison</groupId>

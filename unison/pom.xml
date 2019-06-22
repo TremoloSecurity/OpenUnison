@@ -167,6 +167,7 @@
 		<module>myvirtualdirectory-server</module>
 		<module>unison-applications-prometheus</module>
 		<module>ibm-mq-connection-factory</module>
+		<module>unison-scalejs-operators</module>
 	</modules>
 	<build>
 		<plugins>
