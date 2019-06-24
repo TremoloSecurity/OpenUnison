@@ -1,3 +1,29 @@
+## 1.0.17-2019062401
+
+**Tasks:**
+ - 1.0.17 Build [\#373](https://github.com/TremoloSecurity/OpenUnison/issues/373)
+ - move prometheus module into main code base [\#366](https://github.com/TremoloSecurity/OpenUnison/issues/366)
+
+**enhancements:**
+ - integrate scalejs-operators [\#375](https://github.com/TremoloSecurity/OpenUnison/issues/375)
+ - scalejs register - create searchable list control [\#358](https://github.com/TremoloSecurity/OpenUnison/issues/358)
+ - oidc idp - flag to sign userinfo response [\#374](https://github.com/TremoloSecurity/OpenUnison/issues/374)
+ - Add IBM mq factory to main source code base [\#372](https://github.com/TremoloSecurity/OpenUnison/issues/372)
+ - Az Authmech [\#371](https://github.com/TremoloSecurity/OpenUnison/issues/371)
+ - GitHub authentication [\#363](https://github.com/TremoloSecurity/OpenUnison/issues/363)
+ - Add default options to config parameter replacement [\#370](https://github.com/TremoloSecurity/OpenUnison/issues/370)
+ - create drupal 8 provisioning module [\#342](https://github.com/TremoloSecurity/OpenUnison/issues/342)
+ - openshift - move off of deprecated apis [\#361](https://github.com/TremoloSecurity/OpenUnison/issues/361)
+ - k8s impersonation support [\#360](https://github.com/TremoloSecurity/OpenUnison/issues/360)
+ - metadata url for saml2 [\#359](https://github.com/TremoloSecurity/OpenUnison/issues/359)
+ - add flags to organizations to determine in what situations they're visible [\#357](https://github.com/TremoloSecurity/OpenUnison/issues/357)
+ - Create a dynamic workflow for looking up groups in a db via a provisioning target [\#356](https://github.com/TremoloSecurity/OpenUnison/issues/356)
+ - Add launcher for MyVD [\#354](https://github.com/TremoloSecurity/OpenUnison/issues/354)
+
+**bugs:**
+ - scalejs register - min characters not checking correctly [\#353](https://github.com/TremoloSecurity/OpenUnison/issues/353)
+ - ScaleJS Password - Wrong error report for too many characters [\#351](https://github.com/TremoloSecurity/OpenUnison/issues/351)
+
 ## 1.0.16-2019031701
 
 **Tasks:**

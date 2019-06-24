@@ -42,6 +42,7 @@ public class KubectlTokenLoader implements TokenLoader {
     String k8sCaCertName;
     String unisonCaCertName;
     private String kubectlUsage;
+    private String kubectlWinUsage;
 
     @Override
     public void init(HttpFilterConfig config, ScaleTokenConfig scaleTokenConfig) throws Exception {
@@ -52,6 +53,12 @@ public class KubectlTokenLoader implements TokenLoader {
         this.kubectlUsage = config.getAttribute("kubectlUsage").getValues().get(0);
         this.k8sCaCertName = config.getAttribute("k8sCaCertName").getValues().get(0);
         this.unisonCaCertName = config.getAttribute("unisonCaCertName").getValues().get(0);
+        
+        if (config.getAttribute("kubectlWinUsage") != null) {
+        	this.kubectlWinUsage = config.getAttribute("kubectlWinUsage").getValues().get(0);
+        } else {
+        	this.kubectlWinUsage = null;
+        }
 
         
     }
@@ -121,8 +128,15 @@ public class KubectlTokenLoader implements TokenLoader {
 
             
             tokens.put("kubectl Command",this.renderTemplate(this.kubectlTemplate,templateObjects));
+            
+            if (this.kubectlWinUsage != null) {
+            	tokens.put("kubectl Windows Command",this.renderTemplate(this.kubectlWinUsage,templateObjects));
+            }
+            
             tokens.put("Usage",this.kubectlUsage);
             
+            tokens.put("id_token", token.getEncodedIdJSON());
+            tokens.put("refresh_token", token.getRefreshToken());
             
 
             return tokens;

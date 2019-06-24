@@ -24,7 +24,7 @@
 		<xerces.version>2.12.0</xerces.version>
 		<alfresco-client.version>5.0.a</alfresco-client.version>
 		<javax.xml.rpc-api.version>1.1.2</javax.xml.rpc-api.version>
-		<google-api-client.version>1.29.2</google-api-client.version>
+		<google-api-client.version>1.30.1</google-api-client.version>
 		<google-api-services-plus.version>v1-rev20190328-1.28.0</google-api-services-plus.version>
 		<google-api-services-oauth2.version>v2-rev20190313-1.28.0</google-api-services-oauth2.version>
 		<google-api-services-admin-directory.version>directory_v1-rev110-1.25.0</google-api-services-admin-directory.version>
@@ -61,19 +61,19 @@
 		<googleauth.version>1.2.0</googleauth.version>
 		<activemq.version>5.15.9</activemq.version>
 		<commons-pool2.version>2.6.2</commons-pool2.version>
-		<aws-java-sdk.version>1.11.573</aws-java-sdk.version>
+		<aws-java-sdk.version>1.11.578</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>1.0.6</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.0.2</stringtemplate.version>
 		<hibernate.version>5.4.3.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
-		<org.apache.poi.version>4.0.1</org.apache.poi.version>
+		<org.apache.poi.version>4.1.0</org.apache.poi.version>
 		<jose4j.version>0.6.5</jose4j.version>
 		<mongodb-driver.version>3.10.2</mongodb-driver.version>
 		<xalan.version>2.7.2</xalan.version>
 		<jackson.version>2.9.9</jackson.version>
 		<slf4j.version>1.7.26</slf4j.version>
 		<guava.version>28.0-jre</guava.version>
-		<undertow.version>2.0.21.Final</undertow.version>
+		<undertow.version>2.0.22.Final</undertow.version>
 	  	<jastow.version>2.1.0.Final</jastow.version>
 	  	<jboss-jstl-api_1.2_spec.version>1.1.4.Final</jboss-jstl-api_1.2_spec.version>
 	  	<xmlsec.version>2.0.5</xmlsec.version>
@@ -85,14 +85,9 @@
 	<repositories>
 		<repository>
 			<id>tremolosecurity-dependencies</id>
-			<url>https://nexus.tremolo.io/repository/dependencies/</url>
+			<url>https://nexus.tremolo.io/repository/releases/</url>
 		</repository>
-		<repository>
-			<id>nexus.tremolo.io</id>
-			<name>tremolo.io-releases</name>
-			<url>https://nexus.tremolo.io/repository/betas/</url>
-		</repository>
-
+		
 		<!-- <repository>
 			<id>jboss</id>
 			<url>https://repository.jboss.org/nexus/content/repositories/</url>
@@ -109,7 +104,7 @@
 		<repository>
 			<id>nexus.tremolo.io</id>
 			<name>tremolo.io-releases</name>
-			<url>https://nexus.tremolo.io/repository/betas/</url>
+			<url>https://nexus.tremolo.io/repository/releases/</url>
 		</repository>
 
 	</distributionManagement>
