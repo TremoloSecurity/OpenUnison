@@ -19,6 +19,9 @@ import java.util.stream.Collectors;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 
@@ -73,7 +76,7 @@ public class CheckSamlIdPs extends UnisonJob {
 				
 				if (url != null) {
 					logger.info("Pulling metadata");
-					String metadataXml = this.downloadFile(url);
+					String metadataXml = this.downloadFile(url,con.getHttp());
 					
 					DocumentBuilderFactory dbFactory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
 			        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -156,12 +159,16 @@ public class CheckSamlIdPs extends UnisonJob {
 
 	}
 	
-	private String downloadFile(String url) throws IOException {
-        URL urlObj = new URL(url);
-        URLConnection conn = urlObj.openConnection();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8)))
-        {
-            return reader.lines().collect(Collectors.joining("\n"));
+	private String downloadFile(String url, CloseableHttpClient http) throws IOException {
+        HttpGet get = new HttpGet(url);
+        HttpResponse resp = http.execute(get);
+        try {
+	        try (BufferedReader reader = new BufferedReader(new InputStreamReader(resp.getEntity().getContent(), StandardCharsets.UTF_8)))
+	        {
+	            return reader.lines().collect(Collectors.joining("\n"));
+	        }
+        } finally {
+        	get.abort();
         }
     }
 	
