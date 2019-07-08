@@ -1,3 +1,13 @@
+## 1.0.17-2019070801
+
+**Tasks:**
+ - 1.0.17 Build [\#373](https://github.com/TremoloSecurity/OpenUnison/issues/373)
+
+**bugs:**
+ - check saml idp job doesn't use internal cert store [\#378](https://github.com/TremoloSecurity/OpenUnison/issues/378)
+
+
+
 ## 1.0.17-2019062401
 
 **Tasks:**
