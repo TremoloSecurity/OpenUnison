@@ -1,3 +1,12 @@
+## 1.0.17-2019070901
+
+**Tasks:**
+ - 1.0.17 Build [\#373](https://github.com/TremoloSecurity/OpenUnison/issues/373)
+
+**bugs:**
+ - excessive logging with oidc [\#379](https://github.com/TremoloSecurity/OpenUnison/issues/379)
+ - mapping authmech doesn't handle when a source doesn't exist [\#380](https://github.com/TremoloSecurity/OpenUnison/issues/380)
+
 ## 1.0.17-2019070801
 
 **Tasks:**

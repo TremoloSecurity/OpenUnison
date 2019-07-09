@@ -47,7 +47,7 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 
 
 
-	public static final String version = "1.0.17-2019070801";
+	public static final String version = "1.0.17-2019070901";
 
 
 
