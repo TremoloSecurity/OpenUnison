@@ -298,7 +298,9 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			}
 			b.append(lookupFilter.substring(lastIndex));
 			filter = b.toString();
-			logger.info("Filter : '" + filter + "'");
+			if (logger.isDebugEnabled()) {
+				logger.debug("Filter : '" + filter + "'");
+			}
 		} else {
 			StringBuffer b = new StringBuffer();
 			String userParam = (String) jwtNVP.get(uidAttr);
@@ -412,7 +414,9 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			
 			Object oAttr = jwtNVP.get(s);
 			
-			logger.info(s + " type - '" + oAttr.getClass().getName() + "'");
+			if (logger.isDebugEnabled()) {
+				logger.debug(s + " type - '" + oAttr.getClass().getName() + "'");
+			}
 			
 			if (oAttr.getClass().isArray()) {
 				attr = new Attribute(s);
