@@ -53,11 +53,14 @@ public class MappingAuthmech implements AuthMechanism {
 			
 			AuthController ac = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL));
 			Attribute attr = ac.getAuthInfo().getAttribs().get(oldName);
-			Attribute newAttr = new Attribute(newName);
-			newAttr.getValues().addAll(attr.getValues());
 			
-			ac.getAuthInfo().getAttribs().remove(oldName);
-			ac.getAuthInfo().getAttribs().put(newName, newAttr);
+			if (attr != null) {
+				Attribute newAttr = new Attribute(newName);
+				newAttr.getValues().addAll(attr.getValues());
+				
+				ac.getAuthInfo().getAttribs().remove(oldName);
+				ac.getAuthInfo().getAttribs().put(newName, newAttr);
+			}
 		}
 
 		step.setSuccess(true);
