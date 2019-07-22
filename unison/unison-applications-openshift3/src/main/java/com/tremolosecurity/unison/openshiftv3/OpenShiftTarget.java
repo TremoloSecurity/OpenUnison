@@ -897,4 +897,9 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		return uid.toString();
 		
 	}
+
+	public String getUrl() {
+		return this.url;
+		
+	}
 }

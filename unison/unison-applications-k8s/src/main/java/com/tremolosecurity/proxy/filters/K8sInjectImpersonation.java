@@ -17,6 +17,7 @@ package com.tremolosecurity.proxy.filters;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -29,6 +30,7 @@ import com.tremolosecurity.proxy.filter.HttpFilterRequest;
 import com.tremolosecurity.proxy.filter.HttpFilterResponse;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.unison.openshiftv3.OpenShiftTarget;
 
 public class K8sInjectImpersonation implements HttpFilter {
@@ -37,7 +39,7 @@ public class K8sInjectImpersonation implements HttpFilter {
 	String userNameAttribute;
 	String groupAttribute;
 	boolean useLdapGroups;
-	OpenShiftTarget target;
+	String targetName;
 	
 	
 	@Override
@@ -56,6 +58,8 @@ public class K8sInjectImpersonation implements HttpFilter {
 			request.removeHeader(headerToRemove);
 		}
 		
+		request.removeHeader("Authorization");
+		
 		AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
 		
 		request.addHeader(new Attribute("Impersonate-User",userData.getAttribs().get(this.userNameAttribute).getValues().get(0)));
@@ -68,13 +72,23 @@ public class K8sInjectImpersonation implements HttpFilter {
 		}
 		
 		if (groups.getValues().size() > 0) {
+			
+			for (String group : groups.getValues()) {
+				System.out.println("Group Name - '" + group + "'");
+			}
+			
 			request.addHeader(groups);
 		}
 		
 		
+		OpenShiftTarget target = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(this.targetName).getProvider();
 		request.addHeader(new Attribute("Authorization",new StringBuilder().append("Bearer ").append(target.getAuthToken()).toString()));
 		
 		
+		
+		HashMap<String,String> uriParams = (HashMap<String,String>) request.getAttribute("TREMOLO_URI_PARAMS");
+		uriParams.put("k8s_url", target.getUrl());
+		System.err.println(uriParams);
 		
 		chain.nextFilter(request, response, chain);
 		
@@ -97,7 +111,12 @@ public class K8sInjectImpersonation implements HttpFilter {
 
 	@Override
 	public void initFilter(HttpFilterConfig config) throws Exception {
-		// TODO Auto-generated method stub
+		this.targetName = config.getAttribute("targetName").getValues().get(0);
+		this.userNameAttribute = config.getAttribute("userNameAttribute").getValues().get(0);
+		this.useLdapGroups = config.getAttribute("useLdapGroups").getValues().get(0).equalsIgnoreCase("true");
+		if (! this.useLdapGroups) {
+			this.groupAttribute = config.getAttribute("groupAttribute").getValues().get(0);
+		}
 		
 	}
 
