@@ -191,7 +191,7 @@ public class AuthMgrSys {
 			mech.doGet(request, response,as);
 		} else if (request.getMethod().equalsIgnoreCase("post")) {
 			mech.doPost(request, response,as);
-		} else if (request.getMethod().equalsIgnoreCase("put")) {
+		} else if (request.getMethod().equalsIgnoreCase("put") || request.getMethod().equalsIgnoreCase("patch")) {
 			mech.doPut(request, response,as);
 		} else if (request.getMethod().equalsIgnoreCase("delete")) {
 			mech.doDelete(request, response,as);
