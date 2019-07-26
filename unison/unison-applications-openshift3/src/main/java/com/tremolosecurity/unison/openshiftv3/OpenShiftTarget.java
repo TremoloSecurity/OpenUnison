@@ -582,7 +582,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		}
 		
 		
-		String tmpUseToken = this.loadOptionalAttributeValue("useToken", "Use Token", cfg);
+		String tmpUseToken = this.loadOptionalAttributeValue("useToken", "Use Token", cfg,null);
 		this.useToken = tmpUseToken != null && tmpUseToken.equalsIgnoreCase("true");
 		
 		if (! useToken) {
@@ -592,7 +592,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			
 		
 			
-			this.osToken = this.loadOptionalAttributeValue("token", "Token",cfg);
+			this.osToken = this.loadOptionalAttributeValue("token", "Token",cfg,"***************************");
 			
 			if (this.osToken == null || this.osToken.isEmpty()) {
 				this.localToken = true;
@@ -613,7 +613,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 
 	}
 	
-	private String loadOptionalAttributeValue(String name,String label,Map<String, Attribute> config) throws ProvisioningException {
+	private String loadOptionalAttributeValue(String name,String label,Map<String, Attribute> config,String mask) throws ProvisioningException {
 		Attribute attr = config.get(name);
 		if (attr == null) {
 			logger.warn(label + " not found");
@@ -621,7 +621,12 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		}
 		
 		String val = attr.getValues().get(0);
-		logger.info(label + ": '" + val + "'");
+		if (mask != null) {
+			logger.info(label + ": '" + mask + "'");
+		} else {
+			logger.info(label + ": '" + val + "'");
+		}
+		
 		
 		return val;
 	}
