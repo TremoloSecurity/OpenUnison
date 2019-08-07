@@ -70,7 +70,7 @@
 		<jose4j.version>0.6.5</jose4j.version>
 		<mongodb-driver.version>3.10.2</mongodb-driver.version>
 		<xalan.version>2.7.2</xalan.version>
-		<jackson.version>2.9.9</jackson.version>
+		<jackson.version>2.9.9.1</jackson.version>
 		<slf4j.version>1.7.26</slf4j.version>
 		<guava.version>28.0-jre</guava.version>
 		<undertow.version>2.0.22.Final</undertow.version>
