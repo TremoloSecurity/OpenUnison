@@ -723,7 +723,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		Gson gson = new Gson();
 		String json = gson.toJson(access);
 		
-		response.setContentType("text/json");
+		response.setContentType("application/json");
 		response.getOutputStream().write(json.getBytes("UTF-8"));
 		response.getOutputStream().flush();
 		

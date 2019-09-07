@@ -20,6 +20,7 @@ package com.tremolosecurity.certs;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -90,5 +91,13 @@ public interface CertManager {
 	public abstract void importKey(String alias,PrivateKey privateKey,X509Certificate cert) throws Exception;
 
 	public abstract void importKey(String alias, byte[] key) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException;
+
+	public abstract void storeKey(String name, String keyData) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException;
+	
+	public abstract KeyStore getKs();
+	
+	public abstract String getKsPassword();
+	
+	public abstract void storeKeyStore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException;
 
 }

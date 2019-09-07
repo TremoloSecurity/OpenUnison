@@ -80,12 +80,13 @@
 	  	<snakeyaml.version>1.24</snakeyaml.version>
 	  	<prometheus.version>0.6.0</prometheus.version>
 	  	<ibm-mq.version>9.1.2.0</ibm-mq.version>
+	  	<okta.version>1.5.4</okta.version>
 	</properties>
 
 	<repositories>
 		<repository>
 			<id>tremolosecurity-dependencies</id>
-			<url>https://nexus.tremolo.io/repository/releases/</url>
+			<url>https://nexus.tremolo.io/repository/betas/</url>
 		</repository>
 		
 		<!-- <repository>
@@ -104,7 +105,7 @@
 		<repository>
 			<id>nexus.tremolo.io</id>
 			<name>tremolo.io-releases</name>
-			<url>https://nexus.tremolo.io/repository/releases/</url>
+			<url>https://nexus.tremolo.io/repository/betas/</url>
 		</repository>
 
 	</distributionManagement>
@@ -163,6 +164,7 @@
 		<module>unison-applications-prometheus</module>
 		<module>ibm-mq-connection-factory</module>
 		<module>unison-scalejs-operators</module>
+		<module>unison-applications-okta</module>
 	</modules>
 	<build>
 		<plugins>
@@ -170,8 +172,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.3.2</version>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 				<executions>
 					<execution>

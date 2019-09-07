@@ -16,6 +16,8 @@
 
 package com.tremolosecurity.scalejs;
 
+import com.tremolosecurity.idp.providers.OpenIDConnectIdP;
+import com.tremolosecurity.idp.providers.oidc.model.OidcSessionState;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.GenerateOIDCTokens;
 import com.tremolosecurity.proxy.auth.util.OpenIDConnectToken;
@@ -86,7 +88,11 @@ public class KubectlTokenLoader implements TokenLoader {
     @Override
     public Object loadToken(AuthInfo user, HttpSession session) throws Exception {
         OpenIDConnectToken token = (OpenIDConnectToken) session.getAttribute(GenerateOIDCTokens.UNISON_SESSION_OIDC_ID_TOKEN);
-
+        
+        token.replaceState();
+        
+        
+        
         if (token == null) {
             logger.warn("No id token found");
             return new HashMap<String,String>();

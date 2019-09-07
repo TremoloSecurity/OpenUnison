@@ -63,7 +63,19 @@ public class OpenIDConnectToken {
 	String urlOfRequest;
 	private OidcSessionState oidcSession;
 	private ApplicationType app;
+	
+	public OidcSessionState getSessionState() {
+		return this.oidcSession;
+	}
 
+	public void replaceState() throws Exception {
+		
+        HashMap<String,OpenIDConnectIdP> oidcIdPs = (HashMap<String,OpenIDConnectIdP>) GlobalEntries.getGlobalEntries().get(OpenIDConnectIdP.UNISON_OPENIDCONNECT_IDPS);
+        
+        OpenIDConnectIdP idp = oidcIdPs.get(this.idpName);
+        this.oidcSession = idp.getSessionStore().getSession(this.oidcSession.getSessionID());
+	}
+	
 	public OpenIDConnectToken(String idpName, String trustName, String urlOfRequest) {
 		this.idpName = idpName;
 		this.trustName = trustName;
