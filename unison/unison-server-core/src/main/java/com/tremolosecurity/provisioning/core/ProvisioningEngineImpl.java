@@ -29,6 +29,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
@@ -79,6 +80,11 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.sql.DataSource;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.namespace.QName;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.dbcp.cpdsadapter.DriverAdapterCPDS;
@@ -589,19 +595,25 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		return null;
 	}
 	
-	private void processCallWf(WorkflowType wft) {
+	private boolean processCallWf(WorkflowType wft) {
+		boolean foundCallWf = false;
+		
 		int i = 0;
 		while (i < wft.getTasks().getWorkflowTasksGroup().size()) {
 			WorkflowTaskType wtt = wft.getTasks().getWorkflowTasksGroup().get(i);
 			
 			
+			
 			if (wtt instanceof com.tremolosecurity.config.xml.CallWorkflowType) {
+				foundCallWf = true;
+				
 				List<WorkflowTaskType> tasks = this.getWFTasks(((com.tremolosecurity.config.xml.CallWorkflowType) wtt).getName()  );
+				
 				//remove call wf
 				wft.getTasks().getWorkflowTasksGroup().remove(i);
 				//add tasks
 				wft.getTasks().getWorkflowTasksGroup().addAll(i, tasks);
-				
+				logger.info(wft.getTasks());
 				wtt = wft.getTasks().getWorkflowTasksGroup().get(i);
 			}
 			
@@ -613,18 +625,21 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			i++;
 			
 		}
+		
+		return foundCallWf;
 	}
 	
-	private void processCallTask(WorkflowChoiceTaskType wtt) {
+	private boolean processCallTask(WorkflowChoiceTaskType wtt) {
 		int i = 0;
 		
+		boolean foundCallWf = false;
 		
 		if (wtt.getOnSuccess() != null) {
 			while (i < wtt.getOnSuccess().getWorkflowTasksGroup().size()) {
 				WorkflowTaskType wttc = wtt.getOnSuccess().getWorkflowTasksGroup().get(i);
 				if (wttc instanceof com.tremolosecurity.config.xml.CallWorkflowType) {
 					com.tremolosecurity.config.xml.CallWorkflowType callTask = (com.tremolosecurity.config.xml.CallWorkflowType) wttc;
-					
+					foundCallWf = true;
 					List<WorkflowTaskType> tasks = this.getWFTasks(callTask.getName()  );
 					//remove call wf
 					wtt.getOnSuccess().getWorkflowTasksGroup().remove(i);
@@ -637,7 +652,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				i++;
 				
 				if (wttc instanceof WorkflowChoiceTaskType) {
-					this.processCallTask((WorkflowChoiceTaskType) wttc);
+					foundCallWf |= this.processCallTask((WorkflowChoiceTaskType) wttc);
 				}
 			}
 			
@@ -647,6 +662,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			while (i < wtt.getOnFailure().getWorkflowTasksGroup().size()) {
 				WorkflowTaskType wttc = wtt.getOnFailure().getWorkflowTasksGroup().get(i);
 				if (wttc instanceof com.tremolosecurity.config.xml.CallWorkflowType) {
+					foundCallWf = true;
 					com.tremolosecurity.config.xml.CallWorkflowType callTask = (com.tremolosecurity.config.xml.CallWorkflowType) wttc;
 					
 					List<WorkflowTaskType> tasks = this.getWFTasks(callTask.getName()  );
@@ -661,13 +677,13 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				i++;
 				
 				if (wttc instanceof WorkflowChoiceTaskType) {
-					this.processCallTask((WorkflowChoiceTaskType) wttc);
+					foundCallWf |= this.processCallTask((WorkflowChoiceTaskType) wttc);
 				}
 			}
 			
 		}
 		
-		
+		return foundCallWf;
 		
 		
 	}
@@ -678,7 +694,17 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		}
 		
 		for (WorkflowType wt : this.cfgMgr.getCfg().getProvisioning().getWorkflows().getWorkflow() ) {
-			this.processCallWf(wt);
+			
+			if (logger.isDebugEnabled()) {
+				logger.debug("Processing call workflow - '" + wt.getName() + "'");
+			}
+			
+			
+			while (this.processCallWf(wt));
+			
+			if (logger.isDebugEnabled()) {
+				logger.debug(jaxbObjectToXML(wt));
+			}
 		}
 		
 		
@@ -686,6 +712,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		while (it.hasNext()) {
 			WorkflowType wft = it.next();
 			String name = wft.getName();
+			logger.info("Processing workflow - '" + name + "'");
 			WorkflowImpl wf = new WorkflowImpl(this.cfgMgr,wft);
 			this.workflows.put(name, wf);
 		}
@@ -693,6 +720,39 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 	}
 	
+	private static String jaxbObjectToXML(WorkflowType wft)
+    {
+        try
+        {
+            //Create JAXB Context
+            JAXBContext jaxbContext = JAXBContext.newInstance(WorkflowType.class);
+             
+            //Create Marshaller
+            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+ 
+            //Required formatting??
+            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+ 
+            //Print XML String to Console
+            StringWriter sw = new StringWriter();
+            
+            JAXBElement<WorkflowType> jaxbElement =
+                    new JAXBElement<WorkflowType>( new QName("", "workflow"),
+                    		WorkflowType.class,
+                    		wft);
+             
+            //Write XML to StringWriter
+            jaxbMarshaller.marshal(jaxbElement, sw);
+             
+            //Verify XML Content
+            String xmlContent = sw.toString();
+            return xmlContent;
+ 
+        } catch (JAXBException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
 	
 
 	private void generateTargets(ConfigManager cfgMgr)
