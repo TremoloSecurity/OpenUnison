@@ -361,6 +361,10 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 		}
 		
 	}
+	
+	public ServerCore getMyVDServerCore() {
+		return this.myvd;
+	}
 
 }
 

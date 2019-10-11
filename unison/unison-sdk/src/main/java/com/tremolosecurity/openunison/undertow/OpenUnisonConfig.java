@@ -19,7 +19,9 @@ import com.tremolosecurity.openunison.myvd.ListenerConfig;
 public class OpenUnisonConfig extends ListenerConfig {
 	
 	
-	
+	int ldapPort;
+	int ldapsPort;
+	String ldapsKeyName;
 	
 	int openExternalPort;
 	
@@ -172,4 +174,30 @@ public class OpenUnisonConfig extends ListenerConfig {
 	public void setRedirectToContextRoot(boolean redirectToContextRoot) {
 		this.redirectToContextRoot = redirectToContextRoot;
 	}
+
+	public int getLdapPort() {
+		return ldapPort;
+	}
+
+	public void setLdapPort(int ldapPort) {
+		this.ldapPort = ldapPort;
+	}
+
+	public int getLdapsPort() {
+		return ldapsPort;
+	}
+
+	public void setLdapsPort(int ldapsPort) {
+		this.ldapsPort = ldapsPort;
+	}
+
+	public String getLdapsKeyName() {
+		return ldapsKeyName;
+	}
+
+	public void setLdapsKeyName(String ldapsKeyName) {
+		this.ldapsKeyName = ldapsKeyName;
+	}
+	
+	
 }
