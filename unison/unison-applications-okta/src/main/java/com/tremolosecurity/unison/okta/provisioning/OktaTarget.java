@@ -274,7 +274,9 @@ public class OktaTarget implements UserStoreProvider {
 		this.name = name;
 	}
 
-	
+	public Client getOkta() {
+		return this.okta;
+	}
 	
 	
 
