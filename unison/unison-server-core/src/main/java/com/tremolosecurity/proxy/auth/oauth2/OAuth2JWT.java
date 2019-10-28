@@ -18,8 +18,10 @@ package com.tremolosecurity.proxy.auth.oauth2;
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 
 import java.io.IOException;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -28,7 +30,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.http.Header;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.util.EntityUtils;
 import org.joda.time.DateTime;
+import org.jose4j.jwk.JsonWebKey;
+import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.lang.JoseException;
 import org.json.simple.JSONArray;
@@ -43,6 +57,7 @@ import com.novell.ldap.LDAPSearchResults;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.config.xml.AuthChainType;
+import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.RequestHolder;
@@ -57,13 +72,116 @@ public class OAuth2JWT extends OAuth2Bearer {
 	
 	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(OAuth2JWT.class.getName());
 
+	static HashMap<String,PublicKey> keyCache = new HashMap<String,PublicKey>();
+	
+	public HttpCon createClient() throws Exception {
+		ArrayList<Header> defheaders = new ArrayList<Header>();
+		defheaders.add(new BasicHeader("X-Csrf-Token", "1"));
+
+		BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(
+				GlobalEntries.getGlobalEntries().getConfigManager().getHttpClientSocketRegistry());
+
+		RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).setRedirectsEnabled(false)
+				.build();
+
+		CloseableHttpClient http = HttpClients.custom()
+				                  .setConnectionManager(bhcm)
+				                  .setDefaultHeaders(defheaders)
+				                  .setDefaultRequestConfig(rc)
+				                  .build();
+
+		HttpCon con = new HttpCon();
+		con.setBcm(bhcm);
+		con.setHttp(http);
+
+		return con;
+
+	}
+	
 	@Override
 	public void processToken(HttpServletRequest request, HttpServletResponse response, AuthStep as, HttpSession session,
 			HashMap<String, Attribute> authParams, AuthChainType act, String realmName, String scope, ConfigManager cfg,
 			String lmToken) throws ServletException, IOException {
 		
 		String issuer = authParams.get("issuer").getValues().get(0);
-		String validationKey = authParams.get("validationKey").getValues().get(0);
+		
+		
+		String fromWellKnown = authParams.get("fromWellKnown") != null ? authParams.get("fromWellKnown").getValues().get(0) : "false";
+		
+		boolean useWellKnown = fromWellKnown.equalsIgnoreCase("true");
+		
+		PublicKey pk = null;
+		
+		if (useWellKnown) {
+			pk = keyCache.get(issuer);
+			if (pk == null) {
+				StringBuilder sb = new StringBuilder();
+				sb.append(issuer);
+				if (! issuer.endsWith("/")) {
+					sb.append("/");
+					
+				}
+				sb.append(".well-known/openid-configuration");
+				
+				String wellKnownURL = sb.toString();
+				HttpCon http = null;
+				try {
+					http = this.createClient();
+					HttpGet get = new HttpGet(wellKnownURL);
+					CloseableHttpResponse resp = http.getHttp().execute(get);
+					String json = EntityUtils.toString(resp.getEntity());
+					resp.close();
+					JSONParser parser = new JSONParser();
+					JSONObject root = (JSONObject) parser.parse(json);
+					String jwksUrl = (String) root.get("jwks_uri");
+					
+					get = new HttpGet(jwksUrl);
+					resp = http.getHttp().execute(get);
+					json = EntityUtils.toString(resp.getEntity());
+					resp.close();
+					
+					
+					JsonWebKey jwk = null;
+					JsonWebKeySet jks = new JsonWebKeySet(json);
+					if (jks.getJsonWebKeys().size() == 0) {
+						jwk = jks.getJsonWebKeys().get(0);
+					} else {
+						for (JsonWebKey j : jks.getJsonWebKeys()) {
+							if (j.getUse().equalsIgnoreCase("sig")) {
+								jwk = j;
+								break;
+							}
+						}
+					}
+					
+					if (jwk == null) {
+						throw new ServletException("No key found");
+					}
+					
+					pk = (PublicKey) jwk.getKey();
+					
+					keyCache.put(issuer, pk);
+					
+					
+					
+					
+				} catch (Exception e) {
+					throw new ServletException("Could not get oidc certs",e);
+				} finally {
+					if (http != null) {
+						http.getHttp().close();
+						http.getBcm().close();
+					}
+				}
+				
+			}
+			
+		} else {
+			String validationKey = authParams.get("validationKey").getValues().get(0);
+			pk = cfg.getCertificate(validationKey).getPublicKey();
+		}
+		
+		
 		
 		boolean linkToDirectory = Boolean.parseBoolean(authParams.get("linkToDirectory").getValues().get(0));
 		String noMatchOU = authParams.get("noMatchOU").getValues().get(0);
@@ -80,7 +198,7 @@ public class OAuth2JWT extends OAuth2Bearer {
 		JsonWebSignature jws = new JsonWebSignature();
 		try {
 			jws.setCompactSerialization(lmToken);
-			jws.setKey(cfg.getCertificate(validationKey).getPublicKey());
+			jws.setKey(pk);
 			if (! jws.verifySignature()) {
 				as.setExecuted(true);
 				as.setSuccess(false);
