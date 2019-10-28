@@ -17,7 +17,7 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.core.providers;
 
-import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -48,6 +48,7 @@ import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.UserStoreProvider;
+import com.tremolosecurity.provisioning.core.UserStoreProviderWithAddGroup;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.util.GenPasswd;
@@ -59,7 +60,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 
 
-public class ADProvider implements UserStoreProvider {
+public class ADProvider implements UserStoreProviderWithAddGroup {
 
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ADProvider.class);
 	
@@ -1221,6 +1222,122 @@ public class ADProvider implements UserStoreProvider {
 		}
 		
 		return sb.toString();
+	}
+	
+	@Override
+	public void addGroup(String name, Map<String, String> additionalAttributes, User user, Map<String, Object> request)
+			throws ProvisioningException {
+		
+		int approvalID = 0;
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+		
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
+		String dn = new StringBuilder("cn=").append(name).append(",").append(additionalAttributes.get("base")).toString();
+		
+		LDAPEntry entry = new LDAPEntry(dn);
+		entry.getAttributeSet().add(new LDAPAttribute("objectClass","group"));
+		entry.getAttributeSet().add(new LDAPAttribute("cn",name));
+		//entry.getAttributeSet().add(new LDAPAttribute("samAccountName",name));
+		
+		try {
+			
+			LdapConnection con;
+			try {
+				con = this.ldapPool.getConnection();
+			} catch (Exception e) {
+				throw new ProvisioningException("Could not get LDAP connection " + user.getUserID(),e);
+			}
+			
+			try {
+				con.getConnection().add(entry);
+				
+				this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Add,  approvalID, workflow, "domain-group", name);
+				
+			} finally {
+				con.returnCon();
+			}
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not set user's password",e);
+		}
+		
+	}
+
+	@Override
+	public void deleteGroup(String name, User user, Map<String, Object> request) throws ProvisioningException {
+		
+		int approvalID = 0;
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+		
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
+		
+		
+		try {
+			
+			LdapConnection con;
+			try {
+				con = this.ldapPool.getConnection();
+			} catch (Exception e) {
+				throw new ProvisioningException("Could not get LDAP connection " + user.getUserID(),e);
+			}
+			
+			try {
+				LDAPSearchResults res = con.getConnection().search(this.searchBase, 2, and(equal("objectClass","group"),equal("cn",name)).toString(), new String[] {"1.1"}, false);
+				if (res.hasMore()) {
+					LDAPEntry entry = res.next();
+					con.getConnection().delete(entry.getDN());
+					this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Delete,  approvalID, workflow, "domain-group", name);
+				}
+				
+				
+			} finally {
+				con.returnCon();
+			}
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not set user's password",e);
+		}
+	}
+		
+	
+
+	@Override
+	public boolean isGroupExists(String name, User user, Map<String, Object> request) throws ProvisioningException {
+		try {
+			
+			LdapConnection con;
+			try {
+				con = this.ldapPool.getConnection();
+			} catch (Exception e) {
+				throw new ProvisioningException("Could not get LDAP connection " + user.getUserID(),e);
+			}
+			
+			try {
+				logger.info("Looking for '" + name + "' - " + and(equal("objectClass","group"),equal("cn",name)).toString());
+				LDAPSearchResults res = con.getConnection().search(this.searchBase, 2, and(equal("objectClass","group"),equal("cn",name)).toString(), new String[] {"1.1"}, false);
+				if (! res.hasMore() ) {
+					logger.info("Not found");
+					return false;
+				} else {
+					try {
+						LDAPEntry entry = res.next();
+						
+					} catch (LDAPReferralException e) {
+						logger.info("referral, skipping");
+						return false;
+					}
+					
+				}
+				
+				return true;
+			} finally {
+				con.returnCon();
+			}
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not set user's password",e);
+		}
 	}
 }
 
