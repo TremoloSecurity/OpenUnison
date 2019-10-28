@@ -81,7 +81,7 @@ public class AddGroupToStore implements CustomTask {
 			}
 			
 			for (String name : names) {
-				if (! ((UserStoreProviderWithAddGroup)target).isGroupExists(name, user, request)) {
+				if (! ((UserStoreProviderWithAddGroup)target).isGroupExists(task.renderTemplate(name, request), user, request)) {
 					((UserStoreProviderWithAddGroup)target).addGroup(task.renderTemplate(name, request), localAttrs,user, request);
 				}
 			}
