@@ -157,6 +157,7 @@
 		<module>unison-idp-openidconnect</module>
 		<module>unison-applications-k8s</module>
 		<module>unison-auth-u2f</module>
+		<module>unison-auth-duo</module>
 		<module>openunison-on-undertow</module>
 		<module>openunison-util-classes</module>
 		<module>unison-service-undertow</module>

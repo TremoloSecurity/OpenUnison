@@ -132,6 +132,12 @@
         </dependency>
 
 		<dependency>
+		  <groupId>com.tremolosecurity.unison</groupId>
+		  <artifactId>unison-auth-duo</artifactId>
+		  <version>${openunison.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.sun.mail</groupId>
 			<artifactId>mailapi</artifactId>
 			<version>${sun.mail-api.version}</version>
