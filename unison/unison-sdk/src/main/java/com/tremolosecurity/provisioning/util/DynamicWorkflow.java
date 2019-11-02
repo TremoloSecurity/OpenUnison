@@ -19,6 +19,7 @@ import java.util.Map;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.WorkflowType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
+import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.saml.Attribute;
 
 public interface DynamicWorkflow {
@@ -36,5 +37,16 @@ public interface DynamicWorkflow {
 	 * @throws ProvisioningException
 	 */
 	public List<Map<String,String>> generateWorkflows(WorkflowType wf,ConfigManager cfg,HashMap<String,Attribute> params) throws ProvisioningException;
+	
+	/**
+	 * Generates a list of name/value pairs to be inserted into the request, includes the current user's info
+	 * @param wf
+	 * @param cfg
+	 * @param params
+	 * @param authInfo
+	 * @return
+	 * @throws ProvisioningException
+	 */
+	public List<Map<String,String>> generateWorkflows(WorkflowType wf,ConfigManager cfg,HashMap<String,Attribute> params,AuthInfo authInfo) throws ProvisioningException;
 	
 }
