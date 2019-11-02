@@ -69,9 +69,11 @@ public class DrupalProvider implements CustomDB {
 		roleIDs = new HashMap<String,Integer>();
 	}
 
+	private String name;
+
 	@Override
 	public int createUser(Connection con, User user,
-			Map<String, Attribute> attributes) throws ProvisioningException {
+			Map<String, Attribute> attributes,Map<String,Object> request) throws ProvisioningException {
 		StringBuffer insertSQL = new StringBuffer().append("INSERT INTO users (");
 		
 		ArrayList<String> vals = new ArrayList<String>();
@@ -127,7 +129,7 @@ public class DrupalProvider implements CustomDB {
 			
 			for (String fieldName : attributes.keySet()) {
 				if (! primaryFields.contains(fieldName)) {
-					loadPofileNameID(psField, fieldName);
+					loadPofileNameID(psField, fieldName,request);
 					
 					int fieldID = fieldIDs.get(fieldName);
 					psInsert.setInt(1, fieldID);
@@ -148,7 +150,7 @@ public class DrupalProvider implements CustomDB {
 		
 	}
 
-	public void loadPofileNameID(PreparedStatement psField, String fieldName)
+	public void loadPofileNameID(PreparedStatement psField, String fieldName,Map<String,Object> request)
 			throws SQLException, ProvisioningException {
 		ResultSet rs;
 		
@@ -171,7 +173,7 @@ public class DrupalProvider implements CustomDB {
 	}
 
 	@Override
-	public void addGroup(Connection con, int id, String name)
+	public void addGroup(Connection con, int id, String name,Map<String,Object> request)
 			throws ProvisioningException {
 		try {
 			if (! roleIDs.containsKey(name)) {
@@ -206,7 +208,7 @@ public class DrupalProvider implements CustomDB {
 	}
 
 	@Override
-	public void deleteGroup(Connection con, int id, String name)
+	public void deleteGroup(Connection con, int id, String name,Map<String,Object> request)
 			throws ProvisioningException {
 		try {
 			if (! roleIDs.containsKey(name)) {
@@ -241,7 +243,7 @@ public class DrupalProvider implements CustomDB {
 	}
 
 	@Override
-	public void deleteUser(Connection con, int id) throws ProvisioningException {
+	public void deleteUser(Connection con, int id,Map<String,Object> request) throws ProvisioningException {
 		try {
 			PreparedStatement ps = con.prepareStatement("DELETE FROM user WHERE uid=?");
 			ps.setInt(1, id);
@@ -288,7 +290,7 @@ public class DrupalProvider implements CustomDB {
 				ps.close();
 			} else {
 				PreparedStatement psField = con.prepareStatement("SELECT fid FROM profile_fields WHERE name=?");
-				loadPofileNameID(psField, attributeName);
+				loadPofileNameID(psField, attributeName,request);
 				int fid = fieldIDs.get(attributeName);
 				psField.close();
 				
@@ -321,7 +323,7 @@ public class DrupalProvider implements CustomDB {
 			String oldValue) throws ProvisioningException {
 		try {
 			PreparedStatement psField = con.prepareStatement("SELECT fid FROM profile_fields WHERE name=?");
-			loadPofileNameID(psField, attributeName);
+			loadPofileNameID(psField, attributeName,request);
 			int fid = fieldIDs.get(attributeName);
 			
 			PreparedStatement ps = con.prepareStatement("DELETE FROM profile_values WHERE fid=? AND uid=?");
@@ -357,7 +359,11 @@ public class DrupalProvider implements CustomDB {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
+	
+	@Override
+	public void setTargetName(String name) {
+		this.name = name;
+	}
 	
 
 }
