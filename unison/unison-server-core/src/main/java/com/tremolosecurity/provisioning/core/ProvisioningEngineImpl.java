@@ -156,6 +156,7 @@ import com.tremolosecurity.provisioning.objects.Workflows;
 import com.tremolosecurity.provisioning.scheduler.StopScheduler;
 import com.tremolosecurity.provisioning.tasks.Approval;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
+import com.tremolosecurity.provisioning.util.JMSKeepAlive;
 import com.tremolosecurity.provisioning.util.MessageProducerHolder;
 import com.tremolosecurity.provisioning.util.PooledMessageProducerFactory;
 import com.tremolosecurity.provisioning.util.TaskHolder;
@@ -1488,6 +1489,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				
 				javax.jms.Connection con = cf.createConnection();
 				con.start();
+				
+				JMSKeepAlive.getKeepAlive(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getKeepAliveMillis()).addConnection(con);
+				
 				return con;
 			} catch (InstantiationException | IllegalAccessException
 					| ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException e) {
@@ -1590,6 +1594,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		mph.setPool(this.mpPools.get(index));
 		return mph;
 	}
+	
+	
 
 
 	public void returnMessageProducer(MessageProducerHolder mph) {

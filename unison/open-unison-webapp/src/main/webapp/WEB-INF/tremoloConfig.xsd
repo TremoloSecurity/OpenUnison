@@ -1944,6 +1944,11 @@
 				<documentation>If true, multiple queues can be used for tasks</documentation>
 			</annotation>
 		</attribute>
+		<attribute name="keepAliveMillis" type="long" default="60000">
+			<annotation>
+				<documentation>Number of task queues</documentation>
+			</annotation>
+		</attribute>
 	</complexType>
 
 	<complexType name="portalUrlType">
