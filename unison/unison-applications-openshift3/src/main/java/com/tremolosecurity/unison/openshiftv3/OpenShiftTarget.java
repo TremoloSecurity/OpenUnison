@@ -17,6 +17,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.KeyStoreException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,6 +48,9 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.Logger;
+import org.cryptacular.EncodingException;
+import org.cryptacular.StreamException;
+import org.cryptacular.util.CertUtil;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -601,6 +605,20 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 				} catch (IOException e) {
 					throw new ProvisioningException("Could not load token",e);
 				}
+				
+				String certAlias = this.loadOptionalAttributeValue("caCertAlias","caCertAlias", cfg,null);
+				if (certAlias == null) {
+					certAlias = "k8s-token";
+				}
+				
+				try {
+					
+					
+					cfgMgr.getKeyStore().setCertificateEntry(certAlias, CertUtil.readCertificate("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"));
+				} catch (KeyStoreException | EncodingException | StreamException e) {
+					throw new ProvisioningException("Could not load ca cert",e);
+				}
+				
 			}
 			
 			

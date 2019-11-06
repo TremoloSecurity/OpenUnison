@@ -124,9 +124,15 @@ public class KubectlTokenLoader implements TokenLoader {
             templateObjects.put("user",user);
             templateObjects.put("token",token);
             templateObjects.put("user_id",user.getAttribs().get(this.uidAttributeName).getValues().get(0));
-            templateObjects.put("k8s_b64_cert", new String(Base64.encodeBase64(k8sCert.getBytes("UTF-8"))));
-            templateObjects.put("ou_b64_cert",new String(Base64.encodeBase64(ouCert.getBytes("UTF-8"))));
-            templateObjects.put("k8s_newline_cert",k8sCert.replace("\n", "\\n"));
+            if (k8sCert != null) {
+            	templateObjects.put("k8s_b64_cert", new String(Base64.encodeBase64(k8sCert.getBytes("UTF-8"))));
+            	templateObjects.put("k8s_newline_cert",k8sCert.replace("\n", "\\n"));
+            }
+            
+            if (ouCert != null) {
+            	templateObjects.put("ou_b64_cert",new String(Base64.encodeBase64(ouCert.getBytes("UTF-8"))));
+            }
+            
 
             
             
