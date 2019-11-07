@@ -119,7 +119,7 @@ public class JMSKeepAlive implements StopableThread {
 		String queueName = "";
 		ConfigManager cfgMgr = GlobalEntries.getGlobalEntries().getConfigManager();  
 		if (cfgMgr.getCfg().getProvisioning().getQueueConfig().isMultiTaskQueues()) {
-			queueName = cfgMgr.getCfg().getProvisioning().getQueueConfig().getTaskQueueName().replace("{x}", Integer.toString(ThreadLocalRandom.current().nextInt(0,cfgMgr.getCfg().getProvisioning().getQueueConfig().getNumQueues())));
+			queueName = cfgMgr.getCfg().getProvisioning().getQueueConfig().getTaskQueueName().replace("{x}", Integer.toString(ThreadLocalRandom.current().nextInt(1,cfgMgr.getCfg().getProvisioning().getQueueConfig().getNumQueues())));
 		} else {
 			queueName = cfgMgr.getCfg().getProvisioning().getQueueConfig().getTaskQueueName();
 		}

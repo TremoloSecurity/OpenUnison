@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyStoreException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -608,13 +609,17 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 				
 				String certAlias = this.loadOptionalAttributeValue("caCertAlias","caCertAlias", cfg,null);
 				if (certAlias == null) {
-					certAlias = "k8s-token";
+					certAlias = "k8s-master";
 				}
 				
 				try {
+					logger.info("Cert Alias Storing - '" + certAlias + "'");
 					
+					X509Certificate cert = CertUtil.readCertificate("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt");
 					
-					cfgMgr.getKeyStore().setCertificateEntry(certAlias, CertUtil.readCertificate("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"));
+					logger.info("Certificate - " + cert);
+					
+					cfgMgr.getKeyStore().setCertificateEntry(certAlias, cert);
 				} catch (KeyStoreException | EncodingException | StreamException e) {
 					throw new ProvisioningException("Could not load ca cert",e);
 				}

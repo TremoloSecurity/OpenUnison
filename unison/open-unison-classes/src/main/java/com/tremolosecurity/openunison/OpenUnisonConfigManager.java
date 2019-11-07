@@ -153,6 +153,9 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 	    	  String envVar = useWhen.substring(0,useWhen.indexOf('='));
 	    	  String envVal = useWhen.substring(useWhen.indexOf('=') + 1);
 	    	  
+	    	  
+	    	  boolean isDefault = node.getAttribute("useDefault") != null && node.getAttribute("useDefault").equalsIgnoreCase("true"); 
+	    	  
 	    	  String valToCheck = System.getProperty(envVar);
 	    	  if (valToCheck == null) {
 	    		  valToCheck = System.getenv(envVar);
@@ -162,8 +165,12 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 		    	  logger.debug("envVar - '" + envVar + "'");
 		    	  logger.debug("valToCheck - '" + valToCheck + "'");
 		    	  logger.debug("envVal - '" + envVal + "'");
+		    	  logger.debug("default - '" + isDefault + "'");
 	    	  }
-	    	  if (valToCheck == null || ! envVal.equalsIgnoreCase(valToCheck)) {
+	    	  
+	    	  if (valToCheck == null )
+	    	  
+	    	  if ((valToCheck == null && ! isDefault) || (valToCheck != null && ! envVal.equalsIgnoreCase(valToCheck))) {
 	    		  if (logger.isDebugEnabled()) {
 	    			  logger.debug("setting to remove");
 	    		  }

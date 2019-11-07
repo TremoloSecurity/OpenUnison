@@ -61,6 +61,9 @@ public class WordPressProvider implements CustomDB {
 	public int createUser(Connection con, User user,
 			Map<String, Attribute> attributes,Map<String,Object> request) throws ProvisioningException {
 		try {
+			
+			
+			
 			PreparedStatement psinsert = con.prepareStatement("INSERT INTO wp_users (user_login,user_nicename,user_email,user_registered,user_status,display_name) VALUES (?,?,?,?,?,?)",Statement.RETURN_GENERATED_KEYS);
 			psinsert.setString(1, user.getUserID());
 			psinsert.setString(2, attributes.get("user_nicename").getValues().get(0));
