@@ -83,12 +83,24 @@ public class QueUtils {
 					logger.info("Message already processed, stopping the run");
 					break;
 				}
+				
+				if (receivedMessage.getBooleanProperty("unisonignore")) {
+					
+					if (logger.isDebugEnabled()) {
+						logger.debug("ignoring message");
+					}
+					receivedMessage.acknowledge();
+					receivedMessage = consumer.receive(1000);
+					continue;
+				}
 
 
 				String originalQueue = receivedMessage.getStringProperty("OriginalQueue");
 				logger.info("Adding message " + receivedMessage.getJMSMessageID() + " to queue " + originalQueue);
 
 				TextMessage m = session.createTextMessage();
+				
+				
 
 				m.setStringProperty("dlqRunID", dlqSessionID);
 

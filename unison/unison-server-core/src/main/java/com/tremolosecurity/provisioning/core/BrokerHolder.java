@@ -142,7 +142,7 @@ public class BrokerHolder {
 	}
 	
 	private void initDLQ() throws Exception {
-		if (this.qs == null) { 
+		/*if (this.qs == null) { 
 			try {
 				javax.jms.Connection con;
 				
@@ -165,7 +165,7 @@ public class BrokerHolder {
 				this.qs = null;
 				throw t;
 			}
-		}
+		}*/
 		
 		
 		

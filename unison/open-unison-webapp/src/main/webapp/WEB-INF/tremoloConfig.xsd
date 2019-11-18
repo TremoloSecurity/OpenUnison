@@ -1914,6 +1914,11 @@
 				<documentation>Maximum number of consumer threads</documentation>
 			</annotation>
 		</attribute>
+		<attribute name="maxSessionsPerConnection" type="int" default="10">
+			<annotation>
+				<documentation>Maximum number of sessions per connection</documentation>
+			</annotation>
+		</attribute>
 		<attribute name="taskQueueName" type="string"
 			default="TremoloUnisonTaskQueue">
 			<annotation>

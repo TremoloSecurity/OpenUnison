@@ -55,6 +55,7 @@ public class TaskConsumer implements MessageListener {
 			TextMessage bmsg = (TextMessage) msg;
 			
 			if (bmsg.getBooleanProperty("unisonignore")) {
+				
 				if (logger.isDebugEnabled()) {
 					logger.debug("ignoring message");
 				}

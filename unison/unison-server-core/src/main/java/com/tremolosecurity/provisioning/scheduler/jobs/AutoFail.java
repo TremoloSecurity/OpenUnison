@@ -29,6 +29,7 @@ import org.quartz.JobExecutionContext;
 import com.google.gson.Gson;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
+import com.tremolosecurity.provisioning.jms.JMSSessionHolder;
 import com.tremolosecurity.provisioning.scheduler.UnisonJob;
 import com.tremolosecurity.provisioning.scheduler.jobs.util.FailApproval;
 import com.tremolosecurity.provisioning.service.util.ApprovalSummaries;
@@ -40,18 +41,11 @@ public class AutoFail extends UnisonJob {
 
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AutoFail.class.getName());
 
-	private javax.jms.Connection connection;
-	private Session session;
-	private Queue queue;
-	private MessageProducer mp;
+	JMSSessionHolder sessionHolder;
 
 	private synchronized void createConnections(ConfigManager configManager,String queueName) throws JMSException, ProvisioningException {
-		if (connection == null) {
-			connection = configManager.getProvisioningEngine().getQueueConnection();
-			session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-			queue = session.createQueue(queueName);
-			mp = session.createProducer(queue);
-			configManager.addThread(new DisposeConnection(connection));
+		if (sessionHolder == null) {
+			sessionHolder = com.tremolosecurity.provisioning.jms.JMSConnectionFactory.getConnectionFactory().getSession(queueName);
 		}
 	}
 
@@ -86,9 +80,12 @@ public class AutoFail extends UnisonJob {
 				fa.setMsg(msg);
 				EncryptedMessage em = configManager.getProvisioningEngine()
 						.encryptObject(fa);
-				TextMessage tmsg = session.createTextMessage(gson.toJson(em));
-				tmsg.setStringProperty("JMSXGroupID", "unison-autofail");
-				mp.send(tmsg);
+				
+				synchronized (this.sessionHolder) {
+					TextMessage tmsg = this.sessionHolder.getSession().createTextMessage(gson.toJson(em));
+					tmsg.setStringProperty("JMSXGroupID", "unison-autofail");
+					this.sessionHolder.getMessageProduceer().send(tmsg);
+				}
 			}
 
 

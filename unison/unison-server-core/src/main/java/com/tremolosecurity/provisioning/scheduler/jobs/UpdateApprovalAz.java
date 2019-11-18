@@ -47,6 +47,7 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.json.Token;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.Workflow;
+import com.tremolosecurity.provisioning.jms.JMSSessionHolder;
 import com.tremolosecurity.provisioning.objects.Approvals;
 import com.tremolosecurity.provisioning.scheduler.UnisonJob;
 import com.tremolosecurity.provisioning.tasks.Approval;
@@ -57,18 +58,11 @@ import com.tremolosecurity.provisioning.util.EncryptedMessage;
 public class UpdateApprovalAz extends UnisonJob {
 
 
-	private javax.jms.Connection connection;
-	private Session session;
-	private Queue queue;
-	private MessageProducer mp;
+	JMSSessionHolder session;
 
 	private synchronized void createConnections(ConfigManager configManager,String queueName) throws JMSException, ProvisioningException {
-		if (connection == null) {
-			connection = configManager.getProvisioningEngine().getQueueConnection();
-			session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-			queue = session.createQueue(queueName);
-			mp = session.createProducer(queue);
-			configManager.addThread(new DisposeConnection(connection));
+		if (session == null) {
+			session = com.tremolosecurity.provisioning.jms.JMSConnectionFactory.getConnectionFactory().getSession(queueName);
 		}
 	}
 	
@@ -114,10 +108,13 @@ public class UpdateApprovalAz extends UnisonJob {
 				wf.put(approvalID, approvals.get(approvalID));
 				
 				EncryptedMessage em = configManager.getProvisioningEngine().encryptObject(wf);
-				TextMessage tmsg = session.createTextMessage(gson.toJson(em));
-				tmsg.setStringProperty("JMSXGroupID", "unison-updateaz");
 				
-				mp.send(tmsg);
+				synchronized (this.session) {
+					TextMessage tmsg = session.getSession().createTextMessage(gson.toJson(em));
+					tmsg.setStringProperty("JMSXGroupID", "unison-updateaz");
+					
+					session.getMessageProduceer().send(tmsg);
+				}
 			}
 			
 
