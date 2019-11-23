@@ -192,6 +192,7 @@ public class JMSConnection {
 	
 	public void rebuild() throws JMSException {
 		this.con = cf.createConnection();
+		this.con.start();
 		for (JMSSessionHolder session : sessions) {
 			session.rebuild();
 		}

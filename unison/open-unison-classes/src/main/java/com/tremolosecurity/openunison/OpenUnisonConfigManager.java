@@ -168,7 +168,7 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 		    	  logger.debug("default - '" + isDefault + "'");
 	    	  }
 	    	  
-	    	  if (valToCheck == null )
+	    	  
 	    	  
 	    	  if ((valToCheck == null && ! isDefault) || (valToCheck != null && ! envVal.equalsIgnoreCase(valToCheck))) {
 	    		  if (logger.isDebugEnabled()) {
