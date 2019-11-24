@@ -163,6 +163,7 @@ import com.tremolosecurity.provisioning.util.TaskHolder;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.AzSys;
 import com.tremolosecurity.proxy.az.AzRule;
+import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.server.StopableThread;
@@ -449,7 +450,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 		this.cfgMgr = cfgMgr;
 		
-		
+		GlobalEntries.getGlobalEntries().set(ProxyConstants.CONFIG_MANAGER, cfgMgr);
 		
 		this.initLocalBroker();
 		
@@ -1414,7 +1415,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			String taskQueueName = "unison-tasks";
 			
-			if (this.cfgMgr.getCfg().getProvisioning() != null) {
+			if (this.cfgMgr.getCfg().getProvisioning() != null && this.cfgMgr.getCfg().getProvisioning().getQueueConfig() != null) {
 				taskQueueName = this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getTaskQueueName();
 			}
 			

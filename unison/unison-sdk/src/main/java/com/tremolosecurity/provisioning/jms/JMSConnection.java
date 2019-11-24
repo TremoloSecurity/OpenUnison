@@ -100,7 +100,7 @@ public class JMSConnection {
 			@Override
 			public void run() {
 				
-				if (GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning() != null) {
+				if (GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning() != null &&  GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getQueueConfig() != null) {
 					timeToWait = GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getQueueConfig().getKeepAliveMillis(); 
 				}
 				
@@ -168,7 +168,7 @@ public class JMSConnection {
 		
 		boolean isMultiTask = false;
 		
-		if (cfgMgr.getCfg().getProvisioning() != null) {
+		if (cfgMgr.getCfg().getProvisioning() != null && cfgMgr.getCfg().getProvisioning().getQueueConfig() != null) {
 			isMultiTask = cfgMgr.getCfg().getProvisioning().getQueueConfig().isMultiTaskQueues(); 
 		}
 		
@@ -180,7 +180,7 @@ public class JMSConnection {
 			
 			String taskQueueName = "unison-tasks";
 			
-			if (cfgMgr.getCfg().getProvisioning() != null) {
+			if (cfgMgr.getCfg().getProvisioning() != null && cfgMgr.getCfg().getProvisioning().getQueueConfig() != null) {
 				taskQueueName = cfgMgr.getCfg().getProvisioning().getQueueConfig().getTaskQueueName();
 			}
 			

@@ -48,7 +48,7 @@ public class JMSConnectionFactory {
 	private ConnectionFactory cf;
 	
 	private boolean isInternalQueue() {
-		if (this.cfgMgr.getCfg().getProvisioning() != null && this.cfgMgr.getCfg().getProvisioning().getQueueConfig() != null && ! this.cfgMgr.getCfg().getProvisioning().getQueueConfig().isIsUseInternalQueue()) {
+		if (GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning() != null && GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getQueueConfig() != null && ! GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getQueueConfig().isIsUseInternalQueue()) {
 			return false;
 		} else {
 			return true;
@@ -100,7 +100,7 @@ public class JMSConnectionFactory {
 			if (cons.size() == 0) {
 				int maxSessions = 10;
 				
-				if (this.cfgMgr.getCfg().getProvisioning() != null) {
+				if (this.cfgMgr.getCfg().getProvisioning() != null && this.cfgMgr.getCfg().getProvisioning().getQueueConfig() != null) {
 					maxSessions = this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getMaxSessionsPerConnection();
 				}
 				

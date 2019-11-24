@@ -1892,7 +1892,7 @@
 				minOccurs="0">
 			</element>
 		</sequence>
-		<attribute name="isUseInternalQueue" type="boolean" default="true">
+		<attribute name="isUseInternalQueue" type="boolean" default="true" >
 			<annotation>
 				<documentation>If true, Unison will use an embedded verison of
 					ActiveMQ</documentation>
