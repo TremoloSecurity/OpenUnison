@@ -59,7 +59,7 @@
 		<reflections.version>0.9.11</reflections.version>
 		<apache-log4j-extras.version>1.2.17</apache-log4j-extras.version>
 		<googleauth.version>1.2.0</googleauth.version>
-		<activemq.version>5.15.9</activemq.version>
+		<activemq.version>5.15.11</activemq.version>
 		<commons-pool2.version>2.6.2</commons-pool2.version>
 		<aws-java-sdk.version>1.11.578</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>1.0.6</amazon-sqs-java-messaging-lib.version>
