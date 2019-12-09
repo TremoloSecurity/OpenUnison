@@ -445,9 +445,12 @@ public class ScaleJSOperator implements HttpFilter {
 			LDAPEntry entry = res.next();
 			ret.put("dn", entry.getDN());
 			for (AttributeConfig attr : this.config.getResultsAttributes()) {
-				String val = entry.getAttribute(attr.getName()).getStringValue();
-				if (val != null) {
+				
+				if (entry.getAttribute(attr.getName()) != null) {
+					String val = entry.getAttribute(attr.getName()).getStringValue();
 					ret.put(attr.getName(), val);
+				} else {
+					ret.put(attr.getName(), "");
 				}
 			}
 		}
