@@ -86,7 +86,9 @@ import com.tremolosecurity.idp.providers.oidc.db.DbOidcSessionStore;
 import com.tremolosecurity.idp.providers.oidc.model.OIDCSession;
 import com.tremolosecurity.idp.providers.oidc.model.OidcSessionState;
 import com.tremolosecurity.idp.providers.oidc.model.OpenIDConnectConfig;
+import com.tremolosecurity.idp.providers.oidc.none.NoneBackend;
 import com.tremolosecurity.idp.providers.oidc.session.ClearOidcSessionOnLogout;
+import com.tremolosecurity.idp.providers.oidc.session.OidcSessionExpires;
 import com.tremolosecurity.idp.providers.oidc.model.OidcSessionStore;
 import com.tremolosecurity.idp.server.IDP;
 import com.tremolosecurity.idp.server.IdentityProvider;
@@ -96,6 +98,7 @@ import com.tremolosecurity.log.AccessLog.AccessEvent;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
+import com.tremolosecurity.proxy.SessionManagerImpl;
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.AzSys;
@@ -787,6 +790,9 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		try {			
 			oidcSession = this.storeSession(access, holder.getApp(), trust.getCodeLastmileKeyName(), clientID,dn,sessionID);
+			if (! (this.sessionStore instanceof NoneBackend)) {
+				request.getSession().setAttribute(SessionManagerImpl.TREMOLO_EXTERNAL_SESSION, new OidcSessionExpires(oidcSession.getSessionID(),this.sessionStore));
+			}
 		} catch (Exception e) {
 			throw new ServletException("Could not store session",e);
 		}

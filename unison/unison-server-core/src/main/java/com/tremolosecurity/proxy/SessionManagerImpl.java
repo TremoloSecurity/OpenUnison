@@ -75,6 +75,7 @@ public class SessionManagerImpl implements SessionManager {
 	private static final String AUTOIDM_KEY_SESSION = "AUTOIDM_KEY_SESSION";
 
 	public static final String TREMOLO_SESSION_LAST_ACCESSED = "TREMOLO_SESSION_LAST_ACCESSED";
+	public static final String TREMOLO_EXTERNAL_SESSION = "TREMOLO_EXTERNAL_SESSION";
 
 	SecureRandom random;
 
@@ -291,19 +292,39 @@ public class SessionManagerImpl implements SessionManager {
 							.getAttribute(OpenUnisonConstants.TREMOLO_SESSION_ID);
 
 					if (app.getCookieConfig().getTimeout() > 0) {
-						DateTime lastAccessed = (DateTime) tsession
-								.getAttribute(SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED);
-						DateTime now = new DateTime();
-						if (now.minusSeconds(app.getCookieConfig().getTimeout())
-								.isAfter(lastAccessed)) {
-							tsession.invalidate();
-							return createSession(app, request, resp, ctx,
-									encKey);
+						
+						ExternalSessionExpires extSession = (ExternalSessionExpires) tsession.getAttribute(SessionManagerImpl.TREMOLO_EXTERNAL_SESSION);
+						
+						if (extSession != null) {
+							DateTime now = new DateTime();
+							if (extSession.getExpires() < now.getMillis()) {
+								//external session has expired, create a new one
+								tsession.invalidate();
+								return createSession(app, request, resp, ctx,
+										encKey);
+							} else {
+								tsession.setAttribute(
+										SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED,
+										now);
+								session = tsession;
+							}
+							
 						} else {
-							tsession.setAttribute(
-									SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED,
-									now);
-							session = tsession;
+						
+							DateTime lastAccessed = (DateTime) tsession
+									.getAttribute(SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED);
+							DateTime now = new DateTime();
+							if (now.minusSeconds(app.getCookieConfig().getTimeout())
+									.isAfter(lastAccessed)) {
+								tsession.invalidate();
+								return createSession(app, request, resp, ctx,
+										encKey);
+							} else {
+								tsession.setAttribute(
+										SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED,
+										now);
+								session = tsession;
+							}
 						}
 					} else {
 						session = tsession;
@@ -676,21 +697,35 @@ class SessionTimeoutChecker extends Thread {
 					if (session.isOpen()) {
 						if (cfg.getCfg().getApplications()
 								.getOpenSessionTimeout() > 0) {
-							DateTime lastAccessed = (DateTime) session
-									.getAttribute(SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED);
+							
+							
+							ExternalSessionExpires extSession = (ExternalSessionExpires) session.getAttribute(SessionManagerImpl.TREMOLO_EXTERNAL_SESSION);
+							
+							if (extSession != null) {
+								if (extSession.getExpires() < System.currentTimeMillis()) {
+									session.invalidate();
+									toremove.add(key);
+								}
+							} else {
+								DateTime lastAccessed = (DateTime) session
+										.getAttribute(SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED);
 
-							if (lastAccessed == null) {
-								lastAccessed = new DateTime(session.getCreationTime());
-							}
+								if (lastAccessed == null) {
+									lastAccessed = new DateTime(session.getCreationTime());
+								}
 
-							DateTime now = new DateTime();
-							if (now.minusSeconds(
-									cfg.getCfg().getApplications()
-											.getOpenSessionTimeout()).isAfter(
-									lastAccessed)) {
-								session.invalidate();
-								toremove.add(key);
+								DateTime now = new DateTime();
+								if (now.minusSeconds(
+										cfg.getCfg().getApplications()
+												.getOpenSessionTimeout()).isAfter(
+										lastAccessed)) {
+									session.invalidate();
+									toremove.add(key);
+								}
 							}
+							
+							
+							
 						}
 					} else {
 						if (app == null) {
@@ -704,20 +739,31 @@ class SessionTimeoutChecker extends Thread {
 							session.invalidate();
 						} else {
 							if (app.getCookieConfig().getTimeout() > 0) {
-								DateTime lastAccessed = (DateTime) session
-										.getAttribute(SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED);
+								
+								ExternalSessionExpires extSession = (ExternalSessionExpires) session.getAttribute(SessionManagerImpl.TREMOLO_EXTERNAL_SESSION);
+								
+								if (extSession != null) {
+									if (extSession.getExpires() < System.currentTimeMillis()) {
+										session.invalidate();
+										toremove.add(key);
+									}
+								} else {
+									DateTime lastAccessed = (DateTime) session
+											.getAttribute(SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED);
 
-								if (lastAccessed == null) {
-									lastAccessed = new DateTime(session.getCreationTime());
-								}
+									if (lastAccessed == null) {
+										lastAccessed = new DateTime(session.getCreationTime());
+									}
 
-								DateTime now = new DateTime();
-								if (now.minusSeconds(
-										app.getCookieConfig().getTimeout())
-										.isAfter(lastAccessed)) {
-									session.invalidate();
-									toremove.add(key);
+									DateTime now = new DateTime();
+									if (now.minusSeconds(
+											app.getCookieConfig().getTimeout())
+											.isAfter(lastAccessed)) {
+										session.invalidate();
+										toremove.add(key);
+									}
 								}
+								
 							}
 						}
 					}

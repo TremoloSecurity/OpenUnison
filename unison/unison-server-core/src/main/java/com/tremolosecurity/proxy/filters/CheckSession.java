@@ -22,6 +22,7 @@ import org.joda.time.DateTime;
 
 import com.google.gson.Gson;
 import com.tremolosecurity.config.xml.ApplicationType;
+import com.tremolosecurity.proxy.ExternalSessionExpires;
 import com.tremolosecurity.proxy.ProxyUtil;
 import com.tremolosecurity.proxy.SessionManagerImpl;
 import com.tremolosecurity.proxy.TremoloHttpSession;
@@ -66,11 +67,25 @@ public class CheckSession implements HttpFilter {
 					} else {
 						SessionInfo si = new SessionInfo();
 						if (this.timeoutSeconds > 0) {
-							DateTime lastAccessed = (DateTime) session.getAttribute(SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED);
-							DateTime now = new DateTime();
-							DateTime expires = lastAccessed.plusSeconds(this.timeoutSeconds);
 							
-							si.setMinsLeft((int) ((expires.getMillis() - System.currentTimeMillis()) / 1000 / 60));
+							ExternalSessionExpires extSession = (ExternalSessionExpires) session.getAttribute(SessionManagerImpl.TREMOLO_EXTERNAL_SESSION);
+							
+							if (extSession != null) {
+								long expires = extSession.getExpires();
+								if (expires <= 0) {
+									si.setMinsLeft(-1);
+								} else {
+									si.setMinsLeft((int) ((expires - System.currentTimeMillis()) / 1000 / 60));
+								}
+							} else {
+								DateTime lastAccessed = (DateTime) session.getAttribute(SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED);
+								DateTime now = new DateTime();
+								DateTime expires = lastAccessed.plusSeconds(this.timeoutSeconds);
+								
+								si.setMinsLeft((int) ((expires.getMillis() - System.currentTimeMillis()) / 1000 / 60));
+							}
+							
+							
 						} else {
 							si.setMinsLeft(-1);
 						}
