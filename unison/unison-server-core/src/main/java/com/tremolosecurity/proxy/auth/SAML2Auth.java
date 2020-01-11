@@ -641,17 +641,18 @@ public class SAML2Auth implements AuthMechanism {
 					boolean foundSigned = false;
 					
 					for (X509Certificate sigCert : sigCerts) {
-						
-						BasicCredential sigCred = new BasicCredential(sigCert.getPublicKey());
-						sigCred.setUsageType(UsageType.SIGNING);
-	
-						try {
-							SAMLSignatureProfileValidator profileValidator = new SAMLSignatureProfileValidator();
-				            profileValidator.validate(samlResponse.getSignature());
-				            SignatureValidator.validate(samlResponse.getSignature(), sigCred);
-				            foundSigned = true;
-						} catch (org.opensaml.xmlsec.signature.support.SignatureException se) {
-							
+						if (sigCert != null) {
+							BasicCredential sigCred = new BasicCredential(sigCert.getPublicKey());
+							sigCred.setUsageType(UsageType.SIGNING);
+		
+							try {
+								SAMLSignatureProfileValidator profileValidator = new SAMLSignatureProfileValidator();
+					            profileValidator.validate(samlResponse.getSignature());
+					            SignatureValidator.validate(samlResponse.getSignature(), sigCred);
+					            foundSigned = true;
+							} catch (org.opensaml.xmlsec.signature.support.SignatureException se) {
+								
+							}
 						}
 					}
 					
@@ -704,16 +705,18 @@ public class SAML2Auth implements AuthMechanism {
 				
 					boolean foundSigned = false;
 					for (X509Certificate sigCert : sigCerts) {
-						BasicCredential sigCred = new BasicCredential(sigCert.getPublicKey());
-						sigCred.setUsageType(UsageType.SIGNING);
-	
-						try {
-							SAMLSignatureProfileValidator profileValidator = new SAMLSignatureProfileValidator();
-				            profileValidator.validate(assertion.getSignature());
-				            SignatureValidator.validate(assertion.getSignature(), sigCred);
-				            foundSigned = true;
-						} catch (org.opensaml.xmlsec.signature.support.SignatureException se) {
-							
+						if (sigCert != null) {
+							BasicCredential sigCred = new BasicCredential(sigCert.getPublicKey());
+							sigCred.setUsageType(UsageType.SIGNING);
+		
+							try {
+								SAMLSignatureProfileValidator profileValidator = new SAMLSignatureProfileValidator();
+					            profileValidator.validate(assertion.getSignature());
+					            SignatureValidator.validate(assertion.getSignature(), sigCred);
+					            foundSigned = true;
+							} catch (org.opensaml.xmlsec.signature.support.SignatureException se) {
+								
+							}
 						}
 					}					
 
