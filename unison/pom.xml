@@ -17,7 +17,7 @@
 	<properties>
 		<openunison.version>1.0.17</openunison.version>
 		<servlet.api.version>3.1.0</servlet.api.version>
-		<servlet.2x.api.version>2.5-6.0.2</servlet.2x.api.version>
+		<servlet.2x.api.version>2.5</servlet.2x.api.version>
 		<commons-collections.version>3.2.2</commons-collections.version>
 		<commons-cli.version>1.4</commons-cli.version>
 		<opensaml.version>3.4.3</opensaml.version>
@@ -104,7 +104,7 @@
 		<repository>
 			<id>nexus.tremolo.io</id>
 			<name>tremolo.io-releases</name>
-			<url>https://nexus.tremolo.io/repository/releases/</url>
+			<url>s3://tremolosecurity-maven/repository/releases</url>
 		</repository>
 
 	</distributionManagement>
@@ -165,6 +165,13 @@
 		<module>unison-scalejs-operators</module>
 	</modules>
 	<build>
+	    <extensions>
+        <extension>
+            <groupId>com.gkatzioura.maven.cloud</groupId>
+            <artifactId>s3-storage-wagon</artifactId>
+            <version>2.3</version>
+        </extension>
+    </extensions>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
