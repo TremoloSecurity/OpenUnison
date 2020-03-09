@@ -26,10 +26,6 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.services.admin.directory.Directory;
-import com.google.api.services.admin.directory.DirectoryScopes;
-import com.google.api.services.admin.directory.model.User;
-import com.google.api.services.admin.directory.model.Users;
 import com.google.api.services.oauth2.Oauth2;
 import com.google.api.services.oauth2.model.Tokeninfo;
 import com.google.api.services.oauth2.model.Userinfoplus;
@@ -43,7 +39,7 @@ public class Test {
 	  private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 	
 	public static void main(String[] args) throws Exception {
-		HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+		/*HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
 		JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
 
 		ArrayList<String> scopes = new ArrayList<String>();
@@ -88,7 +84,7 @@ public class Test {
 	    	  
 	      }
 	      
-	      List<User> searchRes = new ArrayList<User>();
+	      List<User> searchRes = new ArrayList<User>();*/
 	  	
 	      
 		

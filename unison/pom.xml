@@ -10,12 +10,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.tremolosecurity.unison</groupId>
 	<artifactId>unison</artifactId>
-	<version>1.0.17</version>
+	<version>1.0.17.1</version>
 	<name>Unison</name>
 	<packaging>pom</packaging>
 
 	<properties>
-		<openunison.version>1.0.17</openunison.version>
+		<openunison.version>1.0.17.1</openunison.version>
 		<servlet.api.version>3.1.0</servlet.api.version>
 		<servlet.2x.api.version>2.5</servlet.2x.api.version>
 		<commons-collections.version>3.2.2</commons-collections.version>
@@ -24,62 +24,62 @@
 		<xerces.version>2.12.0</xerces.version>
 		<alfresco-client.version>5.0.a</alfresco-client.version>
 		<javax.xml.rpc-api.version>1.1.2</javax.xml.rpc-api.version>
-		<google-api-client.version>1.30.1</google-api-client.version>
-		<google-api-services-plus.version>v1-rev20190328-1.28.0</google-api-services-plus.version>
-		<google-api-services-oauth2.version>v2-rev20190313-1.28.0</google-api-services-oauth2.version>
-		<google-api-services-admin-directory.version>directory_v1-rev110-1.25.0</google-api-services-admin-directory.version>
+		<google-api-client.version>1.30.9</google-api-client.version>
+		<google-api-services-plus.version>v1-rev20190328-1.30.9</google-api-services-plus.version>
+		<google-api-services-oauth2.version>v2-rev20200213-1.30.9</google-api-services-oauth2.version>
+		<google-api-services-admin-directory.version>directory_v1-rev20191003-1.30.8</google-api-services-admin-directory.version>
 		<json-simple.version>1.1.1</json-simple.version>
-		<twilio-java-sdk.version>7.39.0</twilio-java-sdk.version>
-		<restfb.version>2.22.0</restfb.version>
+		<twilio-java-sdk.version>7.47.6</twilio-java-sdk.version>
+		<restfb.version>3.4.0</restfb.version>
 		<jbosssx-bare.version>4.1.6.Final</jbosssx-bare.version>
 		<jbosssx-client.version>4.1.6.Final</jbosssx-client.version>
 		<jboss-as-logging.version>7.2.0.Final</jboss-as-logging.version>
 		<jboss-as-web.version>7.2.0.Final</jboss-as-web.version>
-		<gson.version>2.8.5</gson.version>
-		<bcprov-jdk15on.version>1.62</bcprov-jdk15on.version>
-		<bcprov-ext-jdk15on.version>1.62</bcprov-ext-jdk15on.version>
+		<gson.version>2.8.6</gson.version>
+		<bcprov-jdk15on.version>1.64</bcprov-jdk15on.version>
+		<bcprov-ext-jdk15on.version>1.64</bcprov-ext-jdk15on.version>
 		<catalina.version>6.0.53</catalina.version>
 		<undertow-1x.version>1.0.0.Final</undertow-1x.version>
-		<myvd-server.version>1.0.6</myvd-server.version>
+		<myvd-server.version>1.0.7</myvd-server.version>
 		<jldap.version>1.0.0</jldap.version>
-		<httpclient.version>4.5.9</httpclient.version>
-		<httpcore.version>4.4.11</httpcore.version>
-		<httpmime.version>4.5.9</httpmime.version>
+		<httpclient.version>4.5.12</httpclient.version>
+		<httpcore.version>4.4.13</httpcore.version>
+		<httpmime.version>4.5.12</httpmime.version>
 		<commons-fileupload.version>1.4</commons-fileupload.version>
 		<javax.jms-api.version>2.0.1</javax.jms-api.version>
-		<quartz.version>2.3.1</quartz.version>
-		<quartz-jobs.version>2.3.0</quartz-jobs.version>
-		<json-io.version>4.10.1</json-io.version>
-		<log4j.version>2.11.2</log4j.version>
-		<joda-time.version>2.10.2</joda-time.version>
+		<quartz.version>2.3.2</quartz.version>
+		<quartz-jobs.version>2.3.2</quartz-jobs.version>
+		<json-io.version>4.12.0</json-io.version>
+		<log4j.version>2.13.1</log4j.version>
+		<joda-time.version>2.10.5</joda-time.version>
 		<javax.mail-api.version>1.6.2</javax.mail-api.version>
-		<sun.mail-api.version>1.6.3</sun.mail-api.version>
-		<bcpkix-jdk15on.version>1.62</bcpkix-jdk15on.version>
+		<sun.mail-api.version>1.6.4</sun.mail-api.version>
+		<bcpkix-jdk15on.version>1.64</bcpkix-jdk15on.version>
 		<net.sourceforge.spnego.version>7.1</net.sourceforge.spnego.version>
-		<reflections.version>0.9.11</reflections.version>
+		<reflections.version>0.9.12</reflections.version>
 		<apache-log4j-extras.version>1.2.17</apache-log4j-extras.version>
-		<googleauth.version>1.2.0</googleauth.version>
-		<activemq.version>5.15.9</activemq.version>
-		<commons-pool2.version>2.6.2</commons-pool2.version>
-		<aws-java-sdk.version>1.11.578</aws-java-sdk.version>
-		<amazon-sqs-java-messaging-lib.version>1.0.6</amazon-sqs-java-messaging-lib.version>
+		<googleauth.version>1.4.0</googleauth.version>
+		<activemq.version>5.15.11</activemq.version>
+		<commons-pool2.version>2.8.0</commons-pool2.version>
+		<aws-java-sdk.version>1.11.739</aws-java-sdk.version>
+		<amazon-sqs-java-messaging-lib.version>1.0.8</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.0.2</stringtemplate.version>
-		<hibernate.version>5.4.3.Final</hibernate.version>
+		<hibernate.version>5.4.12.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
-		<org.apache.poi.version>4.1.0</org.apache.poi.version>
-		<jose4j.version>0.6.5</jose4j.version>
-		<mongodb-driver.version>3.10.2</mongodb-driver.version>
+		<org.apache.poi.version>4.1.2</org.apache.poi.version>
+		<jose4j.version>0.7.0</jose4j.version>
+		<mongodb-driver.version>3.12.2</mongodb-driver.version>
 		<xalan.version>2.7.2</xalan.version>
-		<jackson.version>2.9.9</jackson.version>
-		<slf4j.version>1.7.26</slf4j.version>
-		<guava.version>28.0-jre</guava.version>
-		<undertow.version>2.0.22.Final</undertow.version>
+		<jackson.version>2.10.3</jackson.version>
+		<slf4j.version>1.7.30</slf4j.version>
+		<guava.version>28.2-jre</guava.version>
+		<undertow.version>2.0.29.Final</undertow.version>
 	  	<jastow.version>2.1.0.Final</jastow.version>
 	  	<jboss-jstl-api_1.2_spec.version>1.1.4.Final</jboss-jstl-api_1.2_spec.version>
 	  	<xmlsec.version>2.0.5</xmlsec.version>
-	  	<snakeyaml.version>1.24</snakeyaml.version>
-	  	<prometheus.version>0.6.0</prometheus.version>
-	  	<ibm-mq.version>9.1.2.0</ibm-mq.version>
+	  	<snakeyaml.version>1.26</snakeyaml.version>
+	  	<prometheus.version>0.8.1</prometheus.version>
+	  	<ibm-mq.version>9.1.4.0</ibm-mq.version>
 	</properties>
 
 	<repositories>

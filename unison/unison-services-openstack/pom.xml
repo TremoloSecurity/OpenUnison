@@ -19,7 +19,7 @@
 	<parent>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison</artifactId>
-		<version>1.0.17</version>
+		<version>1.0.17.1</version>
 	</parent>
 	<artifactId>unison-applications-openstack</artifactId>
 
