@@ -17,7 +17,7 @@
 	<properties>
 		<openunison.version>1.0.18</openunison.version>
 		<servlet.api.version>3.1.0</servlet.api.version>
-		<servlet.2x.api.version>2.5-6.0.2</servlet.2x.api.version>
+		<servlet.2x.api.version>2.5</servlet.2x.api.version>
 		<commons-collections.version>3.2.2</commons-collections.version>
 		<commons-cli.version>1.4</commons-cli.version>
 		<opensaml.version>3.4.5</opensaml.version>
@@ -86,7 +86,8 @@
 	<repositories>
 		<repository>
 			<id>tremolosecurity-dependencies</id>
-			<url>https://nexus.tremolo.io/repository/betas/</url>
+			<!-- <url>https://nexus.tremolo.io/repository/betas/</url> -->
+			<url>https://mvn.apps.tremolo.io/repository/betas/</url>
 		</repository>
 		
 		<!-- <repository>
@@ -103,9 +104,11 @@
 
 	<distributionManagement>
 		<repository>
-			<id>nexus.tremolo.io</id>
+			<!--  <id>nexus.tremolo.io</id>  -->
+			<id>mvn.apps.tremolo.io</id>
 			<name>tremolo.io-releases</name>
-			<url>https://nexus.tremolo.io/repository/betas/</url>
+			<url>s3://tremolosecurity-maven/repository/betas</url>  
+			<!-- <url>https://nexus.tremolo.io/repository/betas/</url>  -->
 		</repository>
 
 	</distributionManagement>
@@ -168,6 +171,13 @@
 		<module>unison-applications-okta</module>
 	</modules>
 	<build>
+	<extensions>
+        <extension>
+            <groupId>com.gkatzioura.maven.cloud</groupId>
+            <artifactId>s3-storage-wagon</artifactId>
+            <version>2.3</version>
+        </extension>
+    </extensions> 
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>

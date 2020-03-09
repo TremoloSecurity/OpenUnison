@@ -58,7 +58,7 @@
   		</exclusions>
   	</dependency>
   			  	<dependency>
-  		<groupId>jetty</groupId>
+  		<groupId>javax.servlet</groupId>
   		<artifactId>servlet-api</artifactId>
   		<version>${servlet.2x.api.version}</version>
   		<scope>provided</scope>
