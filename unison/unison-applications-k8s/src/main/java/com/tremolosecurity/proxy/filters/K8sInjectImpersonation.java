@@ -65,6 +65,7 @@ public class K8sInjectImpersonation implements HttpFilter {
 		request.addHeader(new Attribute("Impersonate-User",userData.getAttribs().get(this.userNameAttribute).getValues().get(0)));
 		
 		Attribute groups = new Attribute("Impersonate-Group");
+		groups.getValues().add("system:authenticated");
 		Attribute fromUser = userData.getAttribs().get(this.groupAttribute);
 		if (fromUser != null) {
 			groups.getValues().addAll(fromUser.getValues());
@@ -73,9 +74,7 @@ public class K8sInjectImpersonation implements HttpFilter {
 		
 		if (groups.getValues().size() > 0) {
 			
-			for (String group : groups.getValues()) {
-				System.out.println("Group Name - '" + group + "'");
-			}
+			
 			
 			request.addHeader(groups);
 		}
@@ -88,7 +87,7 @@ public class K8sInjectImpersonation implements HttpFilter {
 		
 		HashMap<String,String> uriParams = (HashMap<String,String>) request.getAttribute("TREMOLO_URI_PARAMS");
 		uriParams.put("k8s_url", target.getUrl());
-		System.err.println(uriParams);
+		
 		
 		chain.nextFilter(request, response, chain);
 		

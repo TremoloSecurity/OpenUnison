@@ -993,7 +993,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			public void nextSys(final HttpServletRequest request,
 					final HttpServletResponse response) throws IOException,
 					ServletException {
-				//System.out.println("Authorized!!!!");
+				
 				
 				
 				final AuthInfo authInfo = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
