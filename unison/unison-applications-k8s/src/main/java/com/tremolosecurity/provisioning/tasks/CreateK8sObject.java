@@ -35,6 +35,8 @@ public class CreateK8sObject implements CustomTask {
     String kind;
     String url;
     String label;
+    boolean doPost;
+    
     transient WorkflowTask task;
 
     @Override
@@ -45,6 +47,8 @@ public class CreateK8sObject implements CustomTask {
         this.url = params.get("url").getValues().get(0);
         this.label = "kubernetes-" + this.kind.toLowerCase();
 
+        this.doPost = params.get("doPost") == null || params.get("doPost").getValues().get(0).equalsIgnoreCase("true"); 
+        
         this.task = task;
 
     }
@@ -78,12 +82,32 @@ public class CreateK8sObject implements CustomTask {
             String token = os.getAuthToken();
             con = os.createClient();
 
-            if (! os.isObjectExists(token, con, localURL,localTemplate)) {
-
-                String respJSON = os.callWSPost(token, con, localURL, localTemplate);
-
+            if (this.doPost) {
+	            if (! os.isObjectExists(token, con, localURL,localTemplate)) {
+	
+	                String respJSON = os.callWSPost(token, con, localURL, localTemplate);
+	
+	                if (logger.isDebugEnabled()) {
+	                    logger.debug("Response for creating project : '" + respJSON + "'");
+	                }
+	
+	                JSONParser parser = new JSONParser();
+	                JSONObject resp = (JSONObject) parser.parse(respJSON);
+	                String kind = (String) resp.get("kind");
+	                String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
+	
+	
+	                if (! kind.equalsIgnoreCase(this.kind)) {
+	                    throw new ProvisioningException("Could not create " + kind + " with json '" + localTemplate + "' - '" + respJSON + "'" );
+	                } else {
+	                    this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ProvisioningUtil.ActionType.Add,  approvalID, this.task.getWorkflow(), label, projectName);
+	                }
+	            }
+            } else {
+            	String respJSON = os.callWSPut(token, con, localURL, localTemplate);
+            	
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Response for creating project : '" + respJSON + "'");
+                    logger.debug("Response for putting object : '" + respJSON + "'");
                 }
 
                 JSONParser parser = new JSONParser();
@@ -95,7 +119,7 @@ public class CreateK8sObject implements CustomTask {
                 if (! kind.equalsIgnoreCase(this.kind)) {
                     throw new ProvisioningException("Could not create " + kind + " with json '" + localTemplate + "' - '" + respJSON + "'" );
                 } else {
-                    this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ProvisioningUtil.ActionType.Add,  approvalID, this.task.getWorkflow(), label, projectName);
+                    this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ProvisioningUtil.ActionType.Replace,  approvalID, this.task.getWorkflow(), label, projectName);
                 }
             }
         } catch (Exception e) {
