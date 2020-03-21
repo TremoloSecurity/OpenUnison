@@ -51,6 +51,9 @@ public class JMSConnection {
 	MessageProducer keepAliveMp;
 	
 	public JMSConnection(ConnectionFactory cf,int max) throws JMSException {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Creating new connection " + cf);
+		}
 		this.cf = cf;
 		this.con = cf.createConnection();
 		this.con.start();
@@ -84,7 +87,9 @@ public class JMSConnection {
 		GlobalEntries.getGlobalEntries().getConfigManager().addThread(st);
 		
 		
-		
+		if (logger.isDebugEnabled()) {
+			logger.debug("Creating new connection checking thread");
+		}
 		st = new StopableThread() {
 			long lastCheck;
 			long timeToWait = 60000L;
@@ -186,11 +191,17 @@ public class JMSConnection {
 			
 			queueName = taskQueueName;
 		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("Creating keepalive session for '" + queueName + "'");
+		}
 		this.keepAliveSession = this.con.createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
 		this.keepAliveMp = this.keepAliveSession.createProducer(this.keepAliveSession.createQueue(queueName));
 	}
 	
 	public void rebuild() throws JMSException {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Rebuilding " + this.con);
+		}
 		this.con = cf.createConnection();
 		this.con.start();
 		for (JMSSessionHolder session : sessions) {
@@ -205,7 +216,7 @@ public class JMSConnection {
 			tm.setStringProperty("JMSXGroupID", "unison-keepalive");
 			tm.setBooleanProperty("unisonignore", true);
 			
-			logger.info("Sending keepalive for " + this.con);
+			
 			if (logger.isDebugEnabled()) {
 				logger.debug("Sending keepalive for " + this.con);
 			}

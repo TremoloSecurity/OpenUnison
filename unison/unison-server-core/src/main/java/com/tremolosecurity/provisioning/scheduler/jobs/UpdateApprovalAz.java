@@ -58,7 +58,7 @@ import com.tremolosecurity.provisioning.util.EncryptedMessage;
 public class UpdateApprovalAz extends UnisonJob {
 
 
-	JMSSessionHolder session;
+	static JMSSessionHolder session;
 
 	private synchronized void createConnections(ConfigManager configManager,String queueName) throws JMSException, ProvisioningException {
 		if (session == null) {
@@ -109,7 +109,7 @@ public class UpdateApprovalAz extends UnisonJob {
 				
 				EncryptedMessage em = configManager.getProvisioningEngine().encryptObject(wf);
 				
-				synchronized (this.session) {
+				synchronized (session) {
 					TextMessage tmsg = session.getSession().createTextMessage(gson.toJson(em));
 					tmsg.setStringProperty("JMSXGroupID", "unison-updateaz");
 					

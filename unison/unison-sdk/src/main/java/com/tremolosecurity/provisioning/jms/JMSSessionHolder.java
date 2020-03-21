@@ -22,6 +22,8 @@ import javax.jms.MessageProducer;
 import javax.jms.Queue;
 import javax.jms.Session;
 
+import org.apache.logging.log4j.Logger;
+
 public class JMSSessionHolder {
 	
 	JMSConnection con;
@@ -33,7 +35,13 @@ public class JMSSessionHolder {
 	MessageListener ml;
 	MessageConsumer mc;
 	
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(JMSSessionHolder.class);
+	
 	public JMSSessionHolder(JMSConnection con,String queueName) throws JMSException {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Creating new JMSSessionHolder for '" + queueName + "'", new Exception("For Thread Dump"));
+			
+		}
 		this.con = con;
 		this.session = con.getCon().createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
 		this.queueName = queueName;
@@ -42,6 +50,9 @@ public class JMSSessionHolder {
 	}
 	
 	public void rebuild() throws JMSException {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Rebuilding JMSSessionHolder for '" + queueName + "'" );
+		}
 		this.session = con.getCon().createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
 		this.queue = session.createQueue(this.queueName);
 		

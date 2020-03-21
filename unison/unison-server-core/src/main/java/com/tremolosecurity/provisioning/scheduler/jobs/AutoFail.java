@@ -41,7 +41,7 @@ public class AutoFail extends UnisonJob {
 
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AutoFail.class.getName());
 
-	JMSSessionHolder sessionHolder;
+	static JMSSessionHolder sessionHolder;
 
 	private synchronized void createConnections(ConfigManager configManager,String queueName) throws JMSException, ProvisioningException {
 		if (sessionHolder == null) {
@@ -81,10 +81,10 @@ public class AutoFail extends UnisonJob {
 				EncryptedMessage em = configManager.getProvisioningEngine()
 						.encryptObject(fa);
 				
-				synchronized (this.sessionHolder) {
-					TextMessage tmsg = this.sessionHolder.getSession().createTextMessage(gson.toJson(em));
+				synchronized (sessionHolder) {
+					TextMessage tmsg = sessionHolder.getSession().createTextMessage(gson.toJson(em));
 					tmsg.setStringProperty("JMSXGroupID", "unison-autofail");
-					this.sessionHolder.getMessageProduceer().send(tmsg);
+					sessionHolder.getMessageProduceer().send(tmsg);
 				}
 			}
 

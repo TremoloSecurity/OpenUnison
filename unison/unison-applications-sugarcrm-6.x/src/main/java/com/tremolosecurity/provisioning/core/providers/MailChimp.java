@@ -202,7 +202,8 @@ public class MailChimp implements UserStoreProvider {
 			JSONArray members = (JSONArray) exactMatches.get("members");
 			
 			if (members.size() == 0) {
-				logger.error("Could not find '" + user.getUserID() + "'");
+				//logger.error("Could not find '" + user.getUserID() + "'");
+				this.createUser(user, attributes, request);
 				return ;
 			}
 			

@@ -24,6 +24,8 @@ import java.util.List;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 
+import org.apache.logging.log4j.Logger;
+
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
@@ -32,7 +34,7 @@ import com.tremolosecurity.server.GlobalEntries;
 public class JMSConnectionFactory {
 
 	static JMSConnectionFactory jmsFactory;
-	
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(JMSConnectionFactory.class);
 	
 	
 	synchronized public static JMSConnectionFactory getConnectionFactory() throws ProvisioningException {
@@ -96,12 +98,23 @@ public class JMSConnectionFactory {
 	}
 	
 	public synchronized JMSSessionHolder getSession(String queueName) throws ProvisioningException {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Getting session for '" + queueName + "'");
+		}
+		
 		try {
 			if (cons.size() == 0) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("No connections - '" + queueName + "'");
+				}
 				int maxSessions = 10;
 				
 				if (this.cfgMgr.getCfg().getProvisioning() != null && this.cfgMgr.getCfg().getProvisioning().getQueueConfig() != null) {
 					maxSessions = this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getMaxSessionsPerConnection();
+				}
+				
+				if (logger.isDebugEnabled()) {
+					logger.debug("Creating JMS Connection for '" + queueName + "' with " + maxSessions + " sessions");
 				}
 				
 				JMSConnection con = new JMSConnection(cf,maxSessions);
@@ -109,12 +122,28 @@ public class JMSConnectionFactory {
 				
 			}
 			
+			if (logger.isDebugEnabled()) {
+				logger.debug("Retrieving session for '" + queueName + "'");
+			}
+			
 			JMSSessionHolder session = cons.get(cons.size() - 1).createSession(queueName);
 			
+			if (logger.isDebugEnabled()) {
+				logger.debug("Session for '" + queueName + "' - '" + session + "'");
+			}
+			
 			if (session == null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Creating new connection '" + queueName + "'");
+				}
+				
 				JMSConnection con = new JMSConnection(cf,this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getMaxSessionsPerConnection());
 				this.cons.add(con);
 				session = cons.get(cons.size() - 1).createSession(queueName);
+				
+				if (logger.isDebugEnabled()) {
+					logger.debug("Session 2 for '" + queueName + "' - '" + session + "'");
+				}
 			}
 			
 			
