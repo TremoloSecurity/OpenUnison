@@ -31,7 +31,7 @@
 		<json-simple.version>1.1.1</json-simple.version>
 		<twilio-java-sdk.version>7.39.0</twilio-java-sdk.version>
 		<restfb.version>2.22.0</restfb.version>
-		<jbosssx-bare.version>4.1.6.Final</jbosssx-bare.version>
+		<jbosssx-bare.version>5.1.0.Final</jbosssx-bare.version>
 		<jbosssx-client.version>4.1.6.Final</jbosssx-client.version>
 		<jboss-as-logging.version>7.2.0.Final</jboss-as-logging.version>
 		<jboss-as-web.version>7.2.0.Final</jboss-as-web.version>
