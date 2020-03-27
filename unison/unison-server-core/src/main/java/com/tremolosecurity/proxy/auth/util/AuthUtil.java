@@ -17,8 +17,12 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.auth.util;
 
+import javax.servlet.http.HttpSession;
+
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.AuthChainType;
+import com.tremolosecurity.proxy.auth.AnonAuth;
+import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.server.GlobalEntries;
 
 public class AuthUtil {
@@ -31,5 +35,7 @@ public class AuthUtil {
 		
 		return root;
 	}
+	
+	
 
 }

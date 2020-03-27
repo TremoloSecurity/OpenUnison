@@ -104,6 +104,7 @@ import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.AzSys;
 import com.tremolosecurity.proxy.auth.RequestHolder;
 import com.tremolosecurity.proxy.auth.passwordreset.PasswordResetRequest;
+import com.tremolosecurity.proxy.auth.util.AuthUtil;
 import com.tremolosecurity.proxy.filter.HttpFilterChain;
 import com.tremolosecurity.proxy.filter.HttpFilterChainImpl;
 import com.tremolosecurity.proxy.filter.HttpFilterRequest;
@@ -984,7 +985,27 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	private void completeFederation(HttpServletRequest request,
 			HttpServletResponse response) throws IOException, ServletException,
 			MalformedURLException {
+		
+		
 		final OpenIDConnectTransaction transaction = (OpenIDConnectTransaction) request.getSession().getAttribute(OpenIDConnectIdP.TRANSACTION_DATA);
+		
+		
+		final AuthInfo authInfo = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+		
+		
+		
+		if (! authInfo.isAuthComplete()) {
+			logger.warn("Attempted completetd federation before autthentication is completeed, clearing authentication and redirecting to the original URL");
+			
+			UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
+			request.getSession().removeAttribute(ProxyConstants.AUTH_CTL);
+			holder.getConfig().createAnonUser(request.getSession());
+			StringBuffer b = new StringBuffer();
+			b.append(transaction.getRedirectURI()).append("?error=login_reset");
+			response.sendRedirect(b.toString());
+			return;
+		}
+		
 		
 		request.setAttribute(AzSys.FORCE, "true");
 		NextSys completeFed = new NextSys() {
@@ -996,7 +1017,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				
 				
 				
-				final AuthInfo authInfo = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+				
+				
 				UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
 				
 				HttpFilterRequest filterReq = new HttpFilterRequestImpl(request, null);
