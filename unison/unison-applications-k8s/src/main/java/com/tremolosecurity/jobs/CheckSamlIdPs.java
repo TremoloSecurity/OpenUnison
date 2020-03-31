@@ -99,24 +99,20 @@ public class CheckSamlIdPs extends UnisonJob {
 			            }
 			        }
 
-			        if (sigCerts.size() == 1) {
-			            currentCertChoice = string2cert(sigCerts.get(0));
-			        } else {
-			            for (String certStr : sigCerts) {
-			                X509Certificate currentCert = string2cert(certStr);
-			                if (currentCertChoice == null) {
-			                	currentCertChoice = currentCert;
-			                } else {
-			                    if (currentCertChoice.getNotAfter().compareTo(currentCert.getNotAfter())  < 0  ) {
-			                    	currentCertChoice = currentCert;
-			                    }
-			                }
-			            }
-			            
-			        }
+			        
 			        
 			        MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
-			        digest.update(currentCertChoice.getEncoded(),0,currentCertChoice.getEncoded().length);
+			        int i = 0;
+			        for (String certStr : sigCerts) {
+		                X509Certificate currentCert = string2cert(certStr);
+		                if (logger.isDebugEnabled()) {
+		                	logger.debug("Cert " + i + "  : " + currentCert.getSubjectDN());
+		                }
+		                i++;
+		                digest.update(currentCert.getEncoded(),0,currentCert.getEncoded().length);
+		            }
+			        
+			        
 			        byte[] digest_bytes = digest.digest();
 			        String digest_base64 = java.util.Base64.getEncoder().encodeToString(digest_bytes);
 			        String digestFromStatus = (String) fingerPrints.get(entityId);
