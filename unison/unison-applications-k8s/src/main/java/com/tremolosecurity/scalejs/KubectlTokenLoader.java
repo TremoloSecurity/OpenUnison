@@ -127,6 +127,7 @@ public class KubectlTokenLoader implements TokenLoader {
             if (k8sCert != null) {
             	templateObjects.put("k8s_b64_cert", new String(Base64.encodeBase64(k8sCert.getBytes("UTF-8"))));
             	templateObjects.put("k8s_newline_cert",k8sCert.replace("\n", "\\n"));
+            	templateObjects.put("k8s_newline_cert_win",k8sCert.replace("\n", "`n"));
             }
             
             if (ouCert != null) {
