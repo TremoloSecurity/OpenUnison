@@ -60,16 +60,7 @@ public class LoadJWTFromAccessToken implements LoadUserData {
 		jwtNVP = com.cedarsoftware.util.io.JsonReader.jsonToMaps(json);
 
 			
-		if (hd != null && ! hd.isEmpty()) {
-			String emailAddress = (String) jwtNVP.get("email");
-			if (emailAddress != null && ! emailAddress.isEmpty()) {
-				if (! emailAddress.endsWith(hd)) {
-					return null;
-				}
-			} else {
-				return null;
-			}
-		}
+		
 		
 		return jwtNVP;
 	}
