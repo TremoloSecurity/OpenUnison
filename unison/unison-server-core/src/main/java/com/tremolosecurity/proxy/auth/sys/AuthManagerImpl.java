@@ -410,7 +410,7 @@ public class AuthManagerImpl implements AuthManager {
 					mech.doGet(req, resp, curStep);
 				} else if (req.getMethod().equalsIgnoreCase("post")) {
 					mech.doPost(req, resp, curStep);
-				} else if (req.getMethod().equalsIgnoreCase("put")) {
+				} else if (req.getMethod().equalsIgnoreCase("put") || req.getMethod().equalsIgnoreCase("patch")) {
 					mech.doPut(req, resp, curStep);
 				} else if (req.getMethod().equalsIgnoreCase("delete")) {
 					mech.doDelete(req, resp, curStep);

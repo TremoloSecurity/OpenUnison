@@ -146,18 +146,23 @@ public class BrokerHolder {
 			try {
 				javax.jms.Connection con;
 				
-				if (this.cfgMgr.getProvisioningEngine() == null) {
+				if (this.cfgMgr.getProvisioningEngine() == null || this.cfgMgr.getProvisioningEngine().isInternalQueue()) {
 					ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("vm://localhost/localhost");
 					con = cf.createConnection();
 					con.start();
-				} else {
-					con = this.cfgMgr.getProvisioningEngine().getQueueConnection();
-				}
+				 
 				
-				this.dlqsession = con.createSession(true, Session.AUTO_ACKNOWLEDGE);
-				this.dlq = dlqsession.createQueue("ActiveMQ.DLQ");
-				this.mcdlq = dlqsession.createConsumer(dlq);
-				this.qs = new HashMap<String,MessageProducer>();
+				
+					this.dlqsession = con.createSession(true, Session.AUTO_ACKNOWLEDGE);
+					this.dlq = dlqsession.createQueue("ActiveMQ.DLQ");
+					this.mcdlq = dlqsession.createConsumer(dlq);
+					this.qs = new HashMap<String,MessageProducer>();
+				} else {
+					this.dlqsession = null;
+					this.dlq = null;
+					this.mcdlq = null;
+					this.qs = null;
+				}
 			} catch (Throwable t) {
 				this.dlqsession = null;
 				this.dlq = null;
@@ -178,6 +183,10 @@ public class BrokerHolder {
 	}
 	
 	private synchronized  void clearDLQ() throws Exception {
+		
+		if (this.cfgMgr.getProvisioningEngine() != null && ! this.cfgMgr.getProvisioningEngine().isInternalQueue()) {
+			logger.warn("Not clearing the dead letter queue");
+		}
 		
 		Thread.sleep(3000);
 		

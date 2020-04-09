@@ -69,7 +69,8 @@ public class RequestHolder implements Serializable {
 		HEAD,
 		DELETE,
 		OPTIONS,
-		TRACE
+		TRACE,
+		PATCH
 	};
 	
 	private HTTPMethod method;
@@ -113,6 +114,8 @@ public class RequestHolder implements Serializable {
 			return HTTPMethod.OPTIONS;
 		} else if (name.equals("TRACE")) {
 			return HTTPMethod.TRACE;
+		} else if (name.equals("PATCH")) {
+			return HTTPMethod.PATCH;
 		} else {
 			return null;
 		}

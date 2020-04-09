@@ -241,6 +241,24 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 				throw new ServletException("Could not load user data",e);
 			} 
 			
+			if (hd != null && ! hd.isEmpty()) {
+				String hdFromIdToken = (String) jwtNVP.get("hd");
+				if (hdFromIdToken != null && ! hdFromIdToken.isEmpty()) {
+					if (! hdFromIdToken.equalsIgnoreCase(hd)) {
+						as.setSuccess(false);
+						String redirectToURL = request.getParameter("target");
+						if (redirectToURL != null && ! redirectToURL.isEmpty()) {
+							reqHolder.setURL(redirectToURL);
+						}
+					}
+				} else {
+					as.setSuccess(false);
+					String redirectToURL = request.getParameter("target");
+					if (redirectToURL != null && ! redirectToURL.isEmpty()) {
+						reqHolder.setURL(redirectToURL);
+					}
+				}
+			}
 			
 			if (jwtNVP == null) {
 				as.setSuccess(false);

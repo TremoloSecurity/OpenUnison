@@ -28,13 +28,13 @@ import com.tremolosecurity.saml.Attribute;
 
 public interface CustomDB {
 
-	public int createUser(Connection con,User user,Map<String,Attribute> attributes) throws ProvisioningException;
+	public int createUser(Connection con,User user,Map<String,Attribute> attributes,Map<String,Object> request) throws ProvisioningException;
 	
-	public void addGroup(Connection con,int id,String name) throws ProvisioningException;
+	public void addGroup(Connection con,int id,String name,Map<String,Object> request) throws ProvisioningException;
 	
-	public void deleteGroup(Connection con,int id,String name) throws ProvisioningException;
+	public void deleteGroup(Connection con,int id,String name,Map<String,Object> request) throws ProvisioningException;
 	
-	public void deleteUser(Connection con, int id) throws ProvisioningException;
+	public void deleteUser(Connection con, int id,Map<String,Object> request) throws ProvisioningException;
 	
 	public void beginUpdate(Connection con, int id, Map<String,Object> request) throws ProvisioningException;
 	
@@ -47,5 +47,7 @@ public interface CustomDB {
 	public boolean listCustomGroups();
 	
 	public List<String> findGroups(Connection con, int id, Map<String,Object> request) throws ProvisioningException;
+	
+	public void setTargetName(String name);
 	
 }

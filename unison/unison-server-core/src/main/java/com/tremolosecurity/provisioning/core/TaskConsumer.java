@@ -28,12 +28,17 @@ import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
 import javax.jms.TextMessage;
 
+import org.apache.logging.log4j.Logger;
+
 import com.cedarsoftware.util.io.JsonReader;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
+
 import com.tremolosecurity.provisioning.util.TaskHolder;
 
 public class TaskConsumer implements MessageListener {
+	
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(TaskConsumer.class.getName());
 
 	private ProvisioningEngine prov;
 	private ConfigManager cfgMgr;
@@ -48,6 +53,15 @@ public class TaskConsumer implements MessageListener {
 		
 		try {
 			TextMessage bmsg = (TextMessage) msg;
+			
+			if (bmsg.getBooleanProperty("unisonignore")) {
+				
+				if (logger.isDebugEnabled()) {
+					logger.debug("ignoring message");
+				}
+				bmsg.acknowledge();
+				return;
+			}
 			
 			EncryptedMessage encMsg = (EncryptedMessage) JsonReader.jsonToJava(bmsg.getText());
 			

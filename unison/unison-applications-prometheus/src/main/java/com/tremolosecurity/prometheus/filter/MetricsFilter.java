@@ -16,6 +16,7 @@ limitations under the License.
 
 package com.tremolosecurity.prometheus.filter;
 
+import com.tremolosecurity.prometheus.sdk.LocalMetrics;
 import com.tremolosecurity.proxy.SessionManager;
 
 import com.tremolosecurity.proxy.filter.HttpFilter;
@@ -62,6 +63,8 @@ public class MetricsFilter implements HttpFilter {
   CollectorRegistry registry;
   Gauge sessionsGauge;
 
+  LocalMetrics localMetrics;
+  
   @Override
   public void doFilter(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain) throws Exception {
 
@@ -70,6 +73,10 @@ public class MetricsFilter implements HttpFilter {
 
     sessionsGauge.set(sessionMgr.getSessions().size());
 
+    if (this.localMetrics != null) {
+    	this.localMetrics.addMetrics(request, response, chain);
+    }
+    
     response.setStatus(HttpServletResponse.SC_OK);
     response.setContentType(TextFormat.CONTENT_TYPE_004);
 
@@ -110,7 +117,12 @@ public class MetricsFilter implements HttpFilter {
     new VersionInfoExports().register(registry);
 
     
-
+    if (config.getAttribute("localMetricsClassName") != null) {
+    	this.localMetrics = (LocalMetrics) Class.forName(config.getAttribute("localMetricsClassName").getValues().get(0)).newInstance();
+    	this.localMetrics.registerMetrics(registry,config);
+    } else {
+    	this.localMetrics = null;
+    }
     
 
 

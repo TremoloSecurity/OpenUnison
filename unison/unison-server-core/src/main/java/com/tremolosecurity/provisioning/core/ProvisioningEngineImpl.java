@@ -29,6 +29,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
@@ -79,6 +80,11 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.sql.DataSource;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.namespace.QName;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.dbcp.cpdsadapter.DriverAdapterCPDS;
@@ -134,6 +140,8 @@ import com.tremolosecurity.config.xml.WorkflowType;
 import com.tremolosecurity.json.Token;
 import com.tremolosecurity.openunison.OpenUnisonConstants;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
+import com.tremolosecurity.provisioning.jms.JMSConnectionFactory;
+import com.tremolosecurity.provisioning.jms.JMSSessionHolder;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
 import com.tremolosecurity.provisioning.objects.AllowedApprovers;
 import com.tremolosecurity.provisioning.objects.Approvals;
@@ -150,12 +158,12 @@ import com.tremolosecurity.provisioning.objects.Workflows;
 import com.tremolosecurity.provisioning.scheduler.StopScheduler;
 import com.tremolosecurity.provisioning.tasks.Approval;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
-import com.tremolosecurity.provisioning.util.MessageProducerHolder;
-import com.tremolosecurity.provisioning.util.PooledMessageProducerFactory;
+
 import com.tremolosecurity.provisioning.util.TaskHolder;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.AzSys;
 import com.tremolosecurity.proxy.az.AzRule;
+import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.server.StopableThread;
@@ -231,7 +239,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 
 
 
-	private ArrayList<GenericObjectPool<MessageProducerHolder>> mpPools;
+	private ArrayList<JMSSessionHolder> mpPools;
 	
 
 	private MessageProducer taskMP;
@@ -247,6 +255,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 
 
 	private SessionFactory sessionFactory;
+	
+	
 	
 	
 	private void initializeHibernate(ApprovalDBType adbt) {
@@ -440,7 +450,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 		this.cfgMgr = cfgMgr;
 		
-		
+		GlobalEntries.getGlobalEntries().set(ProxyConstants.CONFIG_MANAGER, cfgMgr);
 		
 		this.initLocalBroker();
 		
@@ -589,19 +599,25 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		return null;
 	}
 	
-	private void processCallWf(WorkflowType wft) {
+	private boolean processCallWf(WorkflowType wft) {
+		boolean foundCallWf = false;
+		
 		int i = 0;
 		while (i < wft.getTasks().getWorkflowTasksGroup().size()) {
 			WorkflowTaskType wtt = wft.getTasks().getWorkflowTasksGroup().get(i);
 			
 			
+			
 			if (wtt instanceof com.tremolosecurity.config.xml.CallWorkflowType) {
+				foundCallWf = true;
+				
 				List<WorkflowTaskType> tasks = this.getWFTasks(((com.tremolosecurity.config.xml.CallWorkflowType) wtt).getName()  );
+				
 				//remove call wf
 				wft.getTasks().getWorkflowTasksGroup().remove(i);
 				//add tasks
 				wft.getTasks().getWorkflowTasksGroup().addAll(i, tasks);
-				
+				logger.info(wft.getTasks());
 				wtt = wft.getTasks().getWorkflowTasksGroup().get(i);
 			}
 			
@@ -613,18 +629,21 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			i++;
 			
 		}
+		
+		return foundCallWf;
 	}
 	
-	private void processCallTask(WorkflowChoiceTaskType wtt) {
+	private boolean processCallTask(WorkflowChoiceTaskType wtt) {
 		int i = 0;
 		
+		boolean foundCallWf = false;
 		
 		if (wtt.getOnSuccess() != null) {
 			while (i < wtt.getOnSuccess().getWorkflowTasksGroup().size()) {
 				WorkflowTaskType wttc = wtt.getOnSuccess().getWorkflowTasksGroup().get(i);
 				if (wttc instanceof com.tremolosecurity.config.xml.CallWorkflowType) {
 					com.tremolosecurity.config.xml.CallWorkflowType callTask = (com.tremolosecurity.config.xml.CallWorkflowType) wttc;
-					
+					foundCallWf = true;
 					List<WorkflowTaskType> tasks = this.getWFTasks(callTask.getName()  );
 					//remove call wf
 					wtt.getOnSuccess().getWorkflowTasksGroup().remove(i);
@@ -637,7 +656,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				i++;
 				
 				if (wttc instanceof WorkflowChoiceTaskType) {
-					this.processCallTask((WorkflowChoiceTaskType) wttc);
+					foundCallWf |= this.processCallTask((WorkflowChoiceTaskType) wttc);
 				}
 			}
 			
@@ -647,6 +666,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			while (i < wtt.getOnFailure().getWorkflowTasksGroup().size()) {
 				WorkflowTaskType wttc = wtt.getOnFailure().getWorkflowTasksGroup().get(i);
 				if (wttc instanceof com.tremolosecurity.config.xml.CallWorkflowType) {
+					foundCallWf = true;
 					com.tremolosecurity.config.xml.CallWorkflowType callTask = (com.tremolosecurity.config.xml.CallWorkflowType) wttc;
 					
 					List<WorkflowTaskType> tasks = this.getWFTasks(callTask.getName()  );
@@ -661,13 +681,13 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				i++;
 				
 				if (wttc instanceof WorkflowChoiceTaskType) {
-					this.processCallTask((WorkflowChoiceTaskType) wttc);
+					foundCallWf |= this.processCallTask((WorkflowChoiceTaskType) wttc);
 				}
 			}
 			
 		}
 		
-		
+		return foundCallWf;
 		
 		
 	}
@@ -678,7 +698,17 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		}
 		
 		for (WorkflowType wt : this.cfgMgr.getCfg().getProvisioning().getWorkflows().getWorkflow() ) {
-			this.processCallWf(wt);
+			
+			if (logger.isDebugEnabled()) {
+				logger.debug("Processing call workflow - '" + wt.getName() + "'");
+			}
+			
+			
+			while (this.processCallWf(wt));
+			
+			if (logger.isDebugEnabled()) {
+				logger.debug(jaxbObjectToXML(wt));
+			}
 		}
 		
 		
@@ -686,6 +716,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		while (it.hasNext()) {
 			WorkflowType wft = it.next();
 			String name = wft.getName();
+			logger.info("Processing workflow - '" + name + "'");
 			WorkflowImpl wf = new WorkflowImpl(this.cfgMgr,wft);
 			this.workflows.put(name, wf);
 		}
@@ -693,6 +724,39 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 	}
 	
+	private static String jaxbObjectToXML(WorkflowType wft)
+    {
+        try
+        {
+            //Create JAXB Context
+            JAXBContext jaxbContext = JAXBContext.newInstance(WorkflowType.class);
+             
+            //Create Marshaller
+            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+ 
+            //Required formatting??
+            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+ 
+            //Print XML String to Console
+            StringWriter sw = new StringWriter();
+            
+            JAXBElement<WorkflowType> jaxbElement =
+                    new JAXBElement<WorkflowType>( new QName("", "workflow"),
+                    		WorkflowType.class,
+                    		wft);
+             
+            //Write XML to StringWriter
+            jaxbMarshaller.marshal(jaxbElement, sw);
+             
+            //Verify XML Content
+            String xmlContent = sw.toString();
+            return xmlContent;
+ 
+        } catch (JAXBException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
 	
 
 	private void generateTargets(ConfigManager cfgMgr)
@@ -1347,96 +1411,41 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	private void initLocalBroker() throws ProvisioningException {
 		if (this.isInternalQueue()) {
 			this.broker = BrokerHolder.getInstance( cfgMgr, "local",this);
+			this.mpPools = new ArrayList<JMSSessionHolder>();
+			
+			String taskQueueName = "unison-tasks";
+			
+			if (this.cfgMgr.getCfg().getProvisioning() != null && this.cfgMgr.getCfg().getProvisioning().getQueueConfig() != null) {
+				taskQueueName = this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getTaskQueueName();
+			}
+			
+			JMSSessionHolder sessionHolder = JMSConnectionFactory.getConnectionFactory().getSession(taskQueueName);
+			this.mpPools.add(sessionHolder);
 			
 		} else {
 			
-			this.mpPools = new ArrayList<GenericObjectPool<MessageProducerHolder>>();
+			this.mpPools = new ArrayList<JMSSessionHolder>();
 			
 			if (this.cfgMgr.getCfg().getProvisioning().getQueueConfig().isMultiTaskQueues()) {
 				for (int j = 1;j<=this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getNumQueues();j++) {
 					String name = this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getTaskQueueName().replace("{x}", Integer.toString(j));
-					GenericObjectPool<MessageProducerHolder> lpool = new GenericObjectPool<MessageProducerHolder>(new PooledMessageProducerFactory(this.cfgMgr,this,name));
-					lpool.setMaxTotal(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getMaxProducers());
-					this.mpPools.add(lpool);
+					JMSSessionHolder sessionHolder = JMSConnectionFactory.getConnectionFactory().getSession(name);
+					
+					this.mpPools.add(sessionHolder);
 				}
 			} else {
-				this.mpPools = new ArrayList<GenericObjectPool<MessageProducerHolder>>();
-				GenericObjectPool<MessageProducerHolder> lpool = new GenericObjectPool<MessageProducerHolder>(new PooledMessageProducerFactory(this.cfgMgr,this,this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getTaskQueueName()));
-				lpool.setMaxTotal(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getMaxProducers());
-				this.mpPools.add(lpool);
+				this.mpPools = new ArrayList<JMSSessionHolder>();
+				JMSSessionHolder sessionHolder = JMSConnectionFactory.getConnectionFactory().getSession(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getTaskQueueName());
+				this.mpPools.add(sessionHolder);
 			}
 			
 			
 			
-			this.cfgMgr.addThread(new StopableThread() {
-
-				@Override
-				public void run() {
-					// TODO Auto-generated method stub
-					
-				}
-
-				@Override
-				public void stop() {
-					for (GenericObjectPool<MessageProducerHolder> mpPool : mpPools) {
-						mpPool.close();
-						mpPool.clear();
-					}
-					
-				}
-				
-			});
+			
 		}
 	}
 
-	@Override
-	public javax.jms.Connection getQueueConnection() throws ProvisioningException, JMSException {
-		if (this.isInternalQueue()) {
-			if (this.qcon == null) {
-				
-				if (this.broker == null) {
-					this.initLocalBroker();
-				}
-				
-				ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("vm://localhost/localhost");
-				this.qcon = cf.createConnection();
-				this.qcon.start();
-			}
-			
-			return qcon; 
-		} else {
-			try {
-				ConnectionFactory cf = (ConnectionFactory) Class.forName(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getConnectionFactory()).newInstance();
-				for (ParamType pt : this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getParam()) {
-					String methodName = "set" + pt.getName().toUpperCase().charAt(0) + pt.getName().substring(1);
-					
-					try {
-						Method m = Class.forName(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getConnectionFactory()).getMethod(methodName, String.class);
-						m.invoke(cf, pt.getValue());
-					} catch (NoSuchMethodException e) {
-						try {
-						//lets try int
-						Method m = Class.forName(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getConnectionFactory()).getMethod(methodName, int.class);
-						m.invoke(cf, Integer.parseInt(pt.getValue()));
-						} catch (NoSuchMethodException e1) {
-							//lets try long
-							Method m = Class.forName(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getConnectionFactory()).getMethod(methodName, long.class);
-							m.invoke(cf, Long.parseLong(pt.getValue()));
-						}
-					}
-				}
-				
-				javax.jms.Connection con = cf.createConnection();
-				con.start();
-				return con;
-			} catch (InstantiationException | IllegalAccessException
-					| ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException e) {
-				throw new ProvisioningException("Could not generate connection",e);
-			}
-			
-		}
-		
-	}
+	
 
 	public void endBroker() {
 		if (this.isInternalQueue()) {
@@ -1466,44 +1475,38 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			
 			
-			MessageProducer mp;
-			MessageProducerHolder mph = null;
-			
-			if (this.isInternalQueue()) {
-				mp = this.taskMP;
-				bm = taskSession.createTextMessage();
-				bm.setStringProperty("OriginalQueue", this.taskQueue.getQueueName());
-			} else {
-				mph = this.getTaskMessageProducer();
-				mp = mph.getProducer();
-				bm = mph.getSession().createTextMessage();
-				bm.setStringProperty("OriginalQueue", ((javax.jms.Queue) mph.getProducer().getDestination()).getQueueName());
-			}
-			
-			bm.setStringProperty("WorkflowName", wfHolder.getWorkflow().getName());
-			bm.setStringProperty("WorkflowSubject", wfHolder.getUser().getUserID());
-			bm.setStringProperty("JMSXGroupID", "unison");
-			bm.setStringProperty("nonce", UUID.randomUUID().toString());
+			JMSSessionHolder session;
+			String originalQueue;
 			
 			
-			TaskHolder holder = wfHolder.getWfStack().peek();
-			WorkflowTask task = holder.getParent().get(holder.getPosition());
-		
-			
-			bm.setStringProperty("WorkflowCurrentTask", task.getLabel());
-			
-			EncryptedMessage encMsg = this.encryptObject(wfHolder);
-			
-			String json = JsonWriter.objectToJson(encMsg);
-			bm.setText(json);
+			session = this.getTaskMessageProducer();
 			
 			
-			try {
-				mp.send(bm);
-			} finally {
-				if (! this.isInternalQueue()) {
-					this.returnMessageProducer(mph);
-				}
+			bm = session.getSession().createTextMessage();
+			originalQueue = session.getQueueName();
+			
+			synchronized (session) {
+			
+			
+				bm.setStringProperty("OriginalQueue", originalQueue);
+				bm.setStringProperty("WorkflowName", wfHolder.getWorkflow().getName());
+				bm.setStringProperty("WorkflowSubject", wfHolder.getUser().getUserID());
+				bm.setStringProperty("JMSXGroupID", "unison");
+				bm.setStringProperty("nonce", UUID.randomUUID().toString());
+				
+				
+				TaskHolder holder = wfHolder.getWfStack().peek();
+				WorkflowTask task = holder.getParent().get(holder.getPosition());
+			
+				
+				bm.setStringProperty("WorkflowCurrentTask", task.getLabel());
+				
+				EncryptedMessage encMsg = this.encryptObject(wfHolder);
+				
+				String json = JsonWriter.objectToJson(encMsg);
+				bm.setText(json);
+				session.getMessageProduceer().send(bm);
+				
 			}
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not enqueue message",e);
@@ -1522,20 +1525,17 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	}
 
 
-	public MessageProducerHolder getTaskMessageProducer() throws Exception {
+	public JMSSessionHolder getTaskMessageProducer() throws Exception {
 		
 		int index = ThreadLocalRandom.current().nextInt(0,this.mpPools.size());
 		
-		MessageProducerHolder mph = this.mpPools.get(index).borrowObject();
-		mph.setPool(this.mpPools.get(index));
-		return mph;
+		return this.mpPools.get(index);
 	}
+	
+	
 
 
-	public void returnMessageProducer(MessageProducerHolder mph) {
-		mph.getPool().returnObject(mph);
-		
-	}
+	
 
 	@Override
 	public boolean isInternalQueue() {
@@ -1560,46 +1560,39 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			}
 			
         	if (this.isInternalQueue()) {
-	        	javax.jms.Connection con = this.getQueueConnection();
-				TaskConsumer taskConsumer = new TaskConsumer(this,this.cfgMgr);
-				this.taskSession = con.createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
-				this.taskQueue = taskSession.createQueue(taskQueueName);
-				this.taskMP = taskSession.createProducer(taskQueue);
-				MessageConsumer mc = taskSession.createConsumer(taskQueue);
-				
-				mc.setMessageListener(taskConsumer);
-				
-				cfgMgr.addThread(new JMSMessageCloser(taskSession,mc));
+	        	
+        		
+        		TaskConsumer taskConsumer = new TaskConsumer(this,this.cfgMgr);
+    			
+    			JMSSessionHolder sessionHolder = JMSConnectionFactory.getConnectionFactory().getSession(taskQueueName);
+				sessionHolder.setMessageListener(taskConsumer);
         	} else {
+        		
         		
         		if (this.cfgMgr.getCfg().getProvisioning().getQueueConfig().isMultiTaskQueues()) {
         			for (int j=1;j<=this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getNumQueues();j++) {
         				String name = this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getTaskQueueName().replace("{x}", Integer.toString(j));
         				for (int i=0;i<this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getMaxConsumers();i++) {
-                			javax.jms.Connection con = this.getQueueConnection();
+                			
                 			TaskConsumer taskConsumer = new TaskConsumer(this,this.cfgMgr);
-        					javax.jms.Session taskSession = con.createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
-        					javax.jms.Queue taskQueue = taskSession.createQueue(name);
-        					MessageConsumer mc = taskSession.createConsumer(taskQueue);
-        					
-        					mc.setMessageListener(taskConsumer);
-        					
-        					cfgMgr.addThread(new JMSMessageCloser(con,taskSession,mc));
+                			
+                			JMSSessionHolder sessionHolder = JMSConnectionFactory.getConnectionFactory().getSession(name);
+        					sessionHolder.setMessageListener(taskConsumer);
                 		}
         			}
         		} else {
         			for (int i=0;i<this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getMaxConsumers();i++) {
-            			javax.jms.Connection con = this.getQueueConnection();
+            			
+            			
+    					
             			TaskConsumer taskConsumer = new TaskConsumer(this,this.cfgMgr);
-    					javax.jms.Session taskSession = con.createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
-    					javax.jms.Queue taskQueue = taskSession.createQueue(taskQueueName);
-    					MessageConsumer mc = taskSession.createConsumer(taskQueue);
-    					
-    					mc.setMessageListener(taskConsumer);
-    					
-    					cfgMgr.addThread(new JMSMessageCloser(con,taskSession,mc));
+            			
+            			JMSSessionHolder sessionHolder = JMSConnectionFactory.getConnectionFactory().getSession(taskQueueName);
+    					sessionHolder.setMessageListener(taskConsumer);
             		}
         		}
+        		
+        		
         		
         		
         	}
@@ -1856,8 +1849,6 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		}
 		
 		try {
-			javax.jms.Connection con = this.getQueueConnection();
-			
 			
 			
 			for (MessageListenerType mlt : this.cfgMgr.getCfg().getProvisioning().getListeners().getListener()) {
@@ -1875,12 +1866,11 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				
 				uml.init(this.cfgMgr,attrs);
 				
-				javax.jms.Session listenerSession = con.createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
-				javax.jms.Queue taskQueue = listenerSession.createQueue(mlt.getQueueName());
-				MessageConsumer mc = listenerSession.createConsumer(taskQueue);
-				mc.setMessageListener(uml);
 				
-				cfgMgr.addThread(new JMSMessageCloser(con,listenerSession,mc));
+				JMSSessionHolder session = JMSConnectionFactory.getConnectionFactory().getSession(mlt.getQueueName());
+				session.setMessageListener(uml);
+				
+				
 			}
 		} catch (Exception e) {
 			logger.warn("Could not initialize listeners",e);
@@ -1934,15 +1924,16 @@ class SendMessageThread implements MessageListener {
 
 
 
-	private MessageProducer mp;
+	
 
-
-
-	private javax.jms.Session session;
 
 
 
 	private String smtpQueue;
+
+
+
+	private JMSSessionHolder smtpSendSession;
 	
 	public SendMessageThread(ProvisioningEngine prov) throws ProvisioningException {
 		this.prov = prov;
@@ -1952,23 +1943,22 @@ class SendMessageThread implements MessageListener {
 	
 	public void lazyInit(ConfigManager cfgMgr) throws ProvisioningException {
 		try {
-			javax.jms.Connection connection = prov.getQueueConnection();
-			//((ActiveMQConnection)connection ).getRedeliveryPolicy().setMaximumRedeliveries(3);
-			//connection.start();
-			this.session = connection.createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
+			
 			
 			smtpQueue = "TremoloUnisonSMTPQueue";
 			if (cfgMgr.getCfg().getProvisioning() != null && cfgMgr.getCfg().getProvisioning().getQueueConfig() != null) {
 				smtpQueue = cfgMgr.getCfg().getProvisioning().getQueueConfig().getSmtpQueueName();
 			}
 			
-			javax.jms.Queue queue = session.createQueue(smtpQueue);
-			this.mp = session.createProducer(queue);
-			MessageConsumer mc = session.createConsumer(queue);
 			
-			mc.setMessageListener(this);
 			
-			cfgMgr.addThread(new JMSMessageCloser(session,mc));
+			this.smtpSendSession = JMSConnectionFactory.getConnectionFactory().getSession(smtpQueue);
+			
+			JMSSessionHolder smtpReceieve = JMSConnectionFactory.getConnectionFactory().getSession(smtpQueue);
+			smtpReceieve.setMessageListener(this);
+			
+			
+			
 			
 			
 			
@@ -1979,14 +1969,15 @@ class SendMessageThread implements MessageListener {
 	
 	public void enqEmail(SmtpMessage msg) throws IOException, JMSException {
 
-		
-		TextMessage bm = session.createTextMessage();
-		Gson gson = new Gson();
-		bm.setText(gson.toJson(msg));
-		bm.setStringProperty("OriginalQueue", this.smtpQueue);
-		bm.setStringProperty("nonce", UUID.randomUUID().toString());
-		bm.setStringProperty("JMSXGroupID", "unison-email");
-		mp.send(bm);
+		synchronized (this.smtpSendSession) {
+			TextMessage bm = smtpSendSession.getSession().createTextMessage();
+			Gson gson = new Gson();
+			bm.setText(gson.toJson(msg));
+			bm.setStringProperty("OriginalQueue", this.smtpQueue);
+			bm.setStringProperty("nonce", UUID.randomUUID().toString());
+			bm.setStringProperty("JMSXGroupID", "unison-email");
+			smtpSendSession.getMessageProduceer().send(bm);
+		}
 		//session.commit();
 		
 	}

@@ -86,7 +86,9 @@ import com.tremolosecurity.idp.providers.oidc.db.DbOidcSessionStore;
 import com.tremolosecurity.idp.providers.oidc.model.OIDCSession;
 import com.tremolosecurity.idp.providers.oidc.model.OidcSessionState;
 import com.tremolosecurity.idp.providers.oidc.model.OpenIDConnectConfig;
+import com.tremolosecurity.idp.providers.oidc.none.NoneBackend;
 import com.tremolosecurity.idp.providers.oidc.session.ClearOidcSessionOnLogout;
+import com.tremolosecurity.idp.providers.oidc.session.OidcSessionExpires;
 import com.tremolosecurity.idp.providers.oidc.model.OidcSessionStore;
 import com.tremolosecurity.idp.server.IDP;
 import com.tremolosecurity.idp.server.IdentityProvider;
@@ -96,11 +98,13 @@ import com.tremolosecurity.log.AccessLog.AccessEvent;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
+import com.tremolosecurity.proxy.SessionManagerImpl;
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.AzSys;
 import com.tremolosecurity.proxy.auth.RequestHolder;
 import com.tremolosecurity.proxy.auth.passwordreset.PasswordResetRequest;
+import com.tremolosecurity.proxy.auth.util.AuthUtil;
 import com.tremolosecurity.proxy.filter.HttpFilterChain;
 import com.tremolosecurity.proxy.filter.HttpFilterChainImpl;
 import com.tremolosecurity.proxy.filter.HttpFilterRequest;
@@ -723,7 +727,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		Gson gson = new Gson();
 		String json = gson.toJson(access);
 		
-		response.setContentType("text/json");
+		response.setContentType("application/json");
 		response.getOutputStream().write(json.getBytes("UTF-8"));
 		response.getOutputStream().flush();
 		
@@ -787,6 +791,9 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		try {			
 			oidcSession = this.storeSession(access, holder.getApp(), trust.getCodeLastmileKeyName(), clientID,dn,sessionID);
+			if (! (this.sessionStore instanceof NoneBackend)) {
+				request.getSession().setAttribute(SessionManagerImpl.TREMOLO_EXTERNAL_SESSION, new OidcSessionExpires(oidcSession.getSessionID(),this.sessionStore));
+			}
 		} catch (Exception e) {
 			throw new ServletException("Could not store session",e);
 		}
@@ -978,7 +985,27 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	private void completeFederation(HttpServletRequest request,
 			HttpServletResponse response) throws IOException, ServletException,
 			MalformedURLException {
+		
+		
 		final OpenIDConnectTransaction transaction = (OpenIDConnectTransaction) request.getSession().getAttribute(OpenIDConnectIdP.TRANSACTION_DATA);
+		
+		
+		final AuthInfo authInfo = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+		
+		
+		
+		if (! authInfo.isAuthComplete()) {
+			logger.warn("Attempted completetd federation before autthentication is completeed, clearing authentication and redirecting to the original URL");
+			
+			UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
+			request.getSession().removeAttribute(ProxyConstants.AUTH_CTL);
+			holder.getConfig().createAnonUser(request.getSession());
+			StringBuffer b = new StringBuffer();
+			b.append(transaction.getRedirectURI()).append("?error=login_reset");
+			response.sendRedirect(b.toString());
+			return;
+		}
+		
 		
 		request.setAttribute(AzSys.FORCE, "true");
 		NextSys completeFed = new NextSys() {
@@ -987,10 +1014,11 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			public void nextSys(final HttpServletRequest request,
 					final HttpServletResponse response) throws IOException,
 					ServletException {
-				//System.out.println("Authorized!!!!");
 				
 				
-				final AuthInfo authInfo = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+				
+				
+				
 				UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
 				
 				HttpFilterRequest filterReq = new HttpFilterRequestImpl(request, null);

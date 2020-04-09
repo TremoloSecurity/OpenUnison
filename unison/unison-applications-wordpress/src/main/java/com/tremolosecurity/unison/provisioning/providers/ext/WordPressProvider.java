@@ -41,6 +41,8 @@ public class WordPressProvider implements CustomDB {
 	Logger logger = org.apache.logging.log4j.LogManager.getLogger(WordPressProvider.class.getName());
 	
 	HashSet<String> wp_usersFields;
+
+	private String name;
 	
 	public WordPressProvider() {
 		this.wp_usersFields = new HashSet<String>();
@@ -57,8 +59,11 @@ public class WordPressProvider implements CustomDB {
 	
 	@Override
 	public int createUser(Connection con, User user,
-			Map<String, Attribute> attributes) throws ProvisioningException {
+			Map<String, Attribute> attributes,Map<String,Object> request) throws ProvisioningException {
 		try {
+			
+			
+			
 			PreparedStatement psinsert = con.prepareStatement("INSERT INTO wp_users (user_login,user_nicename,user_email,user_registered,user_status,display_name) VALUES (?,?,?,?,?,?)",Statement.RETURN_GENERATED_KEYS);
 			psinsert.setString(1, user.getUserID());
 			psinsert.setString(2, attributes.get("user_nicename").getValues().get(0));
@@ -217,7 +222,7 @@ public class WordPressProvider implements CustomDB {
 	}
 	
 	@Override
-	public void addGroup(Connection con, int id, String name)
+	public void addGroup(Connection con, int id, String name,Map<String,Object> request)
 			throws ProvisioningException {
 		try {
 			
@@ -271,7 +276,7 @@ public class WordPressProvider implements CustomDB {
 	}
 
 	@Override
-	public void deleteGroup(Connection con, int id, String name)
+	public void deleteGroup(Connection con, int id, String name,Map<String,Object> request)
 			throws ProvisioningException {
 		try {
 			PreparedStatement ps = con.prepareStatement("SELECT meta_value FROM wp_usermeta WHERE user_id=? AND meta_key=?");
@@ -308,7 +313,7 @@ public class WordPressProvider implements CustomDB {
 	}
 
 	@Override
-	public void deleteUser(Connection con, int id) throws ProvisioningException {
+	public void deleteUser(Connection con, int id,Map<String,Object> request) throws ProvisioningException {
 		try {
 			PreparedStatement ps = con.prepareStatement("DELETE FROM wp_users WHERE ID=?");
 			ps.setInt(1, id);
@@ -420,4 +425,8 @@ public class WordPressProvider implements CustomDB {
 		}
 	}
 
+	@Override
+	public void setTargetName(String name) {
+		this.name = name;
+	}
 }

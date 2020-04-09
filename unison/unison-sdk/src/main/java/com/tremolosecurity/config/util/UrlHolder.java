@@ -17,6 +17,7 @@ limitations under the License.
 
 package com.tremolosecurity.config.util;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -117,7 +118,15 @@ public class UrlHolder {
 			}
 
 			
-			URL tmp = new URL(val);
+			
+			URL tmp = null;
+			
+			try {
+				tmp= new URL(val);
+			} catch (MalformedURLException e) {
+				logger.warn("Could not process url : '" + val + "'",e);
+				tmp = new URL("http://dne");
+			}
 			this.isSSL = tmp.getProtocol().equalsIgnoreCase("https");
 			
 			this.port = tmp.getPort();

@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -543,8 +544,11 @@ public class SAML2Auth implements AuthMechanism {
 
 		AuthMechType amt = act.getAuthMech().get(as.getId());
 
-		String sigCertName = authParams.get("idpSigKeyName").getValues().get(0);
-		java.security.cert.X509Certificate sigCert = null;
+		
+		
+		List<String> sigCertNames = authParams.get("idpSigKeyName").getValues(); 
+		
+		List<X509Certificate>  sigCerts = new ArrayList<X509Certificate>();
 		
 		boolean isMultiIdp = authParams.get("isMultiIdP") != null && authParams.get("isMultiIdP").getValues().get(0).equalsIgnoreCase("true");
 		
@@ -616,7 +620,7 @@ public class SAML2Auth implements AuthMechanism {
 					
 					LDAPEntry entry = res.next();
 					java.security.cert.CertificateFactory cf= java.security.cert.CertificateFactory.getInstance("X.509");
-					sigCert = (java.security.cert.X509Certificate) cf.generateCertificate(new ByteArrayInputStream(Base64.decodeBase64(entry.getAttribute("idpSig").getStringValue())));
+					sigCerts.add((java.security.cert.X509Certificate) cf.generateCertificate(new ByteArrayInputStream(Base64.decodeBase64(entry.getAttribute("idpSig").getStringValue()))));
 					
 					
 				} catch (LDAPException e) {
@@ -625,20 +629,35 @@ public class SAML2Auth implements AuthMechanism {
 					throw new ServletException("Could not load IdP data",e);
 				} 
 			} else {
-				sigCert = cfgMgr.getCertificate(sigCertName);
+				for (String sigCertName : sigCertNames) {
+					sigCerts.add(cfgMgr.getCertificate(sigCertName));
+				}
 			}
 			
 			if (responseSigned) {
 				if (samlResponse.getSignature() != null) {
-					BasicCredential sigCred = new BasicCredential(sigCert.getPublicKey());
-					sigCred.setUsageType(UsageType.SIGNING);
-
-					try {
-						SAMLSignatureProfileValidator profileValidator = new SAMLSignatureProfileValidator();
-			            profileValidator.validate(samlResponse.getSignature());
-			            SignatureValidator.validate(samlResponse.getSignature(), sigCred);
-					} catch (org.opensaml.xmlsec.signature.support.SignatureException se) {
-						throw new ServletException("Error validating response signature", se);
+					
+					
+					boolean foundSigned = false;
+					
+					for (X509Certificate sigCert : sigCerts) {
+						if (sigCert != null) {
+							BasicCredential sigCred = new BasicCredential(sigCert.getPublicKey());
+							sigCred.setUsageType(UsageType.SIGNING);
+		
+							try {
+								SAMLSignatureProfileValidator profileValidator = new SAMLSignatureProfileValidator();
+					            profileValidator.validate(samlResponse.getSignature());
+					            SignatureValidator.validate(samlResponse.getSignature(), sigCred);
+					            foundSigned = true;
+							} catch (org.opensaml.xmlsec.signature.support.SignatureException se) {
+								
+							}
+						}
+					}
+					
+					if (! foundSigned) {
+						throw new ServletException("could not validate response");
 					}
 					
 					
@@ -683,18 +702,27 @@ public class SAML2Auth implements AuthMechanism {
 			if (assertionSigned) {
 				if (assertion.getSignature() != null) {
 					
-					BasicCredential sigCred = new BasicCredential(sigCert.getPublicKey());
-					sigCred.setUsageType(UsageType.SIGNING);
+				
+					boolean foundSigned = false;
+					for (X509Certificate sigCert : sigCerts) {
+						if (sigCert != null) {
+							BasicCredential sigCred = new BasicCredential(sigCert.getPublicKey());
+							sigCred.setUsageType(UsageType.SIGNING);
+		
+							try {
+								SAMLSignatureProfileValidator profileValidator = new SAMLSignatureProfileValidator();
+					            profileValidator.validate(assertion.getSignature());
+					            SignatureValidator.validate(assertion.getSignature(), sigCred);
+					            foundSigned = true;
+							} catch (org.opensaml.xmlsec.signature.support.SignatureException se) {
+								
+							}
+						}
+					}					
 
-					try {
-						SAMLSignatureProfileValidator profileValidator = new SAMLSignatureProfileValidator();
-			            profileValidator.validate(assertion.getSignature());
-			            SignatureValidator.validate(assertion.getSignature(), sigCred);
-					} catch (org.opensaml.xmlsec.signature.support.SignatureException se) {
-						throw new ServletException("Error validating response signature", se);
+					if (! foundSigned) {
+						throw new ServletException("Assertion can not be validated with a trusted certificate");
 					}
-					
-
 	
 			
 					
@@ -1090,7 +1118,7 @@ public class SAML2Auth implements AuthMechanism {
 		
 		String algType = null;
 		String logoutURL = null;
-		String sigKeyName = null;
+		List<String> sigKeys = new ArrayList<String>();
 		
 		//Search for the right mechanism configuration
 		for (String chainname : cfgMgr.getAuthChains().keySet()) {
@@ -1110,7 +1138,7 @@ public class SAML2Auth implements AuthMechanism {
 							} else if (ptx.getName().equalsIgnoreCase("logoutURL")) {
 								logoutURL = ptx.getValue();
 							} else if (ptx.getName().equalsIgnoreCase("idpSigKeyName")) {
-								sigKeyName = ptx.getValue();
+								sigKeys.add(ptx.getValue());
 							}
 						}
 						
@@ -1154,33 +1182,44 @@ public class SAML2Auth implements AuthMechanism {
 			query.append('&');
 			query.append(OpenSAMLUtils.getRawQueryStringParameter(qs, "SigAlg"));
 			
+			boolean validated = false;
 
-			
-			
-			
-			java.security.cert.X509Certificate cert = this.cfgMgr.getCertificate(sigKeyName);
-			
-			String xmlAlg = SAML2Auth.xmlDigSigAlgs.get(algType);
-			
-			
-			if (! sigAlg.equalsIgnoreCase(xmlAlg)) {
-				throw new Exception("Invalid signature algorithm : '" + sigAlg + "'");
+			for (String sigKeyName : sigKeys) {
+				java.security.cert.X509Certificate cert = this.cfgMgr.getCertificate(sigKeyName);
+				
+				if (cert == null) {
+					continue;
+				}
+				
+				String xmlAlg = SAML2Auth.xmlDigSigAlgs.get(algType);
+				
+				
+				if (! sigAlg.equalsIgnoreCase(xmlAlg)) {
+					throw new Exception("Invalid signature algorithm : '" + sigAlg + "'");
+				}
+				
+				/*if (! logout.getDestination().equals(request.getRequestURL().toString())) {
+					throw new Exception("Invalid destination");
+				}*/
+				
+				java.security.Signature sigv = java.security.Signature.getInstance(SAML2Auth.javaDigSigAlgs.get(algType));
+				
+				
+				
+				sigv.initVerify(cert.getPublicKey());
+				sigv.update(query.toString().getBytes("UTF-8"));
+				
+				if (sigv.verify(Base64.decodeBase64(authnSig.getBytes("UTF-8")))) {
+					validated = true;
+				}
 			}
 			
-			/*if (! logout.getDestination().equals(request.getRequestURL().toString())) {
-				throw new Exception("Invalid destination");
-			}*/
 			
-			java.security.Signature sigv = java.security.Signature.getInstance(SAML2Auth.javaDigSigAlgs.get(algType));
-			
-			
-			
-			sigv.initVerify(cert.getPublicKey());
-			sigv.update(query.toString().getBytes("UTF-8"));
-			
-			if (! sigv.verify(Base64.decodeBase64(authnSig.getBytes("UTF-8")))) {
+			if (! validated) {
 				throw new Exception("Signature verification failed");
 			}
+			
+			
 			
 		} 
 		

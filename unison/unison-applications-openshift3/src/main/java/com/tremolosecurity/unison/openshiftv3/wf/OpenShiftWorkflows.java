@@ -25,6 +25,7 @@ import com.tremolosecurity.config.xml.WorkflowType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.util.DynamicWorkflow;
 import com.tremolosecurity.provisioning.util.HttpCon;
+import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.unison.openshiftv3.OpenShiftTarget;
 import com.tremolosecurity.unison.openshiftv3.model.Item;
@@ -93,6 +94,12 @@ public class OpenShiftWorkflows implements DynamicWorkflow {
 			throw new ProvisioningException("Could not load",e);
 		}
 		return wfData;
+	}
+	
+	@Override
+	public List<Map<String, String>> generateWorkflows(WorkflowType wf, ConfigManager cfg,
+			HashMap<String, Attribute> params, AuthInfo authInfo) throws ProvisioningException {
+		return this.generateWorkflows(wf, cfg, params);
 	}
 
 }

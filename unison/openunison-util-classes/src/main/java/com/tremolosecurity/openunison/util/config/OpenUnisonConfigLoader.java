@@ -106,9 +106,14 @@ public class OpenUnisonConfigLoader {
             	envVarName = envVarName.substring(0, envVarName.indexOf(":"));
             }
             
+            
             String value = System.getenv(envVarName);
 
-            if (value == null) {
+            if (envVarName.equals("all")) {
+            	value = "#[all]";
+            } else if  (envVarName.equals("entry")) {
+            	value = "#[entry]";
+            } else if (value == null) {
                 value = System.getProperty(envVarName);
             }
 

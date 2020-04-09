@@ -113,7 +113,7 @@ public interface ProvisioningEngine {
 
 
 	
-	public abstract javax.jms.Connection getQueueConnection() throws ProvisioningException, JMSException;
+	
 	
 	public abstract void returnQueueConnection(javax.jms.Connection con);
 	

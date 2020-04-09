@@ -91,9 +91,13 @@ public class SugarCRM implements UserStoreProvider {
 	private PoolingHttpClientConnectionManager phcm;
 	private CloseableHttpClient httpClient;
 
+	
+	
+	
 	@Override
 	public void createUser(User user, Set<String> attributes,Map<String,Object> request)
 			throws ProvisioningException {
+		ModuleType mt = this.getModuleType(request);
 		
 		int userID = 0;
 		int approvalID = 0;
@@ -118,7 +122,7 @@ public class SugarCRM implements UserStoreProvider {
 			
 			SugarEntry newContact = new SugarEntry();
 			newContact.setSession(sessionId);
-			newContact.setModule("Contacts");
+			newContact.setModule(mt.name);
 			Map<String,String> nvps = new HashMap<String,String>();
 			
 			for (String attrName : user.getAttribs().keySet()) {
@@ -152,6 +156,8 @@ public class SugarCRM implements UserStoreProvider {
 	@Override
 	public void syncUser(User user, boolean addOnly, Set<String> attributes,Map<String,Object> request)
 			throws ProvisioningException {
+		
+		ModuleType mt = this.getModuleType(request);
 		
 		int userID = 0;
 		int approvalID = 0;
@@ -222,7 +228,7 @@ public class SugarCRM implements UserStoreProvider {
 			
 			SugarEntry newContact = new SugarEntry();
 			newContact.setSession(sessionId);
-			newContact.setModule("Contacts");
+			newContact.setModule(mt.name);
 			
 			
 			newContact.setName_value_list(nvps);
@@ -238,14 +244,16 @@ public class SugarCRM implements UserStoreProvider {
 	public void deleteUser(User user,Map<String,Object> request) throws ProvisioningException {
 		try {
 			
+			ModuleType mt = this.getModuleType(request);
+			
 			String sessionId = sugarLogin();
 			Gson gson = new Gson();
 
 			SugarGetEntryList sgel = new SugarGetEntryList();
 			sgel.setSession(sessionId);
-			sgel.setModule_name("Contacts");
+			sgel.setModule_name(mt.name);
 			StringBuffer b = new StringBuffer();
-			b.append("contacts.id in (SELECT eabr.bean_id FROM email_addr_bean_rel eabr JOIN email_addresses ea ON (ea.id = eabr.email_address_id) WHERE eabr.deleted=0 AND ea.email_address = '").append(user.getUserID()).append("')");
+			b.append(mt.lookupByEmail).append(user.getUserID()).append("')");
 			sgel.setQuery(b.toString());
 			sgel.setOrder_by("");
 			sgel.setOffset(0);
@@ -269,7 +277,7 @@ public class SugarCRM implements UserStoreProvider {
 			
 			SugarEntry newContact = new SugarEntry();
 			newContact.setSession(sessionId);
-			newContact.setModule("Contacts");
+			newContact.setModule(mt.name);
 			Map<String,String> nvps = new HashMap<String,String>();
 			nvps.put("id", id);
 			nvps.put("deleted", "1");
@@ -313,15 +321,16 @@ public class SugarCRM implements UserStoreProvider {
 			throws ProvisioningException {
 
 		try {
+			ModuleType mt = this.getModuleType(request);
 			
 			String sessionId = sugarLogin();
 			Gson gson = new Gson();
 
 			SugarGetEntryList sgel = new SugarGetEntryList();
 			sgel.setSession(sessionId);
-			sgel.setModule_name("Contacts");
+			sgel.setModule_name(mt.name);
 			StringBuffer b = new StringBuffer();
-			b.append("contacts.id in (SELECT eabr.bean_id FROM email_addr_bean_rel eabr JOIN email_addresses ea ON (ea.id = eabr.email_address_id) WHERE eabr.deleted=0 AND ea.email_address = '").append(userID).append("')");
+			b.append(mt.lookupByEmail).append(userID).append("')");
 			sgel.setQuery(b.toString());
 			sgel.setOrder_by("");
 			sgel.setOffset(0);
@@ -344,7 +353,7 @@ public class SugarCRM implements UserStoreProvider {
 			sge.setId(id);
 			sge.setSession(sessionId);
 			sge.setSelect_fields(new ArrayList<String>());
-			sge.setModule_name("Contacts");
+			sge.setModule_name(mt.name);
 			sge.setLink_name_to_fields_array(new HashMap<String, List<String>>());
 			searchJson = gson.toJson(sge);
 			respJSON = execJson(searchJson, "get_entry");
@@ -518,4 +527,27 @@ public class SugarCRM implements UserStoreProvider {
 		// TODO Auto-generated method stub
 		
 	}
+	
+	private ModuleType getModuleType(Map<String,Object> request) throws ProvisioningException {
+		if (request.get("tremoloio.sugarcrm.module") == null || request.get("tremoloio.sugarcrm.module").equals("contacts")) {
+			ModuleType mt = new ModuleType();
+			mt.name = "Contacts";
+			mt.lookupByEmail = "contacts.id in (SELECT eabr.bean_id FROM email_addr_bean_rel eabr JOIN email_addresses ea ON (ea.id = eabr.email_address_id) WHERE eabr.deleted=0 AND ea.email_address = '";
+			return mt;
+		} else if (request.get("tremoloio.sugarcrm.module").equals("leads")) {
+			ModuleType mt = new ModuleType();
+			mt.name = "Leads";
+			mt.lookupByEmail = "leads.id in (SELECT eabr.bean_id FROM email_addr_bean_rel eabr JOIN email_addresses ea ON (ea.id = eabr.email_address_id) WHERE eabr.deleted=0 AND ea.email_address = '";
+			return mt;
+		}
+		
+		else {
+			throw new ProvisioningException("Unknown module '" + request.get("tremoloio.sugarcrm.module") + "'");
+		}
+	}
+}
+
+class ModuleType {
+	String name;
+	String lookupByEmail;
 }

@@ -16,6 +16,8 @@
 
 package com.tremolosecurity.scalejs;
 
+import com.tremolosecurity.idp.providers.OpenIDConnectIdP;
+import com.tremolosecurity.idp.providers.oidc.model.OidcSessionState;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.GenerateOIDCTokens;
 import com.tremolosecurity.proxy.auth.util.OpenIDConnectToken;
@@ -86,7 +88,11 @@ public class KubectlTokenLoader implements TokenLoader {
     @Override
     public Object loadToken(AuthInfo user, HttpSession session) throws Exception {
         OpenIDConnectToken token = (OpenIDConnectToken) session.getAttribute(GenerateOIDCTokens.UNISON_SESSION_OIDC_ID_TOKEN);
-
+        
+        token.replaceState();
+        
+        
+        
         if (token == null) {
             logger.warn("No id token found");
             return new HashMap<String,String>();
@@ -118,19 +124,41 @@ public class KubectlTokenLoader implements TokenLoader {
             templateObjects.put("user",user);
             templateObjects.put("token",token);
             templateObjects.put("user_id",user.getAttribs().get(this.uidAttributeName).getValues().get(0));
-            templateObjects.put("k8s_b64_cert", new String(Base64.encodeBase64(k8sCert.getBytes("UTF-8"))));
-            templateObjects.put("ou_b64_cert",new String(Base64.encodeBase64(ouCert.getBytes("UTF-8"))));
-            templateObjects.put("k8s_newline_cert",k8sCert.replace("\n", "\\n"));
+            
+            String kubectTemplateLocal = this.kubectlTemplate;
+            String winKubCtlLocal = this.kubectlWinUsage;
+            if (k8sCert != null) {
+            	templateObjects.put("k8s_b64_cert", new String(Base64.encodeBase64(k8sCert.getBytes("UTF-8"))));
+            	templateObjects.put("k8s_newline_cert",k8sCert.replace("\n", "\\n"));
+            	templateObjects.put("k8s_newline_cert_win",k8sCert.replace("\n", "`n"));
+            } else {
+            	kubectTemplateLocal = kubectTemplateLocal.replace("--certificate-authority=\\$TMP_CERT", "--certificate-authority=/dev/null");
+            	
+            	if (winKubCtlLocal != null) {
+            		winKubCtlLocal = winKubCtlLocal.replace("\"$k8s_newline_cert_win$\" | out-file \\$TMP_CERT -encoding oem ;", "");
+            	}
+            }
+            
+            
+            
+            
+            if (ouCert != null) {
+            	templateObjects.put("ou_b64_cert",new String(Base64.encodeBase64(ouCert.getBytes("UTF-8"))));
+            	
+            } 
+            
 
             
             
             
+            
+            
 
             
-            tokens.put("kubectl Command",this.renderTemplate(this.kubectlTemplate,templateObjects));
+            tokens.put("kubectl Command",this.renderTemplate(kubectTemplateLocal,templateObjects));
             
             if (this.kubectlWinUsage != null) {
-            	tokens.put("kubectl Windows Command",this.renderTemplate(this.kubectlWinUsage,templateObjects));
+            	tokens.put("kubectl Windows Command",this.renderTemplate(winKubCtlLocal,templateObjects));
             }
             
             tokens.put("Usage",this.kubectlUsage);

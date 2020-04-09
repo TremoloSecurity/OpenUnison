@@ -84,18 +84,30 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 		createObject.put("spec", spec);
 		
 		if (attributes.contains("sub")) {
+			if (user.getAttribs().get("sub") == null) {
+				throw new ProvisioningException("No sub attribute");
+			}
 			spec.put("sub", user.getAttribs().get("sub").getValues().get(0));
 		}
 		
 		if (attributes.contains("first_name")) {
+			if (user.getAttribs().get("first_name") == null) {
+				throw new ProvisioningException("No first_name attribute");
+			}
 			spec.put("first_name", user.getAttribs().get("first_name").getValues().get(0));
 		}
 		
 		if (attributes.contains("last_name")) {
+			if (user.getAttribs().get("last_name") == null) {
+				throw new ProvisioningException("No last_name attribute");
+			}
 			spec.put("last_name", user.getAttribs().get("last_name").getValues().get(0));
 		}
 		
 		if (attributes.contains("email")) {
+			if (user.getAttribs().get("email") == null) {
+				throw new ProvisioningException("No email attribute");
+			}
 			spec.put("email", user.getAttribs().get("email").getValues().get(0));
 		}
 		

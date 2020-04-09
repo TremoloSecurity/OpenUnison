@@ -26,6 +26,8 @@ import com.tremolosecurity.prometheus.util.CloseSession;
 import com.tremolosecurity.prometheus.util.PrometheusUtils;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.UnisonMessageListener;
+import com.tremolosecurity.provisioning.jms.JMSConnectionFactory;
+import com.tremolosecurity.provisioning.jms.JMSSessionHolder;
 import com.tremolosecurity.saml.Attribute;
 
 import java.io.ByteArrayOutputStream;
@@ -56,16 +58,11 @@ public class PullListener extends UnisonMessageListener {
 
     AdditionalMetrics additionalMetrics;
 
-    Connection connection = null;
-    Session session = null;
-    Queue queue = null;
-    MessageProducer mp = null;
+    JMSSessionHolder jmsSession;
 
     HashMap<String, Attribute> attributes;
     
-    public Connection getJMSConnection() {
-        return connection;
-    }
+    
     
 	@Override
 	public void init(ConfigManager cfg, HashMap<String, Attribute> attributes) throws ProvisioningException {
@@ -140,14 +137,16 @@ public class PullListener extends UnisonMessageListener {
             
 
             
-           
+           synchronized (this.jmsSession) {
+        	   logger.debug("creating and sending message");
+               TextMessage tm = this.jmsSession.getSession().createTextMessage(JsonWriter.objectToJson(pullResponse));
+               tm.setStringProperty("JMSXGroupID", "unison-prometheus-response");
+               this.jmsSession.getMessageProduceer().send(tm);
+               logger.debug("sent");
+           }
             
 
-            logger.debug("creating and sending message");
-            TextMessage tm = session.createTextMessage(JsonWriter.objectToJson(pullResponse));
-            tm.setStringProperty("JMSXGroupID", "unison-prometheus-response");
-            mp.send(tm);
-            logger.debug("sent");
+            
 
         } catch (JMSException e) {
             logger.warn("Can not send response",e);
@@ -156,14 +155,9 @@ public class PullListener extends UnisonMessageListener {
 
 	private void buildQueueConnections(ConfigManager cfg) throws ProvisioningException {
 		try {
-            if (connection == null) {
+            if (jmsSession == null) {
                 logger.debug("creating queues");
-                connection = cfg.getProvisioningEngine().getQueueConnection();
-
-                session = connection.createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
-                queue = session.createQueue(this.sendToQueueName);
-                mp = session.createProducer(queue);
-                cfg.addThread(new CloseSession(connection, session));
+                this.jmsSession = JMSConnectionFactory.getConnectionFactory().getSession(this.sendToQueueName);
                 if (this.additionalMetrics != null) {
                     this.additionalMetrics.init(this, cfg, attributes);
                 }

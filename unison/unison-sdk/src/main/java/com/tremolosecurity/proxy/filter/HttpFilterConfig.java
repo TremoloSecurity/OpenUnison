@@ -19,6 +19,7 @@ package com.tremolosecurity.proxy.filter;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 
 import javax.servlet.ServletContext;
 
@@ -63,5 +64,7 @@ public class HttpFilterConfig {
 		return this.params.get(name);
 	}
 	
-	
+	public Set<String> getAttributeNames() {
+		return params.keySet();
+	}
 }

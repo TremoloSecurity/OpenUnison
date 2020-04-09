@@ -177,9 +177,9 @@ public class BasicDB implements BasicDBInterface {
 					}
 				}
 				
-				userid = this.customDBProvider.createUser(con,user, toadd);
+				userid = this.customDBProvider.createUser(con,user, toadd,request);
 				for (String groupName : user.getGroups()) {
-					this.customDBProvider.addGroup(con, userid, groupName);
+					this.customDBProvider.addGroup(con, userid, groupName,request);
 				}
 			} else {
 			
@@ -488,7 +488,7 @@ public class BasicDB implements BasicDBInterface {
 			}
 			
 			if (this.customDBProvider != null) {
-				this.customDBProvider.completeUpdate(con, userIDnum, request);
+				this.customDBProvider.completeUpdate(con, userIDnum, wfrequest);
 			}
 			
 			switch (this.groupMode) {
@@ -535,7 +535,7 @@ public class BasicDB implements BasicDBInterface {
 				case Custom : 
 					for (String groupName : user.getGroups()) {
 						if (! foundUser.getGroups().contains(groupName)) {
-							this.customDBProvider.addGroup(con, userIDnum, groupName);
+							this.customDBProvider.addGroup(con, userIDnum, groupName,wfrequest);
 							this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add, approvalID, workflow, "group", groupName);
 						}
 					}
@@ -543,7 +543,7 @@ public class BasicDB implements BasicDBInterface {
 					if (! addOnly) {
 						for (String groupName : foundUser.getGroups()) {
 							if (! user.getGroups().contains(groupName)) {
-								this.customDBProvider.deleteGroup(con, userIDnum, groupName);
+								this.customDBProvider.deleteGroup(con, userIDnum, groupName,wfrequest);
 								this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Delete, approvalID, workflow, "group", groupName);
 							}
 						}
@@ -748,7 +748,7 @@ public class BasicDB implements BasicDBInterface {
 			con.setAutoCommit(false);
 			
 			if (this.customDBProvider != null) {
-				this.customDBProvider.deleteUser(con, id);
+				this.customDBProvider.deleteUser(con, id,request);
 			} else {
 				select.setLength(0);
 				select.append("DELETE FROM ").append(this.userTable).append(" WHERE ");
@@ -1133,6 +1133,7 @@ public class BasicDB implements BasicDBInterface {
         if (cfg.get("customProvider") != null && ! cfg.get("customProvider").getValues().get(0).isEmpty()) {
         	try {
 				this.customDBProvider = (CustomDB) Class.forName(cfg.get("customProvider").getValues().get(0)).newInstance();
+				this.customDBProvider.setTargetName(this.name);
 			} catch (Exception e) {
 				throw new ProvisioningException("Could not initialize",e);
 			} 

@@ -28,6 +28,7 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.WorkflowType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.util.DynamicWorkflow;
+import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.provisioning.core.providers.BasicDB;
@@ -96,6 +97,12 @@ public class DBTargetDynamicWF implements DynamicWorkflow {
         }
 
     }
+
+	@Override
+	public List<Map<String, String>> generateWorkflows(WorkflowType wf, ConfigManager cfg,
+			HashMap<String, Attribute> params, AuthInfo authInfo) throws ProvisioningException {
+		return this.generateWorkflows(wf, cfg, params);
+	}
   
       
   }

@@ -238,9 +238,9 @@ public class GithubAuthMech implements AuthMechanism {
 				Gson gson = new Gson();
 				
 				
-				HttpGet get = new HttpGet("https://api.github.com/user?access_token=" + URLEncoder.encode(accessToken, "UTF-8"));
+				HttpGet get = new HttpGet("https://api.github.com/user");
 				
-				
+				get.addHeader("Authorization",new StringBuilder().append("Bearer ").append(accessToken).toString());
 				
 				
 				//Store the bearer token for use by Unison

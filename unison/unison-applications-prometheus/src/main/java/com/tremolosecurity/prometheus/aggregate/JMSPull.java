@@ -22,6 +22,8 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.prometheus.sdk.AdditionalMetrics;
 import com.tremolosecurity.prometheus.util.CloseSession;
 import com.tremolosecurity.prometheus.util.PrometheusUtils;
+import com.tremolosecurity.provisioning.jms.JMSConnectionFactory;
+import com.tremolosecurity.provisioning.jms.JMSSessionHolder;
 import com.tremolosecurity.proxy.filter.HttpFilter;
 import com.tremolosecurity.proxy.filter.HttpFilterChain;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;
@@ -49,13 +51,12 @@ public class JMSPull implements HttpFilter {
     String instance;
     String job;
 
-    Connection connection = null;
-    Session session = null;
-    Queue requestQueue = null;
-    Queue responseQueue = null;
-    MessageConsumer responseQueueConsumer = null;
     
-    MessageProducer mp = null;
+    JMSSessionHolder reqSession;
+    JMSSessionHolder respSession;
+    
+    
+    
 
     private ConfigManager cfg;
     private HttpFilterConfig httpCfg;
@@ -73,18 +74,12 @@ public class JMSPull implements HttpFilter {
 		
 		try {
 
-            if (connection == null) {
-                connection = cfg.getProvisioningEngine().getQueueConnection();
-
-                session = connection.createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
-                requestQueue = session.createQueue(this.requestQueueName);
+            if (reqSession == null) {
+                this.reqSession = JMSConnectionFactory.getConnectionFactory().getSession(this.requestQueueName);
                 
-                responseQueue = session.createQueue(this.responseQueueName);
-                responseQueueConsumer = session.createConsumer(responseQueue);
-                
-                mp = session.createProducer(requestQueue);
+                this.respSession = JMSConnectionFactory.getConnectionFactory().getSession(this.responseQueueName);
 
-                cfg.addThread(new CloseSession(connection,session));
+                
 
                 if (this.additionalMetrics != null) {
                     this.additionalMetrics.init(this, cfg, this.httpCfg);
@@ -95,7 +90,7 @@ public class JMSPull implements HttpFilter {
             
             Message m = null;
             logger.debug("Purging existing messages");
-            while (  (m = responseQueueConsumer.receiveNoWait()) != null) {
+            while (  (m = respSession.getMessageConsumer().receiveNoWait()) != null) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("purging : " + m.getJMSMessageID());
                 }
@@ -106,15 +101,15 @@ public class JMSPull implements HttpFilter {
             
             PullRequest pullRequest = new PullRequest();
             
-            TextMessage tm = session.createTextMessage(JsonWriter.objectToJson(pullRequest));
+            TextMessage tm = this.reqSession.getSession().createTextMessage(JsonWriter.objectToJson(pullRequest));
             tm.setStringProperty("JMSXGroupID", "unison-prometheus-request");
-            mp.send(tm);
+            this.reqSession.getMessageProduceer().send(tm);
             
             
             PullResponse pullResponse  = null;
             boolean found = false;
             while (! found) {
-                tm = (TextMessage) responseQueueConsumer.receive(this.maxWaitTime);
+                tm = (TextMessage) this.respSession.getMessageConsumer().receive(this.maxWaitTime);
                 if (tm == null) {
                     throw new Exception("No response in time");
                 }

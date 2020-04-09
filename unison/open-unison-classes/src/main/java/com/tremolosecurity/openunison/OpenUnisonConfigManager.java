@@ -24,8 +24,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.security.KeyStore;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Properties;
 
 import javax.naming.InitialContext;
@@ -35,11 +38,23 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import com.tremolosecurity.openunison.util.config.OpenUnisonConfigLoader;
 import net.sourceforge.myvd.server.ServerCore;
 
 import org.apache.logging.log4j.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.traversal.DocumentTraversal;
+import org.w3c.dom.traversal.NodeFilter;
+import org.w3c.dom.traversal.TreeWalker;
 
 import com.tremolosecurity.config.util.UnisonConfigManagerImpl;
 import com.tremolosecurity.config.xml.TremoloType;
@@ -119,6 +134,64 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 		
 	}
 
+	
+	private final void traverseLevel(TreeWalker walker, String indent) {
+	    Node parend = walker.getCurrentNode();
+	    
+	    List<ForRemoval> toRemove = new ArrayList<ForRemoval>();
+
+	    for (Node n = walker.firstChild(); n != null; n = walker.nextSibling()) {
+	      Element node = (Element) n;
+	      if (logger.isDebugEnabled()) {
+	    	  logger.debug(indent + "Node : " + node.getNodeName() + " / " + node.getAttribute("useWhen"));
+	      }
+	      if (node.getAttribute("useWhen") != null && ! node.getAttribute("useWhen").isEmpty()) {
+	    	  if (logger.isDebugEnabled()) {
+	    		  logger.debug("Checking useWhen");
+	    	  }
+	    	  String useWhen = node.getAttribute("useWhen");
+	    	  String envVar = useWhen.substring(0,useWhen.indexOf('='));
+	    	  String envVal = useWhen.substring(useWhen.indexOf('=') + 1);
+	    	  
+	    	  
+	    	  boolean isDefault = node.getAttribute("useDefault") != null && node.getAttribute("useDefault").equalsIgnoreCase("true"); 
+	    	  
+	    	  String valToCheck = System.getProperty(envVar);
+	    	  if (valToCheck == null) {
+	    		  valToCheck = System.getenv(envVar);
+	    	  }
+	    	  
+	    	  if (logger.isDebugEnabled()) {
+		    	  logger.debug("envVar - '" + envVar + "'");
+		    	  logger.debug("valToCheck - '" + valToCheck + "'");
+		    	  logger.debug("envVal - '" + envVal + "'");
+		    	  logger.debug("default - '" + isDefault + "'");
+	    	  }
+	    	  
+	    	  
+	    	  
+	    	  if ((valToCheck == null && ! isDefault) || (valToCheck != null && ! envVal.equalsIgnoreCase(valToCheck))) {
+	    		  if (logger.isDebugEnabled()) {
+	    			  logger.debug("setting to remove");
+	    		  }
+	    		  toRemove.add(new ForRemoval(parend,node));
+	    	  }
+	    	  
+	    	  
+	      } 
+	      
+	      traverseLevel(walker, indent + '\t');
+	    	
+	    }
+	    
+	    walker.setCurrentNode(parend);
+	    
+	    for (ForRemoval remove : toRemove) {
+	    	logger.info("Removing node : " + remove.parent + " - " + remove.node);
+	    	remove.parent.removeChild(remove.node);
+	    }
+	  }
+	
 	@Override
 	public JAXBElement<TremoloType> loadUnisonConfiguration(
 			Unmarshaller unmarshaller) throws Exception {
@@ -129,7 +202,46 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 			in = new ByteArrayInputStream(OpenUnisonConfigLoader.generateOpenUnisonConfig(configXML).getBytes("UTF-8"));
 		}
 		
-		Object obj = unmarshaller.unmarshal(in);
+		
+		
+		
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+	    DocumentBuilder loader = factory.newDocumentBuilder();
+	    Document document = loader.parse(in);
+	    
+	    DocumentTraversal traversal = (DocumentTraversal) document;
+
+	    TreeWalker walker = traversal.createTreeWalker(document.getDocumentElement(),
+	        NodeFilter.SHOW_ELEMENT, null, true);
+
+	    traverseLevel(walker, "");
+
+		
+		
+		
+	    StringWriter writer = new StringWriter();
+	    TransformerFactory tf = TransformerFactory.newInstance();
+	    Transformer transformer;
+		
+	    transformer = tf.newTransformer();
+	    transformer.transform(new DOMSource(document), new StreamResult(writer));
+		
+		
+	    String xmlString = writer.getBuffer().toString();
+	    
+	    ByteArrayInputStream bais = new ByteArrayInputStream(xmlString.getBytes("UTF-8"));
+		
+		
+		
+		
+		
+		
+		Object obj = unmarshaller.unmarshal(bais);
+		
+		
+		
+		
+		
 		
 		JAXBElement<TremoloType> cfg = (JAXBElement<TremoloType>) obj;
 		this.unisonConfig = cfg.getValue();
@@ -256,5 +368,21 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 		}
 		
 	}
+	
+	public ServerCore getMyVDServerCore() {
+		return this.myvd;
+	}
 
+}
+
+class ForRemoval {
+
+	Node parent;
+	Node node;
+	
+	public ForRemoval(Node parent,Node node) {
+		this.parent = parent;
+		this.node = node;
+	}
+	
 }

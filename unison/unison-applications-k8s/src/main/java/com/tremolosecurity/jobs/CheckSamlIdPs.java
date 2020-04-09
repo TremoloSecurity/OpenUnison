@@ -46,11 +46,11 @@ public class CheckSamlIdPs extends UnisonJob {
 
 	@Override
 	public void execute(ConfigManager configManager, JobExecutionContext context) throws ProvisioningException {
-		logger.info("Checking IdPs");
+		if (logger.isDebugEnabled()) logger.debug("Checking IdPs");
 		String selfLink = context.getJobDetail().getJobDataMap().getString("selfLink");
-		logger.info("Self Link : '" + selfLink + "'");
+		if (logger.isDebugEnabled()) logger.debug("Self Link : '" + selfLink + "'");
 		String targetName = context.getJobDetail().getJobDataMap().getString("target");
-		logger.info("Target : '" + targetName + "'");
+		if (logger.isDebugEnabled()) logger.debug("Target : '" + targetName + "'");
 		
 		OpenShiftTarget target = (OpenShiftTarget) configManager.getProvisioningEngine().getTarget(targetName).getProvider();
 		
@@ -58,7 +58,7 @@ public class CheckSamlIdPs extends UnisonJob {
 		try {
 			con = target.createClient();
 			String rawJson = target.callWS(target.getAuthToken(), con, selfLink);
-			logger.info("JSON : '" + rawJson + "'");
+			if (logger.isDebugEnabled()) logger.debug("JSON : '" + rawJson + "'");
 			JSONParser parser = new JSONParser();
 			JSONObject ouCr = (JSONObject) parser.parse(rawJson);
 			JSONObject spec = (JSONObject) ouCr.get("spec");
@@ -67,15 +67,15 @@ public class CheckSamlIdPs extends UnisonJob {
 					
 			JSONArray remoteIdps = (JSONArray) spec.get("saml_remote_idp");
 			for (Object o : remoteIdps) {
-				logger.info("Checking IdP");
+				if (logger.isDebugEnabled()) logger.debug("Checking IdP");
 				JSONObject idpCfg = (JSONObject) o;
 				JSONObject source = (JSONObject) idpCfg.get("source");
 				
 				String url = (String) source.get("url");
-				logger.info("URL : '" + url + "'");
+				if (logger.isDebugEnabled())  logger.debug("URL : '" + url + "'");
 				
 				if (url != null) {
-					logger.info("Pulling metadata");
+					if (logger.isDebugEnabled()) logger.debug("Pulling metadata");
 					String metadataXml = this.downloadFile(url,con.getHttp());
 					
 					DocumentBuilderFactory dbFactory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
@@ -99,30 +99,26 @@ public class CheckSamlIdPs extends UnisonJob {
 			            }
 			        }
 
-			        if (sigCerts.size() == 1) {
-			            currentCertChoice = string2cert(sigCerts.get(0));
-			        } else {
-			            for (String certStr : sigCerts) {
-			                X509Certificate currentCert = string2cert(certStr);
-			                if (currentCertChoice == null) {
-			                	currentCertChoice = currentCert;
-			                } else {
-			                    if (currentCertChoice.getNotAfter().compareTo(currentCert.getNotAfter())  < 0  ) {
-			                    	currentCertChoice = currentCert;
-			                    }
-			                }
-			            }
-			            
-			        }
+			        
 			        
 			        MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
-			        digest.update(currentCertChoice.getEncoded(),0,currentCertChoice.getEncoded().length);
+			        int i = 0;
+			        for (String certStr : sigCerts) {
+		                X509Certificate currentCert = string2cert(certStr);
+		                if (logger.isDebugEnabled()) {
+		                	logger.debug("Cert " + i + "  : " + currentCert.getSubjectDN());
+		                }
+		                i++;
+		                digest.update(currentCert.getEncoded(),0,currentCert.getEncoded().length);
+		            }
+			        
+			        
 			        byte[] digest_bytes = digest.digest();
 			        String digest_base64 = java.util.Base64.getEncoder().encodeToString(digest_bytes);
 			        String digestFromStatus = (String) fingerPrints.get(entityId);
 			        
-			        logger.info("Digest from Metadata : '" + digest_base64 + "'");
-			        logger.info("Digest from status : '" + digestFromStatus + "'");
+			        if (logger.isDebugEnabled()) logger.debug("Digest from Metadata : '" + digest_base64 + "'");
+			        if (logger.isDebugEnabled()) logger.debug("Digest from status : '" + digestFromStatus + "'");
 			        
 			        if (! digest_base64.equals(digestFromStatus)) {
 			        	JSONObject patch = new JSONObject();

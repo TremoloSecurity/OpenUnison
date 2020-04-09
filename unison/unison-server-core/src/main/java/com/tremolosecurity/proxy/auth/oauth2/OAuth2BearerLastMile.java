@@ -99,7 +99,11 @@ public class OAuth2BearerLastMile extends OAuth2Bearer {
 			
 			if (! lmresp.isValid(uri.toString())) {
 			
-				as.setExecuted(false);
+				as.setExecuted(true);
+				as.setSuccess(false);
+				
+				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
+				
 				sendFail(response, realmName,scope,"invalid_token","the token is invalid");
 				return;
 			}
@@ -156,6 +160,8 @@ public class OAuth2BearerLastMile extends OAuth2Bearer {
 			} else {
 				as.setExecuted(true);
 				as.setSuccess(false);
+				
+				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
 				
 				sendFail(response, realmName,scope,null,null);
 				 

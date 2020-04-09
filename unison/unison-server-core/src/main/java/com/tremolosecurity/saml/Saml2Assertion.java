@@ -176,13 +176,15 @@ public  class Saml2Assertion {
 		
 		Assertion assertion = null;
 		
-		if (this.signAssertion) {
-			AssertionBuilder assertionBuilder = new AssertionBuilder();
-			assertion = assertionBuilder.buildObject();
-			assertion.setDOM(this.generateSignedAssertion(id));
-			
-		} else {
-			assertion = this.generateAssertion(id);
+		if (this.subject != null) {
+			if (this.signAssertion) {
+				AssertionBuilder assertionBuilder = new AssertionBuilder();
+				assertion = assertionBuilder.buildObject();
+				assertion.setDOM(this.generateSignedAssertion(id));
+				
+			} else {
+				assertion = this.generateAssertion(id);
+			}
 		}
 		
 		random.nextBytes(idBytes);
@@ -211,78 +213,87 @@ public  class Saml2Assertion {
 		Status s = statusBuilder.buildObject();
 		StatusCodeBuilder scb = new StatusCodeBuilder();
 		StatusCode sc = scb.buildObject();
-		sc.setValue(StatusCode.SUCCESS);
+		if (this.subject != null) {
+			sc.setValue(StatusCode.SUCCESS);
+		} else {
+			sc.setValue(StatusCode.RESPONDER);
+			
+			StatusCode sc2 = scb.buildObject();
+			sc2.setValue(StatusCode.AUTHN_FAILED);
+			sc.setStatusCode(sc2);
+		}
 		s.setStatusCode(sc);
 		r.setStatus(s);
 		
 		
 		
 		
-		
-		if (this.encAssertion) {
-			DataEncryptionParameters encryptionParameters = new DataEncryptionParameters();
-			encryptionParameters.setAlgorithm(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES128);
-			
-			
-			KeyEncryptionParameters keyEncryptionParameters = new KeyEncryptionParameters();
-			
-			
-			
-			keyEncryptionParameters.setEncryptionCredential(new BasicX509Credential(this.encCert));
-	        keyEncryptionParameters.setAlgorithm(EncryptionConstants.ALGO_ID_KEYTRANSPORT_RSAOAEP);
-
-	        Encrypter encrypter = new Encrypter(encryptionParameters, keyEncryptionParameters);
-	        encrypter.setKeyPlacement(Encrypter.KeyPlacement.INLINE);
-
-	        try {
-	            EncryptedAssertion encryptedAssertion = encrypter.encrypt(assertion);
-	            r.getEncryptedAssertions().add(encryptedAssertion);
-	        } catch (EncryptionException e) {
-	            throw new RuntimeException(e);
-	        }
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			/*
-			
-			Credential keyEncryptionCredential = CredentialSupport.getSimpleCredential(this.encCert.getPublicKey(), null);
-			EncryptionParameters encParams = new EncryptionParameters();
-			encParams.setAlgorithm(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES128);
-			        
-			KeyEncryptionParameters kekParams = new KeyEncryptionParameters();
-			kekParams.setEncryptionCredential(keyEncryptionCredential);
-			kekParams.setAlgorithm(EncryptionConstants.ALGO_ID_KEYTRANSPORT_RSAOAEP);
-			KeyInfoGeneratorFactory kigf =
-			    Configuration.getGlobalSecurityConfiguration()
-			    .getKeyInfoGeneratorManager().getDefaultManager()
-			    .getFactory(keyEncryptionCredential);
-			kekParams.setKeyInfoGenerator(kigf.newInstance());
-			        
-			Encrypter samlEncrypter = new Encrypter(encParams, kekParams);
-			samlEncrypter.setKeyPlacement(KeyPlacement.PEER);
-			        
-			try {
-			    EncryptedAssertion encryptedAssertion = samlEncrypter.encrypt(assertion);
-			    r.getEncryptedAssertions().add(encryptedAssertion);
-			} catch (EncryptionException e) {
-			    throw new Exception("Could not encrypt response",e);
+		if (assertion != null) {
+			if (this.encAssertion) {
+				DataEncryptionParameters encryptionParameters = new DataEncryptionParameters();
+				encryptionParameters.setAlgorithm(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES128);
+				
+				
+				KeyEncryptionParameters keyEncryptionParameters = new KeyEncryptionParameters();
+				
+				
+				
+				keyEncryptionParameters.setEncryptionCredential(new BasicX509Credential(this.encCert));
+		        keyEncryptionParameters.setAlgorithm(EncryptionConstants.ALGO_ID_KEYTRANSPORT_RSAOAEP);
+	
+		        Encrypter encrypter = new Encrypter(encryptionParameters, keyEncryptionParameters);
+		        encrypter.setKeyPlacement(Encrypter.KeyPlacement.INLINE);
+	
+		        try {
+		            EncryptedAssertion encryptedAssertion = encrypter.encrypt(assertion);
+		            r.getEncryptedAssertions().add(encryptedAssertion);
+		        } catch (EncryptionException e) {
+		            throw new RuntimeException(e);
+		        }
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				/*
+				
+				Credential keyEncryptionCredential = CredentialSupport.getSimpleCredential(this.encCert.getPublicKey(), null);
+				EncryptionParameters encParams = new EncryptionParameters();
+				encParams.setAlgorithm(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES128);
+				        
+				KeyEncryptionParameters kekParams = new KeyEncryptionParameters();
+				kekParams.setEncryptionCredential(keyEncryptionCredential);
+				kekParams.setAlgorithm(EncryptionConstants.ALGO_ID_KEYTRANSPORT_RSAOAEP);
+				KeyInfoGeneratorFactory kigf =
+				    Configuration.getGlobalSecurityConfiguration()
+				    .getKeyInfoGeneratorManager().getDefaultManager()
+				    .getFactory(keyEncryptionCredential);
+				kekParams.setKeyInfoGenerator(kigf.newInstance());
+				        
+				Encrypter samlEncrypter = new Encrypter(encParams, kekParams);
+				samlEncrypter.setKeyPlacement(KeyPlacement.PEER);
+				        
+				try {
+				    EncryptedAssertion encryptedAssertion = samlEncrypter.encrypt(assertion);
+				    r.getEncryptedAssertions().add(encryptedAssertion);
+				} catch (EncryptionException e) {
+				    throw new Exception("Could not encrypt response",e);
+				}
+		        */
+			} else {
+				r.getAssertions().add(assertion);
 			}
-	        */
-		} else {
-			r.getAssertions().add(assertion);
 		}
 		
 		if (this.signResponse) {

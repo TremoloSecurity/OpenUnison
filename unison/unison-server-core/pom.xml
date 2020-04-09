@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison</artifactId>
-		<version>1.0.17</version>
+		<version>1.0.18</version>
 	</parent>
 	<artifactId>unison-server-core</artifactId>
 	<name>unison-server-core</name>
@@ -103,6 +103,12 @@
 		
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-okta</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-applications-openstack</artifactId>
 			<version>${openunison.version}</version>
 		</dependency>
@@ -124,6 +130,12 @@
             <artifactId>ibm-mq-connection-factory</artifactId>
             <version>${openunison.version}</version>
         </dependency>
+
+		<dependency>
+		  <groupId>com.tremolosecurity.unison</groupId>
+		  <artifactId>unison-auth-duo</artifactId>
+		  <version>${openunison.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>com.sun.mail</groupId>
@@ -186,6 +198,19 @@
     		<version>${slf4j.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.bitbucket.b_c</groupId>
+			<artifactId>jose4j</artifactId>
+			<version>${jose4j.version}</version>
+		</dependency> 
+		
+
+
+<dependency>
+  <groupId>com.microsoft.azure</groupId>
+  <artifactId>msal4j</artifactId>
+  <version>${azure-auth.version}</version>
+</dependency>
 	</dependencies>
 	<build>
 

@@ -46,8 +46,8 @@ public class LoadAttributesFromWS implements LoadUserData {
 		CloseableHttpClient http = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(rc).build();
 		    
 		HttpGet get = new HttpGet(url);
-		
-		get.addHeader("Authorization", "Bearer " + request.getSession().getAttribute(bearerTokenName));
+		String header = new StringBuilder().append("Bearer ").append(request.getSession().getAttribute(bearerTokenName)).toString();
+		get.addHeader("Authorization", header);
 		
 		CloseableHttpResponse httpResp = http.execute(get);
 		

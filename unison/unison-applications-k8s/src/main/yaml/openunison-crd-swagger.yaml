@@ -1,0 +1,254 @@
+swagger: '2.0'
+info:
+  description: 'This is the openapi definition for openunisons operator'
+  version: 1.0.0
+  title: OpenUnison Operator
+  license:
+    name: Apache-2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+definitions:
+  OpenUnison:
+    type: object
+    properties:
+      image:
+        type: string
+      replicas:
+        type: integer
+      enable_activemq:
+        type: boolean
+      activemq_image:
+        type: string
+      dest_secret:
+        type: string
+      source_secret:
+        type: string
+      secret_data:
+        type: array
+        items:
+          type: string
+      openshift:
+        type: object
+        properties:
+          git:
+            type: object
+            properties:
+              repo:
+                type: string
+              branch: 
+                type: string
+              dir:
+                type: string
+          builder_image:
+            type: string
+      hosts:
+        type: array
+        items:
+          type: object
+          properties:
+            names:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  env_var:
+                    type: string
+            ingress_name: 
+              type: string
+            secret_name:
+              type: string
+            node_selectors:
+              type: array
+              items:
+                type: object
+                properties:
+                  name: 
+                    type: string
+                  value:
+                    type: string
+      non_secret_data:
+        type: array
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+            value:
+              type: string
+      openunison_network_configuration:
+        type: object
+        properties:
+          force_to_lower_case:
+            type: boolean
+          open_port:
+            type: integer
+          open_external_port:
+            type: integer
+          secure_port:
+            type: integer
+          secure_external_port:
+            type: integer
+          force_to_secure:
+            type: boolean
+          activemq_dir:
+            type: string
+          client_auth:
+            type: string
+          allowed_client_names:
+            type: array
+            items:
+              type: string
+          ciphers:
+            type: array
+            items:
+              type: string
+          path_to_deployment:
+            type: string
+          path_to_env_file:
+            type: string
+          secure_key_alias:
+            type: string
+          allowed_tls_protocols:
+            type: array
+            items:
+              type: string
+          quartz_dir:
+            type: string
+          context_root:
+            type: string
+          disable_http2:
+            type: boolean
+          allow_un_escaped_chars:
+            type: string
+          welecome_pages:
+            type: array
+            items:
+              type: string
+          error_pages:
+            type: array
+            items:
+              type: object
+              properties:
+                code:
+                  type: integer
+                location:
+                  type: string
+          redirect_to_context_root:
+            type: boolean
+      saml_remote_idp:
+        type: array
+        items:
+          type: object
+          properties:
+            source:
+              type: object
+              properties:
+                url:
+                  type: string
+                xml:
+                  type: string
+            mapping:
+              type: object
+              properties:
+                entity_id:
+                  type: string
+                post_url:
+                  type: string
+                redirect_url:
+                  type: string
+                logout_url:
+                  type: string
+                signing_cert_alis:
+                  type: string
+                encryption_cert_alias:
+                  type: string
+      run_sql:
+        type: string
+      key_store:
+        type: object
+        properties:
+          update_controller:
+            type: object
+            properties:
+              image:
+                type: string
+              schedule:
+                type: string
+              days_to_expire:
+                type: integer
+          static_keys:
+            type: array
+            items:
+              type: object
+              properties:
+                name:
+                  type: string
+                version:
+                  type: integer
+          trusted_certificates:
+            type: array
+            items:
+              type: object
+              properties:
+                name:
+                  type: string
+                pem_data:
+                  type: string
+          key_pairs:
+            type: object
+            properties:
+              create_keypair_template:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    value:
+                      type: string
+              keys:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    tls_secret_name:
+                      type: string
+                    import_into_ks:
+                      type: string
+                      enum:
+                      - keypair
+                      - certificate
+                      - none
+                    replace_if_exists:
+                      type: boolean
+                    create_data:
+                      type: object
+                      properties:
+                        sign_by_k8s_ca:
+                          type: boolean
+                        server_name:
+                          type: string
+                        subject_alternative_names:
+                          type: array
+                          items:
+                            type: string
+                        key_size:
+                          type: integer
+                        ca_cert:
+                          type: boolean
+                        delete_pods_labels:
+                          type: array
+                          items:
+                            type: string
+                        secret_info:
+                          type: object
+                          properties:
+                            type_of_secret:
+                              type: string
+                            cert_name:
+                              type: string
+                            key_name:
+                              type: string

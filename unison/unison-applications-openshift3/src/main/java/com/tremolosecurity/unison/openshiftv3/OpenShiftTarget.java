@@ -17,6 +17,8 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.KeyStoreException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,6 +49,9 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.Logger;
+import org.cryptacular.EncodingException;
+import org.cryptacular.StreamException;
+import org.cryptacular.util.CertUtil;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -582,7 +587,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		}
 		
 		
-		String tmpUseToken = this.loadOptionalAttributeValue("useToken", "Use Token", cfg);
+		String tmpUseToken = this.loadOptionalAttributeValue("useToken", "Use Token", cfg,null);
 		this.useToken = tmpUseToken != null && tmpUseToken.equalsIgnoreCase("true");
 		
 		if (! useToken) {
@@ -592,7 +597,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			
 		
 			
-			this.osToken = this.loadOptionalAttributeValue("token", "Token",cfg);
+			this.osToken = this.loadOptionalAttributeValue("token", "Token",cfg,"***************************");
 			
 			if (this.osToken == null || this.osToken.isEmpty()) {
 				this.localToken = true;
@@ -601,6 +606,24 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 				} catch (IOException e) {
 					throw new ProvisioningException("Could not load token",e);
 				}
+				
+				String certAlias = this.loadOptionalAttributeValue("caCertAlias","caCertAlias", cfg,null);
+				if (certAlias == null) {
+					certAlias = "k8s-master";
+				}
+				
+				try {
+					logger.info("Cert Alias Storing - '" + certAlias + "'");
+					
+					X509Certificate cert = CertUtil.readCertificate("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt");
+					
+					logger.info("Certificate - " + cert);
+					
+					cfgMgr.getKeyStore().setCertificateEntry(certAlias, cert);
+				} catch (KeyStoreException | EncodingException | StreamException e) {
+					throw new ProvisioningException("Could not load ca cert",e);
+				}
+				
 			}
 			
 			
@@ -613,7 +636,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 
 	}
 	
-	private String loadOptionalAttributeValue(String name,String label,Map<String, Attribute> config) throws ProvisioningException {
+	private String loadOptionalAttributeValue(String name,String label,Map<String, Attribute> config,String mask) throws ProvisioningException {
 		Attribute attr = config.get(name);
 		if (attr == null) {
 			logger.warn(label + " not found");
@@ -621,7 +644,12 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		}
 		
 		String val = attr.getValues().get(0);
-		logger.info(label + ": '" + val + "'");
+		if (mask != null) {
+			logger.info(label + ": '" + mask + "'");
+		} else {
+			logger.info(label + ": '" + val + "'");
+		}
+		
 		
 		return val;
 	}
@@ -895,6 +923,11 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 		
 		return uid.toString();
+		
+	}
+
+	public String getUrl() {
+		return this.url;
 		
 	}
 }

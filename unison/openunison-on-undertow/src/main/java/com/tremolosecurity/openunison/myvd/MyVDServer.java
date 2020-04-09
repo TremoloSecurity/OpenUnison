@@ -19,8 +19,14 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -64,6 +70,8 @@ import net.sourceforge.myvd.server.apacheds.MyVDInterceptor;
 import net.sourceforge.myvd.server.apacheds.MyVDReferalManager;
 
 import org.apache.directory.api.ldap.model.entry.DefaultAttribute;
+import org.apache.directory.api.ldap.model.exception.LdapException;
+import org.apache.directory.api.ldap.model.exception.LdapInvalidDnException;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.api.ldap.model.schema.SchemaManager;
 import org.apache.directory.api.ldap.model.schema.registries.SchemaLoader;
@@ -175,6 +183,15 @@ public class MyVDServer {
 		globalChain = myvdServerCore.getGlobalChain();
 		router = myvdServerCore.getRouter();
 		
+		startMyVDListener(fconfig);
+        
+        
+	}
+
+
+	private static void startMyVDListener(final ListenerConfig fconfig)
+			throws Exception, IOException, LdapInvalidDnException, LdapException, KeyStoreException,
+			NoSuchAlgorithmException, CertificateException, FileNotFoundException, UnrecoverableKeyException {
 		apachedsPath = Files.createTempDir().getAbsolutePath();
 		
 		directoryService = new DefaultDirectoryService();
@@ -300,8 +317,6 @@ public class MyVDServer {
 		ldapServer.setTransports(t);
         ldapServer.start();
         ((ExtendedRequestHandler) ldapServer.getExtendedRequestHandler()).init(globalChain, router);
-        
-        
 	}
 	
 	

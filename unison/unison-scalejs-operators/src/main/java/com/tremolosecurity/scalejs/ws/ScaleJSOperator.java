@@ -281,7 +281,13 @@ public class ScaleJSOperator implements HttpFilter {
 		}
 
 		String dn = request.getParameter("dn").getValues().get(0);
-		LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(dn, 0, "(objectClass=*)", new ArrayList<String>());
+		
+		FilterBuilder baseFilter = (FilterBuilder) request.getAttribute("ops.search.filter");
+		String filter = "(objectClass=*)";
+		if (baseFilter != null) {
+			filter = baseFilter.toString();
+		}
+		LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(dn, 0, filter, new ArrayList<String>());
 		if (! res.hasMore()) {
 			throw new Exception("Could not locate user '" + dn + "'");
 		}
@@ -338,9 +344,12 @@ public class ScaleJSOperator implements HttpFilter {
 			Attribute attr = new Attribute(this.scaleMainConfig.getRoleAttribute());
 			if (fromUser != null) {
 				attr.getValues().addAll(fromUser.getValues());
+				userToSend.getGroups().clear();
+				userToSend.getGroups().addAll(fromUser.getValues());
 			}
 			
 			userToSend.getAttributes().add(attr);
+			
 		}
 		
 		
@@ -406,7 +415,20 @@ public class ScaleJSOperator implements HttpFilter {
 
 		FilterBuilder[] fb = new FilterBuilder[filter.size()];
 		filter.toArray(fb);
-		String filterString = and(fb).toString();
+		
+		
+		FilterBuilder baseFilter = (FilterBuilder) request.getAttribute("ops.search.filter");
+		
+		String filterString;
+		
+		if (baseFilter != null) {
+			FilterBuilder localFilter = and(fb);
+			filterString = and(localFilter,baseFilter).toString();
+		} else {
+			filterString = and(fb).toString(); 
+		}
+		
+		
 		String searchBase = this.config.getBaseLabelToDN().get(opsSearch.getBase());
 		if (searchBase == null) {
 			throw new Exception("Invalid search base");
@@ -423,9 +445,12 @@ public class ScaleJSOperator implements HttpFilter {
 			LDAPEntry entry = res.next();
 			ret.put("dn", entry.getDN());
 			for (AttributeConfig attr : this.config.getResultsAttributes()) {
-				String val = entry.getAttribute(attr.getName()).getStringValue();
-				if (val != null) {
+				
+				if (entry.getAttribute(attr.getName()) != null) {
+					String val = entry.getAttribute(attr.getName()).getStringValue();
 					ret.put(attr.getName(), val);
+				} else {
+					ret.put(attr.getName(), "");
 				}
 			}
 		}

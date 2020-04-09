@@ -22,6 +22,7 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.WorkflowType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.util.DynamicWorkflow;
+import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.unison.openstack.model.KSDomain;
 import com.tremolosecurity.unison.openstack.model.KSProject;
@@ -222,6 +223,12 @@ public class KeystoneDynamicWorkflow implements DynamicWorkflow {
 			}
 		}
 		return addWF;
+	}
+
+	@Override
+	public List<Map<String, String>> generateWorkflows(WorkflowType wf, ConfigManager cfg,
+			HashMap<String, Attribute> params, AuthInfo authInfo) throws ProvisioningException {
+		return this.generateWorkflows(wf, cfg, params);
 	}
 
 }

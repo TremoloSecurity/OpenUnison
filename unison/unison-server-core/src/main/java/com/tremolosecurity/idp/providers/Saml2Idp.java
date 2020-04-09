@@ -192,6 +192,20 @@ public class Saml2Idp implements IdentityProvider {
 			MalformedURLException {
 		final SamlTransaction transaction = (SamlTransaction) request.getSession().getAttribute(Saml2Idp.TRANSACTION_DATA);
 		
+		final AuthInfo authInfo = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+		
+		if (! authInfo.isAuthComplete()) {
+			logger.warn("Attempted completetd federation before autthentication is completeed, clearing authentication and redirecting to the original URL");
+			
+			UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
+			request.getSession().removeAttribute(ProxyConstants.AUTH_CTL);
+			holder.getConfig().createAnonUser(request.getSession());
+			
+			this.postErrorResponse(transaction, request, response, authInfo, holder);
+			
+			return;
+		}
+		
 		request.setAttribute(AzSys.FORCE, "true");
 		NextSys completeFed = new NextSys() {
 
@@ -721,6 +735,92 @@ public class Saml2Idp implements IdentityProvider {
 		for (String attrName : mapped.getAttribs().keySet()) {
 			resp.getAttribs().add(mapped.getAttribs().get(attrName));
 		}
+		
+		//resp.getAttribs().add(new Attribute("groups","admin"));
+		
+		String respXML = "";
+		
+		try {
+			respXML = resp.generateSaml2Response();
+		} catch (Exception e) {
+			throw new ServletException("Could not generate SAMLResponse",e);
+		}
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug(respXML);
+		}
+		
+		String base64 = Base64.encodeBase64String(respXML.getBytes("UTF-8"));
+		
+		request.setAttribute("postdata", base64);
+		request.setAttribute("postaction", transaction.postToURL);
+		
+		if (transaction.relayState != null) {
+			request.setAttribute("relaystate", transaction.relayState);
+		} else {
+			request.setAttribute("relaystate", "");
+		}
+		
+
+		
+
+
+		
+		ST st = new ST(this.saml2PostTemplate,'$','$');
+		st.add("relaystate", (String) request.getAttribute("relaystate"));
+		st.add("postdata",base64);
+		st.add("postaction",transaction.postToURL);
+		response.setContentType("text/html");
+		response.getWriter().write(st.render());
+		
+		
+		
+		
+	}
+	
+	
+	private void postErrorResponse(final SamlTransaction transaction,
+			HttpServletRequest request, HttpServletResponse response,
+			AuthInfo authInfo, UrlHolder holder) throws MalformedURLException,
+			ServletException, UnsupportedEncodingException, IOException {
+		
+		
+		
+		
+		
+		
+		
+		Saml2Trust trust = trusts.get(transaction.issuer);
+		
+		
+		
+		PrivateKey pk = holder.getConfig().getPrivateKey(this.idpSigKeyName);
+		java.security.cert.X509Certificate cert = holder.getConfig().getCertificate(this.idpSigKeyName);
+		java.security.cert.X509Certificate spEncCert = holder.getConfig().getCertificate(trust.spEncCert);
+		
+		StringBuffer issuer = new StringBuffer();
+		URL url = new URL(request.getRequestURL().toString());
+		
+		if (request.isSecure()) {
+			issuer.append("https://");
+		} else {
+			issuer.append("http://");
+		}
+		
+		issuer.append(url.getHost());
+		
+		if (url.getPort() != -1) {
+			issuer.append(':').append(url.getPort());
+		}
+		
+		
+		ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
+		//issuer.append(holder.getUrl().getUri());
+		issuer.append(cfg.getAuthIdPPath()).append(this.idpName);
+		
+		Saml2Assertion resp = new Saml2Assertion(null,pk,cert,spEncCert,issuer.toString(),transaction.postToURL,transaction.issuer,trust.signAssertion,trust.signResponse,trust.encAssertion,transaction.nameIDFormat,transaction.authnCtxName);
+		
+		
 		
 		//resp.getAttribs().add(new Attribute("groups","admin"));
 		

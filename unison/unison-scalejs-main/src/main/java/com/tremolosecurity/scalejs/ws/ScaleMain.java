@@ -1048,7 +1048,7 @@ public class ScaleMain implements HttpFilter {
 							
 							DynamicWorkflow dwf = (DynamicWorkflow) Class.forName(wf.getDynamicConfiguration().getClassName()).newInstance();
 							
-							List<Map<String,String>> wfParams = dwf.generateWorkflows(wf, cfgMgr, params);
+							List<Map<String,String>> wfParams = dwf.generateWorkflows(wf, cfgMgr, params,userData);
 							
 							StringBuffer b = new StringBuffer();
 							b.append('/').append(URLEncoder.encode(wf.getName(),"UTF-8"));
