@@ -43,5 +43,11 @@ limitations under the License.
     <artifactId>google-api-services-admin-directory</artifactId>
     <version>${google-api-services-admin-directory.version}</version>
 </dependency>
+ <dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>${commons-codec.version}</version>
+		</dependency>
+		
   </dependencies>
 </project>
