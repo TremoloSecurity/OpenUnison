@@ -143,7 +143,7 @@
 		
 
 		<module>unison-applications-google</module>
-		<module>unison-lastmile-undertow-1.x</module>
+		>
 		<module>unison-applications-wordpress</module>
 		<module>open-unison-webapp</module>
 		<module>open-unison-classes</module>
