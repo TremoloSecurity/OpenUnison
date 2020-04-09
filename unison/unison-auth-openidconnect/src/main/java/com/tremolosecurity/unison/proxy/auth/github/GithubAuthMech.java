@@ -274,7 +274,8 @@ public class GithubAuthMech implements AuthMechanism {
 					as.setSuccess(false);
 				} else {
 					
-					get = new HttpGet("https://api.github.com/user/emails?access_token=" + URLEncoder.encode(accessToken, "UTF-8"));
+					get = new HttpGet("https://api.github.com/user/emails");
+					get.addHeader("Authorization",new StringBuilder().append("Bearer ").append(accessToken).toString());
 					httpResp = http.execute(get);
 					in = new BufferedReader(new InputStreamReader(httpResp.getEntity().getContent()));
 					token.setLength(0);
@@ -313,7 +314,8 @@ public class GithubAuthMech implements AuthMechanism {
 						lookupUser(as, session, myvd, noMatchOU, uidAttr, lookupFilter, act, jwtNVP,defaultObjectClass);
 					}
 					
-					get = new HttpGet("https://api.github.com/user/orgs?access_token=" + URLEncoder.encode(accessToken, "UTF-8"));
+					get = new HttpGet("https://api.github.com/user/orgs");
+					get.addHeader("Authorization", new StringBuilder().append("Bearer ").append(accessToken).toString());
 					httpResp = http.execute(get);
 					in = new BufferedReader(new InputStreamReader(httpResp.getEntity().getContent()));
 					token.setLength(0);
