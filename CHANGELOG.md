@@ -1,3 +1,48 @@
+## 1.0.18-2020040901
+
+**Tasks:**
+ - GittHub login - remove use of `access_token` in api calls [\#440](https://github.com/TremoloSecurity/OpenUnison/issues/440)
+ - 1.0.18 build [\#383](https://github.com/TremoloSecurity/OpenUnison/issues/383)
+ - Remove undertow subproject [\#448](https://github.com/TremoloSecurity/OpenUnison/issues/448)
+ - Remove JBoss 7.x support [\#447](https://github.com/TremoloSecurity/OpenUnison/issues/447)
+
+**enhancements:**
+ - CreateK8sObject - support put [\#432](https://github.com/TremoloSecurity/OpenUnison/issues/432)
+ - Create better mapping authentication mechanism [\#441](https://github.com/TremoloSecurity/OpenUnison/issues/441)
+ - azuread provisioning support [\#446](https://github.com/TremoloSecurity/OpenUnison/issues/446)
+ - Create JMS keepalive for queue management [\#411](https://github.com/TremoloSecurity/OpenUnison/issues/411)
+ - K8s token - if no cert don't set in kubectl [\#443](https://github.com/TremoloSecurity/OpenUnison/issues/443)
+ - Better widows support for kubectl [\#442](https://github.com/TremoloSecurity/OpenUnison/issues/442)
+ - SAML2 Auth - Support multiple certificates [\#417](https://github.com/TremoloSecurity/OpenUnison/issues/417)
+ - kubernetes - update to oidc should extend session in browser [\#420](https://github.com/TremoloSecurity/OpenUnison/issues/420)
+ - Better support for suitecrm [\#430](https://github.com/TremoloSecurity/OpenUnison/issues/430)
+ - ScaleJS Register - Add dynamic lookup for LDAP [\#405](https://github.com/TremoloSecurity/OpenUnison/issues/405)
+ - k8s impersonation support [\#360](https://github.com/TremoloSecurity/OpenUnison/issues/360)
+ - add support for okta apis [\#393](https://github.com/TremoloSecurity/OpenUnison/issues/393)
+ - better metrics support [\#400](https://github.com/TremoloSecurity/OpenUnison/issues/400)
+ - support patching k8s objects [\#406](https://github.com/TremoloSecurity/OpenUnison/issues/406)
+ - LDAP listeners for OpenUnison [\#399](https://github.com/TremoloSecurity/OpenUnison/issues/399)
+ - openshift/k8s target - trust ca certificate from pod [\#412](https://github.com/TremoloSecurity/OpenUnison/issues/412)
+ - dyanmic workflows - add user data [\#408](https://github.com/TremoloSecurity/OpenUnison/issues/408)
+ - ScaleJS Operators - Add way to add filter to search request [\#407](https://github.com/TremoloSecurity/OpenUnison/issues/407)
+ - Integrate DUO auth code [\#384](https://github.com/TremoloSecurity/OpenUnison/issues/384)
+ - AD Provisioning Target - Add create group support [\#404](https://github.com/TremoloSecurity/OpenUnison/issues/404)
+ - OAuth2 JWT auth - Support discovery url [\#403](https://github.com/TremoloSecurity/OpenUnison/issues/403)
+ - Validate k8s service accounts [\#387](https://github.com/TremoloSecurity/OpenUnison/issues/387)
+ - Add support for PATCH [\#386](https://github.com/TremoloSecurity/OpenUnison/issues/386)
+ - Add method to dynamiclly exclude configuration items [\#385](https://github.com/TremoloSecurity/OpenUnison/issues/385)
+ - Oauth2 JWT authentication support [\#382](https://github.com/TremoloSecurity/OpenUnison/issues/382)
+
+**bugs:**
+ - Oidc: Compare hd to hd attribute from id_token [\#444](https://github.com/TremoloSecurity/OpenUnison/issues/444)
+ - Better logging and error reporting on failed logins [\#437](https://github.com/TremoloSecurity/OpenUnison/issues/437)
+ - k8s impersonation needs to inject system:authenticated into groups [\#431](https://github.com/TremoloSecurity/OpenUnison/issues/431)
+ - ScaleJS Operator - search user with missing attributes fails [\#418](https://github.com/TremoloSecurity/OpenUnison/issues/418)
+ - Better error checking in k8s crd user provisioning [\#368](https://github.com/TremoloSecurity/OpenUnison/issues/368)
+ - DB provisioning - can't log updates [\#409](https://github.com/TremoloSecurity/OpenUnison/issues/409)
+ - Add group to target doesn't respect parameters [\#402](https://github.com/TremoloSecurity/OpenUnison/issues/402)
+ - callworkflow task doesn't work when its a subtask [\#273](https://github.com/TremoloSecurity/OpenUnison/issues/273)
+
 ## 1.0.17-2019070901
 
 **Tasks:**
