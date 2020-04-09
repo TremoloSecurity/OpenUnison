@@ -34,6 +34,16 @@ limitations under the License.
 	  		<artifactId>unison-sdk</artifactId>
 	  		<version>${openunison.version}</version>
   		</dependency>
+  		<dependency>
+	  		<groupId>io.netty</groupId>
+	  		<artifactId>netty-codec</artifactId>
+	  		<version>${netty-codec.version}</version>
+  		</dependency>
+  		<dependency>
+	  		<groupId>io.netty</groupId>
+	  		<artifactId>netty-codec-http</artifactId>
+	  		<version>${netty-codec.version}</version>
+  		</dependency>
 <dependency>
   <groupId>com.amazonaws</groupId>
   <artifactId>amazon-sqs-java-messaging-lib</artifactId>

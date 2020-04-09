@@ -20,7 +20,7 @@
 		<servlet.2x.api.version>2.5</servlet.2x.api.version>
 		<commons-collections.version>3.2.2</commons-collections.version>
 		<commons-cli.version>1.4</commons-cli.version>
-		<commons-codec.version>1.13</commons-codec.version>
+		<commons-codec.version>1.14</commons-codec.version>
 		<opensaml.version>3.4.5</opensaml.version>
 		<xerces.version>2.12.0</xerces.version>
 		<alfresco-client.version>5.0.a</alfresco-client.version>
@@ -63,7 +63,7 @@
 		<googleauth.version>1.5.0</googleauth.version>
 		<activemq.version>5.15.12</activemq.version>
 		<commons-pool2.version>2.8.0</commons-pool2.version>
-		<aws-java-sdk.version>1.11.759</aws-java-sdk.version>
+		<aws-java-sdk.version>1.11.762</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>1.0.8</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.0.2</stringtemplate.version>
 		<hibernate.version>5.4.13.Final</hibernate.version>
@@ -85,8 +85,8 @@
 	  	<okta.version>1.5.4</okta.version>
 	  	<azure-auth.version>1.4.0</azure-auth.version>
 	  	<cryptacular.version>1.2.4</cryptacular.version>
-	  	<xmlsec.version>2.1.4</xmlsec.version>
-	  	<netty-codec.version>4.1.46.Final</netty-codec.version>
+	  	<santuario-xmlsec.version>2.1.5</santuario-xmlsec.version>
+	  	<netty-codec.version>4.1.48.Final</netty-codec.version>
 	</properties>
 
 	<repositories>
@@ -143,7 +143,7 @@
 		
 
 		<module>unison-applications-google</module>
-		>
+		
 		<module>unison-applications-wordpress</module>
 		<module>open-unison-webapp</module>
 		<module>open-unison-classes</module>

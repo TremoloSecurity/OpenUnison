@@ -42,6 +42,13 @@
 			<artifactId>commons-fileupload</artifactId>
 			<version>${commons-fileupload.version}</version>
 		</dependency>
+		
+		
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>${commons-codec.version}</version>
+		</dependency>
 
 
 		<dependency>
@@ -53,6 +60,18 @@
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-provisioning-sdk</artifactId>
 			<version>${openunison.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.cryptacular</groupId>
+			<artifactId>cryptacular</artifactId>
+			<version>${cryptacular.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.santuario</groupId>
+			<artifactId>xmlsec</artifactId>
+			<version>${santuario-xmlsec.version}</version>
 		</dependency>
 
 		<dependency>
@@ -149,6 +168,12 @@
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>${guava.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.mchange</groupId>
+			<artifactId>c3p0</artifactId>
+			<version>${c3p0.version}</version>
 		</dependency>
 	</dependencies>
 
