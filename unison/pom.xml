@@ -81,6 +81,7 @@
 	  	<prometheus.version>0.8.1</prometheus.version>
 	  	<ibm-mq.version>9.1.5.0</ibm-mq.version>
 	  	<okta.version>1.5.4</okta.version>
+	  	<azure-auth.version>1.4.0</azure-auth.version>
 	</properties>
 
 	<repositories>

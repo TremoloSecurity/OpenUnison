@@ -203,6 +203,14 @@
 			<artifactId>jose4j</artifactId>
 			<version>${jose4j.version}</version>
 		</dependency> 
+		
+
+
+<dependency>
+  <groupId>com.microsoft.azure</groupId>
+  <artifactId>msal4j</artifactId>
+  <version>${azure-auth.version}</version>
+</dependency>
 	</dependencies>
 	<build>
 
