@@ -233,5 +233,13 @@ public class JMSPull implements HttpFilter {
         }
       }
 
+    public JMSSessionHolder getRequestSession() {
+        return this.reqSession;
+    }
+
+    public JMSSessionHolder getResponseSession() {
+        return this.respSession;
+    }
+
 }
 

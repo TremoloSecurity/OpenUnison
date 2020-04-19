@@ -173,4 +173,8 @@ public class PullListener extends UnisonMessageListener {
         return false;
     }
 
+    public JMSSessionHolder getJMSSession() {
+        return this.jmsSession;
+    }
+
 } 

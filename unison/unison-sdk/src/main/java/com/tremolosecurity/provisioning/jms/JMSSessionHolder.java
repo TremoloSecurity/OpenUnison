@@ -99,4 +99,8 @@ public class JMSSessionHolder {
 	public String getQueueName() {
 		return this.queueName;
 	}
+
+	public JMSConnection getJMSConnection() {
+		return this.con;
+	}
 }
