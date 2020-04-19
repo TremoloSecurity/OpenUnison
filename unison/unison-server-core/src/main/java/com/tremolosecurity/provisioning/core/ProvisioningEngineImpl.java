@@ -1419,8 +1419,12 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				taskQueueName = this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getTaskQueueName();
 			}
 			
-			JMSSessionHolder sessionHolder = JMSConnectionFactory.getConnectionFactory().getSession(taskQueueName);
-			this.mpPools.add(sessionHolder);
+			try {
+				JMSSessionHolder sessionHolder = JMSConnectionFactory.getConnectionFactory().getSession(taskQueueName);
+				this.mpPools.add(sessionHolder);
+			} catch (Exception e) {
+				logger.warn("Could not create internal queue",e);
+			}
 			
 		} else {
 			
