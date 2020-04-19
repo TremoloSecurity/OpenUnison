@@ -91,11 +91,18 @@
 
 	<repositories>
 		<repository>
-			<id>tremolosecurity-dependencies</id>
+			<id>tremolosecurity-releases</id>
 			<!-- <url>https://nexus.tremolo.io/repository/betas/</url> -->
 			<url>https://nexus.tremolo.io/repository/releases/</url>
 		</repository>
-		
+	
+                <repository>
+                        <id>tremolosecurity-dependencies</id>
+                        <!-- <url>https://nexus.tremolo.io/repository/betas/</url> -->
+                        <url>https://nexus.tremolo.io/repository/dependencies/</url>
+                </repository>
+
+	
 		<!-- <repository>
 			<id>jboss</id>
 			<url>https://repository.jboss.org/nexus/content/repositories/</url>
