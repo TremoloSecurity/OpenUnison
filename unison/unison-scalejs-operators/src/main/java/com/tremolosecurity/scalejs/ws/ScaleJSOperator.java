@@ -544,7 +544,7 @@ public class ScaleJSOperator implements HttpFilter {
 			if (filter.getClazz().equalsIgnoreCase("com.tremolosecurity.scalejs.ws.ScaleMain")) {
 				for (ParamType pt : filter.getParam()) {
 					if (pt.getName().equalsIgnoreCase("uiHelperClassName")) {
-						this.dec = (UiDecisions) Class.forName(pt.getName()).newInstance();
+						this.dec = (UiDecisions) Class.forName(pt.getValue()).newInstance();
 					} else if (pt.getName().equalsIgnoreCase("uihelper.params")) {
 						String v = pt.getValue();
 						String name = v.substring(0,v.indexOf('='));

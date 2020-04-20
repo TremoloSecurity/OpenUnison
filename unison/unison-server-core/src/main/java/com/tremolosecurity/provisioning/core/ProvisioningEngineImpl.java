@@ -450,7 +450,10 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 		this.cfgMgr = cfgMgr;
 		
-		GlobalEntries.getGlobalEntries().set(ProxyConstants.CONFIG_MANAGER, cfgMgr);
+		
+		if (GlobalEntries.getGlobalEntries().getConfigManager() == null) { 
+			GlobalEntries.getGlobalEntries().set(ProxyConstants.CONFIG_MANAGER, cfgMgr);
+		}
 		
 		this.initLocalBroker();
 		
@@ -576,6 +579,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	 */
 	@Override
 	public void initWorkFlows() throws ProvisioningException {
+		
+		
+		
 		Iterator<String> wfNames = this.workflows.keySet().iterator();
 		while (wfNames.hasNext()) {
 			String name = wfNames.next();
@@ -1420,10 +1426,11 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			}
 			
 			try {
+				
 				JMSSessionHolder sessionHolder = JMSConnectionFactory.getConnectionFactory().getSession(taskQueueName);
 				this.mpPools.add(sessionHolder);
-			} catch (Exception e) {
-				logger.warn("Could not create internal queue",e);
+			} catch (Throwable t) {
+				logger.warn("Could not create internal queue " + taskQueueName);
 			}
 			
 		} else {
