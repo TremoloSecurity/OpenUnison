@@ -89,35 +89,35 @@ public class FullMappingAuthMech implements AuthMechanism {
 	@Override
 	public void doPost(HttpServletRequest request, HttpServletResponse response, AuthStep as)
 			throws IOException, ServletException {
-		// TODO Auto-generated method stub
+		this.doGet(request, response, as);
 
 	}
 
 	@Override
 	public void doPut(HttpServletRequest request, HttpServletResponse response, AuthStep as)
 			throws IOException, ServletException {
-		// TODO Auto-generated method stub
+		this.doGet(request, response, as);
 
 	}
 
 	@Override
 	public void doHead(HttpServletRequest request, HttpServletResponse response, AuthStep as)
 			throws IOException, ServletException {
-		// TODO Auto-generated method stub
+		this.doGet(request, response, as);
 
 	}
 
 	@Override
 	public void doOptions(HttpServletRequest request, HttpServletResponse response, AuthStep as)
 			throws IOException, ServletException {
-		// TODO Auto-generated method stub
+		this.doGet(request, response, as);
 
 	}
 
 	@Override
 	public void doDelete(HttpServletRequest request, HttpServletResponse response, AuthStep as)
 			throws IOException, ServletException {
-		// TODO Auto-generated method stub
+		this.doGet(request, response, as);
 
 	}
 
