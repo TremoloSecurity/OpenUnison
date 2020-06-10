@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.tremolosecurity.unison</groupId>
     <artifactId>unison</artifactId>
-    <version>1.0.18</version>
+    <version>1.0.19</version>
   </parent>
   <artifactId>unison-applications-prometheus</artifactId>
   <name>unison-applications-prometheus</name>
