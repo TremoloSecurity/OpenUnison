@@ -43,6 +43,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -66,6 +67,8 @@ import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.saml.Attribute.DataType;
 
 public class AzureADProvider implements UserStoreProviderWithAddGroup {
+	
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AzureADProvider.class);
 	
 	static final String[] claims = new String[] {
 			"Group.Create",
@@ -661,6 +664,13 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 		HttpResponse resp = con.getHttp().execute(get);
 		
 		String json = EntityUtils.toString(resp.getEntity());
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("url : '" + uri + "'");
+			logger.debug("Response Code : " + resp.getStatusLine().getStatusCode());
+			logger.debug(json);
+		}
+		
 		return json;
 	}
 	
