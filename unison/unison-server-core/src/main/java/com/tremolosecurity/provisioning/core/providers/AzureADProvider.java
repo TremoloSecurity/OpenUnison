@@ -88,6 +88,7 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 	private String authority;
 	IAuthenticationResult azureAuthToken;
 	
+	String oauth2Token;
 
 	private ConfigManager cfgMgr;
 	
@@ -144,6 +145,9 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 				
 				this.cfgMgr.getProvisioningEngine().logAction(this.name,true, ActionType.Add,  approvalID, workflow, "userPrincipalName", user.getAttribs().get("userPrincipalName").getValues().get(0));
 				this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add,  approvalID, workflow, "userPrincipalName", user.getAttribs().get("userPrincipalName").getValues().get(0));
+				
+				Thread.sleep(10000);
+				
 				
 				User fromAzure = this.findUser(userPrincipalName, attributes, request);
 				
@@ -370,7 +374,7 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 					if (! curentGroups.contains(group)) {
 						String uri = new StringBuilder().append("/groups/").append(groups.get(group)).append("/members/").append(id).append("/$ref").toString();
 						
-						this.callWSDelete(con, uri);
+						this.callDelete(con, uri);
 						this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Delete,  approvalID, workflow, "group", group);
 					}
 				}
@@ -388,7 +392,7 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 	}
 	
 	
-	private Map<String,String> loadGroups(HttpCon con) throws ClientProtocolException, IOException, ParseException {
+	private Map<String,String> loadGroups(HttpCon con) throws ClientProtocolException, IOException, ParseException, ProvisioningException {
 		HashMap<String,String> groups = new HashMap<String,String>();
 		
 		String json = this.callWS(con, "/groups?$select=displayName,id");
@@ -557,6 +561,13 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 		this.authority = "https://login.microsoftonline.com/" + this.tenantId + "/";
 		this.clientScopes = Collections.singleton("https://graph.microsoft.com/.default");
 		
+		loadCredentials();
+		
+		this.cfgMgr = cfgMgr;
+
+	}
+
+	private void loadCredentials() throws ProvisioningException {
 		IClientCredential c;
 		
 		try {
@@ -574,9 +585,7 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 		
 		azureAuthToken = app.acquireToken(parameters).join();
 		
-		
-		this.cfgMgr = cfgMgr;
-
+		this.oauth2Token = azureAuthToken.accessToken();
 	}
 
 	@Override
@@ -653,16 +662,20 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 		}
 	}
 	
-	public String callWS(HttpCon con,String uri) throws IOException, ClientProtocolException {
+	public String callWS(HttpCon con,String uri) throws IOException, ClientProtocolException, ProvisioningException {
+		return callWS(con,uri,0);
+	}
+	
+	public String callWS(HttpCon con,String uri,int callNumber) throws IOException, ClientProtocolException, ProvisioningException {
 		StringBuffer b = new StringBuffer();
 		
 		b.append("https://graph.microsoft.com/v1.0").append(uri);
 		HttpGet get = new HttpGet(b.toString());
 		b.setLength(0);
-		b.append("Bearer ").append(this.azureAuthToken.accessToken());
+		b.append("Bearer ").append(this.oauth2Token);
 		get.addHeader(new BasicHeader("Authorization",b.toString()));
 		HttpResponse resp = con.getHttp().execute(get);
-		
+		get.abort();
 		String json = EntityUtils.toString(resp.getEntity());
 		
 		if (logger.isDebugEnabled()) {
@@ -671,82 +684,181 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 			logger.debug(json);
 		}
 		
+		if (resp.getStatusLine().getStatusCode() == 401) {
+			if (callNumber == 1) {
+				return json;
+			} else {
+				loadCredentials();
+				return this.callWS(con, uri, callNumber+1);
+			}
+			
+		}
+		
 		return json;
 	}
 	
-	public void callDelete(HttpCon con,String uri) throws IOException, ClientProtocolException {
+	public void callDelete(HttpCon con,String uri) throws IOException, ClientProtocolException, ProvisioningException {
+		this.callDelete(con, uri, 0);
+		
+	}
+	
+	public void callDelete(HttpCon con,String uri,int callNumber) throws IOException, ClientProtocolException, ProvisioningException {
 		StringBuffer b = new StringBuffer();
 		
 		b.append("https://graph.microsoft.com/v1.0").append(uri);
 		HttpDelete get = new HttpDelete(b.toString());
 		b.setLength(0);
-		b.append("Bearer ").append(this.azureAuthToken.accessToken());
+		b.append("Bearer ").append(this.oauth2Token);
 		get.addHeader(new BasicHeader("Authorization",b.toString()));
 		HttpResponse resp = con.getHttp().execute(get);
+		get.abort();
 		
 		if (resp.getStatusLine().getStatusCode() != 204) {
-			throw new IOException("Patch failed " + EntityUtils.toString(resp.getEntity()));
+			if (resp.getStatusLine().getStatusCode() == 401) {
+				if (callNumber == 1) {
+					throw new IOException("Patch failed " + EntityUtils.toString(resp.getEntity()));
+				} else {
+					loadCredentials();
+					this.callDelete(con, uri, callNumber+1);
+				}
+				
+			} else {
+				throw new IOException("Patch failed " + EntityUtils.toString(resp.getEntity()));
+			}
 		}
 	}
 	
-	public void callWSPatchJson(HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
+	
+	public void callWSPatchJson(HttpCon con,String uri,String json) throws IOException, ClientProtocolException, ProvisioningException {
+		this.callWSPatchJson(con, uri, json,0);
+		
+	}
+	
+	public void callWSPatchJson(HttpCon con,String uri,String json,int callNumber) throws IOException, ClientProtocolException, ProvisioningException {
 		StringBuffer b = new StringBuffer();
 		
 		b.append("https://graph.microsoft.com/v1.0").append(uri);
 		HttpPatch put = new HttpPatch(b.toString());
 		b.setLength(0);
-		b.append("Bearer ").append(this.azureAuthToken.accessToken());
+		b.append("Bearer ").append(this.oauth2Token);
 		put.addHeader(new BasicHeader("Authorization",b.toString()));
 		
 		StringEntity str = new StringEntity(json,ContentType.create("application/json"));
 		put.setEntity(str);
 		
 		HttpResponse resp = con.getHttp().execute(put);
-		
+		put.abort();
 		if (resp.getStatusLine().getStatusCode() != 204) {
-			throw new IOException("Patch failed " + EntityUtils.toString(resp.getEntity()));
+			
+			if (logger.isDebugEnabled()) {
+				logger.debug("url : '" + uri + "'");
+				logger.debug("Response Code : " + resp.getStatusLine().getStatusCode());
+				logger.debug(json);
+			}
+			
+			if (resp.getStatusLine().getStatusCode() == 401) {
+				if (callNumber == 1) {
+					throw new IOException("Patch failed " + EntityUtils.toString(resp.getEntity()));
+				} else {
+					loadCredentials();
+					this.callWSPatchJson(con, uri, json, callNumber + 1);
+				}
+				
+			} else {
+				throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
+			}
+			
+			
 		}
 		
 		
 	}
 	
-	public void callWSPostJsonNoReesponseExpected(HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
+	
+	public void callWSPostJsonNoReesponseExpected(HttpCon con,String uri,String json) throws IOException, ClientProtocolException, ProvisioningException {
+		this.callWSPostJsonNoReesponseExpected(con, uri, json, 0);
+	}
+	
+	public void callWSPostJsonNoReesponseExpected(HttpCon con,String uri,String json,int callNumber) throws IOException, ClientProtocolException, ProvisioningException {
 		StringBuffer b = new StringBuffer();
 		
 		b.append("https://graph.microsoft.com/v1.0").append(uri);
 		HttpPost put = new HttpPost(b.toString());
 		b.setLength(0);
-		b.append("Bearer ").append(this.azureAuthToken.accessToken());
+		b.append("Bearer ").append(this.oauth2Token);
 		put.addHeader(new BasicHeader("Authorization",b.toString()));
 		
 		StringEntity str = new StringEntity(json,ContentType.create("application/json"));
 		put.setEntity(str);
 		
 		HttpResponse resp = con.getHttp().execute(put);
-		
+		put.abort();
 		if (resp.getStatusLine().getStatusCode() != 204) {
-			throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
+			if (logger.isDebugEnabled()) {
+				logger.debug("url : '" + uri + "'");
+				logger.debug("Response Code : " + resp.getStatusLine().getStatusCode());
+				logger.debug(json);
+			}
+			
+			if (resp.getStatusLine().getStatusCode() == 401) {
+				if (callNumber == 1) {
+					throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
+				} else {
+					loadCredentials();
+					this.callWSPostJsonNoReesponseExpected(con, uri, json, callNumber + 1);
+				}
+				
+			} else {
+				throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
+			}
+			
+			
 		}
 		
 		
 	}
 	
-	public String callWSPostJsonReesponseExpected(HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
+	
+	public String callWSPostJsonReesponseExpected(HttpCon con,String uri,String json) throws IOException, ClientProtocolException, ProvisioningException {
+		return this.callWSPostJsonReesponseExpected(con, uri, json, 0);
+		
+	}
+	
+	public String callWSPostJsonReesponseExpected(HttpCon con,String uri,String json,int callNumber) throws IOException, ClientProtocolException, ProvisioningException {
 		StringBuffer b = new StringBuffer();
 		
 		b.append("https://graph.microsoft.com/v1.0").append(uri);
 		HttpPost put = new HttpPost(b.toString());
 		b.setLength(0);
-		b.append("Bearer ").append(this.azureAuthToken.accessToken());
+		b.append("Bearer ").append(this.oauth2Token);
 		put.addHeader(new BasicHeader("Authorization",b.toString()));
 		
 		StringEntity str = new StringEntity(json,ContentType.create("application/json"));
 		put.setEntity(str);
 		
 		HttpResponse resp = con.getHttp().execute(put);
-		
+		put.abort();
 		if (resp.getStatusLine().getStatusCode() != 201) {
-			throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
+			
+			
+			if (logger.isDebugEnabled()) {
+				logger.debug("url : '" + uri + "'");
+				logger.debug("Response Code : " + resp.getStatusLine().getStatusCode());
+				logger.debug(json);
+			}
+			
+			if (resp.getStatusLine().getStatusCode() == 401) {
+				if (callNumber == 1) {
+					throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
+				} else {
+					loadCredentials();
+					return this.callWSPostJsonReesponseExpected(con, uri, json, callNumber + 1);
+				}
+				
+			} else {
+				throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
+			}
+			
 		} else {
 			return EntityUtils.toString(resp.getEntity());
 		}
@@ -754,13 +866,13 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 		
 	}
 	
-	public void callWSDelete(HttpCon con,String uri) throws IOException, ClientProtocolException {
+	/*public void callWSDelete(HttpCon con,String uri) throws IOException, ClientProtocolException {
 		StringBuffer b = new StringBuffer();
 		
 		b.append("https://graph.microsoft.com/v1.0").append(uri);
 		HttpDelete put = new HttpDelete(b.toString());
 		b.setLength(0);
-		b.append("Bearer ").append(this.azureAuthToken.accessToken());
+		b.append("Bearer ").append(this.oauth2Token);
 		put.addHeader(new BasicHeader("Authorization",b.toString()));
 		
 		
@@ -772,6 +884,10 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 		}
 		
 		
+	}*/
+	
+	public void overrideOauth2Token(String token) {
+		this.oauth2Token = token;
 	}
 }
 
