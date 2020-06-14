@@ -18,10 +18,13 @@ package com.tremolosecurity.scalejs.register.dynamicSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.provisioning.core.providers.BasicDB;
 import com.tremolosecurity.proxy.filter.HttpFilterRequest;
@@ -32,6 +35,8 @@ import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.util.NVP;
 
 public class LoadFromDatabaseTarget implements SourceList {
+	
+	static transient Logger logger = org.apache.logging.log4j.LogManager.getLogger(LoadFromDatabaseTarget.class.getName());
 
 	String targetName;
 	String noParamSQL;
@@ -136,7 +141,13 @@ public class LoadFromDatabaseTarget implements SourceList {
 			stmt.close();
 			
 			return error;
-		} finally {
+		
+		} catch (SQLException sqlException) {
+			logger.error("Unable to validate against '" + this.exactSQL + "'");
+			throw sqlException;
+		}
+		
+		finally {
 			if (con != null) {
 				con.close();
 			}

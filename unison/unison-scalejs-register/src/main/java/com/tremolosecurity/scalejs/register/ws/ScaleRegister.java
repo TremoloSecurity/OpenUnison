@@ -185,15 +185,17 @@ public class ScaleRegister implements HttpFilter {
 				} 
 				
 				if (this.scaleConfig.getAttributes().get(attributeName).getType().equalsIgnoreCase("list")) {
-					boolean found = false;
-					for (NVP nvp : this.scaleConfig.getAttributes().get(attributeName).getValues()) {
-						if (nvp.getValue().equalsIgnoreCase(value)) {
-							found = true;
+					if (this.scaleConfig.getAttributes().get(attributeName).getDynamicSource() == null ) {
+						boolean found = false;		
+						for (NVP nvp : this.scaleConfig.getAttributes().get(attributeName).getValues()) {
+							if (nvp.getValue().equalsIgnoreCase(value)) {
+								found = true;
+							}
 						}
-					}
-					
-					if (! found) {
-						errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " has an invalid value");
+						
+						if (! found) {
+							errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " has an invalid value");
+						}
 					}
 				}
 				
