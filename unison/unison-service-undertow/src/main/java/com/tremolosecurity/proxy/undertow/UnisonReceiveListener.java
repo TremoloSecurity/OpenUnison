@@ -27,11 +27,14 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.Logger;
 import org.xnio.IoFuture;
@@ -51,6 +54,7 @@ import io.undertow.connector.PooledByteBuffer;
 import io.undertow.protocols.ssl.UndertowXnioSsl;
 import io.undertow.server.DefaultByteBufferPool;
 import io.undertow.websockets.client.WebSocketClient;
+import io.undertow.websockets.client.WebSocketClientNegotiation;
 import io.undertow.websockets.core.AbstractReceiveListener;
 import io.undertow.websockets.core.BufferedBinaryMessage;
 import io.undertow.websockets.core.BufferedTextMessage;
@@ -72,9 +76,15 @@ public class UnisonReceiveListener extends AbstractReceiveListener {
 	private WebSocketChannel wsClient;
 	private CountDownLatch latch;
 	private AtomicReference<String> result;
+
+	private ConnectionBuilder connectionBuilder;
+
+	
 	
 	public static Charset charset = Charset.forName("UTF-8");
 	public static CharsetDecoder decoder = charset.newDecoder();
+	
+	
 	
 	static Set<String> ignoreHeaders;
 	
@@ -87,7 +97,7 @@ public class UnisonReceiveListener extends AbstractReceiveListener {
 		ignoreHeaders.add("Upgrade");
 	}
 	
-	public UnisonReceiveListener(String url,WebSocketHttpExchange exchange, WebSocketChannel channel,HttpFilterRequest request) throws URISyntaxException, IllegalArgumentException, IOException {
+	public UnisonReceiveListener(String url,HttpFilterRequest request,HttpServletResponse resp,UnisonWebSocketClientNegotiation clientNegotiation) throws URISyntaxException, IllegalArgumentException, IOException {
 		this.uri = new URI( new StringBuilder().append(  ( url.startsWith("https") ? "wss" : "ws")).append(url.substring(url.indexOf(':'))).toString());
 		
 		
@@ -109,7 +119,10 @@ public class UnisonReceiveListener extends AbstractReceiveListener {
                 .getMap());
 		
 		//UndertowXnioSsl ssl = new UndertowXnioSsl(Xnio.getInstance(), OptionMap.EMPTY, DefaultServer.getClientSSLContext());
-        final ConnectionBuilder connectionBuilder = ConnectionBuilder.connectionBuilder(worker,pool , this.uri);
+        this.connectionBuilder = ConnectionBuilder.connectionBuilder(worker,pool , this.uri);
+        
+        
+        connectionBuilder.setClientNegotiation(clientNegotiation);
         
         connectionBuilder.setSsl(ssl);
         
@@ -130,16 +143,24 @@ public class UnisonReceiveListener extends AbstractReceiveListener {
         	
         }
         
-        IoFuture<WebSocketChannel> future = connectionBuilder.connect();
-        future.await(4, TimeUnit.SECONDS);
-        wsClient = future.get();
+        
+        
+        
+	}
+	
+	public void initializeFromCallback(WebSocketHttpExchange exchange, WebSocketChannel channel) throws CancellationException, IOException {
+		
         
         this.wsClient.getReceiveSetter().set(new UnisonClientReceiveListener(channel));
         this.wsClient.resumeReceives();
         latch = new CountDownLatch(1);
         result = new AtomicReference<>();
-        
-        
+	}
+
+	public void startConnection() throws IOException {
+		IoFuture<WebSocketChannel> future = connectionBuilder.connect();
+        future.await(4, TimeUnit.SECONDS);
+        wsClient = future.get();
 	}
 
 	@Override
@@ -225,4 +246,7 @@ public class UnisonReceiveListener extends AbstractReceiveListener {
 		
 	}
 
+
+
+	
 }

@@ -19,8 +19,10 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,6 +32,7 @@ import org.xnio.StreamConnection;
 
 import com.tremolosecurity.proxy.HttpUpgradeRequestManager;
 import com.tremolosecurity.proxy.filter.HttpFilterRequest;
+import com.tremolosecurity.saml.Attribute;
 
 import io.undertow.UndertowLogger;
 import io.undertow.server.HttpServerExchange;
@@ -37,6 +40,7 @@ import io.undertow.server.HttpUpgradeListener;
 import io.undertow.servlet.websockets.ServletWebSocketHttpExchange;
 import io.undertow.util.StatusCodes;
 import io.undertow.websockets.WebSocketConnectionCallback;
+import io.undertow.websockets.client.WebSocketClientNegotiation;
 import io.undertow.websockets.core.WebSocketChannel;
 import io.undertow.websockets.core.protocol.Handshake;
 import io.undertow.websockets.core.protocol.version07.Hybi07Handshake;
@@ -65,6 +69,14 @@ public class UndertowUpgradeRequestManager implements HttpUpgradeRequestManager 
     }
 	
 
+    
+
+	public Set<WebSocketChannel> getPeerConnections() {
+		return peerConnections;
+	}
+
+
+
 
 	@Override
 	public void proxyWebSocket(final HttpFilterRequest req, HttpServletResponse resp,final String url) throws Exception {
@@ -83,14 +95,40 @@ public class UndertowUpgradeRequestManager implements HttpUpgradeRequestManager 
             return;
         }
         
+        ArrayList<String> protocols = new ArrayList<String>();
+        Attribute subProtocols = req.getHeader("Sec-WebSocket-Protocol");
+        if (subProtocols != null) {
+        	StringTokenizer protToker = new StringTokenizer(subProtocols.getValues().get(0),",",false);
+        	
+        	while (protToker.hasMoreTokens()) {
+        		protocols.add(protToker.nextToken().trim());
+        	}
+        	
+        	
+        	
+        	
+        }
+        
+        UnisonWebSocketClientNegotiation clientNegotionation = new UnisonWebSocketClientNegotiation(protocols,new ArrayList<io.undertow.websockets.WebSocketExtension>());
+        
+        
+        
+        
+        
+        final UnisonReceiveListener unisonReceiveListener = new UnisonReceiveListener(url,req,resp,clientNegotionation);
+        
+        clientNegotionation.setFacade(facade);
+        clientNegotionation.setHandshaker(handshaker);
+        clientNegotionation.setUpgradeRequestManager(this);
         
         final WebSocketConnectionCallback callback = new WebSocketConnectionCallback() {
             @Override
             public void onConnect(final WebSocketHttpExchange exchange, final WebSocketChannel channel) {
                 
             	try {
-  					channel.getReceiveSetter().set(new UnisonReceiveListener(url,exchange,channel,req));
-  				} catch (IllegalArgumentException | IOException | URISyntaxException e) {
+            		unisonReceiveListener.initializeFromCallback(exchange, channel);
+  					channel.getReceiveSetter().set(unisonReceiveListener);
+  				} catch (IllegalArgumentException | IOException e) {
   					logger.error("Could not initiate websocket",e);
   					
   				} 
@@ -98,23 +136,44 @@ public class UndertowUpgradeRequestManager implements HttpUpgradeRequestManager 
   				
   				
   				channel.resumeReceives();
+  				
+  				
             }
         };
         
+        clientNegotionation.setCallback(callback);
         
+        unisonReceiveListener.startConnection();
         
-        final Handshake selected = handshaker;
-        facade.upgradeChannel(new HttpUpgradeListener() {
-            @Override
-            public void handleUpgrade(StreamConnection streamConnection, HttpServerExchange exchange) {
-                WebSocketChannel channel = selected.createChannel(facade, streamConnection, facade.getBufferPool());
-                peerConnections.add(channel);
-                callback.onConnect(facade, channel);
-            }
-        });
-        handshaker.handshake(facade);
+        int count = 0;
+        while (! clientNegotionation.isUpgradeComplete()) {
+        	Thread.sleep(100);
+        	if (++count == 20) {
+        		throw new Exception("websocket proxy timeout");
+        	}
+        }
 		
 	}
+
+
+
+	/*private void upgradeClientConnection(final ServletWebSocketHttpExchange facade, Handshake handshaker,
+			final UnisonReceiveListener unisonReceiveListener, final WebSocketConnectionCallback callback) {
+		HashSet<String> subProtocols = new HashSet<String>();
+        subProtocols.add(unisonReceiveListener.getClientNegotionation().getSelectedSubProtocol());
+        
+        if (handshaker instanceof Hybi13Handshake) {
+        	handshaker = new Hybi13Handshake(subProtocols,false);
+        } else if (handshaker instanceof Hybi07Handshake) {
+        	handshaker = new Hybi07Handshake(subProtocols,false);
+        } else if (handshaker instanceof Hybi08Handshake) {
+        	handshaker = new Hybi08Handshake(subProtocols,false);
+        }
+        
+        final Handshake selected = handshaker;
+        
+        handshaker.handshake(facade);
+	}*/
 	
 	protected List<Handshake> handshakes() {
         List<Handshake> handshakes = new ArrayList<>();

@@ -29,8 +29,10 @@ import java.util.List;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import com.tremolosecurity.proxy.HttpUpgradeRequestManager;
+import com.tremolosecurity.proxy.ProxyResponse;
 import com.tremolosecurity.proxy.ProxySys;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
@@ -106,7 +108,9 @@ public class UriRequestProcess extends PostProcess {
 		
 		if (req.getHeader("Connection") != null && req.getHeader("Connection").getValues().get(0).equalsIgnoreCase("Upgrade")) {
 			
-			upgradeRequestManager.proxyWebSocket(req, resp.getServletResponse(),proxyToURL.toString());
+			ProxyResponse pr = (ProxyResponse) resp.getServletResponse();
+			
+			upgradeRequestManager.proxyWebSocket(req, (HttpServletResponse) pr.getResponse(),proxyToURL.toString());
 			
 		} else {
 			CloseableHttpClient httpclient = this.getHttp(proxyTo, req.getServletRequest(), holder.getConfig());

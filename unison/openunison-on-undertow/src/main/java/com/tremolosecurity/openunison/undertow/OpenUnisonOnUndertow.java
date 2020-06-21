@@ -252,6 +252,9 @@ public class OpenUnisonOnUndertow {
 		logger.info("Building Undertow");
 		Builder buildUndertow = Undertow.builder();
 
+		
+		
+		
 		buildUndertow.setServerOption(UndertowOptions.NO_REQUEST_TIMEOUT,60000);
 		
 		logger.info("Check if enabling HTTP2 - " + config.isDisableHttp2());
@@ -281,6 +284,17 @@ public class OpenUnisonOnUndertow {
                 .setEagerFilterInit(true)
 				.setContextPath(config.getContextRoot())
                 .setDeploymentName("openunison")
+                
+                
+                /*.addFilter(
+                		
+                		Servlets.filter("debug",com.tremolosecurity.openunison.undertow.EchoHeaders.class)
+                		
+            		
+            		
+                )*/
+                
+                
                 .addFilter(
                 		
 	                		Servlets.filter("openunison",com.tremolosecurity.openunison.OpenUnisonServletFilter.class)
@@ -288,6 +302,9 @@ public class OpenUnisonOnUndertow {
                 		
                 		
                 )
+                
+                //.addFilterUrlMapping("debug", "/*", DispatcherType.REQUEST)
+                
                 .addFilterUrlMapping("openunison", "/*", DispatcherType.REQUEST)
                 .setResourceManager(new FileResourceManager(pathToWebApp,1024,true))
                 .addServlet(JspServletBuilder.createServlet("Default Jsp Servlet", "*.jsp"))
