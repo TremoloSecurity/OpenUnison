@@ -51,6 +51,11 @@ public class LoadAttributesFromWS implements LoadUserData {
 		
 		CloseableHttpResponse httpResp = http.execute(get);
 		
+		if (httpResp.getStatusLine().getStatusCode() != 200) {				
+			throw new Exception("Could not retrieve token : " + httpResp.getStatusLine().getStatusCode() + " / " + httpResp.getStatusLine().getReasonPhrase());				
+		}
+		
+		
 		BufferedReader in = new BufferedReader(new InputStreamReader(httpResp.getEntity().getContent()));
 		
 		StringBuffer token = new StringBuffer();

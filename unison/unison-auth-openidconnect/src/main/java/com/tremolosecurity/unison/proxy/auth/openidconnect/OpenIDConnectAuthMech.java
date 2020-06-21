@@ -205,6 +205,12 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			    
 			CloseableHttpResponse httpResp = http.execute(post);
 			
+			if (httpResp.getStatusLine().getStatusCode() != 200) {				
+				logger.error("Could not retrieve token : " + httpResp.getStatusLine().getStatusCode() + " / " + httpResp.getStatusLine().getReasonPhrase());				
+				as.setSuccess(false);
+				holder.getConfig().getAuthManager().nextAuth(request, response,session,false);
+			}
+			
 			BufferedReader in = new BufferedReader(new InputStreamReader(httpResp.getEntity().getContent()));
 			
 			StringBuffer token = new StringBuffer();
