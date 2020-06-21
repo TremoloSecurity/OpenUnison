@@ -1,3 +1,18 @@
+## 1.0.19-2020062101
+
+**Tasks:**
+ - 1.0.19 build [\#449](https://github.com/TremoloSecurity/OpenUnison/issues/449)
+
+**bugs:**
+ - OpenID Connect - Better error validation [\#455](https://github.com/TremoloSecurity/OpenUnison/issues/455)
+ - WebSockets - subProtocol not sent from the downstream system [\#454](https://github.com/TremoloSecurity/OpenUnison/issues/454)
+ - ScaleJS Register - dynamic list validation always fails [\#451](https://github.com/TremoloSecurity/OpenUnison/issues/451)
+ - AzureAD provisioning target does not renew credentials [\#450](https://github.com/TremoloSecurity/OpenUnison/issues/450)
+
+**enhancements:**
+ - jit task to map remote group to local group [\#453](https://github.com/TremoloSecurity/OpenUnison/issues/453)
+ - Create JMS keepalive for queue management [\#411](https://github.com/TremoloSecurity/OpenUnison/issues/411)
+
 ## 1.0.18-2020040901
 
 **Tasks:**

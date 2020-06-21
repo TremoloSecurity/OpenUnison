@@ -63,10 +63,10 @@
 		<googleauth.version>1.5.0</googleauth.version>
 		<activemq.version>5.15.12</activemq.version>
 		<commons-pool2.version>2.8.0</commons-pool2.version>
-		<aws-java-sdk.version>1.11.802</aws-java-sdk.version>
+		<aws-java-sdk.version>1.11.807</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>1.0.8</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.0.2</stringtemplate.version>
-		<hibernate.version>5.4.13.Final</hibernate.version>
+		<hibernate.version>5.4.17.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
 		<org.apache.poi.version>4.1.2</org.apache.poi.version>
 		<jose4j.version>0.7.1</jose4j.version>
