@@ -255,7 +255,13 @@ public class ScaleMain implements HttpFilter {
 			} else {
 				ScaleApprovalData approvalData = gson.fromJson(new String((byte[]) request.getAttribute(ProxySys.MSG_BODY)), ScaleApprovalData.class);
 				try {
-					GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().doApproval(approvalID, uid, approvalData.isApproved(),approvalData.getReason());
+					String approval = approvalData.getReason().trim();
+					if (approval.length() > 255) {
+						logger.warn("approval justification greater then 255 characters");
+						approval = approval.substring(0,255);
+					}
+					
+					GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().doApproval(approvalID, uid, approvalData.isApproved(),approval);
 				} catch (Exception e) {
 					logger.error("Could not execute approval",e);
 					response.setStatus(500);
@@ -889,7 +895,14 @@ public class ScaleMain implements HttpFilter {
 				} else {
 					WFCall wfCall = new WFCall();
 					wfCall.setName(req.getName());
-					wfCall.setReason(req.getReason());
+					String requestReason = req.getReason().trim();
+					
+					if (requestReason.length() > 255) {
+						logger.warn("Reason is oversized : " + requestReason.length());
+						requestReason = requestReason.substring(0,255);
+					}
+					
+					wfCall.setReason(requestReason);
 					wfCall.setUidAttributeName(this.scaleConfig.getUidAttributeName());
 					wfCall.setEncryptedParams(req.getEncryptedParams());	
 					
