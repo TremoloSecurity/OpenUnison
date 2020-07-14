@@ -18,6 +18,7 @@ limitations under the License.
 package com.tremolosecurity.openunison.util;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -27,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.security.KeyStore;
@@ -41,6 +43,10 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -49,8 +55,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
+import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.ServletException;
 import javax.xml.bind.JAXBContext;
@@ -121,6 +129,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import com.google.gson.Gson;
 import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.AuthMechParamType;
@@ -129,6 +138,7 @@ import com.tremolosecurity.config.xml.MechanismType;
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.config.xml.TrustType;
+import com.tremolosecurity.json.Token;
 import com.tremolosecurity.openunison.util.queue.QueUtils;
 import com.tremolosecurity.openunison.util.upgrade.AddChoiceToTasks;
 import com.tremolosecurity.proxy.util.OpenSAMLUtils;
@@ -163,7 +173,8 @@ public class OpenUnisonUtils {
 		options.addOption("upgradeFrom106", false, "Updates workflows from 1.0.6");
 		options.addOption("secretkey", true, "base64 encoded secret key");
 		options.addOption("envFile", true, "Environment variables for parmaterized configs");
-		
+		options.addOption("approvalId",true,"The approval id to act on");
+		options.addOption("exportFile",true,"Path to export the workflow to");
 		
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = parser.parse(options, args,true);
@@ -272,6 +283,57 @@ public class OpenUnisonUtils {
 			fsout.close();
 			
 			
+		} else if (action.equalsIgnoreCase("exportApprovalWorkflow")) {
+			logger.info("Exporting approval");
+			String approvalIdParam = loadOption(cmd,"approvalId",options);
+			int approvalId = Integer.parseInt(approvalIdParam);
+			logger.info("Exporting approval id : " + approvalId);
+			
+			Class.forName(ttRead.getProvisioning().getApprovalDB().getDriver());
+			
+			logger.info("Connecting to the database...");
+			Connection con = DriverManager.getConnection(ttRead.getProvisioning().getApprovalDB().getUrl(), ttRead.getProvisioning().getApprovalDB().getUser(), ttRead.getProvisioning().getApprovalDB().getPassword());
+			logger.info("...connected");
+			
+			String decryptionKeyName = ttRead.getProvisioning().getApprovalDB().getEncryptionKey();
+			
+			PreparedStatement ps = con.prepareStatement("SELECT workflowObj FROM approvals WHERE id=?");
+			ps.setInt(1, approvalId);
+			ResultSet rs = ps.executeQuery();
+			
+			if (! rs.next()) {
+				logger.error("No approval id : " + approvalId);
+			}
+			
+			String json = rs.getString("workflowObj");
+			Gson gson = new Gson();
+			Token token = gson.fromJson(json, Token.class);
+			
+			byte[] iv = org.bouncycastle.util.encoders.Base64.decode(token.getIv());
+			
+			
+		    IvParameterSpec spec =  new IvParameterSpec(iv);
+		    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+			cipher.init(Cipher.DECRYPT_MODE, ks.getKey(ttRead.getProvisioning().getApprovalDB().getEncryptionKey(), ttRead.getKeyStorePassword().toCharArray()),spec);
+		    
+			byte[] encBytes = org.bouncycastle.util.encoders.Base64.decode(token.getEncryptedRequest());
+			
+			
+			String jsonDecr = new String(cipher.doFinal(encBytes));
+			
+			//logger.info(jsonDecr);
+			
+			String exportPath = loadOption(cmd,"exportFile",options);
+			
+			logger.info("Writing decrypted object to " + exportPath);
+			FileOutputStream fos = new FileOutputStream(exportPath);
+			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(fos));
+			out.write(jsonDecr);
+			out.flush();
+			out.close();
+			
+			logger.info("Shutting down connection");
+			con.close();
 		}
 		
 		
