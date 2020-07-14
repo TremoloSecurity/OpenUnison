@@ -10,12 +10,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.tremolosecurity.unison</groupId>
 	<artifactId>unison</artifactId>
-	<version>1.0.19</version>
+	<version>1.0.20</version>
 	<name>Unison</name>
 	<packaging>pom</packaging>
 
 	<properties>
-		<openunison.version>1.0.19</openunison.version>
+		<openunison.version>1.0.20</openunison.version>
 		<servlet.api.version>3.1.0</servlet.api.version>
 		<servlet.2x.api.version>2.5</servlet.2x.api.version>
 		<commons-collections.version>3.2.2</commons-collections.version>
@@ -121,7 +121,7 @@
 			<!--  <id>nexus.tremolo.io</id>  -->
 			<id>nexus.tremolo.io</id>
 			<name>tremolo.io-releases</name>
-			<url>s3://tremolosecurity-maven/repository/releases</url>  
+			<url>s3://tremolosecurity-maven/repository/betas</url>  
 		</repository>
 
 	</distributionManagement>
