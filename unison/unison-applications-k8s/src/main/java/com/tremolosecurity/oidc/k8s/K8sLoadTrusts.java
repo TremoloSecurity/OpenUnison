@@ -67,7 +67,7 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,StopableThread {
 		this.trusts = trusts;
 		
 		this.k8sTarget = 	init.get("trusts.k8starget").getValues().get(0);
-		this.namespace = "openunison";//init.get("trusts.namespaces").getValues().get(0);
+		this.namespace = init.get("trusts.namespace").getValues().get(0);
 		this.uri = "/apis/openunison.tremolo.io/v1/namespaces/" + this.namespace + "/trusts";
 		
 		this.k8s = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(k8sTarget).getProvider();
