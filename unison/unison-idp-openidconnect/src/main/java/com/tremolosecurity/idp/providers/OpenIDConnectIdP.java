@@ -227,7 +227,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			
 			if (trust.isVerifyRedirect()) {
 
-				if (! trust.getRedirectURI().contains(redirectURI)) {
+				if (! trust.getRedirectURI().contains	(redirectURI)) {
 					StringBuffer b = new StringBuffer();
 					b.append(redirectURI).append("?error=unauthorized_client");
 					logger.warn("Invalid redirect");
