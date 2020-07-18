@@ -12,8 +12,10 @@
  *******************************************************************************/
 package com.tremolosecurity.idp.providers;
 
+import java.util.HashSet;
+
 public class OpenIDConnectTrust {
-	String redirectURI;
+	HashSet<String> redirectURI;
 	String clientID;
 	String clientSecret;
 	String trustName;
@@ -29,6 +31,10 @@ public class OpenIDConnectTrust {
 	
 	boolean signedUserInfo;
 
+	public OpenIDConnectTrust() {
+		this.redirectURI = new HashSet<String>();
+	}
+	
 	public boolean isVerifyRedirect() {
 		return this.verifyRedirect;
 	}
@@ -47,12 +53,7 @@ public class OpenIDConnectTrust {
 
 	boolean publicEndpoint;
 	
-	public String getRedirectURI() {
-		return redirectURI;
-	}
-	public void setRedirectURI(String redirectURI) {
-		this.redirectURI = redirectURI;
-	}
+
 	public String getClientID() {
 		return clientID;
 	}
@@ -116,6 +117,14 @@ public class OpenIDConnectTrust {
 
 	public void setSignedUserInfo(boolean signedUserInfo) {
 		this.signedUserInfo = signedUserInfo;
+	}
+
+	public HashSet<String> getRedirectURI() {
+		return redirectURI;
+	}
+
+	public void setRedirectURI(HashSet<String> redirectURI) {
+		this.redirectURI = redirectURI;
 	}
 	
 	

@@ -227,9 +227,9 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			
 			if (trust.isVerifyRedirect()) {
 
-				if (! trust.getRedirectURI().equals(redirectURI)) {
+				if (! trust.getRedirectURI().contains(redirectURI)) {
 					StringBuffer b = new StringBuffer();
-					b.append(trust.getRedirectURI()).append("?error=unauthorized_client");
+					b.append(redirectURI).append("?error=unauthorized_client");
 					logger.warn("Invalid redirect");
 					
 					
@@ -239,7 +239,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 					return;
 				}
 
-				transaction.setRedirectURI(trust.getRedirectURI());
+				transaction.setRedirectURI(redirectURI);
 
 			} else {
 				transaction.setRedirectURI(redirectURI);
@@ -1192,7 +1192,10 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			OpenIDConnectTrust trust = new OpenIDConnectTrust();
 			trust.setClientID(attrs.get("clientID").getValues().get(0));
 			trust.setClientSecret(attrs.get("clientSecret").getValues().get(0));
-			trust.setRedirectURI(attrs.get("redirectURI").getValues().get(0));
+			
+			trust.getRedirectURI().addAll(attrs.get("redirectURI").getValues());
+			
+			
 			trust.setCodeLastmileKeyName(attrs.get("codeLastMileKeyName").getValues().get(0));
 			trust.setAuthChain(attrs.get("authChainName").getValues().get(0));
 			trust.setCodeTokenTimeToLive(Long.parseLong(attrs.get("codeTokenSkewMilis").getValues().get(0)));

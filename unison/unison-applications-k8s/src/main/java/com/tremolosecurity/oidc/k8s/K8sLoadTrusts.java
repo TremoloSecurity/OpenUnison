@@ -167,9 +167,9 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,StopableThread {
 			trust.setClientSecret(decoded);
 		}
 		
+		JSONArray redirects = (JSONArray) spec.get("redirectURI");
 		
-		
-		trust.setRedirectURI(spec.get("redirectURI").toString());
+		trust.getRedirectURI().addAll(redirects);
 		trust.setCodeLastmileKeyName(spec.get("codeLastMileKeyName").toString());
 		trust.setAuthChain(spec.get("authChainName").toString());
 		trust.setCodeTokenTimeToLive((Long) spec.get("codeTokenSkewMilis"));
