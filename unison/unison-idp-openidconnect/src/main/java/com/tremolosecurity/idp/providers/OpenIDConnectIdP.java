@@ -89,6 +89,7 @@ import com.tremolosecurity.idp.providers.oidc.model.OpenIDConnectConfig;
 import com.tremolosecurity.idp.providers.oidc.none.NoneBackend;
 import com.tremolosecurity.idp.providers.oidc.session.ClearOidcSessionOnLogout;
 import com.tremolosecurity.idp.providers.oidc.session.OidcSessionExpires;
+import com.tremolosecurity.idp.providers.oidc.trusts.DynamicLoadTrusts;
 import com.tremolosecurity.idp.providers.oidc.model.OidcSessionStore;
 import com.tremolosecurity.idp.server.IDP;
 import com.tremolosecurity.idp.server.IdentityProvider;
@@ -374,7 +375,6 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 			
 			
-			
 			if (clientID == null) {
 				
 				//this means that the clientid is in the Authorization header
@@ -385,7 +385,6 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				clientID = azHeader.substring(0,azHeader.indexOf(':'));
 				clientSecret = azHeader.substring(azHeader.indexOf(':') + 1);
 			}
-
 
 			
 			
@@ -1114,40 +1113,30 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			HashMap<String, HashMap<String, Attribute>> trustCfg,MapIdentity mapper) {
 		final String localIdPName = idpName;
 		this.idpName = idpName;
-		this.trusts = new HashMap<String,OpenIDConnectTrust>();
-		for (String trustName : trustCfg.keySet()) {
-			HashMap<String,Attribute> attrs = trustCfg.get(trustName);
-			OpenIDConnectTrust trust = new OpenIDConnectTrust();
-			trust.setClientID(attrs.get("clientID").getValues().get(0));
-			trust.setClientSecret(attrs.get("clientSecret").getValues().get(0));
-			trust.setRedirectURI(attrs.get("redirectURI").getValues().get(0));
-			trust.setCodeLastmileKeyName(attrs.get("codeLastMileKeyName").getValues().get(0));
-			trust.setAuthChain(attrs.get("authChainName").getValues().get(0));
-			trust.setCodeTokenTimeToLive(Long.parseLong(attrs.get("codeTokenSkewMilis").getValues().get(0)));
-			trust.setAccessTokenTimeToLive(Long.parseLong(attrs.get("accessTokenTimeToLive").getValues().get(0)));
-			trust.setAccessTokenSkewMillis(Long.parseLong(attrs.get("accessTokenSkewMillis").getValues().get(0)));
-
-			
-			trust.setSignedUserInfo(attrs.get("signedUserInfo") != null && attrs.get("signedUserInfo").getValues().get(0).equalsIgnoreCase("true"));
-			
-			
-			
-			
-			if (attrs.get("verifyRedirect") == null) {
-				trust.setVerifyRedirect(true);
-			} else {
-				trust.setVerifyRedirect(attrs.get("verifyRedirect").getValues().get(0).equalsIgnoreCase("true"));
+		
+		loadStaticTrusts(trustCfg);
+		
+		if (init.get("trustConfigurationClassName") != null) {
+			String className = init.get("trustConfigurationClassName").getValues().get(0);
+			DynamicLoadTrusts loadTrusts;
+			try {
+				loadTrusts = (DynamicLoadTrusts) Class.forName(className).newInstance();
+				
+				
+				
+				loadTrusts.loadTrusts(idpName, ctx, init, trustCfg, mapper,this.trusts);
+				
+			} catch (Exception e) {
+				logger.error("Could not initialize trusts",e);
 			}
-
-			trust.setTrustName(trustName);
-
-			if (attrs.get("publicEndpoint") != null && attrs.get("publicEndpoint").getValues().get(0).equalsIgnoreCase("true")) {
-				trust.setPublicEndpoint(true);
-			}
-
-			trusts.put(trust.getClientID(), trust);
 			
-		}
+		} 
+			
+		
+		
+		
+		
+		
 		
 		this.mapper = mapper;
 		this.jwtSigningKeyName = init.get("jwtSigningKey").getValues().get(0);
@@ -1194,6 +1183,43 @@ public class OpenIDConnectIdP implements IdentityProvider {
         
         this.sessionKeyName = GlobalEntries.getGlobalEntries().getConfigManager().getApp(this.idpName).getCookieConfig().getKeyAlias();
 
+	}
+
+	private void loadStaticTrusts(HashMap<String, HashMap<String, Attribute>> trustCfg) {
+		this.trusts = new HashMap<String,OpenIDConnectTrust>();
+		for (String trustName : trustCfg.keySet()) {
+			HashMap<String,Attribute> attrs = trustCfg.get(trustName);
+			OpenIDConnectTrust trust = new OpenIDConnectTrust();
+			trust.setClientID(attrs.get("clientID").getValues().get(0));
+			trust.setClientSecret(attrs.get("clientSecret").getValues().get(0));
+			trust.setRedirectURI(attrs.get("redirectURI").getValues().get(0));
+			trust.setCodeLastmileKeyName(attrs.get("codeLastMileKeyName").getValues().get(0));
+			trust.setAuthChain(attrs.get("authChainName").getValues().get(0));
+			trust.setCodeTokenTimeToLive(Long.parseLong(attrs.get("codeTokenSkewMilis").getValues().get(0)));
+			trust.setAccessTokenTimeToLive(Long.parseLong(attrs.get("accessTokenTimeToLive").getValues().get(0)));
+			trust.setAccessTokenSkewMillis(Long.parseLong(attrs.get("accessTokenSkewMillis").getValues().get(0)));
+
+			
+			trust.setSignedUserInfo(attrs.get("signedUserInfo") != null && attrs.get("signedUserInfo").getValues().get(0).equalsIgnoreCase("true"));
+			
+			
+			
+			
+			if (attrs.get("verifyRedirect") == null) {
+				trust.setVerifyRedirect(true);
+			} else {
+				trust.setVerifyRedirect(attrs.get("verifyRedirect").getValues().get(0).equalsIgnoreCase("true"));
+			}
+
+			trust.setTrustName(trustName);
+
+			if (attrs.get("publicEndpoint") != null && attrs.get("publicEndpoint").getValues().get(0).equalsIgnoreCase("true")) {
+				trust.setPublicEndpoint(true);
+			}
+
+			trusts.put(trust.getClientID(), trust);
+			
+		}
 	}
 
 	public OidcSessionStore getSessionStore() {
