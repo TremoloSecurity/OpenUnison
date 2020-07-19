@@ -18,6 +18,8 @@ limitations under the License.
 package com.tremolosecurity.proxy.util;
 
 import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -76,11 +78,21 @@ public class ProxyTools {
 	}
 	
 	public String getFqdnUrl(String url,HttpServletRequest req) {
+		
+		
 		if (url.startsWith("http")) {
 			
+			return this.getHttpsUrl(url, req);
 		} else {
+			
 			StringBuffer sb = new StringBuffer();
 			String fwdProto = req.getHeader("X-Forwarded-Proto");
+			
+			if (fwdProto == null) {
+				fwdProto = req.getHeader("x-forwarded-proto");
+			}
+			
+			
 			
 			if (req.isSecure() || (fwdProto != null && fwdProto.startsWith("https"))) {
 				sb.append("https://");
@@ -88,15 +100,70 @@ public class ProxyTools {
 				sb.append("http://");
 			}
 			
+			
+			
 			sb.append(req.getServerName());
+			
 			
 			if (req.getServerPort() != 80 && req.getServerPort() != 443) {
 				sb.append(':').append(req.getServerPort());
 			}
 			
 			sb.append(url);
+			
 			url = sb.toString();
 		}
+		
+		return url;
+	}
+	
+	public String getHttpsUrl(String url,HttpServletRequest req) {
+		
+		URL parsedURL = null;
+		try {
+			parsedURL = new URL(url);
+		} catch (MalformedURLException e) {
+			logger.warn("Could not parse " + url,e);
+		}
+		
+		
+		StringBuffer sb = new StringBuffer();
+		String fwdProto = req.getHeader("X-Forwarded-Proto");
+		
+		if (fwdProto == null) {
+			fwdProto = req.getHeader("x-forwarded-proto");
+		}
+		
+		
+		
+		if (req.isSecure() || (fwdProto != null && fwdProto.startsWith("https"))) {
+			sb.append("https://");
+		} else {
+			sb.append("http://");
+		}
+		
+		
+		
+		sb.append(parsedURL.getHost());
+		
+		
+		
+		
+		
+		if (parsedURL.getPort() != 80 && parsedURL.getPort() != 443 && parsedURL.getPort() != -1) {
+			sb.append(':').append(parsedURL.getPort());
+		}
+		
+		sb.append(parsedURL.getPath());
+		
+		if (parsedURL.getQuery() != null) {
+			sb.append('?').append(parsedURL.getQuery());
+		}
+		
+		
+		
+		url = sb.toString();
+		
 		
 		return url;
 	}

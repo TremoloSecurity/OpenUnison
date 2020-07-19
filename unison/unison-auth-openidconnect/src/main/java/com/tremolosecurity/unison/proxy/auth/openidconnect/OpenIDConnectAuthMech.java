@@ -67,6 +67,7 @@ import com.tremolosecurity.proxy.auth.util.AuthStep;
 
 import com.tremolosecurity.proxy.myvd.MyVDConnection;
 import com.tremolosecurity.proxy.util.ProxyConstants;
+import com.tremolosecurity.proxy.util.ProxyTools;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.unison.proxy.auth.openidconnect.sdk.LoadUserData;
@@ -122,7 +123,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 		
 		StringBuffer b = new StringBuffer();
 		
-		URL reqURL = new URL(request.getRequestURL().toString());
+		URL reqURL = new URL(ProxyTools.getInstance().getHttpsUrl(request.getRequestURL().toString(),request));
 
 		b.append(reqURL.getProtocol()).append("://").append(reqURL.getHost());
 
