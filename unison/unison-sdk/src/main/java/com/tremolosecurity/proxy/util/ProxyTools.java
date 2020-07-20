@@ -81,8 +81,8 @@ public class ProxyTools {
 		
 		
 		if (url.startsWith("http")) {
-			
-			return this.getHttpsUrl(url, req);
+			return url;
+			//return this.getHttpsUrl(url, req);
 		} else {
 			
 			StringBuffer sb = new StringBuffer();
