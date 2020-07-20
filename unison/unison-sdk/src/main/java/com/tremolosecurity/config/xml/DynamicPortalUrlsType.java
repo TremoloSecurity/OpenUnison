@@ -32,21 +32,19 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * Listens on the queu for messages
- * 
- * <p>Java class for messageListenerType complex type.
+ * <p>Java class for dynamicPortalUrlsType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="messageListenerType">
+ * &lt;complexType name="dynamicPortalUrlsType">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
  *         &lt;element name="params" type="{http://www.tremolosecurity.com/tremoloConfig}paramType" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
+ *       &lt;attribute name="enabled" type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" />
  *       &lt;attribute name="className" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="queueName" type="{http://www.w3.org/2001/XMLSchema}string" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -55,16 +53,16 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "messageListenerType", propOrder = {
+@XmlType(name = "dynamicPortalUrlsType", propOrder = {
     "params"
 })
-public class MessageListenerType {
+public class DynamicPortalUrlsType {
 
     protected List<ParamType> params;
+    @XmlAttribute(name = "enabled")
+    protected Boolean enabled;
     @XmlAttribute(name = "className")
     protected String className;
-    @XmlAttribute(name = "queueName")
-    protected String queueName;
 
     /**
      * Gets the value of the params property.
@@ -96,6 +94,34 @@ public class MessageListenerType {
     }
 
     /**
+     * Gets the value of the enabled property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link Boolean }
+     *     
+     */
+    public boolean isEnabled() {
+        if (enabled == null) {
+            return false;
+        } else {
+            return enabled;
+        }
+    }
+
+    /**
+     * Sets the value of the enabled property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link Boolean }
+     *     
+     */
+    public void setEnabled(Boolean value) {
+        this.enabled = value;
+    }
+
+    /**
      * Gets the value of the className property.
      * 
      * @return
@@ -117,30 +143,6 @@ public class MessageListenerType {
      */
     public void setClassName(String value) {
         this.className = value;
-    }
-
-    /**
-     * Gets the value of the queueName property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getQueueName() {
-        return queueName;
-    }
-
-    /**
-     * Sets the value of the queueName property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setQueueName(String value) {
-        this.queueName = value;
     }
 
 }

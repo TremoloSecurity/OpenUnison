@@ -1254,9 +1254,9 @@ public class SAML2Auth implements AuthMechanism {
 		
 		String algType = null;
 		String logoutURL = null;
-		String sigKeyName = null;
-		String entityID = null;
 		
+		String entityID = null;
+		List<String> sigKeys = new ArrayList<String>();
 		//Search for the right mechanism configuration
 		for (String chainname : cfgMgr.getAuthChains().keySet()) {
 			AuthChainType act = cfgMgr.getAuthChains().get(chainname);
@@ -1277,7 +1277,7 @@ public class SAML2Auth implements AuthMechanism {
 							} else if (ptx.getName().equalsIgnoreCase("triggerLogoutURL")) {
 								logoutURL = ptx.getValue();
 							} else if (ptx.getName().equalsIgnoreCase("idpSigKeyName")) {
-								sigKeyName = ptx.getValue();
+								sigKeys.add(ptx.getValue());
 							} 
 						}
 						
@@ -1325,32 +1325,46 @@ public class SAML2Auth implements AuthMechanism {
 			query.append(OpenSAMLUtils.getRawQueryStringParameter(qs, "SigAlg"));
 			
 
-			
-			
-			
-			java.security.cert.X509Certificate cert = this.cfgMgr.getCertificate(sigKeyName);
-			
-			String xmlAlg = SAML2Auth.xmlDigSigAlgs.get(algType);
-			
-			
-			if (! sigAlg.equalsIgnoreCase(xmlAlg)) {
-				throw new Exception("Invalid signature algorithm : '" + sigAlg + "'");
+			boolean validated = false;
+
+			for (String sigKeyName : sigKeys) {
+				java.security.cert.X509Certificate cert = this.cfgMgr.getCertificate(sigKeyName);
+				
+				if (cert == null) {
+					continue;
+				}
+				
+				String xmlAlg = SAML2Auth.xmlDigSigAlgs.get(algType);
+				
+				
+				if (! sigAlg.equalsIgnoreCase(xmlAlg)) {
+					throw new Exception("Invalid signature algorithm : '" + sigAlg + "'");
+				}
+				
+				/*if (! logout.getDestination().equals(request.getRequestURL().toString())) {
+					throw new Exception("Invalid destination");
+				}*/
+				
+				java.security.Signature sigv = java.security.Signature.getInstance(SAML2Auth.javaDigSigAlgs.get(algType));
+				
+				
+				
+				sigv.initVerify(cert.getPublicKey());
+				sigv.update(query.toString().getBytes("UTF-8"));
+				
+				if (sigv.verify(Base64.decodeBase64(authnSig.getBytes("UTF-8")))) {
+					validated = true;
+				}
 			}
 			
-			/*if (! logout.getDestination().equals(request.getRequestURL().toString())) {
-				throw new Exception("Invalid destination");
-			}*/
 			
-			java.security.Signature sigv = java.security.Signature.getInstance(SAML2Auth.javaDigSigAlgs.get(algType));
-			
-			
-			
-			sigv.initVerify(cert.getPublicKey());
-			sigv.update(query.toString().getBytes("UTF-8"));
-			
-			if (! sigv.verify(Base64.decodeBase64(authnSig.getBytes("UTF-8")))) {
+			if (! validated) {
 				throw new Exception("Signature verification failed");
 			}
+			
+			
+			
+			
 			
 		} 
 		

@@ -130,6 +130,7 @@ import com.tremolosecurity.config.xml.ApprovalDBType;
 import com.tremolosecurity.config.xml.JobType;
 import com.tremolosecurity.config.xml.MessageListenerType;
 import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.config.xml.PortalUrlsType;
 import com.tremolosecurity.config.xml.SchedulingType;
 import com.tremolosecurity.config.xml.TargetType;
 import com.tremolosecurity.config.xml.TargetsType;
@@ -155,6 +156,7 @@ import com.tremolosecurity.provisioning.objects.UserAttributes;
 import com.tremolosecurity.provisioning.objects.Users;
 import com.tremolosecurity.provisioning.objects.WorkflowParameters;
 import com.tremolosecurity.provisioning.objects.Workflows;
+import com.tremolosecurity.provisioning.portal.DynamicPortalUrls;
 import com.tremolosecurity.provisioning.scheduler.StopScheduler;
 import com.tremolosecurity.provisioning.tasks.Approval;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
@@ -570,6 +572,30 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	        }
 	        
 	        
+		}
+		
+		if (cfgMgr.getCfg().getProvisioning() != null && cfgMgr.getCfg().getProvisioning().getPortal() != null) {
+			PortalUrlsType portal = cfgMgr.getCfg().getProvisioning().getPortal();
+				if (portal.getDynamicUrls() != null) {
+					String className = portal.getDynamicUrls().getClassName();
+					HashMap<String,Attribute> cfgAttrs = new HashMap<String,Attribute>();
+					for (ParamType pt : portal.getDynamicUrls().getParams()) {
+						Attribute attr = cfgAttrs.get(pt.getName());
+						if (attr == null) {
+							attr = new Attribute(pt.getName());
+							cfgAttrs.put(pt.getName(), attr);
+						}
+						
+						attr.getValues().add(pt.getValue());
+					}
+					
+					try {
+						DynamicPortalUrls dynPortalUrls = (DynamicPortalUrls) Class.forName(className).newInstance();
+						dynPortalUrls.loadDynamicPortalUrls(cfgMgr, this,cfgAttrs);
+					} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+						throw new ProvisioningException("Could not initialize dynamic portal urls",e);
+					}
+				}
 		}
 		
 	}

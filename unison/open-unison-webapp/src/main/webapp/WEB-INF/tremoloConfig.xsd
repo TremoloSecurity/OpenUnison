@@ -2006,7 +2006,9 @@
 		</annotation>
 		<sequence>
 			<element name="urls" type="tns:portalUrlType" minOccurs="0"
-				maxOccurs="unbounded"></element>
+				maxOccurs="unbounded">
+			</element>
+			<element name="dynamicUrls" type="tns:dynamicPortalUrlsType" maxOccurs="1" minOccurs="0"></element>
 		</sequence>
 	</complexType>
 
@@ -2469,5 +2471,15 @@
 			<annotation><documentation>Attribute used to identify the user in the workflow</documentation></annotation>
 		</attribute>
 		
+	</complexType>
+
+	<complexType name="dynamicPortalUrlsType">
+		<sequence>
+			<element name="params" type="tns:paramType"
+				maxOccurs="unbounded" minOccurs="0">
+			</element>
+		</sequence>
+		<attribute name="enabled" type="boolean" default="false"></attribute>
+		<attribute name="className" type="string"></attribute>
 	</complexType>
 </schema>
