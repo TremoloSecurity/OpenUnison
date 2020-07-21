@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -28,6 +29,10 @@ import org.joda.time.DateTime;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.opensaml.core.xml.util.XMLObjectSupport;
+import org.opensaml.saml.saml2.metadata.EntityDescriptor;
+import org.opensaml.saml.saml2.metadata.IDPSSODescriptor;
+import org.opensaml.saml.saml2.metadata.KeyDescriptor;
 import org.quartz.JobExecutionContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -79,25 +84,36 @@ public class CheckSamlIdPs extends UnisonJob {
 					String metadataXml = this.downloadFile(url,con.getHttp());
 					
 					DocumentBuilderFactory dbFactory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
-			        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			        Document doc = dBuilder.parse(new java.io.ByteArrayInputStream(metadataXml.getBytes("UTF-8")));
+			        dbFactory.setNamespaceAware(true);
+					DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+					Document doc = dBuilder.parse(new java.io.ByteArrayInputStream(metadataXml.getBytes("UTF-8")));
+					XPath xpath = javax.xml.xpath.XPathFactory.newInstance().newXPath();
+					
+					Element ed = (Element) xpath.compile("/*[local-name() = 'EntityDescriptor']").evaluate(doc,javax.xml.xpath.XPathConstants.NODE);
 			        
-			        String entityId = ((org.w3c.dom.Element) doc.getElementsByTagName("EntityDescriptor").item(0)).getAttribute("entityID");
-			        Element idp = (Element) doc.getElementsByTagName("IDPSSODescriptor").item(0);
 			        
-			        X509Certificate currentCertChoice = null;
-			        
-			        NodeList keys = idp.getElementsByTagName("KeyDescriptor");
+			        String entityId = ed.getAttribute("entityID");
 			        List<String> sigCerts = new ArrayList<String>();
 			        
-			        for (int i=0;i<keys.getLength();i++) {
-			            Element key = (Element) keys.item(i);
-
-			            if (key.getAttribute("use").equalsIgnoreCase("signing")) {
-			                String sigCert = ((Element) ((Element)key.getElementsByTagName("KeyInfo").item(0)).getElementsByTagName("X509Data").item(0)).getElementsByTagName("X509Certificate").item(0).getTextContent();
-			                sigCerts.add(sigCert);
-			            }
+			        String xpathexpr = "//*[local-name() = 'IDPSSODescriptor']";
+			        Element idp = (Element) xpath.compile(xpathexpr).evaluate(ed,javax.xml.xpath.XPathConstants.NODE);
+			        
+			        xpathexpr = "//*[local-name() = 'KeyDescriptor']";
+			        NodeList keys = (NodeList) xpath.compile(xpathexpr).evaluate(idp,javax.xml.xpath.XPathConstants.NODESET);
+			        
+			        for (int i = 0;i<keys.getLength();i++) {
+			        	Element key = (Element) keys.item(i);
+			        	if (key.getAttribute("use").equalsIgnoreCase("signing")) {
+			        		xpathexpr = "//*[local-name() = 'X509Certificate']";
+			                Element certTag = (Element) xpath.compile(xpathexpr).evaluate(key,javax.xml.xpath.XPathConstants.NODE);
+			                logger.debug(certTag.getTextContent());
+			                sigCerts.add(certTag.getTextContent());
+			        	}
 			        }
+			        
+			        
+			        
+			      
 
 			        
 			        
@@ -171,7 +187,7 @@ public class CheckSamlIdPs extends UnisonJob {
 	private X509Certificate string2cert(String b64Cert) throws Exception {
         // System.out.println(b64Cert);
         // System.out.println("");
-        b64Cert = b64Cert.replace("\n", "");
+        b64Cert = b64Cert.replace("\n", "").trim();
         // System.out.println(b64Cert);
         ByteArrayInputStream bais = new ByteArrayInputStream(Base64.getDecoder().decode(b64Cert));
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
