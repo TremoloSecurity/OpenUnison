@@ -440,7 +440,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	public String callWS(String token, HttpCon con,String uri) throws IOException, ClientProtocolException {
 		StringBuffer b = new StringBuffer();
 		
-		b.append(this.url).append(uri);
+		b.append(this.getUrl()).append(uri);
 		HttpGet get = new HttpGet(b.toString());
 		b.setLength(0);
 		b.append("Bearer ").append(token);
@@ -512,7 +512,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	public String callWSDelete(String token, HttpCon con,String uri) throws IOException, ClientProtocolException {
 		StringBuffer b = new StringBuffer();
 		
-		b.append(this.url).append(uri);
+		b.append(this.getUrl()).append(uri);
 		HttpDelete get = new HttpDelete(b.toString());
 		b.setLength(0);
 		b.append("Bearer ").append(token);
@@ -526,7 +526,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	public String callWSPut(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
 		StringBuffer b = new StringBuffer();
 		
-		b.append(this.url).append(uri);
+		b.append(this.getUrl()).append(uri);
 		HttpPut put = new HttpPut(b.toString());
 		b.setLength(0);
 		b.append("Bearer ").append(token);
@@ -544,7 +544,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	public String callWSPatchJson(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
 		StringBuffer b = new StringBuffer();
 		
-		b.append(this.url).append(uri);
+		b.append(this.getUrl()).append(uri);
 		HttpPatch put = new HttpPatch(b.toString());
 		b.setLength(0);
 		b.append("Bearer ").append(token);
@@ -562,7 +562,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	public String callWSPost(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
 		StringBuffer b = new StringBuffer();
 		
-		b.append(this.url).append(uri);
+		b.append(this.getUrl()).append(uri);
 		HttpPost put = new HttpPost(b.toString());
 		b.setLength(0);
 		b.append("Bearer ").append(token);
@@ -582,9 +582,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		this.url = this.loadOption("url", cfg, false);
 		
 		
-		if (this.url.isEmpty()) {
-			this.url = new StringBuilder().append("https://").append(System.getenv("KUBERNETES_SERVICE_HOST")).append(":").append(System.getenv("KUBERNETES_SERVICE_PORT")).toString();
-		}
+		
 		
 		
 		String tmpUseToken = this.loadOptionalAttributeValue("useToken", "Use Token", cfg,null);
@@ -702,7 +700,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			if (! this.useToken) {
 			
 				StringBuffer b = new StringBuffer();
-				b.append(this.url).append("/oauth/authorize?response_type=token&client_id=openshift-challenging-client");
+				b.append(this.getUrl()).append("/oauth/authorize?response_type=token&client_id=openshift-challenging-client");
 				HttpGet get = new HttpGet(b.toString());
 				b.setLength(0);
 				b.append(this.userName).append(':').append(this.password);
@@ -927,7 +925,11 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	}
 
 	public String getUrl() {
-		return this.url;
+		if (this.url.isEmpty()) {
+			return new StringBuilder().append("https://").append(System.getenv("KUBERNETES_SERVICE_HOST")).append(":").append(System.getenv("KUBERNETES_SERVICE_PORT")).toString();
+		} else {
+			return this.url;
+		}
 		
 	}
 }
