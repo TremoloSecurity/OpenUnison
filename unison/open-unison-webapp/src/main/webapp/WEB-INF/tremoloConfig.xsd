@@ -7,7 +7,8 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
 	the specific language governing permissions and limitations under the License. -->
 <schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tremolosecurity.com/tremoloConfig"
-	xmlns:tns="http://www.tremolosecurity.com/tremoloConfig"
+	xmlns:tns="http://www.tremolosecurity.com/tremoloConfig" xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+           jxb:version="2.1"
 	elementFormDefault="qualified">
 
 
@@ -122,16 +123,39 @@
 		<annotation>
 			<documentation>Name/Value pair</documentation>
 		</annotation>
-		<attribute name="name" type="string">
-			<annotation>
-				<documentation>Name of the parameter</documentation>
-			</annotation>
-		</attribute>
-		<attribute name="value" type="string">
-			<annotation>
-				<documentation>Value of the parameter</documentation>
-			</annotation>
-		</attribute>
+				<attribute name="name" type="string">
+					<annotation>
+						<documentation>Name of the parameter</documentation>
+					</annotation>
+				</attribute>
+				<attribute name="value" type="string">
+					<annotation>
+						<documentation>Value of the parameter</documentation>
+					</annotation>
+				</attribute>
+	</complexType>
+	
+	<complexType name="paramWithValueType">
+		<annotation>
+			<documentation>Name/Value pair</documentation>
+		</annotation>
+		<simpleContent>
+	        <extension base="string">
+				<attribute name="name" type="string">
+					<annotation>
+						<documentation>Name of the parameter</documentation>
+					</annotation>
+				</attribute>
+				<attribute name="value" type="string">
+					<annotation>
+						<documentation>Value of the parameter</documentation>
+						<appinfo>
+							<jxb:property name="valueAttribute" />
+						</appinfo>
+					</annotation>
+				</attribute>
+			</extension>
+    	</simpleContent>
 	</complexType>
 
 	<complexType name="filterConfigType">
@@ -1787,8 +1811,9 @@
 		<complexContent>
 			<extension base="tns:workflowTaskType">
 				<sequence>
-					<element name="param" type="tns:paramType" maxOccurs="unbounded"
-						minOccurs="0"></element>
+					<element name="param" type="tns:paramWithValueType"
+						maxOccurs="unbounded" minOccurs="0">
+					</element>
 				</sequence>
 				<attribute name="className" type="string">
 					<annotation>

@@ -25,7 +25,9 @@ import java.util.Map;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.CustomTaskType;
 import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.config.xml.WorkflowTaskType;
+import com.tremolosecurity.openunison.OpenUnisonConstants;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.Workflow;
@@ -59,14 +61,21 @@ public class CustomTask extends WorkflowTaskImpl implements Serializable {
 		
 		
 		params = new HashMap<String,Attribute>();
-		for (ParamType pt : taskCfg.getParam()) {
+		for (ParamWithValueType pt : taskCfg.getParam()) {
 			Attribute attr = params.get(pt.getName());
 			if (attr == null) {
 				attr = new Attribute(pt.getName());
 				params.put(pt.getName(), attr);
 			}
-			attr.getValues().add(pt.getValue());
+			if (pt.getValueAttribute() != null) {
+				attr.getValues().add(pt.getValueAttribute());
+			} else {
+				attr.getValues().add(pt.getValue());
+			}
+			
 		}
+		
+
 		
 		try {
 			this.task = (com.tremolosecurity.provisioning.util.CustomTask) Class.forName(this.className).newInstance();
@@ -80,6 +89,8 @@ public class CustomTask extends WorkflowTaskImpl implements Serializable {
 	@Override
 	public boolean doTask(User user, Map<String, Object> request)
 			throws ProvisioningException {
+		
+		
 		return task.doTask(user, request);
 	}
 

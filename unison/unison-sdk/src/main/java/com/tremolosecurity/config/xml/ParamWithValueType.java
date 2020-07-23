@@ -25,100 +25,114 @@ package com.tremolosecurity.config.xml;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlSeeAlso;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.XmlValue;
 
 
 /**
+ * Name/Value pair
  * 
- * 				Individual workflow task that can choose between two
- * 				paths (success and fail)
- * 			
- * 
- * <p>Java class for workflowChoiceTaskType complex type.
+ * <p>Java class for paramWithValueType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="workflowChoiceTaskType">
- *   &lt;complexContent>
- *     &lt;extension base="{http://www.tremolosecurity.com/tremoloConfig}workflowTaskType">
- *       &lt;sequence>
- *         &lt;element name="onSuccess" type="{http://www.tremolosecurity.com/tremoloConfig}workflowTaskListType" minOccurs="0"/>
- *         &lt;element name="onFailure" type="{http://www.tremolosecurity.com/tremoloConfig}workflowTaskListType" minOccurs="0"/>
- *       &lt;/sequence>
+ * &lt;complexType name="paramWithValueType">
+ *   &lt;simpleContent>
+ *     &lt;extension base="&lt;http://www.w3.org/2001/XMLSchema>string">
+ *       &lt;attribute name="name" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="value" type="{http://www.w3.org/2001/XMLSchema}string" />
  *     &lt;/extension>
- *   &lt;/complexContent>
+ *   &lt;/simpleContent>
  * &lt;/complexType>
  * </pre>
  * 
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "workflowChoiceTaskType", propOrder = {
-    "onSuccess",
-    "onFailure"
+@XmlType(name = "paramWithValueType", propOrder = {
+    "value"
 })
-@XmlSeeAlso({
-    IfNotUserExistsType.class,
-    IfAttrHasValueType.class,
-    MappingType.class,
-    ApprovalType.class,
-    IfAttrExistsType.class
-})
-public abstract class WorkflowChoiceTaskType
-    extends WorkflowTaskType
-{
+public class ParamWithValueType {
 
-    protected WorkflowTaskListType onSuccess;
-    protected WorkflowTaskListType onFailure;
+    @XmlValue
+    protected String value;
+    @XmlAttribute(name = "name")
+    protected String name;
+    @XmlAttribute(name = "value")
+    protected String valueAttribute;
 
     /**
-     * Gets the value of the onSuccess property.
+     * Gets the value of the value property.
      * 
      * @return
      *     possible object is
-     *     {@link WorkflowTaskListType }
+     *     {@link String }
      *     
      */
-    public WorkflowTaskListType getOnSuccess() {
-        return onSuccess;
+    public String getValue() {
+        return value;
     }
 
     /**
-     * Sets the value of the onSuccess property.
+     * Sets the value of the value property.
      * 
      * @param value
      *     allowed object is
-     *     {@link WorkflowTaskListType }
+     *     {@link String }
      *     
      */
-    public void setOnSuccess(WorkflowTaskListType value) {
-        this.onSuccess = value;
+    public void setValue(String value) {
+        this.value = value;
     }
 
     /**
-     * Gets the value of the onFailure property.
+     * Gets the value of the name property.
      * 
      * @return
      *     possible object is
-     *     {@link WorkflowTaskListType }
+     *     {@link String }
      *     
      */
-    public WorkflowTaskListType getOnFailure() {
-        return onFailure;
+    public String getName() {
+        return name;
     }
 
     /**
-     * Sets the value of the onFailure property.
+     * Sets the value of the name property.
      * 
      * @param value
      *     allowed object is
-     *     {@link WorkflowTaskListType }
+     *     {@link String }
      *     
      */
-    public void setOnFailure(WorkflowTaskListType value) {
-        this.onFailure = value;
+    public void setName(String value) {
+        this.name = value;
+    }
+
+    /**
+     * Gets the value of the valueAttribute property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getValueAttribute() {
+        return valueAttribute;
+    }
+
+    /**
+     * Sets the value of the valueAttribute property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setValueAttribute(String value) {
+        this.valueAttribute = value;
     }
 
 }

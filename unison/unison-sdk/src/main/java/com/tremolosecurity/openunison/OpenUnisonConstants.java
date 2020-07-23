@@ -19,13 +19,14 @@ package com.tremolosecurity.openunison;
 
 public class OpenUnisonConstants {
 
-	public static String UNISON_CONFIG_PATH = "com.tremolosecurity.openunison.configPath";
-	public static String UNISON_CONFIG_FORCE_TO_SSL = "com.tremolosecurity.openunison.forceToSSL";
-	public static String UNISON_CONFIG_OPEN_PORT = "com.tremolosecurity.openunison.openPort";
-	public static String UNISON_CONFIG_SECURE_PORT = "com.tremolosecurity.openunison.securePort";
-	public static String UNISON_CONFIG_EXTERNAL_OPEN_PORT = "com.tremolosecurity.openunison.externalOpenPort";
-	public static String UNISON_CONFIG_EXTERNAL_SECURE_PORT = "com.tremolosecurity.openunison.externalSecurePort";
-	public static String UNISON_CONFIG_ACTIVEMQDIR = "com.tremolosecurity.openunison.activemqdir";
-	public static String UNISON_CONFIG_QUARTZDIR = "com.tremolosecurity.openunison.quartzdir";
+	public static final String UNISON_CONFIG_PATH = "com.tremolosecurity.openunison.configPath";
+	public static final String UNISON_CONFIG_FORCE_TO_SSL = "com.tremolosecurity.openunison.forceToSSL";
+	public static final String UNISON_CONFIG_OPEN_PORT = "com.tremolosecurity.openunison.openPort";
+	public static final String UNISON_CONFIG_SECURE_PORT = "com.tremolosecurity.openunison.securePort";
+	public static final String UNISON_CONFIG_EXTERNAL_OPEN_PORT = "com.tremolosecurity.openunison.externalOpenPort";
+	public static final String UNISON_CONFIG_EXTERNAL_SECURE_PORT = "com.tremolosecurity.openunison.externalSecurePort";
+	public static final String UNISON_CONFIG_ACTIVEMQDIR = "com.tremolosecurity.openunison.activemqdir";
+	public static final String UNISON_CONFIG_QUARTZDIR = "com.tremolosecurity.openunison.quartzdir";
 	public static final String TREMOLO_SESSION_ID = "TREMOLO_SESSION_ID";
+	
 }
