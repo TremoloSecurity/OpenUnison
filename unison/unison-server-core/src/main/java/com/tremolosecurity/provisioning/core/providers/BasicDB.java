@@ -1316,7 +1316,7 @@ public class BasicDB implements BasicDBInterface {
 				ps.close();
 				
 				if (num > 0) {
-					this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Add,  approvalID, workflow, "group-object", name);
+					this.cfgMgr.getProvisioningEngine().logAction(this.name,true, ActionType.Add,  approvalID, workflow, "group-object", name);
 				}
 				
 			} catch (SQLException e) {

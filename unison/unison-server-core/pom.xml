@@ -115,6 +115,12 @@
 		
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-gitlab</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-applications-prometheus</artifactId>
 			<version>${openunison.version}</version>
 		</dependency>
