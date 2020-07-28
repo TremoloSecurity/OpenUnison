@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -215,7 +217,177 @@ public class GitlabUserProvider implements UserStoreProviderWithAddGroup {
 	@Override
 	public void syncUser(User user, boolean addOnly, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
-		// TODO Auto-generated method stub
+		List<GitlabFedIdentity> ids = (List<GitlabFedIdentity>) request.get(GitlabUserProvider.GITLAB_IDENTITIES);
+		
+		int approvalID = 0;
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+		
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
+		
+		User fromGitlab = this.findUser(user.getUserID(), attributes, request);
+		
+		if (fromGitlab == null) {
+			this.createUser(user, attributes, request);
+			return;
+		}
+		
+		List<GitlabFedIdentity> idsFromGitlab = (List<GitlabFedIdentity>) request.get(GitlabUserProvider.GITLAB_IDENTITIES);
+		
+		HashMap<String,String> toSet = new HashMap<String,String>();
+		HashSet<String> toDelete = new HashSet<String>();
+		for (String attrName : attributes) {
+			Attribute attrFromGitlab = fromGitlab.getAttribs().get(attrName);
+			Attribute attrIn = user.getAttribs().get(attrName);
+			
+			if ((attrIn != null && attrFromGitlab == null) || (attrIn != null && attrFromGitlab != null && ! attrIn.getValues().get(0).equals(attrFromGitlab.getValues().get(0)))) {
+				toSet.put(attrName,attrIn.getValues().get(0));
+			} else if (! addOnly) {
+				if (attrIn == null && attrFromGitlab != null) {
+					toDelete.add(attrName);
+				}
+			}
+		}
+		
+		org.gitlab4j.api.models.User toSave = this.findUserByName(user.getUserID());
+		
+		for (String attrName : toSet.keySet()) {
+			try {
+				this.beanUtils.setProperty(toSave, attrName, toSet.get(attrName));
+			} catch (IllegalAccessException | InvocationTargetException e) {
+				throw new ProvisioningException("Could not update user " + user.getUserID(),e);
+			}
+		}
+		
+		for (String attrName : toDelete) {
+			try {
+				this.beanUtils.setProperty(toSave, attrName, "");
+			} catch (IllegalAccessException | InvocationTargetException e) {
+				throw new ProvisioningException("Could not update user " + user.getUserID(),e);
+			}
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		if (ids != null) {
+			
+			ArrayList<Header> defheaders = new ArrayList<Header>();
+			defheaders.add(new BasicHeader("Private-Token", this.token));
+
+			BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(
+					cfgMgr.getHttpClientSocketRegistry());
+
+			RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).setRedirectsEnabled(false)
+					.build();
+
+			CloseableHttpClient http = HttpClients.custom()
+					                  .setConnectionManager(bhcm)
+					                  .setDefaultHeaders(defheaders)
+					                  .setDefaultRequestConfig(rc)
+					                  .build();
+			
+			try {
+			
+				for (GitlabFedIdentity id : ids) {
+					
+					boolean found = false;
+					
+					for (GitlabFedIdentity idfromgl : idsFromGitlab) {
+						if (id.getExternalUid().equals(idfromgl.getExternalUid()) && id.getProvider().equals(idfromgl.getProvider()) ) {
+							found = true;
+							break;
+						}
+					}
+					
+					if (! found) {
+					
+						HttpPut getmembers = new HttpPut(new StringBuilder().append(this.url).append("/api/v4/users/").append(toSave.getId()).append("?provider=").append(id.getProvider()).append("&extern_uid=").append(URLEncoder.encode(user.getUserID(), "UTF-8")).toString());
+						CloseableHttpResponse resp = http.execute(getmembers);
+						
+						if (resp.getStatusLine().getStatusCode() != 200) {
+							throw new IOException("Invalid response " + resp.getStatusLine().getStatusCode());
+						}
+						
+						this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add,  approvalID, workflow, "identity-provider", id.getProvider());
+						this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add,  approvalID, workflow, "identity-externid", id.getExternalUid());
+					}
+					
+				}
+			
+			} catch (IOException  e) {
+				throw new ProvisioningException("Could not set identity",e);
+			} finally {
+				try {
+					http.close();
+				} catch (IOException e) {
+					
+				}
+				
+				bhcm.close();
+				
+			}
+			
+			
+		}
+		
+		try {
+			this.userApi.modifyUser(toSave, null, 0);
+		} catch (GitLabApiException e) {
+			throw new ProvisioningException("Could not save user " + user.getUserID(),e);
+		}
+		
+		for (String attrName : toSet.keySet()) {
+			this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Replace,  approvalID, workflow, attrName, toSet.get(attrName));
+		}
+		
+		for (String attrName : toDelete) {
+			this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Replace,  approvalID, workflow, attrName, "");
+		}
+		
+		
+		for (String inGroup : user.getGroups()) {
+			if (! fromGitlab.getGroups().contains(inGroup)) {
+				try {
+					Group groupObj = this.findGroupByName(inGroup);
+					if (groupObj == null) {
+						logger.warn("Group " + inGroup + " does not exist");
+					} else {
+						this.groupApi.addMember(groupObj.getId(), toSave.getId(), 10);
+						this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add,  approvalID, workflow, "group", inGroup);
+					}
+				} catch (GitLabApiException e) {
+					throw new ProvisioningException("Could not find group " + inGroup);
+				}
+			}
+		}
+		
+		if (! addOnly) {
+			for (String groupFromGitlab : fromGitlab.getGroups()) {
+				if (! user.getGroups().contains(groupFromGitlab)) {
+					try {
+						Group groupObj = this.findGroupByName(groupFromGitlab);
+						if (groupObj == null) {
+							logger.warn("Group " + groupFromGitlab + " does not exist");
+						} else {
+							this.groupApi.removeMember(groupObj.getId(), toSave.getId());
+							this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Delete,  approvalID, workflow, "group", groupFromGitlab);
+						}
+					} catch (GitLabApiException e) {
+						throw new ProvisioningException("Could not find group " + groupFromGitlab);
+					}
+				}
+			}
+		}
+		
+		
 
 	}
 
@@ -262,8 +434,10 @@ public class GitlabUserProvider implements UserStoreProviderWithAddGroup {
 			
 			try {
 				String val = beanUtils.getProperty(fromGitlab, attrName);
-				Attribute attr = new Attribute(attrName,val);
-				forUnison.getAttribs().put(attrName, attr);
+				if (val != null) {
+					Attribute attr = new Attribute(attrName,val);
+					forUnison.getAttribs().put(attrName, attr);
+				}
 			} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
 				throw new ProvisioningException("Couldn't load attribute " + attrName,e);
 			}
