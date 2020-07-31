@@ -43,6 +43,7 @@ import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.GroupApi;
 import org.gitlab4j.api.UserApi;
+import org.gitlab4j.api.models.AccessLevel;
 import org.gitlab4j.api.models.Group;
 import org.gitlab4j.api.models.Identity;
 import org.json.simple.JSONArray;
@@ -77,7 +78,7 @@ public class GitlabUserProvider implements UserStoreProviderWithAddGroup {
     BeanUtils beanUtils = new BeanUtils();
     
     public static final String GITLAB_IDENTITIES = "com.tremolosecurity.unison.gitlab.itentities";
-
+    public static final String GITLAB_GROUP_ENTITLEMENTS = "com.tremolosecurity.unison.gitlab.group-entitlements";
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
@@ -190,13 +191,21 @@ public class GitlabUserProvider implements UserStoreProviderWithAddGroup {
 			
 		}
 		
+		HashMap<String,Integer> groupmap = (HashMap<String, Integer>) request.get(GitlabUserProvider.GITLAB_GROUP_ENTITLEMENTS);
+		if (groupmap == null) {
+			groupmap = new HashMap<String, Integer>();
+		}
 		for (String group : user.getGroups()) {
 			try {
 				Group groupObj = this.findGroupByName(group);
 				if (groupObj == null) {
 					logger.warn("Group " + group + " does not exist");
 				} else {
-					this.groupApi.addMember(groupObj.getId(), newUser.getId(), 10);
+					int accessLevel = AccessLevel.DEVELOPER.ordinal();
+					if (groupmap.containsKey(group)) {
+						accessLevel = groupmap.get(group);
+					}
+					this.groupApi.addMember(groupObj.getId(), newUser.getId(), accessLevel);
 					this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add,  approvalID, workflow, "group", group);
 				}
 			} catch (GitLabApiException e) {
@@ -352,6 +361,10 @@ public class GitlabUserProvider implements UserStoreProviderWithAddGroup {
 			this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Replace,  approvalID, workflow, attrName, "");
 		}
 		
+		HashMap<String,Integer> groupmap = (HashMap<String, Integer>) request.get(GitlabUserProvider.GITLAB_GROUP_ENTITLEMENTS);
+		if (groupmap == null) {
+			groupmap = new HashMap<String, Integer>();
+		}
 		
 		for (String inGroup : user.getGroups()) {
 			if (! fromGitlab.getGroups().contains(inGroup)) {
@@ -360,7 +373,12 @@ public class GitlabUserProvider implements UserStoreProviderWithAddGroup {
 					if (groupObj == null) {
 						logger.warn("Group " + inGroup + " does not exist");
 					} else {
-						this.groupApi.addMember(groupObj.getId(), toSave.getId(), 10);
+						int accessLevel = AccessLevel.DEVELOPER.ordinal();
+						if (groupmap.containsKey(inGroup)) {
+							accessLevel = groupmap.get(inGroup);
+						}
+						
+						this.groupApi.addMember(groupObj.getId(), toSave.getId(), accessLevel);
 						this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add,  approvalID, workflow, "group", inGroup);
 					}
 				} catch (GitLabApiException e) {
@@ -613,7 +631,7 @@ public class GitlabUserProvider implements UserStoreProviderWithAddGroup {
 		}
 	}
 	
-	private Group findGroupByName(String name) throws GitLabApiException {
+	public Group findGroupByName(String name) throws GitLabApiException {
 		List<Group> groups = this.groupApi.getGroups(name);
 		for (Group group : groups) {
 			if (group.getName().equalsIgnoreCase(name)) {
@@ -622,6 +640,16 @@ public class GitlabUserProvider implements UserStoreProviderWithAddGroup {
 		}
 		
 		return null;
+	
+	
+	}
+	
+	public GitLabApi getApi() {
+		return this.gitLabApi;
+	}
+	
+	public String getName() {
+		return this.name;
 	}
 
 }

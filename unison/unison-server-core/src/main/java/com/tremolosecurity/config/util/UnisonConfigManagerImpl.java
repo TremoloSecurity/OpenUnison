@@ -222,13 +222,24 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 			cacertsPath = System.getProperty("java.home") + "/lib/security/cacerts";
 		}
 		
+		if (cacertsPath.equalsIgnoreCase(this.cfg.getKeyStorePath())) {
+			//the trust store IS the keystore and assume its already merged.  no need to re-merge
+			//set the password as a property
+			System.setProperty("javax.net.ssl.trustStorePassword", this.cfg.getKeyStorePassword());
+		} else {
 		cacerts.load(new FileInputStream(cacertsPath), null);
 		
-		Enumeration<String> enumer = cacerts.aliases();
-		while (enumer.hasMoreElements()) {
-			String alias = enumer.nextElement();
-			java.security.cert.Certificate cert = cacerts.getCertificate(alias);
-			this.ks.setCertificateEntry(alias, cert);
+			Enumeration<String> enumer = cacerts.aliases();
+			while (enumer.hasMoreElements()) {
+				String alias = enumer.nextElement();
+				java.security.cert.Certificate cert = cacerts.getCertificate(alias);
+				
+				
+				logger.debug("alias : '" + alias + "' / " + ks.getCertificate(alias) + " / " + ks.getKey(alias, this.cfg.getKeyStorePassword().toCharArray()));
+				if (ks.getCertificate(alias) == null && ks.getKey(alias, this.cfg.getKeyStorePassword().toCharArray()) == null ) {
+					this.ks.setCertificateEntry(alias, cert);
+				}
+			}
 		}
 		
 		sslctx = SSLContexts.custom().loadTrustMaterial(this.ks).loadKeyMaterial(this.ks,this.cfg.getKeyStorePassword().toCharArray()).build();

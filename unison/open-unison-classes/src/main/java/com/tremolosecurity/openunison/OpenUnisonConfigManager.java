@@ -287,13 +287,23 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 				cacertsPath = System.getProperty("java.home") + "/lib/security/cacerts";
 			}
 			
-			cacerts.load(new FileInputStream(cacertsPath), null);
+			if (cacertsPath.equalsIgnoreCase(unisonConfig.getKeyStorePath())) {
+				//the trust store IS the keystore and assume its already merged.  no need to re-merge
+				//set the password as a property
+				System.setProperty("javax.net.ssl.trustStorePassword", unisonConfig.getKeyStorePassword());
+			} else {
 			
-			Enumeration<String> enumer = cacerts.aliases();
-			while (enumer.hasMoreElements()) {
-				String alias = enumer.nextElement();
-				java.security.cert.Certificate cert = cacerts.getCertificate(alias);
-				ks.setCertificateEntry(alias, cert);
+				cacerts.load(new FileInputStream(cacertsPath), null);
+				
+				Enumeration<String> enumer = cacerts.aliases();
+				while (enumer.hasMoreElements()) {
+					String alias = enumer.nextElement();
+					java.security.cert.Certificate cert = cacerts.getCertificate(alias);
+					logger.debug("alias : '" + alias + "' / " + ks.getCertificate(alias) + " / " + ks.getKey(alias, unisonConfig.getKeyStorePassword().toCharArray()));
+					if (ks.getCertificate(alias) == null && ks.getKey(alias, unisonConfig.getKeyStorePassword().toCharArray()) == null ) {
+						ks.setCertificateEntry(alias, cert);
+					}
+				}
 			}
 			
 			this.kmf = KeyManagerFactory.getInstance("SunX509");

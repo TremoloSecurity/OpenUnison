@@ -30,5 +30,10 @@
 			<artifactId>json-simple</artifactId>
 			<version>${json-simple.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk15on</artifactId>
+			<version>${bcpkix-jdk15on.version}</version>
+		</dependency>
 	</dependencies>
 </project>
