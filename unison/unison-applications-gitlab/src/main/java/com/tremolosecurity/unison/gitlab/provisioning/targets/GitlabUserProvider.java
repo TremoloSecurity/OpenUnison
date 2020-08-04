@@ -348,7 +348,7 @@ public class GitlabUserProvider implements UserStoreProviderWithAddGroup {
 		}
 		
 		try {
-			this.userApi.modifyUser(toSave, null, 0);
+			this.userApi.updateUser(toSave, null);
 		} catch (GitLabApiException e) {
 			throw new ProvisioningException("Could not save user " + user.getUserID(),e);
 		}
@@ -382,7 +382,11 @@ public class GitlabUserProvider implements UserStoreProviderWithAddGroup {
 						this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add,  approvalID, workflow, "group", inGroup);
 					}
 				} catch (GitLabApiException e) {
-					throw new ProvisioningException("Could not find group " + inGroup);
+					if (e.getMessage().equalsIgnoreCase("Member already exists")) {
+						continue;
+					} else {
+						throw new ProvisioningException("Could not find group " + inGroup,e);
+					}
 				}
 			}
 		}

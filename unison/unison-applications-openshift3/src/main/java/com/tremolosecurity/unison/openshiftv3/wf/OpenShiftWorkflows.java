@@ -83,6 +83,16 @@ public class OpenShiftWorkflows implements DynamicWorkflow {
 						}
 					}
 					
+					if (item.getMetadata().containsKey("labels")) {
+						com.google.gson.internal.LinkedTreeMap annotations = (com.google.gson.internal.LinkedTreeMap) item.getMetadata().get("labels");
+						for (Object key : annotations.keySet()) {
+							String keyName = (String)key;
+							keyName = keyName.replace("-", "_");
+							keyName = keyName.replace(".", "_");
+							wfParams.put((String)keyName, (String)annotations.get(key));
+						}
+					}
+					
 					wfData.add(wfParams);
 				}
 				

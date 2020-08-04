@@ -23,6 +23,15 @@ public class HttpCon {
 	BasicHttpClientConnectionManager bcm;
 	CloseableHttpClient http;
 	
+	public HttpCon() {
+		
+	}
+	
+	public HttpCon(CloseableHttpClient http,BasicHttpClientConnectionManager bcm) {
+		this.http = http;
+		this.bcm = bcm;
+	}
+	
 	public BasicHttpClientConnectionManager getBcm() {
 		return bcm;
 	}

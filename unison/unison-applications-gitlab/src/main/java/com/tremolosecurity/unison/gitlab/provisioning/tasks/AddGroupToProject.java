@@ -42,6 +42,9 @@ public class AddGroupToProject implements CustomTask {
 	String groupName;
 	String accessLevel;
 	String targetName;
+	
+	String projectName;
+	String namespace;
 
 	transient WorkflowTask task;
 	
@@ -50,6 +53,12 @@ public class AddGroupToProject implements CustomTask {
 		this.targetName = params.get("targetName").getValues().get(0);
 		this.groupName = params.get("groupName").getValues().get(0);
 		this.accessLevel = params.get("accessLevel").getValues().get(0);
+		
+		if (params.get("projectName") != null ) {
+			this.projectName = params.get("projectName").getValues().get(0);
+			this.namespace = params.get("namespace").getValues().get(0);
+		}
+		
 		this.task = task;
 
 	}
@@ -84,11 +93,26 @@ public class AddGroupToProject implements CustomTask {
 		
 		ObjectMapper mapper = new ObjectMapper();
 		Project newProject = null;
-        try {
-			newProject = (Project) mapper.readValue((String) request.get("newProjectJSON"), Project.class);
-		} catch (JsonProcessingException e) {
-			throw new ProvisioningException("Could not parse",e);
+		
+		
+		if (this.projectName == null) {
+			try {
+				newProject = (Project) mapper.readValue((String) request.get("newProjectJSON"), Project.class);
+			} catch (JsonProcessingException e) {
+				throw new ProvisioningException("Could not parse",e);
+			}
+		} else {
+			String localProjectName = task.renderTemplate(this.projectName, request);
+			String localNamespace = task.renderTemplate(this.namespace, request);
+			try {
+				newProject = api.getProjectApi().getProject(localNamespace, localProjectName);
+			} catch (GitLabApiException e) {
+				throw new ProvisioningException("Could not find " + localNamespace + "/" + localProjectName,e);
+			}
 		}
+		
+		
+        
 		
         Group groupToAdd;
 		try {
