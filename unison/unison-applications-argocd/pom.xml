@@ -1,0 +1,24 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.tremolosecurity.unison</groupId>
+		<artifactId>unison</artifactId>
+		<version>1.0.20</version>
+	</parent>
+	<artifactId>unison-applications-argocd</artifactId>
+	<name>unison-applications-argocd</name>
+	<dependencies>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-sdk</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-applications-openshift3</artifactId>
+			<version>${openunison.version}</version>
+		</dependency>
+	</dependencies>
+</project>

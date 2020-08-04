@@ -185,6 +185,7 @@
 		<module>unison-scalejs-operators</module>
 		<module>unison-applications-okta</module>
 		<module>unison-applications-gitlab</module>
+		<module>unison-applications-argocd</module>
 	</modules>
 	<build>
 	<extensions>
