@@ -39,6 +39,7 @@ public class ForkProject implements CustomTask {
 	String targetName;
 	
 	transient WorkflowTask task;
+	private String gitSshHost;
 
 	@Override
 	public void init(WorkflowTask task, Map<String, Attribute> params) throws ProvisioningException {
@@ -46,6 +47,7 @@ public class ForkProject implements CustomTask {
 		this.sourceProjectNamespace = params.get("sourceProjectNamespace").getValues().get(0);
 		this.destintionNamespace = params.get("destinationNamespace").getValues().get(0);
 		this.targetName = params.get("targetName").getValues().get(0);
+		this.gitSshHost = params.get("gitSshHost").getValues().get(0);
 		this.task = task;
 
 	}
@@ -76,11 +78,20 @@ public class ForkProject implements CustomTask {
 		
 		try {
 			Project existingProject = api.getProjectApi().getProject(localSourceProjectNamespace, localSourceProjectName);
-			api.getProjectApi().forkProject(existingProject, localDestinationNamespace);
+			Project newProject = api.getProjectApi().forkProject(existingProject, localDestinationNamespace);
+			
 		
 			GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().logAction(gitlab.getName(),
 					false, ActionType.Add, approvalID, workflow,
 					"gitlab-fork-" + existingProject.getNameWithNamespace() + "-fork", localDestinationNamespace);
+			
+			String gitUrl = newProject.getSshUrlToRepo();
+	        String prefix = gitUrl.substring(0,gitUrl.indexOf("@") + 1);
+	        String suffix = gitUrl.substring(gitUrl.indexOf(":"));
+	        String newGitUrl = new StringBuilder().append(prefix).append(this.gitSshHost).append(suffix).toString();
+
+	        request.put("gitSshInternalURL",newGitUrl);
+			request.put("gitSshUrl", newProject.getSshUrlToRepo());
 			
 		} catch (GitLabApiException e) {
 			throw new ProvisioningException("Error looking up project " + localSourceProjectNamespace + "/" + localSourceProjectName,e);

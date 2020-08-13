@@ -72,6 +72,7 @@ public class CreateProject implements CustomTask {
 	
 	boolean createWebHook;
 	String webhookDomainSuffix;
+	String webhookSecretRequestName;
 
 	private String webhookBranchFilter;
 
@@ -92,6 +93,7 @@ public class CreateProject implements CustomTask {
 		if (this.createWebHook) {
 			this.webhookDomainSuffix = params.get("webhookSuffix").getValues().get(0);
 			this.webhookBranchFilter = params.get("webhookBranchFilter").getValues().get(0);
+			this.webhookSecretRequestName = params.get("webhookSecretRequestName").getValues().get(0);
 		}
 		this.task = task;
 	}
@@ -204,8 +206,8 @@ public class CreateProject implements CustomTask {
 				String webhookToken = new GenPasswd(50).getPassword();
 				String b64WebhookToken = java.util.Base64.getEncoder().encodeToString(webhookToken.getBytes("UTF-8"));
 				
-				request.put("webhookToken",webhookToken);
-				request.put("b64WebhookToken",b64WebhookToken);
+				request.put(webhookSecretRequestName,webhookToken);
+				request.put("b64" + webhookSecretRequestName,b64WebhookToken);
 				
 				String webhookUrl = new StringBuilder().append("https://").append(localName).append(".").append(this.webhookDomainSuffix).toString();
 				ProjectHook hook = new ProjectHook().withPushEvents(true).withPushEventsBranchFilter(this.webhookBranchFilter);
