@@ -209,7 +209,7 @@ public class GitlabUserProvider implements UserStoreProviderWithAddGroup {
 					this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add,  approvalID, workflow, "group", group);
 				}
 			} catch (GitLabApiException e) {
-				throw new ProvisioningException("Could not find group " + group);
+				throw new ProvisioningException("Could not find group " + group,e);
 			}
 			
 		}
