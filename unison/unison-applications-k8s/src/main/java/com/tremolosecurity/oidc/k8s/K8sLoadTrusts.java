@@ -23,6 +23,7 @@ import javax.servlet.ServletContext;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.HttpGet;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -82,7 +83,13 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,StopableThread {
 		
 		try {
 			String token = k8s.getAuthToken();
-			String json = k8s.callWS(token, http, uri);
+			String json = null;
+			try {
+				json = k8s.callWS(token, http, uri);
+			} catch (HttpResponseException e) {
+				logger.warn("Could not retrieve trusts, dynamic trusts will not be supported",e);
+				return;
+			}
 			
 			JSONObject list = (JSONObject) new JSONParser().parse(json);
 			JSONArray items = (JSONArray) list.get("items");
