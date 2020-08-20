@@ -635,6 +635,7 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 		HttpCon con = null;
 		try {
 			con = this.createClient();
+			email = email.replace("'", "''");
 			String json = this.callWS(con, new StringBuilder().append("/users?$filter=").append(URLEncoder.encode(new StringBuilder().append("mail eq '").append(email).append( "'").toString() , "UTf-8")).toString());
 			
 			JSONObject root = (JSONObject) new JSONParser().parse(json);
