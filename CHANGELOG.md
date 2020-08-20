@@ -1,3 +1,26 @@
+## 1.0.20-2020082001
+
+**Tasks:**
+ - 1.0.20 build [\#458](https://github.com/TremoloSecurity/OpenUnison/issues/458)
+
+**enhancements:**
+ - create workflow export utility [\#461](https://github.com/TremoloSecurity/OpenUnison/issues/461)
+ - dynamic organizations [\#471](https://github.com/TremoloSecurity/OpenUnison/issues/471)
+ - Portal URL - dynamicly load portal URLs [\#464](https://github.com/TremoloSecurity/OpenUnison/issues/464)
+ - Oidc Idp  - Dynamic Trusts [\#462](https://github.com/TremoloSecurity/OpenUnison/issues/462)
+ - gitlab provisioning target [\#469](https://github.com/TremoloSecurity/OpenUnison/issues/469)
+ - ArgoCD Support [\#470](https://github.com/TremoloSecurity/OpenUnison/issues/470)
+ - custom task - support content in the tag [\#465](https://github.com/TremoloSecurity/OpenUnison/issues/465)
+ - Oidc Idp - support multiple redirectURI values [\#463](https://github.com/TremoloSecurity/OpenUnison/issues/463)
+ - create decode lastmile filter [\#460](https://github.com/TremoloSecurity/OpenUnison/issues/460)
+
+**bugs:**
+ - azuread provisioning provider - single quote not escaped properly [\#472](https://github.com/TremoloSecurity/OpenUnison/issues/472)
+ - OpenShift Target - pull host/port on every call [\#466](https://github.com/TremoloSecurity/OpenUnison/issues/466)
+ - K8s saml2 metadata check - namespace tags not supported [\#468](https://github.com/TremoloSecurity/OpenUnison/issues/468)
+ - Oidc Auth - Redirect not honoring X-Forwarded-Proto [\#467](https://github.com/TremoloSecurity/OpenUnison/issues/467)
+ - SAML2 IdP Fails to load completeFed [\#48](https://github.com/TremoloSecurity/OpenUnison/issues/48)
+
 ## 1.0.19-2020062101
 
 **Tasks:**
