@@ -7,9 +7,13 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
 	the specific language governing permissions and limitations under the License. -->
 <schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tremolosecurity.com/tremoloConfig"
-	xmlns:tns="http://www.tremolosecurity.com/tremoloConfig" xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
-           jxb:version="2.1"
-	elementFormDefault="qualified">
+	xmlns:tns="http://www.tremolosecurity.com/tremoloConfig" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+           
+	elementFormDefault="qualified"
+	
+	
+	
+	>
 
 
 	<include schemaLocation=""></include>
@@ -150,7 +154,7 @@
 					<annotation>
 						<documentation>Value of the parameter</documentation>
 						<appinfo>
-							<jxb:property name="valueAttribute" />
+							<jaxb:property name="valueAttribute" />
 						</appinfo>
 					</annotation>
 				</attribute>
@@ -1860,16 +1864,19 @@
 				portal links</documentation>
 		</annotation>
 		<sequence>
-			<element name="orgs" type="tns:orgType" maxOccurs="unbounded"
-				minOccurs="0">
+            <element name="dynamicOrgs" type="tns:dynamicPortalUrlsType" maxOccurs="1" minOccurs="0"></element>
+            <element name="orgs" type="tns:orgType"
+				maxOccurs="unbounded" minOccurs="0">
 				<annotation>
 					<documentation>Child organizations</documentation>
 				</annotation>
 			</element>
-			<element name="azRules" type="tns:azRulesType">
+			<element name="azRules" type="tns:azRulesType" maxOccurs="1" minOccurs="0">
 				<annotation>
-					<documentation>List of optional authorization rules associated with
-						this orgnaization</documentation>
+					<documentation>
+						List of optional authorization rules associated
+						with this orgnaization
+					</documentation>
 				</annotation>
 			</element>
 		</sequence>
