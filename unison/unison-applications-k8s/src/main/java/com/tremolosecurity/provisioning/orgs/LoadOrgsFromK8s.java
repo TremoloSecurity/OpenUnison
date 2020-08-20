@@ -199,17 +199,9 @@ public class LoadOrgsFromK8s implements DynamicOrgs,StopableThread {
 			this.orphanes.put(parentId,oot);
 			
 		} else {
-			OrgType toRemove = null;
-			for (OrgType oot : parent.getOrgs()) {
-				if (oot.getUuid().contentEquals(org.getUuid())) {
-					org.getOrgs().addAll(oot.getOrgs());
-					toRemove = oot;
-				}
-			}
 			
-			if (toRemove != null) {
-				parent.getOrgs().remove(toRemove);
-			}
+			this.deleteOrg(tremolo, org.getUuid());
+			
 			parent.getOrgs().add(org);
 		}
 		
@@ -276,18 +268,15 @@ public class LoadOrgsFromK8s implements DynamicOrgs,StopableThread {
 		}
 		
 		
-		logger.info("Found parent : " + parent);
-		logger.info("found parent id : " + parent.getUuid());
-		OrgType ot = this.findById(orgId, parent);
-		logger.info("found ot : " + ot);
+		
+		
 		if (parent != null) {
-			logger.info("before remove : " + parent.getOrgs());
-			logger.info("removing");
+			OrgType ot = this.findById(orgId, parent);
 			parent.getOrgs().remove(ot);
-			logger.info("after remove : " + parent.getOrgs());
+			this.orphanes.put(ot.getUuid(),ot);
 		} 
 		
-		this.orphanes.put(ot.getUuid(),ot);
+		
 	}
 
 	@Override
