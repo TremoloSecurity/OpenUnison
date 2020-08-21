@@ -123,7 +123,7 @@
 			<!--  <id>nexus.tremolo.io</id>  -->
 			<id>nexus.tremolo.io</id>
 			<name>tremolo.io-releases</name>
-			<url>s3://tremolosecurity-maven/repository/betas</url>  
+			<url>s3://tremolosecurity-maven/repository/releases</url>  
 		</repository>
 
 	</distributionManagement>
