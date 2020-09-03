@@ -30,9 +30,13 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.idp.providers.OpenIDConnectIdP;
 import com.tremolosecurity.idp.providers.OpenIDConnectTrust;
 import com.tremolosecurity.idp.providers.oidc.trusts.DynamicLoadTrusts;
+import com.tremolosecurity.k8s.watch.K8sWatchTarget;
+import com.tremolosecurity.k8s.watch.K8sWatcher;
+import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.saml.Attribute;
@@ -40,25 +44,15 @@ import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.server.StopableThread;
 import com.tremolosecurity.unison.openshiftv3.OpenShiftTarget;
 
-public class K8sLoadTrusts implements DynamicLoadTrusts,StopableThread {
+public class K8sLoadTrusts implements DynamicLoadTrusts,K8sWatchTarget {
 	
 	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(K8sLoadTrusts.class.getName());
 	
 	HashMap<String, OpenIDConnectTrust> trusts;
-
-	private String k8sTarget;
-
-	private String namespace;
-
-	private String uri;
-
-	private OpenShiftTarget k8s;
+	String namespace;
 	
-	private HashSet<String> resourceVersions;
-	
-	
-	
-	boolean keepRunning;
+	K8sWatcher k8sWatch;
+
 	
 	@Override
 	public void loadTrusts(String idpName, ServletContext ctx,
@@ -67,54 +61,14 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,StopableThread {
 		
 		this.trusts = trusts;
 		
-		this.k8sTarget = 	init.get("trusts.k8starget").getValues().get(0);
+		String k8sTarget = 	init.get("trusts.k8starget").getValues().get(0);
 		this.namespace = init.get("trusts.namespace").getValues().get(0);
-		this.uri = "/apis/openunison.tremolo.io/v1/namespaces/" + this.namespace + "/trusts";
+		String uri = "/apis/openunison.tremolo.io/v1/namespaces/" + this.namespace + "/trusts";
 		
-		this.k8s = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(k8sTarget).getProvider();
+		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,uri,this,GlobalEntries.getGlobalEntries().getConfigManager(),GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine());	
+		this.k8sWatch.initalRun();
 		
-		if (this.k8s == null) {
-			throw new Exception("Target " + k8sTarget + " does not exist");
-		}
 		
-		HttpCon http = this.k8s.createClient();
-		
-		this.resourceVersions = new HashSet<String>();
-		
-		try {
-			String token = k8s.getAuthToken();
-			String json = null;
-			try {
-				json = k8s.callWS(token, http, uri);
-			} catch (HttpResponseException e) {
-				logger.warn("Could not retrieve trusts, dynamic trusts will not be supported",e);
-				return;
-			}
-			
-			JSONObject list = (JSONObject) new JSONParser().parse(json);
-			JSONArray items = (JSONArray) list.get("items");
-			
-			if (items == null) {
-				logger.error("Invalid JSON Response : '" + json + "'");
-				return;
-			}
-			
-			for (Object o : items) {
-				addTrust(trusts, http, token, o);
-				
-				
-			}
-			
-		} finally {
-			http.getHttp().close();
-			http.getBcm().close();
-		}
-		
-		this.keepRunning = true;
-		logger.info("Adding stoppable thread");
-		GlobalEntries.getGlobalEntries().getConfigManager().addThread(this);
-		logger.info("Starting watch");
-		new Thread(this).start();
 		
 	}
 
@@ -125,13 +79,7 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,StopableThread {
 		
 		
 		String resourceVersion = (String) metadata.get("resourceVersion");
-		
-		if (this.resourceVersions.contains(resourceVersion)) {
-			logger.info("Resource " + resourceVersion + " already processed, skipping");
-			return;
-		}
-		
-		this.resourceVersions.add(resourceVersion);
+
 		
 		JSONObject spec = (JSONObject) trustObj.get("spec");
 		logger.info(metadata.get("name"));
@@ -148,7 +96,7 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,StopableThread {
 				return;
 			}
 			String secretUri = "/api/v1/namespaces/" + namespace + "/secrets/" + secretInfo.get("secretName").toString();
-			String secretJson = k8s.callWS(token, http, secretUri);
+			String secretJson = this.k8sWatch.getK8s().callWS(token, http, secretUri);
 			JSONObject secret = (JSONObject) new JSONParser().parse(secretJson);
 			
 			JSONObject data = (JSONObject) secret.get("data");
@@ -195,76 +143,46 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,StopableThread {
 		}
 	}
 
+	
+
 	@Override
-	public void run() {
-		logger.info("Starting watch");
-		while (this.keepRunning) {
-			HttpCon http;
-			try {
-				http = this.k8s.createClient();
-			} catch (Exception e1) {
-				logger.error("Could not create connection",e1);
-				return;
-			}
-			
-			try {
-				String url = new StringBuilder().append(this.k8s.getUrl())
-						                        .append(this.uri)
-						                        .append("?watch=true&timeoutSeconds=10").toString();
-				logger.info("watching " + url);
-				HttpGet get = new HttpGet(url);
-				get.setHeader("Authorization", new StringBuilder().append("Bearer ").append(this.k8s.getAuthToken()).toString());
-				HttpResponse resp = http.getHttp().execute(get);
-				BufferedReader in = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
-				String line = null;
-				
-				HttpCon nonwatchHttp = this.k8s.createClient();
-				
-				while ((line = in.readLine()) != null) {
-					JSONObject event = (JSONObject) new JSONParser().parse(line);
-					String action = (String) event.get("type");
-					JSONObject trust = (JSONObject) event.get("object");
-					
-					
-					
-					if (action.equalsIgnoreCase("ADDED") || action.equalsIgnoreCase("MODIFIED")) {
-						this.addTrust(trusts, nonwatchHttp, this.k8s.getAuthToken(), trust);
-					} else {
-						//deleted
-						JSONObject metadata = (JSONObject) trust.get("metadata");
-						String name = (String) metadata.get("name");
-						logger.info("Deleting trust " + name);
-						JSONObject spec = (JSONObject) trust.get("spec");
-						String clientId = (String) spec.get("clientId");
-						synchronized(trusts) {
-							trusts.remove(clientId);
-						}
-					}
-				}
-				
-				nonwatchHttp.getHttp().close();
-				nonwatchHttp.getBcm().close();
-				
-			} catch (Exception e) {
-				logger.error("Could not get authentication token",e);
-				return;
-			} finally {
-				if (http != null) {
-					try {
-						http.getHttp().close();
-					} catch (IOException e) {
-						
-					}
-					http.getBcm().close();
-				}
-			}
+	public void addObject(TremoloType cfg, JSONObject item) throws ProvisioningException {
+		try {
+			HttpCon nonwatchHttp = this.k8sWatch.getK8s().createClient();
+			this.addTrust(trusts, nonwatchHttp, this.k8sWatch.getK8s().getAuthToken(), item);
+			nonwatchHttp.getHttp().close();
+			nonwatchHttp.getBcm().close();
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not add trust",e);
+		}
+		
+		
+	}
+
+	@Override
+	public void modifyObject(TremoloType cfg, JSONObject item) throws ProvisioningException {
+		try {
+			HttpCon nonwatchHttp = this.k8sWatch.getK8s().createClient();
+			this.addTrust(trusts, nonwatchHttp, this.k8sWatch.getK8s().getAuthToken(), item);
+			nonwatchHttp.getHttp().close();
+			nonwatchHttp.getBcm().close();
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not add trust",e);
 		}
 		
 	}
 
 	@Override
-	public void stop() {
-		this.keepRunning = false;
+	public void deleteObject(TremoloType cfg, JSONObject item) throws ProvisioningException {
+		//deleted
+		JSONObject metadata = (JSONObject) item.get("metadata");
+		String name = (String) metadata.get("name");
+		logger.info("Deleting trust " + name);
+		JSONObject spec = (JSONObject) item.get("spec");
+		String clientId = (String) spec.get("clientId");
+		synchronized(trusts) {
+			trusts.remove(clientId);
+		}
 		
 	}
 

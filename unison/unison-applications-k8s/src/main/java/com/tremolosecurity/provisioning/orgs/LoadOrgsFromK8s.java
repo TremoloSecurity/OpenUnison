@@ -38,6 +38,8 @@ import com.tremolosecurity.config.xml.OrgType;
 import com.tremolosecurity.config.xml.PortalUrlType;
 import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.idp.providers.OpenIDConnectTrust;
+import com.tremolosecurity.k8s.watch.K8sWatchTarget;
+import com.tremolosecurity.k8s.watch.K8sWatcher;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.util.HttpCon;
@@ -46,90 +48,32 @@ import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.server.StopableThread;
 import com.tremolosecurity.unison.openshiftv3.OpenShiftTarget;
 
-public class LoadOrgsFromK8s implements DynamicOrgs,StopableThread {
+public class LoadOrgsFromK8s implements DynamicOrgs,K8sWatchTarget {
 
 	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(LoadOrgsFromK8s.class.getName());
 	
-	private String k8sTarget;
-
-	private String namespace;
-
-	private String uri;
-
-	private OpenShiftTarget k8s;
-	
-	private HashSet<String> resourceVersions;
+	K8sWatcher k8sWatch;
 	
 	TremoloType tremolo;
-	
-	boolean keepRunning;
-	
 	Map<String,OrgType> orphanes;
+	
 	
 	@Override
 	public void loadDynamicOrgs(ConfigManager cfgMgr, ProvisioningEngine provisioningEngine,Map<String, Attribute> init)
 			throws ProvisioningException {
 		this.tremolo = cfgMgr.getCfg();
-		this.k8sTarget = 	init.get("k8starget").getValues().get(0);
-		this.namespace = init.get("namespace").getValues().get(0);
-		this.uri = "/apis/openunison.tremolo.io/v1/namespaces/" + this.namespace + "/orgs";
+		String k8sTarget = 	init.get("k8starget").getValues().get(0);
+		String namespace = init.get("namespace").getValues().get(0);
+		String uri = "/apis/openunison.tremolo.io/v1/namespaces/" + namespace + "/orgs";
+		
+		
 		this.orphanes = new HashMap<String,OrgType>();
 		
-		this.k8s = (OpenShiftTarget) provisioningEngine.getTarget(k8sTarget).getProvider();
+		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,uri,this,cfgMgr,provisioningEngine);
 		
-		if (this.k8s == null) {
-			throw new ProvisioningException("Target " + k8sTarget + " does not exist");
-		}
+		this.k8sWatch.initalRun();
 		
-		HttpCon http;
-		try {
-			http = this.k8s.createClient();
-		} catch (Exception e1) {
-			throw new ProvisioningException("Could not create http connection",e1);
-		}
 		
-		this.resourceVersions = new HashSet<String>();
-		
-		try {
-			String token = k8s.getAuthToken(); 
-			String json = null;
-			try {
-				json = k8s.callWS(token, http, uri);
-			} catch (HttpResponseException e) {
-				logger.warn("Could not retrieve urls, dynamic urls will not be supported",e);
-				return;
-			}
-			
-			JSONObject list = (JSONObject) new JSONParser().parse(json);
-			JSONArray items = (JSONArray) list.get("items");
-			
-			if (items == null) {
-				logger.error("Invalid JSON Response : '" + json + "'");
-				return;
-			}
-			
-			for (Object o : items) {
-				addOrg(cfgMgr.getCfg(), o);
-				
-				
-			}
-			
-		} catch (Exception e) {
-			throw new ProvisioningException("Could not get urls",e);
-		} finally {
-			try {
-				http.getHttp().close();
-			} catch (IOException e) {
-				logger.warn(e);
-			}
-			http.getBcm().close();
-		}
-		
-		this.keepRunning = true;
-		logger.info("Adding stoppable thread");
-		GlobalEntries.getGlobalEntries().getConfigManager().addThread(this);
-		logger.info("Starting watch");
-		new Thread(this).start();
 
 	}
 	
@@ -138,14 +82,7 @@ public class LoadOrgsFromK8s implements DynamicOrgs,StopableThread {
 		JSONObject metadata = (JSONObject) trustObj.get("metadata");
 		
 		
-		String resourceVersion = (String) metadata.get("resourceVersion");
 		
-		if (this.resourceVersions.contains(resourceVersion)) {
-			logger.info("Resource " + resourceVersion + " already processed, skipping");
-			return;
-		}
-		
-		this.resourceVersions.add(resourceVersion);
 		
 		JSONObject spec = (JSONObject) trustObj.get("spec");
 		logger.info(metadata.get("name"));
@@ -279,75 +216,30 @@ public class LoadOrgsFromK8s implements DynamicOrgs,StopableThread {
 		
 	}
 
+	
+
+
 	@Override
-	public void run() {
-		logger.info("Starting watch");
-		while (this.keepRunning) {
-			HttpCon http;
-			try {
-				http = this.k8s.createClient();
-			} catch (Exception e1) {
-				logger.error("Could not create connection",e1);
-				return;
-			}
-			
-			try {
-				String url = new StringBuilder().append(this.k8s.getUrl())
-						                        .append(this.uri)
-						                        .append("?watch=true&timeoutSeconds=10").toString();
-				logger.info("watching " + url);
-				HttpGet get = new HttpGet(url);
-				get.setHeader("Authorization", new StringBuilder().append("Bearer ").append(this.k8s.getAuthToken()).toString());
-				HttpResponse resp = http.getHttp().execute(get);
-				BufferedReader in = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
-				String line = null;
-				
-				HttpCon nonwatchHttp = this.k8s.createClient();
-				
-				while ((line = in.readLine()) != null) {
-					JSONObject event = (JSONObject) new JSONParser().parse(line);
-					String action = (String) event.get("type");
-					JSONObject trust = (JSONObject) event.get("object");
-					
-					
-					
-					if (action.equalsIgnoreCase("ADDED") || action.equalsIgnoreCase("MODIFIED")) {
-						this.addOrg(tremolo,trust);
-					} else {
-						//deleted
-						JSONObject metadata = (JSONObject) trust.get("metadata");
-						String name = (String) metadata.get("name");
-						JSONObject spec = (JSONObject) trust.get("spec");
-						String uuid = (String) spec.get("uuid");
-						logger.info("Deleting organization " + uuid);
-						
-						deleteOrg(tremolo, uuid);
-					}
-				}
-				
-				nonwatchHttp.getHttp().close();
-				nonwatchHttp.getBcm().close();
-				
-			} catch (Exception e) {
-				logger.error("Could not get authentication token",e);
-				return;
-			} finally {
-				if (http != null) {
-					try {
-						http.getHttp().close();
-					} catch (IOException e) {
-						
-					}
-					http.getBcm().close();
-				}
-			}
-		}
+	public void addObject(TremoloType cfg, JSONObject item) throws ProvisioningException {
+		this.addOrg(cfg, item);
 		
 	}
 
 	@Override
-	public void stop() {
-		this.keepRunning = false;
+	public void modifyObject(TremoloType cfg, JSONObject item) throws ProvisioningException {
+		this.addOrg(cfg, item);
+		
+	}
+
+	@Override
+	public void deleteObject(TremoloType cfg, JSONObject item) throws ProvisioningException {
+		JSONObject metadata = (JSONObject) item.get("metadata");
+		String name = (String) metadata.get("name");
+		JSONObject spec = (JSONObject) item.get("spec");
+		String uuid = (String) spec.get("uuid");
+		logger.info("Deleting organization " + uuid);
+		
+		deleteOrg(tremolo, uuid);
 		
 	}
 	
