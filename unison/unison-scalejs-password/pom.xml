@@ -15,7 +15,7 @@
   <parent>
     <groupId>com.tremolosecurity.unison</groupId>
     <artifactId>unison</artifactId>
-    <version>1.0.20</version>
+    <version>1.0.21</version>
   </parent>
   <artifactId>unison-scalejs-password</artifactId>
   <name>com.tremolosecurity.unison</name>
