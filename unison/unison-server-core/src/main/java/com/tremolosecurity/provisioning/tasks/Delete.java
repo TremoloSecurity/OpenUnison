@@ -36,7 +36,7 @@ public class Delete extends WorkflowTaskImpl {
 	 * 
 	 */
 	private static final long serialVersionUID = 1450995303446838078L;
-	transient private ProvisioningTarget target;
+	
 	String targetName;
 	
 	public Delete() {
@@ -53,7 +53,7 @@ public class Delete extends WorkflowTaskImpl {
 	public void init(WorkflowTaskType taskConfig) throws ProvisioningException {
 		DeleteType delTskCfg = (DeleteType) taskConfig;
 		this.targetName = delTskCfg.getTarget();
-		this.target = this.getConfigManager().getProvisioningEngine().getTarget(delTskCfg.getTarget());
+		
 
 	}
 
@@ -61,7 +61,7 @@ public class Delete extends WorkflowTaskImpl {
 	
 	@Override
 	public void reInit() throws ProvisioningException {
-		this.target = this.getConfigManager().getProvisioningEngine().getTarget(this.targetName);
+		
 	}
 
 	@Override
@@ -69,7 +69,8 @@ public class Delete extends WorkflowTaskImpl {
 			throws ProvisioningException {
 		
 		request.put("WORKFLOW", this.getWorkflow());
-		this.target.deleteUser(user, request);
+		ProvisioningTarget target = this.getConfigManager().getProvisioningEngine().getTarget(this.targetName);
+		target.deleteUser(user, request);
 		return true;
 		
 	}

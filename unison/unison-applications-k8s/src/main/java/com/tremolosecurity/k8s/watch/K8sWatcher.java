@@ -45,7 +45,7 @@ public class K8sWatcher implements StopableThread {
 
 	private String uri;
 
-	private OpenShiftTarget k8s;
+	
 	
 	private HashSet<String> resourceVersions;
 	
@@ -69,15 +69,15 @@ public class K8sWatcher implements StopableThread {
 	
 	public void initalRun() throws ProvisioningException {
 		
-		this.k8s = (OpenShiftTarget) provisioningEngine.getTarget(k8sTarget).getProvider();
+		OpenShiftTarget k8s = (OpenShiftTarget) provisioningEngine.getTarget(k8sTarget).getProvider();
 		
-		if (this.k8s == null) {
+		if (k8s == null) {
 			throw new ProvisioningException("Target " + k8sTarget + " does not exist");
 		}
 		
 		HttpCon http;
 		try {
-			http = this.k8s.createClient();
+			http = k8s.createClient();
 		} catch (Exception e1) {
 			throw new ProvisioningException("Could not create http connection",e1);
 		}
@@ -144,25 +144,33 @@ public class K8sWatcher implements StopableThread {
 		logger.info("Starting watch");
 		while (this.keepRunning) {
 			HttpCon http;
+			OpenShiftTarget k8s;
 			try {
-				http = this.k8s.createClient();
+				k8s = (OpenShiftTarget) this.provisioningEngine.getTarget(k8sTarget).getProvider();
+			} catch (ProvisioningException e2) {
+				logger.error("Could not load target, stopping watch",e2);
+				return;
+			}
+			try {
+				
+				http = k8s.createClient();
 			} catch (Exception e1) {
 				logger.error("Could not create connection",e1);
 				return;
 			}
 			
 			try {
-				String url = new StringBuilder().append(this.k8s.getUrl())
+				String url = new StringBuilder().append(k8s.getUrl())
 						                        .append(this.uri)
 						                        .append("?watch=true&timeoutSeconds=10").toString();
 				logger.info("watching " + url);
 				HttpGet get = new HttpGet(url);
-				get.setHeader("Authorization", new StringBuilder().append("Bearer ").append(this.k8s.getAuthToken()).toString());
+				get.setHeader("Authorization", new StringBuilder().append("Bearer ").append(k8s.getAuthToken()).toString());
 				HttpResponse resp = http.getHttp().execute(get);
 				BufferedReader in = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
 				String line = null;
 				
-				HttpCon nonwatchHttp = this.k8s.createClient();
+				HttpCon nonwatchHttp = k8s.createClient();
 				
 				while ((line = in.readLine()) != null) {
 					JSONObject event = (JSONObject) new JSONParser().parse(line);
@@ -218,7 +226,7 @@ public class K8sWatcher implements StopableThread {
 		
 	}
 	
-	public OpenShiftTarget getK8s() {
-		return this.k8s;
+	public OpenShiftTarget getK8s() throws ProvisioningException {
+		return (OpenShiftTarget) this.provisioningEngine.getTarget(k8sTarget).getProvider();
 	}
 }

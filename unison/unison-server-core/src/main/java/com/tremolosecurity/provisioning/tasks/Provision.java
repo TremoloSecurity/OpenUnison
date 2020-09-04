@@ -40,7 +40,7 @@ public class Provision extends WorkflowTaskImpl {
 	 * 
 	 */
 	private static final long serialVersionUID = 5617141018935769531L;
-	transient private ProvisioningTarget target;
+	
 	boolean isSync;
 	boolean setPassword;
 	String targetName;
@@ -65,7 +65,7 @@ public class Provision extends WorkflowTaskImpl {
 		ProvisionType provTskCfg = (ProvisionType) taskConfig;
 		
 		
-		this.target = this.getConfigManager().getProvisioningEngine().getTarget(provTskCfg.getTarget());
+		
 		this.targetName = provTskCfg.getTarget();
 		this.isSync = provTskCfg.isSync();
 		this.setPassword = provTskCfg.isSetPassword();
@@ -82,12 +82,13 @@ public class Provision extends WorkflowTaskImpl {
 
 	@Override
 	public void reInit() throws ProvisioningException  {
-		this.target = this.getConfigManager().getProvisioningEngine().getTarget(this.targetName);
+		
 	}
 
 	@Override
 	public boolean doTask(User user,Map<String,Object> request) throws ProvisioningException {
 		
+		ProvisioningTarget target = this.getConfigManager().getProvisioningEngine().getTarget(this.targetName);
 		
 		request.put("WORKFLOW", this.getWorkflow());
 		
@@ -109,10 +110,10 @@ public class Provision extends WorkflowTaskImpl {
 			request.put(ProvisioningUtil.SET_PASSWORD, Boolean.TRUE);
 		}
 		
-		this.target.syncUser(user, ! this.isSync,request);
+		target.syncUser(user, ! this.isSync,request);
 		
 		if (this.setPassword) {
-			this.target.setPassword(user,request);
+			target.setPassword(user,request);
 		}
 		
 		return true;

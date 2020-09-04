@@ -73,7 +73,7 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,K8sWatchTarget {
 	}
 
 	private void addTrust(HashMap<String, OpenIDConnectTrust> trusts, HttpCon http, String token, Object o)
-			throws IOException, ClientProtocolException, ParseException {
+			throws IOException, ClientProtocolException, ParseException,ProvisioningException {
 		JSONObject trustObj = (JSONObject) o;
 		JSONObject metadata = (JSONObject) trustObj.get("metadata");
 		

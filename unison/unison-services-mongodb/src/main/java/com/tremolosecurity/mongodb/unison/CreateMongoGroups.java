@@ -37,7 +37,7 @@ public class CreateMongoGroups implements CustomTask {
 	List<String> requestAttributes;
 	
 	transient WorkflowTask task;
-	transient MongoDBTarget target;
+	
 	
 	@Override
 	public void init(WorkflowTask task, Map<String, Attribute> params) throws ProvisioningException {
@@ -50,25 +50,25 @@ public class CreateMongoGroups implements CustomTask {
 			this.requestAttributes.addAll(params.get("requestAttributes").getValues());
 		}
 		
-		this.target = (MongoDBTarget) task.getConfigManager().getProvisioningEngine().getTarget(targetName).getProvider();
+		
 	}
 
 	@Override
 	public void reInit(WorkflowTask task) throws ProvisioningException {
 		this.task = task;
-		this.target = (MongoDBTarget) task.getConfigManager().getProvisioningEngine().getTarget(targetName).getProvider();
+		
 	}
 
 	@Override
 	public boolean doTask(User user, Map<String, Object> request) throws ProvisioningException {
 		
-		 
+		MongoDBTarget target = (MongoDBTarget) task.getConfigManager().getProvisioningEngine().getTarget(targetName).getProvider();
 		
-		MongoClient client = this.target.getMongo();
+		MongoClient client = target.getMongo();
 		
 		Iterable<String> toCheck = user.getGroups();
 		
-		checkGroups(user, client, toCheck);
+		checkGroups(user, client, toCheck,target);
 		
 		ArrayList<String> vals = new ArrayList<String>();
 		
@@ -79,20 +79,20 @@ public class CreateMongoGroups implements CustomTask {
 			
 		}
 		
-		checkGroups(user, client, vals);
+		checkGroups(user, client, vals,target);
 		
 		
 		return true;
 	}
 
 	private void checkGroups(User user, MongoClient client,
-			Iterable<String> toCheck) {
+			Iterable<String> toCheck,MongoDBTarget target) {
 		
 		HashSet<String> groupsThatDontExist = new HashSet<String>();
 		
-		for (String collectionName : client.getDatabase(this.target.getDatabaseName()).listCollectionNames()) {
+		for (String collectionName : client.getDatabase(target.getDatabaseName()).listCollectionNames()) {
 			for (String groupName : toCheck) {
-				if (client.getDatabase(this.target.getDatabaseName()).getCollection(collectionName).find(and( eq("objectClass",this.target.getGroupObjectClassName()) , eq(this.target.getGroupNameAttribute() , groupName ) ) ).first() == null) {
+				if (client.getDatabase(target.getDatabaseName()).getCollection(collectionName).find(and( eq("objectClass",target.getGroupObjectClassName()) , eq(target.getGroupNameAttribute() , groupName ) ) ).first() == null) {
 					groupsThatDontExist.add(groupName);
 				}
 			}

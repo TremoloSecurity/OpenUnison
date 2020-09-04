@@ -41,7 +41,7 @@ public class IfNotUserExists extends WorkflowTaskImpl {
 	 * 
 	 */
 	
-	private transient ProvisioningTarget target;
+	
 	String attributeName;
 	String targetName;
 	
@@ -58,7 +58,7 @@ public class IfNotUserExists extends WorkflowTaskImpl {
 	@Override
 	public void init(WorkflowTaskType taskConfig) throws ProvisioningException {
 		IfNotUserExistsType provTskCfg = (IfNotUserExistsType) taskConfig;
-		this.target = this.getConfigManager().getProvisioningEngine().getTarget(provTskCfg.getTarget());
+		
 		this.attributeName = provTskCfg.getUidAttribute();
 		this.targetName = provTskCfg.getTarget();
 	}
@@ -66,13 +66,14 @@ public class IfNotUserExists extends WorkflowTaskImpl {
 
 	@Override
 	public void reInit() throws ProvisioningException {
-		this.target = this.getConfigManager().getProvisioningEngine().getTarget(this.targetName);
+		
 	}
 
 	@Override
 	public boolean doTask(User user,Map<String,Object> request) throws ProvisioningException {
 		String attr = user.getAttribs().get(this.attributeName).getValues().get(0);
-		User toFind  = this.target.findUser(attr,request);
+		ProvisioningTarget target = this.getConfigManager().getProvisioningEngine().getTarget(this.targetName);
+		User toFind  = target.findUser(attr,request);
 		if (toFind == null) {
 			return super.runSubTasks(super.getOnSuccess(),user,request);
 		}else {
