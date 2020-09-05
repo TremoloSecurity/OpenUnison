@@ -656,4 +656,12 @@ public class GitlabUserProvider implements UserStoreProviderWithAddGroup {
 		return this.name;
 	}
 
+
+
+	@Override
+	public void shutdown() throws ProvisioningException {
+		this.gitLabApi.close();
+		
+	}
+
 }

@@ -114,4 +114,10 @@ public class ArgoCDTarget implements UserStoreProvider {
 	public String getName() {
 		return this.name;
 	}
+
+	@Override
+	public void shutdown() throws ProvisioningException {
+		
+		
+	}
 }

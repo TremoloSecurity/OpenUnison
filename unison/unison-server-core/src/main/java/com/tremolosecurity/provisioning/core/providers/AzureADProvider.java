@@ -890,6 +890,12 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 	public void overrideOauth2Token(String token) {
 		this.oauth2Token = token;
 	}
+
+	@Override
+	public void shutdown() throws ProvisioningException {
+		
+		
+	}
 }
 
 class AttributeChange {

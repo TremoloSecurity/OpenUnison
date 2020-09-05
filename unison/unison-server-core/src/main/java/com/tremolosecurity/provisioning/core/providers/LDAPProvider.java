@@ -844,5 +844,11 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 	public String getSearchBase() {
 		return this.searchBase;
 	}
+
+	@Override
+	public void shutdown() throws ProvisioningException {
+		this.ldapPool.shutdown();
+		
+	}
 }
 

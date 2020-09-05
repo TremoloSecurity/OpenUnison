@@ -1405,6 +1405,12 @@ public class BasicDB implements BasicDBInterface {
 			throw new ProvisioningException("Not Supported");
 		}
 	}
+
+	@Override
+	public void shutdown() throws ProvisioningException {
+		this.ds.
+		
+	}
 	
 	
 }

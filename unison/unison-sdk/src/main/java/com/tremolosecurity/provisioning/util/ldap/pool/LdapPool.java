@@ -31,8 +31,11 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 
 
+
 public class LdapPool {
 
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(LdapPool.class);
+	
 	ArrayList<LdapConnection> cons;
 	private String host;
 	private int port;
@@ -101,6 +104,15 @@ public class LdapPool {
 		return this.getConnection(num+1);
 	}
 	
+	public void shutdown() {
+		for (LdapConnection con : this.cons) {
+			try {
+				con.getConnection().disconnect();
+			} catch (LDAPException e) {
+				logger.warn("Problem closing connection",e);
+			}
+		}
+	}
 	
 	
 }

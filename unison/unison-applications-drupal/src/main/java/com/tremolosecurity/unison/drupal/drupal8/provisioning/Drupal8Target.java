@@ -679,6 +679,12 @@ public class Drupal8Target implements UserStoreProvider {
 		
 
 	}
+
+	@Override
+	public void shutdown() throws ProvisioningException {
+
+		
+	}
 	
 	
 

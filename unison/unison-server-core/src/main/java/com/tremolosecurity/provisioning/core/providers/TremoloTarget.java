@@ -291,4 +291,15 @@ public class TremoloTarget implements UserStoreProvider {
 		}
 		
 	}
+
+	@Override
+	public void shutdown() throws ProvisioningException {
+		phcm.close();
+		try {
+			httpclient.close();
+		} catch (IOException e) {
+			logger.warn("Error shutting down",e);
+		}
+		
+	}
 }

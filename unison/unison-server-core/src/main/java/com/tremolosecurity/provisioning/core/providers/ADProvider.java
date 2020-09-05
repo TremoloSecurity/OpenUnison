@@ -1339,5 +1339,11 @@ public class ADProvider implements UserStoreProviderWithAddGroup {
 			throw new ProvisioningException("Could not set user's password",e);
 		}
 	}
+
+	@Override
+	public void shutdown() throws ProvisioningException {
+		this.ldapPool.shutdown();
+		
+	}
 }
 

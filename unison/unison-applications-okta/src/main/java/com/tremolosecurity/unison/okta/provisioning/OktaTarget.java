@@ -277,6 +277,11 @@ public class OktaTarget implements UserStoreProvider {
 	public Client getOkta() {
 		return this.okta;
 	}
+	@Override
+	public void shutdown() throws ProvisioningException {
+		
+		
+	}
 	
 	
 

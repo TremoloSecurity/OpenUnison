@@ -8,12 +8,8 @@
 	the specific language governing permissions and limitations under the License. -->
 <schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tremolosecurity.com/tremoloConfig"
 	xmlns:tns="http://www.tremolosecurity.com/tremoloConfig" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
-           
-	elementFormDefault="qualified"
-	
-	
-	
-	>
+    jaxb:version="2.1"
+	elementFormDefault="qualified">
 
 
 	<include schemaLocation=""></include>
@@ -887,6 +883,7 @@
 			<documentation>List of provisioning targets</documentation>
 		</annotation>
 		<sequence>
+		    <element name="dynamicTargets" type="tns:dynamicPortalUrlsType" maxOccurs="1" minOccurs="0"></element>
 			<element name="target" type="tns:targetType" maxOccurs="unbounded"
 				minOccurs="0"></element>
 		</sequence>

@@ -45,4 +45,6 @@ public interface UserStoreProvider {
 	public User findUser(String userID,Set<String> attributes,Map<String,Object> request) throws ProvisioningException;
 	
 	public void init(Map<String,Attribute> cfg,ConfigManager cfgMgr,String name) throws ProvisioningException;
+	
+	public void shutdown() throws ProvisioningException;
 }
