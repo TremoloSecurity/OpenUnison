@@ -623,4 +623,10 @@ public class MongoDBTarget implements UserStoreProvider {
 		return this.groupRDN;
 	}
 
+	@Override
+	public void shutdown() throws ProvisioningException {
+		this.mongo.close();
+		
+	}
+
 }

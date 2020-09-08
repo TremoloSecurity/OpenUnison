@@ -507,4 +507,10 @@ public class AmazonSimpleDBProvider implements UserStoreProvider {
 		
 	}
 
+	@Override
+	public void shutdown() throws ProvisioningException {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

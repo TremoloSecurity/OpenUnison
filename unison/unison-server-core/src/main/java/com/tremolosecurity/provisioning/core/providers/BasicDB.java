@@ -56,6 +56,7 @@ import com.tremolosecurity.server.StopableThread;
 
 import net.sourceforge.myvd.util.PBKDF2;
 import net.sourceforge.myvd.inserts.jdbc.JdbcInsert;
+import net.sourceforge.myvd.inserts.jdbc.JdbcPoolHolder;
 
 
 
@@ -121,6 +122,8 @@ public class BasicDB implements BasicDBInterface {
 	
 	boolean supportPasswords;
 	String passwordField;
+
+	private JdbcPoolHolder jdbcPoolHolder;
 	
 	
 	/* (non-Javadoc)
@@ -976,7 +979,7 @@ public class BasicDB implements BasicDBInterface {
 		this.cfgMgr = cfgMgr;
 		
 
-		this.cfgMgr.addThread(new StopableThread(){
+		/*this.cfgMgr.addThread(new StopableThread(){
 		
 			@Override
 			public void run() {
@@ -995,7 +998,7 @@ public class BasicDB implements BasicDBInterface {
 				}
 
 			}
-		});
+		});*/
 
 		this.name = name;
 		
@@ -1019,7 +1022,9 @@ public class BasicDB implements BasicDBInterface {
 		synchronized(JdbcInsert.getPoolCache()) {
 			if (JdbcInsert.getPoolCache().get(poolKey) != null ) {
 				logger.info(this.name + " - using existing connection pool");
-				this.ds = JdbcInsert.getPoolCache().get(poolKey);
+				this.jdbcPoolHolder = JdbcInsert.getPoolCache().get(poolKey);
+				jdbcPoolHolder.upCount();
+				this.ds = jdbcPoolHolder.getDs();
 			} else {
 				logger.info(this.name + " - creating connection pool");
 				ComboPooledDataSource cpds = new ComboPooledDataSource();
@@ -1046,7 +1051,13 @@ public class BasicDB implements BasicDBInterface {
 
 
 				this.ds = cpds;
-				JdbcInsert.getPoolCache().put(poolKey, cpds);
+				
+				this.jdbcPoolHolder = new JdbcPoolHolder(poolKey);
+				jdbcPoolHolder.upCount();
+				jdbcPoolHolder.setDs(cpds);
+				JdbcInsert.getPoolCache().put(poolKey, jdbcPoolHolder);
+				
+				
 			}
 		
 		}
@@ -1408,7 +1419,9 @@ public class BasicDB implements BasicDBInterface {
 
 	@Override
 	public void shutdown() throws ProvisioningException {
-		this.ds.
+		if (this.jdbcPoolHolder.downCount()) {
+			JdbcInsert.getPoolCache().remove(this.jdbcPoolHolder.getKey());
+		}
 		
 	}
 	

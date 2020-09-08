@@ -1102,4 +1102,10 @@ public class KeystoneProvisioningTarget implements UserStoreProvider {
 			}
 		}
 	}
+
+	@Override
+	public void shutdown() throws ProvisioningException {
+		
+		
+	}
 }

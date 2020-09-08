@@ -452,4 +452,10 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 
 	}
 
+	@Override
+	public void shutdown() throws ProvisioningException {
+		
+		
+	}
+
 }

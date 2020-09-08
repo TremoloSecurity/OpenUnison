@@ -1244,6 +1244,12 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 		}
 	}
 
+	@Override
+	public void shutdown() throws ProvisioningException {
+
+		
+	}
+
 }
 
 class UserPrincipal {

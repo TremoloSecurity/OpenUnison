@@ -932,4 +932,10 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		}
 		
 	}
+
+	@Override
+	public void shutdown() throws ProvisioningException {
+		
+		
+	}
 }

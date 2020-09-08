@@ -545,6 +545,12 @@ public class SugarCRM implements UserStoreProvider {
 			throw new ProvisioningException("Unknown module '" + request.get("tremoloio.sugarcrm.module") + "'");
 		}
 	}
+
+	@Override
+	public void shutdown() throws ProvisioningException {
+		// TODO Auto-generated method stub
+		
+	}
 }
 
 class ModuleType {

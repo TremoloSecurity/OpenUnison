@@ -493,4 +493,10 @@ public class MailChimp implements UserStoreProvider {
 
 	}
 
+	@Override
+	public void shutdown() throws ProvisioningException {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
