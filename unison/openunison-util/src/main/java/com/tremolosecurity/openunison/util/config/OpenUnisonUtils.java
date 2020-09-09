@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 
-package com.tremolosecurity.openunison.util;
+package com.tremolosecurity.openunison.util.config;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

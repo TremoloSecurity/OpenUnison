@@ -1,0 +1,88 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: targets.openunison.tremolo.io
+spec:
+  group: openunison.tremolo.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+  version: v1
+  scope: Namespaced
+  names:
+    plural: targets
+    singular: target
+    kind: Target
+    shortNames:
+    - target
+  validation:
+   # openAPIV3Schema is the schema for validating custom objects.
+    openAPIV3Schema:
+      properties:
+        spec:
+          properties:
+            className:
+              type: string
+            params:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  value:
+                    type: string
+            targetAttributes:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  source:
+                    type: string
+                  sourceType:
+                    type: string
+                    enum: 
+                    - string
+                    - int
+                    - long
+                    - date
+                    - timestamp
+                  targetType:
+                    type: string
+                    enum: 
+                    - string
+                    - int
+                    - long
+                    - date
+                    - timestamp
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: openunison
+  name: openunison-provisioning-get
+rules:
+- apiGroups: ["openunison.tremolo.io"]
+  resources: ["targets"]
+  verbs:
+  - get
+  - list
+  - watch
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openunison-provisioning-get
+  namespace: openunison
+subjects:
+- kind: ServiceAccount
+  name: openunison-orchestra
+  namespace: openunison
+roleRef:
+  kind: Role
+  name: openunison-provisioning-get
+  apiGroup: rbac.authorization.k8s.io
+                  

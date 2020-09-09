@@ -28,6 +28,8 @@ import javax.jms.MessageProducer;
 
 import org.hibernate.SessionFactory;
 
+import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.config.xml.TargetType;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
 
@@ -134,6 +136,8 @@ public interface ProvisioningEngine {
 	public abstract SessionFactory getHibernateSessionFactory() throws ProvisioningException;
 	
 	public void rebuildHibernate();
+	
+	public void addTarget(ConfigManager cfgMgr, TargetType targetCfg) throws ProvisioningException;
 	
 
 }

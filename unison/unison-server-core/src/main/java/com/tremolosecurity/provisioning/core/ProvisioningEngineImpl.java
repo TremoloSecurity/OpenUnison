@@ -830,35 +830,40 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 		while (it.hasNext()) {
 			TargetType targetCfg = it.next();
-			HashMap<String,Attribute> cfg = new HashMap<String,Attribute>();
-			Iterator<ParamType> params =  targetCfg.getParams().getParam().iterator();
-			while (params.hasNext()) {
-				ParamType param = params.next();
-				Attribute attr = cfg.get(param.getName());
-				
-				if (attr == null) {
-					attr = new Attribute(param.getName());
-					cfg.put(attr.getName(), attr);
-				}
-				
-				attr.getValues().add(param.getValue());
-			}
-			
-			
-			UserStoreProvider provider = null;
-			
-			try {
-				provider = (UserStoreProvider) Class.forName(targetCfg.getClassName()).newInstance();
-			} catch (Exception e) {
-				throw new ProvisioningException("Could not initialize target " + targetCfg.getName(),e);
-			}
-			
-			MapIdentity mapper = new MapIdentity(targetCfg);
-			this.userStores.put(targetCfg.getName(), new ProvisioningTargetImpl(targetCfg.getName(),provider,mapper));
-			provider.init(cfg,cfgMgr,targetCfg.getName());
+			addTarget(cfgMgr, targetCfg);
 			
 			
 		}
+	}
+
+
+	public void addTarget(ConfigManager cfgMgr, TargetType targetCfg) throws ProvisioningException {
+		HashMap<String,Attribute> cfg = new HashMap<String,Attribute>();
+		Iterator<ParamType> params =  targetCfg.getParams().getParam().iterator();
+		while (params.hasNext()) {
+			ParamType param = params.next();
+			Attribute attr = cfg.get(param.getName());
+			
+			if (attr == null) {
+				attr = new Attribute(param.getName());
+				cfg.put(attr.getName(), attr);
+			}
+			
+			attr.getValues().add(param.getValue());
+		}
+		
+		
+		UserStoreProvider provider = null;
+		
+		try {
+			provider = (UserStoreProvider) Class.forName(targetCfg.getClassName()).newInstance();
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not initialize target " + targetCfg.getName(),e);
+		}
+		
+		MapIdentity mapper = new MapIdentity(targetCfg);
+		this.userStores.put(targetCfg.getName(), new ProvisioningTargetImpl(targetCfg.getName(),provider,mapper));
+		provider.init(cfg,cfgMgr,targetCfg.getName());
 	}
 	
 	/* (non-Javadoc)
