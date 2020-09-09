@@ -33,6 +33,17 @@ spec:
                     type: string
                   value:
                     type: string
+            secretParams:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  secretName:
+                    type: string
+                  secretKey:
+                    type: string
             targetAttributes:
               type: array
               items:

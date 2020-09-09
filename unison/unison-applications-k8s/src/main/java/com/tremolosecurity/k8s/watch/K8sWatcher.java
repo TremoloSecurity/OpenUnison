@@ -21,11 +21,13 @@ import java.io.InputStreamReader;
 import java.util.HashSet;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.HttpGet;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
@@ -137,6 +139,34 @@ public class K8sWatcher implements StopableThread {
 		GlobalEntries.getGlobalEntries().getConfigManager().addThread(this);
 		logger.info("Starting watch");
 		new Thread(this).start();
+	}
+	
+	
+	public String getSecretValue(String secretName, String secretKey,String token,HttpCon http) throws ClientProtocolException, IOException, ProvisioningException, ParseException {
+		String secretUri = "/api/v1/namespaces/" + namespace + "/secrets/" + secretName;
+		String secretJson = this.getK8s().callWS(token, http, secretUri);
+		JSONObject secret = (JSONObject) new JSONParser().parse(secretJson);
+		
+		JSONObject data = (JSONObject) secret.get("data");
+		if (data == null) {
+			logger.error("Invalid secret response for " + secretUri + " - " + secretJson);
+			return null;
+		}
+		
+		
+		
+		String secretData = (String) data.get(secretKey);
+		
+		if (secretData == null) {
+			logger.error("Secret key " + secretKey + " does not exist");
+			return null;
+		}
+		
+		
+		
+		String decoded = new String(java.util.Base64.getDecoder().decode(secretData));
+		
+		return decoded;
 	}
 
 	@Override

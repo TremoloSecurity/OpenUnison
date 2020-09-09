@@ -1,4 +1,19 @@
-package com.tremolosecurity.provisioning.orgs;
+/*******************************************************************************
+ * Copyright 2020 Tremolo Security, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
+package com.tremolosecurity.provisioning.targets;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +34,7 @@ import com.tremolosecurity.openunison.util.config.OpenUnisonConfigLoader;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.targets.DynamicTargets;
+import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.saml.Attribute;
 
 public class LoadTargetsFromK8s implements DynamicTargets, K8sWatchTarget {
@@ -39,8 +55,13 @@ public class LoadTargetsFromK8s implements DynamicTargets, K8sWatchTarget {
 		TargetType target = new TargetType();
 		target.setName(name);
 		target.setParams(new TargetConfigType());
-		
+		HttpCon nonwatchHttp = null;
 		try {
+			
+			nonwatchHttp = this.k8sWatch.getK8s().createClient();
+			String token = this.k8sWatch.getK8s().getAuthToken();
+			
+			
 			target.setClassName(OpenUnisonConfigLoader.generateOpenUnisonConfig(  (String)item.get("className")));
 			JSONArray params = (JSONArray) item.get("params");
 			for (Object o : params) {
@@ -50,6 +71,24 @@ public class LoadTargetsFromK8s implements DynamicTargets, K8sWatchTarget {
 				pt.setValue(OpenUnisonConfigLoader.generateOpenUnisonConfig((String) param.get("value")  ));
 				target.getParams().getParam().add(pt);
 			}
+			
+			
+			JSONArray secretParams = (JSONArray) item.get("secretParams");
+			
+			for (Object o : secretParams) {
+				JSONObject secretParam = (JSONObject) o;
+				String paramName = (String) secretParam.get("name");
+				String secretName = (String) secretParam.get("secretName");
+				String secretKey = (String) secretParam.get("secretKey");
+				
+				String secretValue = this.k8sWatch.getSecretValue(secretName, secretKey, token, nonwatchHttp);
+				ParamType pt = new ParamType();
+				pt.setName(paramName);
+				pt.setValue(secretValue);
+				target.getParams().getParam().add(pt);
+				
+			}
+			
 			
 			JSONArray attrs = (JSONArray) item.get("targetAttributes");
 			for (Object o : attrs) {

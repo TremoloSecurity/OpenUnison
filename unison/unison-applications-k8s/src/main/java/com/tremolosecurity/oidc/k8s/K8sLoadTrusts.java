@@ -71,6 +71,8 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,K8sWatchTarget {
 		
 		
 	}
+	
+	
 
 	private void addTrust(HashMap<String, OpenIDConnectTrust> trusts, HttpCon http, String token, Object o)
 			throws IOException, ClientProtocolException, ParseException,ProvisioningException {
@@ -95,31 +97,17 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,K8sWatchTarget {
 				logger.error("secretInfo not provided for trust " + metadata.get("name"));
 				return;
 			}
-			String secretUri = "/api/v1/namespaces/" + namespace + "/secrets/" + secretInfo.get("secretName").toString();
-			String secretJson = this.k8sWatch.getK8s().callWS(token, http, secretUri);
-			JSONObject secret = (JSONObject) new JSONParser().parse(secretJson);
-			
-			JSONObject data = (JSONObject) secret.get("data");
-			if (data == null) {
-				logger.error("Invalid secret response for " + secretUri + " - " + secretJson);
-				return;
-			}
 			
 			
-			
-			String secretData = (String) data.get(secretInfo.get("keyName").toString());
+			String secretData = this.k8sWatch.getSecretValue(secretInfo.get("secretName").toString(), secretInfo.get("keyName").toString(), token, http);
 			
 			if (secretData == null) {
-				logger.error("Secret key " + secretInfo.get("keyName").toString() + " does not exist");
+				logger.error("No secret found");
 				return;
 			}
 			
 			
-			
-			String decoded = new String(java.util.Base64.getDecoder().decode(secretData));
-			
-			
-			trust.setClientSecret(decoded);
+			trust.setClientSecret(secretData);
 		}
 		
 		JSONArray redirects = (JSONArray) spec.get("redirectURI");
