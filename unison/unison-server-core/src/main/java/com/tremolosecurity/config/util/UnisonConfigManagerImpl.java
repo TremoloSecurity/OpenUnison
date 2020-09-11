@@ -242,6 +242,14 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 			}
 		}
 		
+		buildHttpConfig();
+		
+
+	}
+
+	@Override
+	public void buildHttpConfig()
+			throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
 		sslctx = SSLContexts.custom().loadTrustMaterial(this.ks).loadKeyMaterial(this.ks,this.cfg.getKeyStorePassword().toCharArray()).build();
 		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslctx,SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 		
@@ -252,8 +260,6 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		        .build();
 		
 		globalHttpClientConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES).setRedirectsEnabled(false).setAuthenticationEnabled(false).build();
-		
-
 	}
 	
 	/* (non-Javadoc)

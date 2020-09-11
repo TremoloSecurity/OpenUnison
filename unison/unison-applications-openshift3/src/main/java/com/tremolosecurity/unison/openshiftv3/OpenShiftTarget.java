@@ -12,14 +12,20 @@
  *******************************************************************************/
 package com.tremolosecurity.unison.openshiftv3;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.KeyManagementException;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -58,6 +64,7 @@ import org.json.simple.parser.ParseException;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.tremolosecurity.certs.CertManager;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
@@ -631,6 +638,23 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 		this.cfgMgr = cfgMgr;
 		this.name = name;
+		
+		if (cfg.get("certificate") != null) {
+			String certificate = cfg.get("certificate").getValues().get(0);
+			try {
+				X509Certificate cert = this.pem2cert(certificate);
+				cfgMgr.getKeyStore().setCertificateEntry("k8s-certificate-" + this.name, cert);
+			} catch (Exception e) {
+				throw new ProvisioningException("Could not load certificate",e);
+			}
+			
+		}
+		
+		try {
+			cfgMgr.buildHttpConfig();
+		} catch (KeyManagementException | UnrecoverableKeyException | NoSuchAlgorithmException | KeyStoreException e) {
+			throw new ProvisioningException("Could not rebuild http configuration",e);
+		}
 
 	}
 	
@@ -938,4 +962,16 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 		
 	}
+	
+	
+	private  X509Certificate pem2cert(String pem) throws Exception {
+        if (!pem.startsWith("-")) {
+            pem = new String(java.util.Base64.getDecoder().decode(pem));
+        }
+
+        ByteArrayInputStream bais = new ByteArrayInputStream(pem.getBytes("UTF-8"));
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        Collection<? extends java.security.cert.Certificate> c = cf.generateCertificates(bais);
+        return (X509Certificate) c.iterator().next();
+    }
 }
