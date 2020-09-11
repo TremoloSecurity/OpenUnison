@@ -21,10 +21,12 @@ package com.tremolosecurity.config.util;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
@@ -371,6 +373,9 @@ public interface ConfigManager {
 	 * @return
 	 */
 	public abstract SSLContext getSSLContext();
+
+	void buildHttpConfig()
+			throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException;
 	
 	
 

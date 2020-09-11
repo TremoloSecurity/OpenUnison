@@ -137,7 +137,13 @@ public interface ProvisioningEngine {
 	
 	public void rebuildHibernate();
 	
-	public void addTarget(ConfigManager cfgMgr, TargetType targetCfg) throws ProvisioningException;
+
+
+	void removeTarget(String name) throws ProvisioningException;
+
+	void replaceTarget(ConfigManager cfgMgr, TargetType targetCfg) throws ProvisioningException;
+
+	void addDynamicTarget(ConfigManager cfgMgr, TargetType targetCfg) throws ProvisioningException;
 	
 
 }

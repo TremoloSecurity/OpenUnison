@@ -127,6 +127,7 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.ApprovalDBType;
+import com.tremolosecurity.config.xml.DynamicPortalUrlsType;
 import com.tremolosecurity.config.xml.JobType;
 import com.tremolosecurity.config.xml.MessageListenerType;
 import com.tremolosecurity.config.xml.OrgType;
@@ -160,6 +161,7 @@ import com.tremolosecurity.provisioning.objects.Workflows;
 import com.tremolosecurity.provisioning.orgs.DynamicOrgs;
 import com.tremolosecurity.provisioning.portal.DynamicPortalUrls;
 import com.tremolosecurity.provisioning.scheduler.StopScheduler;
+import com.tremolosecurity.provisioning.targets.DynamicTargets;
 import com.tremolosecurity.provisioning.tasks.Approval;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
 
@@ -834,10 +836,36 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			
 		}
+		
+		
+		if (cfgMgr.getCfg().getProvisioning().getTargets().getDynamicTargets() != null && cfgMgr.getCfg().getProvisioning().getTargets().getDynamicTargets().isEnabled() ) {
+			DynamicPortalUrlsType dynamicTargets = cfgMgr.getCfg().getProvisioning().getTargets().getDynamicTargets();
+			String className = dynamicTargets.getClassName();
+			HashMap<String,Attribute> cfgAttrs = new HashMap<String,Attribute>();
+			for (ParamType pt : dynamicTargets.getParams()) {
+				Attribute attr = cfgAttrs.get(pt.getName());
+				if (attr == null) {
+					attr = new Attribute(pt.getName());
+					cfgAttrs.put(pt.getName(), attr);
+				}
+				
+				attr.getValues().add(pt.getValue());
+			}
+			
+			try {
+				DynamicTargets dynTargets = (DynamicTargets) Class.forName(className).newInstance();
+				dynTargets.loadDynamicTargets(cfgMgr, this,cfgAttrs);
+				
+			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+				throw new ProvisioningException("Could not initialize dynamic targets",e);
+			}
+		}
+		
 	}
 
-
-	public void addTarget(ConfigManager cfgMgr, TargetType targetCfg) throws ProvisioningException {
+	
+	private void addTarget(ConfigManager cfgMgr, TargetType targetCfg) throws ProvisioningException {
+		
 		HashMap<String,Attribute> cfg = new HashMap<String,Attribute>();
 		Iterator<ParamType> params =  targetCfg.getParams().getParam().iterator();
 		while (params.hasNext()) {
@@ -855,16 +883,78 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 		UserStoreProvider provider = null;
 		
-		try {
-			provider = (UserStoreProvider) Class.forName(targetCfg.getClassName()).newInstance();
-		} catch (Exception e) {
-			throw new ProvisioningException("Could not initialize target " + targetCfg.getName(),e);
+		synchronized (this.userStores) {
+			try {
+				provider = (UserStoreProvider) Class.forName(targetCfg.getClassName()).newInstance();
+			} catch (Exception e) {
+				throw new ProvisioningException("Could not initialize target " + targetCfg.getName(),e);
+			}
+			
+			MapIdentity mapper = new MapIdentity(targetCfg);
+			this.userStores.put(targetCfg.getName(), new ProvisioningTargetImpl(targetCfg.getName(),provider,mapper));
+			provider.init(cfg,cfgMgr,targetCfg.getName());
 		}
-		
-		MapIdentity mapper = new MapIdentity(targetCfg);
-		this.userStores.put(targetCfg.getName(), new ProvisioningTargetImpl(targetCfg.getName(),provider,mapper));
-		provider.init(cfg,cfgMgr,targetCfg.getName());
 	}
+	
+	
+	private void addTargetToDb(TargetType targetCfg) {
+		if (sessionFactory != null && this.cfgMgr.getCfg().getProvisioning() != null && this.cfgMgr.getCfg().getProvisioning().getApprovalDB() != null && this.cfgMgr.getCfg().getProvisioning().getApprovalDB().isEnabled()) {
+			org.hibernate.Session session = sessionFactory.openSession();
+	        
+	        try {
+		        List<Targets> targets = session.createCriteria(Targets.class).list();
+		        for (Targets target : targets) {
+		        	this.targetIDs.put(target.getName(), target);
+		        }
+		        
+		        
+		        session.beginTransaction();
+		        
+		        
+	        	if (! this.targetIDs.containsKey(targetCfg.getName())) {
+					Targets target = new Targets();
+					target.setName(targetCfg.getName());
+					session.save(target);
+					this.targetIDs.put(target.getName(), target);
+				}
+		        
+		        
+		        session.getTransaction().commit();
+	        } finally {
+	        	session.close();
+	        }
+		}
+	}
+	
+	@Override
+	public void addDynamicTarget(ConfigManager cfgMgr, TargetType targetCfg) throws ProvisioningException {
+		synchronized (this.userStores) {
+			this.addTarget(cfgMgr, targetCfg);
+			this.addTargetToDb(targetCfg);
+		}
+	}
+	
+	@Override
+	public void removeTarget(String name) throws ProvisioningException {
+		synchronized (this.userStores) {
+			ProvisioningTarget target = this.userStores.get(name);
+			if (target != null) {
+				this.userStores.remove(name);
+				target.getProvider().shutdown();
+			}
+		}
+	}
+	
+	@Override
+	public void replaceTarget(ConfigManager cfgMgr, TargetType targetCfg) throws ProvisioningException {
+		synchronized (this.userStores) {
+			this.removeTarget(targetCfg.getName());
+			this.addTarget(cfgMgr, targetCfg);
+			this.addTargetToDb(targetCfg);
+		}
+	}
+	
+	
 	
 	/* (non-Javadoc)
 	 * @see com.tremolosecurity.provisioning.core.ProvisioningEngine#getTarget(java.lang.String)

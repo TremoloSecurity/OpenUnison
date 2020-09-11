@@ -50,30 +50,48 @@ public class LoadTargetsFromK8s implements DynamicTargets, K8sWatchTarget {
 
 	@Override
 	public void addObject(TremoloType cfg, JSONObject item) throws ProvisioningException {
+		
 		JSONObject metadata = (JSONObject) item.get("metadata");
 		String name = (String) metadata.get("name");
+		logger.info("Creating target '" + name + "'");
+		TargetType target = createTarget(item, name);
+		this.provisioningEngine.addDynamicTarget(cfgMgr, target);
+		
+		
+	}
+
+	private TargetType createTarget(JSONObject item, String name) throws ProvisioningException {
 		TargetType target = new TargetType();
 		target.setName(name);
 		target.setParams(new TargetConfigType());
 		HttpCon nonwatchHttp = null;
+		
+		JSONObject spec = (JSONObject) item.get("spec");
 		try {
 			
 			nonwatchHttp = this.k8sWatch.getK8s().createClient();
 			String token = this.k8sWatch.getK8s().getAuthToken();
 			
+			StringBuffer b = new StringBuffer();
+			b.setLength(0);
+			OpenUnisonConfigLoader.integrateIncludes(b,  (String)spec.get("className"));
 			
-			target.setClassName(OpenUnisonConfigLoader.generateOpenUnisonConfig(  (String)item.get("className")));
-			JSONArray params = (JSONArray) item.get("params");
+			target.setClassName(b.toString());
+			JSONArray params = (JSONArray) spec.get("params");
 			for (Object o : params) {
 				JSONObject param = (JSONObject) o;
 				ParamType pt = new ParamType();
-				pt.setName(OpenUnisonConfigLoader.generateOpenUnisonConfig((String) param.get("name")  ));
-				pt.setValue(OpenUnisonConfigLoader.generateOpenUnisonConfig((String) param.get("value")  ));
+				b.setLength(0);
+				OpenUnisonConfigLoader.integrateIncludes(b,(String) param.get("name")  );
+				pt.setName(b.toString());
+				b.setLength(0);
+				OpenUnisonConfigLoader.integrateIncludes(b,(String) param.get("value")  );
+				pt.setValue(b.toString());
 				target.getParams().getParam().add(pt);
 			}
 			
 			
-			JSONArray secretParams = (JSONArray) item.get("secretParams");
+			JSONArray secretParams = (JSONArray) spec.get("secretParams");
 			
 			for (Object o : secretParams) {
 				JSONObject secretParam = (JSONObject) o;
@@ -90,36 +108,50 @@ public class LoadTargetsFromK8s implements DynamicTargets, K8sWatchTarget {
 			}
 			
 			
-			JSONArray attrs = (JSONArray) item.get("targetAttributes");
+			JSONArray attrs = (JSONArray) spec.get("targetAttributes");
 			for (Object o : attrs) {
 				JSONObject attr = (JSONObject) o;
 				TargetAttributeType ta = new TargetAttributeType();
-				ta.setName(OpenUnisonConfigLoader.generateOpenUnisonConfig((String) attr.get("name")));
-				ta.setSource(OpenUnisonConfigLoader.generateOpenUnisonConfig((String) attr.get("source")));
+				b.setLength(0);
+				OpenUnisonConfigLoader.integrateIncludes(b,(String) attr.get("name"));
+				ta.setName(b.toString());
+				b.setLength(0);
+				OpenUnisonConfigLoader.integrateIncludes(b,(String) attr.get("source"));
+				ta.setSource(b.toString());
 				ta.setSourceType((String) attr.get("sourceType"));
 				ta.setTargetType((String) attr.get("targetType"));
 				target.getTargetAttribute().add(ta);
 			}
 			
-			this.provisioningEngine.addTarget(cfgMgr, target);
+			return target;
 			
 			
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not add target '" + name + "'",e);
-		} 
+		}
 		
 		
 	}
 
 	@Override
 	public void modifyObject(TremoloType cfg, JSONObject item) throws ProvisioningException {
-		// TODO Auto-generated method stub
+		JSONObject metadata = (JSONObject) item.get("metadata");
+		String name = (String) metadata.get("name");
+		logger.info("Replacing target '" + name + "'");
+		
+		TargetType target = this.createTarget(item, name);
+		
+		this.provisioningEngine.replaceTarget(cfgMgr, target);
+		
 
 	}
 
 	@Override
 	public void deleteObject(TremoloType cfg, JSONObject item) throws ProvisioningException {
-		// TODO Auto-generated method stub
+		JSONObject metadata = (JSONObject) item.get("metadata");
+		String name = (String) metadata.get("name");
+		logger.info("Deleting target '" + name + "'");
+		this.provisioningEngine.removeTarget(name);
 
 	}
 

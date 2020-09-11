@@ -56,11 +56,9 @@ spec:
                   sourceType:
                     type: string
                     enum: 
-                    - string
-                    - int
-                    - long
-                    - date
-                    - timestamp
+                    - static
+                    - user
+                    - custom
                   targetType:
                     type: string
                     enum: 

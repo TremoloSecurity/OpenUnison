@@ -80,7 +80,7 @@ public class OpenUnisonConfigLoader {
 
     }
 
-    private static void integrateIncludes(StringBuffer newConfig, String originalConfig) {
+    public static void integrateIncludes(StringBuffer newConfig, String originalConfig) {
         int begin,end;
 
 
@@ -134,8 +134,12 @@ public class OpenUnisonConfigLoader {
 
         if (end != 0) {
             newConfig.append(originalConfig.substring(end));
+        } else if (begin == -1 && end == 0) {
+        	//nothing found, return original value
+        	newConfig.append(originalConfig);
         }
 
+        
     }
 
     private static void includeFiles(StringBuffer newConfig, String originalConfig,String basePath) throws Exception {

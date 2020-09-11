@@ -777,6 +777,7 @@
 				to write user data from a workflow</documentation>
 		</annotation>
 		<sequence>
+		    <element name="dynamicTargets" type="tns:dynamicPortalUrlsType" maxOccurs="1" minOccurs="0"></element>
 			<element name="params" type="tns:targetConfigType"
 				maxOccurs="1" minOccurs="0">
 			</element>
