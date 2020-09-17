@@ -96,7 +96,7 @@
 		<repository>
 			<id>tremolosecurity-releases</id>
 			<!-- <url>https://nexus.tremolo.io/repository/betas/</url> -->
-			<url>https://nexus.tremolo.io/repository/releases/</url>
+			<url>https://nexus.tremolo.io/repository/btas/</url>
 		</repository>
 	
                 <repository>
@@ -123,7 +123,7 @@
 			<!--  <id>nexus.tremolo.io</id>  -->
 			<id>nexus.tremolo.io</id>
 			<name>tremolo.io-releases</name>
-			<url>s3://tremolosecurity-maven/repository/releases</url>  
+			<url>s3://tremolosecurity-maven/repository/betas</url>  
 		</repository>
 
 	</distributionManagement>
