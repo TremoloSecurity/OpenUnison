@@ -658,98 +658,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		return null;
 	}
 	
-	private boolean processCallWf(WorkflowType wft) {
-		boolean foundCallWf = false;
-		
-		int i = 0;
-		while (i < wft.getTasks().getWorkflowTasksGroup().size()) {
-			WorkflowTaskType wtt = wft.getTasks().getWorkflowTasksGroup().get(i);
-			
-			
-			
-			if (wtt instanceof com.tremolosecurity.config.xml.CallWorkflowType) {
-				foundCallWf = true;
-				
-				List<WorkflowTaskType> tasks = this.getWFTasks(((com.tremolosecurity.config.xml.CallWorkflowType) wtt).getName()  );
-				
-				//remove call wf
-				wft.getTasks().getWorkflowTasksGroup().remove(i);
-				//add tasks
-				wft.getTasks().getWorkflowTasksGroup().addAll(i, tasks);
-				logger.info(wft.getTasks());
-				wtt = wft.getTasks().getWorkflowTasksGroup().get(i);
-			}
-			
-			
-			if (wtt instanceof com.tremolosecurity.config.xml.WorkflowChoiceTaskType) {
-				this.processCallTask((WorkflowChoiceTaskType) wtt);
-			}
-			
-			i++;
-			
-		}
-		
-		return foundCallWf;
-	}
 	
-	private boolean processCallTask(WorkflowChoiceTaskType wtt) {
-		int i = 0;
-		
-		boolean foundCallWf = false;
-		
-		if (wtt.getOnSuccess() != null) {
-			while (i < wtt.getOnSuccess().getWorkflowTasksGroup().size()) {
-				WorkflowTaskType wttc = wtt.getOnSuccess().getWorkflowTasksGroup().get(i);
-				if (wttc instanceof com.tremolosecurity.config.xml.CallWorkflowType) {
-					com.tremolosecurity.config.xml.CallWorkflowType callTask = (com.tremolosecurity.config.xml.CallWorkflowType) wttc;
-					foundCallWf = true;
-					List<WorkflowTaskType> tasks = this.getWFTasks(callTask.getName()  );
-					//remove call wf
-					wtt.getOnSuccess().getWorkflowTasksGroup().remove(i);
-					//add tasks
-					wtt.getOnSuccess().getWorkflowTasksGroup().addAll(i, tasks);
-					
-					wttc = wtt.getOnSuccess().getWorkflowTasksGroup().get(i);
-				}
-				
-				i++;
-				
-				if (wttc instanceof WorkflowChoiceTaskType) {
-					foundCallWf |= this.processCallTask((WorkflowChoiceTaskType) wttc);
-				}
-			}
-			
-		}
-		
-		if (wtt.getOnFailure() != null) {
-			while (i < wtt.getOnFailure().getWorkflowTasksGroup().size()) {
-				WorkflowTaskType wttc = wtt.getOnFailure().getWorkflowTasksGroup().get(i);
-				if (wttc instanceof com.tremolosecurity.config.xml.CallWorkflowType) {
-					foundCallWf = true;
-					com.tremolosecurity.config.xml.CallWorkflowType callTask = (com.tremolosecurity.config.xml.CallWorkflowType) wttc;
-					
-					List<WorkflowTaskType> tasks = this.getWFTasks(callTask.getName()  );
-					//remove call wf
-					wtt.getOnFailure().getWorkflowTasksGroup().remove(i);
-					//add tasks
-					wtt.getOnFailure().getWorkflowTasksGroup().addAll(i, tasks);
-					
-					wttc = wtt.getOnFailure().getWorkflowTasksGroup().get(i);
-				}
-				
-				i++;
-				
-				if (wttc instanceof WorkflowChoiceTaskType) {
-					foundCallWf |= this.processCallTask((WorkflowChoiceTaskType) wttc);
-				}
-			}
-			
-		}
-		
-		return foundCallWf;
-		
-		
-	}
+	
+	
 	
 	private void generateWorkflows() throws ProvisioningException {
 		if (cfgMgr.getCfg().getProvisioning() == null) {
@@ -763,7 +674,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			}
 			
 			
-			while (this.processCallWf(wt));
+			//while (this.processCallWf(wt));
 			
 			if (logger.isDebugEnabled()) {
 				logger.debug(jaxbObjectToXML(wt));
@@ -1002,20 +913,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	 */
 	@Override
 	public Workflow getWorkFlow(String name) throws ProvisioningException {
-		WorkflowImpl wf = this.workflows.get(name);
-		
-		if (wf == null) {
-			throw new ProvisioningException("WorkflowImpl " + name + " does not exist");
-		}
-		
-		
-		
-
-		
-		
-		wf = (WorkflowImpl) JsonReader.jsonToJava(JsonWriter.objectToJson(wf));
-		
-		wf.reInit(this.cfgMgr);
+		WorkflowImpl wf = (WorkflowImpl) getWorkflowCopy(name);
 		
 		
 		if (this.sessionFactory != null) {
@@ -1047,6 +945,25 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		}
 		
 		
+		return wf;
+	}
+
+	@Override
+	public Workflow getWorkflowCopy(String name) throws ProvisioningException {
+		WorkflowImpl wf = this.workflows.get(name);
+		
+		if (wf == null) {
+			throw new ProvisioningException("WorkflowImpl " + name + " does not exist");
+		}
+		
+		
+		
+
+		
+		
+		wf = (WorkflowImpl) JsonReader.jsonToJava(JsonWriter.objectToJson(wf));
+		
+		wf.reInit(this.cfgMgr);
 		return wf;
 	}
 

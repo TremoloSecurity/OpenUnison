@@ -144,6 +144,8 @@ public interface ProvisioningEngine {
 	void replaceTarget(ConfigManager cfgMgr, TargetType targetCfg) throws ProvisioningException;
 
 	void addDynamicTarget(ConfigManager cfgMgr, TargetType targetCfg) throws ProvisioningException;
+
+	Workflow getWorkflowCopy(String name) throws ProvisioningException;
 	
 
 }

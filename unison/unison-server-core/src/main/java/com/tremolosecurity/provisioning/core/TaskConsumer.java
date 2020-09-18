@@ -32,6 +32,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.cedarsoftware.util.io.JsonReader;
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.provisioning.tasks.CallWorkflow;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
 
 import com.tremolosecurity.provisioning.util.TaskHolder;
@@ -74,12 +75,17 @@ public class TaskConsumer implements MessageListener {
 			TaskHolder th = wfHolder.getWfStack().peek();
 			WorkflowTask task = th.getParent().get(th.getPosition());
 			
+			
+			
 			th.setPosition(th.getPosition() + 1);
 			
 			User user = th.getCurrentUser();
 			if (user == null) {
 				user = wfHolder.getUser();
 			}
+			
+			
+			
 			
 			if (task.doTask(user, wfHolder.getRequest())) {
 				if (isDone(wfHolder,null)) {
