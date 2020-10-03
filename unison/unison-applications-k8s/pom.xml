@@ -83,6 +83,46 @@
 			<version>${openunison.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		
+		
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+			<version>${snakeyaml.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson.version}</version>
+		</dependency> 
+		<dependency>
+	      <groupId>com.fasterxml.jackson.core</groupId>
+	      <artifactId>jackson-annotations</artifactId>
+	      <version>${jackson.version}</version>
+	    </dependency>
+		
+		<dependency>
+	      <groupId>io.swagger.core.v3</groupId>
+	      <artifactId>swagger-annotations</artifactId>
+	      <version>${swagger-core.version}</version>
+	    </dependency>
+	    
+	    <dependency>
+		    <groupId>org.openapi4j</groupId>
+		    <artifactId>openapi-parser</artifactId>
+		    <version>1.0.4</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.openapi4j</groupId>
+		    <artifactId>openapi-schema-validator</artifactId>
+		    <version>1.0.4</version>
+		</dependency>
 	</dependencies>
 
 </project>

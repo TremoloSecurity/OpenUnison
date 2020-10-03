@@ -1,0 +1,505 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "https://www.tremolosecurity.com/json/schemas/workflowtasks",
+  "title": "OpenUnison Workflow Tasks",
+  "description": "Schema for OpenUnison workflow tasks",
+  "definitions": {
+  	"ApproversType": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string",
+            "enum": [
+              "filter",
+              "group",
+              "dn",
+              "dynamicGroup",
+              "custom"
+            ]
+          },
+          "constraint": {
+            "type": "string"
+          },
+          "className": {
+            "type": "string"
+          }
+        }
+      },
+      "WorkflowTaskType": {
+        "type": "object",
+        "required": [
+          "taskType"
+        ],
+        "properties": {
+          "taskType": {
+            "type": "string",
+            "enum": [
+              "approval",
+              "ifAttrHasValue",
+              "ifAttrExists",
+              "mapping",
+              "ifNotUserExists",
+              "notifyUser",
+              "callWorkflow",
+              "customTask",
+              "delete",
+              "provision"
+            ]
+          }
+        }
+      },
+      "WorkflowTasksType": {
+        "type": "object",
+        "properties": {
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/WorkflowTaskType"
+            }
+          }
+        }
+      },
+      "WorkflowChoiceTaskType": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/WorkflowTaskType"
+          },
+          {
+            "type": "object",
+            "required": [
+              "onSuccess",
+              "onFailure"
+            ],
+            "properties": {
+              "onSuccess": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/WorkflowTaskType"
+                }
+              },
+              "onFailure": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/WorkflowTaskType"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "ApprovalType": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/WorkflowChoiceTaskType"
+          },
+          {
+            "type": "object",
+            "required": [
+              "emailTemplate",
+              "approvers",
+              "mailAttr",
+              "failureEmailSubject",
+              "failureEmailMsg",
+              "label"
+            ],
+            "properties": {
+              "emailTemplate": {
+                "type": "string"
+              },
+              "mailAttr": {
+                "type": "string"
+              },
+              "failureEmailSubject": {
+                "type": "string"
+              },
+              "failureEmailMsg": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "approvers": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ApproversType"
+                }
+              },
+              "escalationPolicy": {
+                "type": "object",
+                "properties": {
+                  "escalation": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "azRules": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/ApproversType"
+                          }
+                        },
+                        "executeAfterTime": {
+                          "type": "integer"
+                        },
+                        "validateEscalationClass": {
+                          "type": "string"
+                        },
+                        "executeAfterUnits": {
+                          "type": "string",
+                          "enum": [
+                            "sec",
+                            "min",
+                            "hr",
+                            "wk",
+                            "day"
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "escalationFailureType": {
+                    "type": "object",
+                    "properties": {
+                      "azRules": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/ApproversType"
+                        }
+                      },
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "assign",
+                          "leave"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "IfAttrHasValueType": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/WorkflowChoiceTaskType"
+          },
+          {
+            "type": "object",
+            "required": [
+              "name",
+              "value"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "IfAttrExistsType": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/WorkflowChoiceTaskType"
+          },
+          {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "MappingType": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/WorkflowChoiceTaskType"
+          },
+          {
+            "type": "object",
+            "required": [
+              "map"
+            ],
+            "properties": {
+              "strict": {
+                "type": "boolean",
+                "default": false
+              },
+              "map": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "targetAttributeName": {
+                      "type": "string"
+                    },
+                    "targetAttributeSource": {
+                      "type": "string"
+                    },
+                    "sourceType": {
+                      "type": "string",
+                      "enum": [
+                        "static",
+                        "user",
+                        "custom",
+                        "composite"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "IfNotUserExistsType": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/WorkflowChoiceTaskType"
+          },
+          {
+            "type": "object",
+            "required": [
+              "target",
+              "uidAttribute"
+            ],
+            "properties": {
+              "target": {
+                "type": "string"
+              },
+              "uidAttribute": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "NotifyUserType": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/WorkflowTaskType"
+          },
+          {
+            "type": "object",
+            "required": [
+              "msg",
+              "subject",
+              "mailAttrib"
+            ],
+            "properties": {
+              "msg": {
+                "type": "string"
+              },
+              "subject": {
+                "type": "string"
+              },
+              "mailAttrib": {
+                "type": "string"
+              },
+              "contentType": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "CallWorkflowType": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/WorkflowTaskType"
+          },
+          {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "AddGroupType": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/WorkflowTaskType"
+          },
+          {
+            "type": "object",
+            "required": [
+              "name",
+              "remove"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "remove": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "AddAttributeType": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/WorkflowTaskType"
+          },
+          {
+            "type": "object",
+            "required": [
+              "name",
+              "value"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              },
+              "remote": {
+                "type": "boolean",
+                "default": false
+              },
+              "addToRequest": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          }
+        ]
+      },
+      "DeleteType": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/WorkflowTaskType"
+          },
+          {
+            "type": "object",
+            "required": [
+              "target"
+            ],
+            "properties": {
+              "target": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "CustomTaskType": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/WorkflowTaskType"
+          },
+          {
+            "type": "object",
+            "required": [
+              "className",
+              "param"
+            ],
+            "properties": {
+              "className": {
+                "type": "string"
+              },
+              "param": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "ResyncType": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/WorkflowTaskType"
+          },
+          {
+            "type": "object",
+            "required": [
+              "keepExternalAttrs"
+            ],
+            "properties": {
+              "keepExternalAttrs": {
+                "type": "boolean"
+              },
+              "changeRoot": {
+                "type": "boolean",
+                "default": false
+              },
+              "newRoot": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "ProvisionType": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/WorkflowTaskType"
+          },
+          {
+            "type": "object",
+            "required": [
+              "sync",
+              "target",
+              "setPassword",
+              "onlyPassedInAttributes",
+              "attributes"
+            ],
+            "properties": {
+              "sync": {
+                "type": "boolean"
+              },
+              "target": {
+                "type": "string"
+              },
+              "setPassword": {
+                "type": "boolean"
+              },
+              "onlyPassedInAttributes": {
+                "type": "boolean"
+              },
+              "attributes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ]
+      }
+  },
+  "type":"array",
+  "items": {
+  	"$ref": "#/definitions/WorkflowTaskType"
+  }
+}
