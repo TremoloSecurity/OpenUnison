@@ -230,8 +230,7 @@
 		</dependency> 
 		
 		
-
-
+		
 <dependency>
   <groupId>com.microsoft.azure</groupId>
   <artifactId>msal4j</artifactId>

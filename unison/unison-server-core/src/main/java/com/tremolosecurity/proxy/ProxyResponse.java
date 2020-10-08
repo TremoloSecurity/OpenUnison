@@ -19,6 +19,8 @@ package com.tremolosecurity.proxy;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -280,7 +282,15 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 		
 		cookieVal.setLength(0);
 		
-		cookieVal.append(cookie.getName()).append('=').append(cookie.getValue()).append(';');
+		String cookieRawVal = ecnodeCookieValue(cookie.getValue());
+		
+		
+		cookieVal.append(cookie.getName()).append('=').append(cookieRawVal).append(';');
+		
+		
+			
+		
+		
 		
 		if (appConfig == null) {
 			//i don't think this is possible
@@ -322,7 +332,14 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 		
 		if (cookie.getMaxAge() != -1) {
 			
-			DateTime expires = new DateTime(cookie.getMaxAge() * 1000,DateTimeZone.UTC);
+			DateTime expires = null;
+			
+			if (cookie.getMaxAge() == 0) {
+				expires = new DateTime(cookie.getMaxAge() * 1000,DateTimeZone.UTC);
+			} else {
+				expires = new DateTime().plusSeconds(cookie.getMaxAge());
+			}
+			
 			
 			cookieVal.append(" Max-Age=").append(cookie.getMaxAge()).append("; Expires=").append(expires.toString(expiresFormat)).append(';');
 		}
@@ -334,6 +351,41 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 		resp.addHeader("Set-Cookie", cookieVal.toString());
 	}
 	
+	private static String ecnodeCookieValue(String value) {
+		StringBuilder val = new StringBuilder();
+		boolean needsQuotes = false;
+		
+		char[] chars = value.toCharArray();
+		for (char c : chars) {
+			if (Character.isWhitespace(c) || c == ';') {
+				needsQuotes = true;
+				val.append(c);
+			} else if (c == '"') {
+				needsQuotes = true;
+				val.append('\\').append('"');
+			} else {
+				val.append(c);
+			}
+		}
+		
+		if (needsQuotes) {
+			val.insert(0, '"').append('"');
+		}
+		
+		return val.toString();
+	}
+
+	private static boolean needsEncoding(String cookieRawVal) {
+		char[] chars = cookieRawVal.toCharArray();
+		for (char c : chars) {
+			if (Character.isWhitespace(c) || c == ';') {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
 	@Override
 	public String encodeRedirectURL(String url) {
 		return resp.encodeRedirectURL(url);
