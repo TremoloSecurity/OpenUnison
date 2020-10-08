@@ -19,6 +19,7 @@ package com.tremolosecurity.proxy;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -32,8 +33,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
 import org.apache.logging.log4j.Logger;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
 
 import com.tremolosecurity.config.util.UrlHolder;
+import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.proxy.cookies.UnisonCookie;
 import com.tremolosecurity.proxy.util.ProxyTools;
 import com.tremolosecurity.saml.Attribute;
@@ -212,31 +217,16 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 		}
 		
 		headersAndCookiesPushed = true;
+		StringBuilder cookieVal = new StringBuilder();
+		
+		org.joda.time.format.DateTimeFormatter expiresFormat = DateTimeFormat.forPattern( "EEE, dd-MMM-yyyy HH:mm:ss 'GMT'" ).withLocale(Locale.US);
 		
 		for (Cookie cookie : this.cookies) {
-			
-				if (holder == null || holder.getApp().getCookieConfig() == null) {
-					//i don't think this is possible
-				} else {
-					boolean setDomainInfo = true;
-					if (cookie instanceof UnisonCookie) {
-						setDomainInfo = ! ((UnisonCookie) cookie).isOverrideValues();
-					}
-
-					if (setDomainInfo) {
-						String domain = holder.getApp().getCookieConfig().getDomain();
-						if (! domain.equalsIgnoreCase("*")) {
-							cookie.setDomain(domain);
-						}
-						
-						cookie.setSecure(holder.getApp().getCookieConfig().isSecure());
-						cookie.setHttpOnly(holder.getApp().getCookieConfig().isHttpOnly() != null && holder.getApp().getCookieConfig().isHttpOnly());
-					}
+				if (holder != null) {
+					addCookieToResponse(holder.getApp(), cookieVal, expiresFormat, cookie,this.resp);
 				}
 				
-				
-				
-				this.resp.addCookie(cookie);
+				//this.resp.addCookie(cookie);
 				
 			
 		}
@@ -279,6 +269,69 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 		
 		this.cookies.clear();
 		this.headers.clear();
+	}
+
+	public static void addCookieToResponse(ApplicationType appConfig, StringBuilder cookieVal,
+			org.joda.time.format.DateTimeFormatter expiresFormat, Cookie cookie,HttpServletResponse resp) {
+		
+		
+		
+		
+		
+		cookieVal.setLength(0);
+		
+		cookieVal.append(cookie.getName()).append('=').append(cookie.getValue()).append(';');
+		
+		if (appConfig == null) {
+			//i don't think this is possible
+		} else {
+			boolean setDomainInfo = true;
+			if (cookie instanceof UnisonCookie) {
+				setDomainInfo = ! ((UnisonCookie) cookie).isOverrideValues();
+			}
+
+			if (setDomainInfo) {
+				String domain = appConfig.getCookieConfig().getDomain();
+				if (! domain.equalsIgnoreCase("*")) {
+					cookie.setDomain(domain);
+				}
+				
+				if (cookie.getDomain() != null && ! cookie.getDomain().isEmpty()) {
+					cookieVal.append(" Domain=").append(cookie.getDomain()).append(';');
+				}
+				
+				
+				
+				
+			}
+			
+			//cookie.setSecure(holder.getApp().getCookieConfig().isSecure());
+			if (appConfig.getCookieConfig().isSecure()) {
+				cookieVal.append(" Secure;");
+			}
+			
+			cookie.setHttpOnly(appConfig.getCookieConfig().isHttpOnly() != null && appConfig.getCookieConfig().isHttpOnly());
+			if (appConfig.getCookieConfig().isHttpOnly() != null && appConfig.getCookieConfig().isHttpOnly()) {
+				cookieVal.append(" HttpOnly;");
+			}
+			
+			if (cookie.getPath() != null && ! cookie.getPath().isEmpty()) {
+				cookieVal.append(" Path=").append(cookie.getPath()).append(';');
+			}
+		}
+		
+		if (cookie.getMaxAge() != -1) {
+			
+			DateTime expires = new DateTime(cookie.getMaxAge() * 1000,DateTimeZone.UTC);
+			
+			cookieVal.append(" Max-Age=").append(cookie.getMaxAge()).append("; Expires=").append(expires.toString(expiresFormat)).append(';');
+		}
+		
+		if (appConfig.getCookieConfig().getSameSite() != null && ! appConfig.getCookieConfig().getSameSite().equals("Ignore")) {
+			cookieVal.append(" SameSite=").append(appConfig.getCookieConfig().getSameSite()).append(";");
+		}
+		
+		resp.addHeader("Set-Cookie", cookieVal.toString());
 	}
 	
 	@Override
@@ -351,6 +404,18 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 	public void setStatus(int status, String line) {
 		resp.setStatus(status, line);
 
+	}
+
+	public static void addCookieToResponse(UrlHolder holder, Cookie sessionCookieName, HttpServletResponse resp2) {
+		
+		if (holder != null) {
+			ProxyResponse.addCookieToResponse(holder.getApp(), new StringBuilder(), DateTimeFormat.forPattern( "EEE, dd-MMM-yyyy HH:mm:ss 'GMT'" ).withLocale(Locale.US), sessionCookieName, resp2);
+		}
+		
+	}
+	
+	public static void addCookieToResponse(ApplicationType appConfig, Cookie sessionCookieName, HttpServletResponse resp2) {
+		ProxyResponse.addCookieToResponse(appConfig, new StringBuilder(), DateTimeFormat.forPattern( "EEE, dd-MMM-yyyy HH:mm:ss 'GMT'" ).withLocale(Locale.US), sessionCookieName, resp2);	
 	}
 
 }

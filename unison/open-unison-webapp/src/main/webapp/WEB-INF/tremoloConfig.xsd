@@ -768,6 +768,22 @@
 					<documentation>If true, the HttpOnly flag will be added to the cookie so its not available to javascript</documentation>
 				</annotation>
 			</element>
+			<element name="sameSite" minOccurs="0" maxOccurs="1">
+				<annotation>
+					<documentation>
+						one of Lax, None, Strict, or Ignore. If Ignore
+						attribute won't be set.
+					</documentation>
+				</annotation>
+				<simpleType>
+					<restriction base="string">
+						<enumeration value="None"></enumeration>
+						<enumeration value="Lax"></enumeration>
+						<enumeration value="Strict"></enumeration>
+						<enumeration value="Ignore"></enumeration>
+					</restriction>
+				</simpleType>
+			</element>
 		</sequence>
 	</complexType>
 
