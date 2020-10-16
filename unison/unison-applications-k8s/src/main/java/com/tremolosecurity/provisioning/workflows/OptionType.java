@@ -15,6 +15,8 @@
  *******************************************************************************/
 package com.tremolosecurity.provisioning.workflows;
 
+import java.util.Set;
+
 public class OptionType {
 	String name;
 	
@@ -28,10 +30,18 @@ public class OptionType {
 	
 	boolean required;
 	
+	Set<String> allowedValues;
+	
+	
 	public OptionType(String name,boolean required,OptionValueType type) {
+		this(name,required,type,null);
+	}
+	
+	public OptionType(String name,boolean required,OptionValueType type,Set<String> allowedValues) {
 		this.name = name;
 		this.type = type;
 		this.required = required;
+		this.allowedValues = allowedValues;
 	}
 
 	public String getName() {
@@ -56,6 +66,14 @@ public class OptionType {
 
 	public void setRequired(boolean required) {
 		this.required = required;
+	}
+
+	public Set<String> getAllowedValues() {
+		return allowedValues;
+	}
+
+	public void setAllowedValues(Set<String> allowedValues) {
+		this.allowedValues = allowedValues;
 	}
 	
 	
