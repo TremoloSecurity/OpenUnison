@@ -30,6 +30,7 @@ import org.hibernate.SessionFactory;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.TargetType;
+import com.tremolosecurity.config.xml.WorkflowType;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
 
@@ -146,6 +147,12 @@ public interface ProvisioningEngine {
 	void addDynamicTarget(ConfigManager cfgMgr, TargetType targetCfg) throws ProvisioningException;
 
 	Workflow getWorkflowCopy(String name) throws ProvisioningException;
+
+	void addDynamicWorkflow(WorkflowType wft) throws ProvisioningException;
+
+	void replaceDynamicWorkflow(WorkflowType wft) throws ProvisioningException;
+
+	void removeDynamicWorkflow(String name) throws ProvisioningException;
 	
 
 }

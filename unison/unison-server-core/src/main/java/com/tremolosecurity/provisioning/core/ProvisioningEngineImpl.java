@@ -166,6 +166,7 @@ import com.tremolosecurity.provisioning.tasks.Approval;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
 
 import com.tremolosecurity.provisioning.util.TaskHolder;
+import com.tremolosecurity.provisioning.workflows.DynamicWorkflows;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.AzSys;
 import com.tremolosecurity.proxy.az.AzRule;
@@ -642,7 +643,29 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		}
 		
 		
-		
+		try {
+			
+			if (cfgMgr.getCfg().getProvisioning().getWorkflows().getDynamicWorkflows() != null && cfgMgr.getCfg().getProvisioning().getWorkflows().getDynamicWorkflows().isEnabled() ) {
+				DynamicPortalUrlsType dynamicWorkflows = cfgMgr.getCfg().getProvisioning().getWorkflows().getDynamicWorkflows();
+				String className = dynamicWorkflows.getClassName();
+				HashMap<String,Attribute> cfgAttrs = new HashMap<String,Attribute>();
+				for (ParamType pt : dynamicWorkflows.getParams()) {
+					Attribute attr = cfgAttrs.get(pt.getName());
+					if (attr == null) {
+						attr = new Attribute(pt.getName());
+						cfgAttrs.put(pt.getName(), attr);
+					}
+					
+					attr.getValues().add(pt.getValue());
+				}
+			
+				DynamicWorkflows dynWorkflows = (DynamicWorkflows) Class.forName(className).newInstance();
+				dynWorkflows.loadDynamicWorkflows(cfgMgr, this,cfgAttrs);
+			}
+			
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+			throw new ProvisioningException("Could not initialize dynamic targets",e);
+		}
 		
 		
 		
@@ -693,6 +716,64 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 		
 	}
+	
+	@Override
+	public void addDynamicWorkflow(WorkflowType wft) throws ProvisioningException {
+		synchronized (this.workflows) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Processing add workflow - '" + wft.getName() + "'");
+			}
+			
+			if (logger.isDebugEnabled()) {
+				logger.debug(jaxbObjectToXML(wft));
+			}
+			
+			String name = wft.getName();
+			logger.info("Processing workflow - '" + name + "'");
+			WorkflowImpl wf = new WorkflowImpl(this.cfgMgr,wft);
+			this.workflows.put(name, wf);
+			wf.init();
+		}
+		
+	}
+	
+	
+	
+	@Override
+	public void replaceDynamicWorkflow(WorkflowType wft) throws ProvisioningException {
+		synchronized (this.workflows) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Processing replace workflow - '" + wft.getName() + "'");
+			}
+			
+			if (logger.isDebugEnabled()) {
+				logger.debug(jaxbObjectToXML(wft));
+			}
+			
+			String name = wft.getName();
+			logger.info("Processing workflow - '" + name + "'");
+			WorkflowImpl wf = new WorkflowImpl(this.cfgMgr,wft);
+			this.workflows.remove(name);
+			this.workflows.put(name, wf);
+			wf.init();
+		}
+	}
+	
+	
+	@Override
+	public void removeDynamicWorkflow(String name) throws ProvisioningException {
+		synchronized (this.workflows) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Processing remove workflow - '" + name + "'");
+			}
+			
+			
+			logger.info("Removing workflow - '" + name + "'");
+			
+			this.workflows.remove(name);
+		}
+	}
+	
 	
 	private static String jaxbObjectToXML(WorkflowType wft)
     {

@@ -1089,6 +1089,7 @@
 			<documentation>List of workflows</documentation>
 		</annotation>
 		<sequence>
+		    <element name="dynamicWorkflows" type="tns:dynamicPortalUrlsType" maxOccurs="1" minOccurs="0"></element>
 			<element name="workflow" type="tns:workflowType" maxOccurs="unbounded"
 				minOccurs="0"></element>
 		</sequence>
