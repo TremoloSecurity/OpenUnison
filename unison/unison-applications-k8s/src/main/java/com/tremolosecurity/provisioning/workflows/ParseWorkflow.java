@@ -64,6 +64,7 @@ public class ParseWorkflow {
 	static HashSet<String> escalationFailureActions = new HashSet<String>(Arrays.asList(new String[]{"assign","leave"}));
 	
 	public ParsedWorkflow parseWorkflow(String json ) {
+		
 		ParsedWorkflow pw = new ParsedWorkflow();
 		
 		JSONParser parser = new JSONParser();
@@ -166,7 +167,7 @@ public class ParseWorkflow {
 			
 			Object o = node.get("approvers");
 			
-			parseApprovers(path, pw, task.getApprovers(), o,"approvers");
+			parseApprovers(path + ".approvers", pw, task.getApprovers(), o,"approvers");
 			if (pw.getError() != null) {
 				return;
 			}
@@ -390,7 +391,7 @@ public class ParseWorkflow {
 			AzRuleType at = new AzRuleType();
 			
 			for (OptionType ot : approverOptions) {
-				setAttribute(approver,ot,at,AzRuleType.class,pw,path);
+				setAttribute(approver,ot,at,AzRuleType.class,pw ,path + "[" + ii + "]");
 				
 				if (pw.getError() != null) {
 					return;
