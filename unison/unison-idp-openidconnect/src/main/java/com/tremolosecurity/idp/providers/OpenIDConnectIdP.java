@@ -87,6 +87,7 @@ import com.tremolosecurity.idp.providers.oidc.model.OIDCSession;
 import com.tremolosecurity.idp.providers.oidc.model.OidcSessionState;
 import com.tremolosecurity.idp.providers.oidc.model.OpenIDConnectConfig;
 import com.tremolosecurity.idp.providers.oidc.none.NoneBackend;
+import com.tremolosecurity.idp.providers.oidc.sdk.UpdateClaims;
 import com.tremolosecurity.idp.providers.oidc.session.ClearOidcSessionOnLogout;
 import com.tremolosecurity.idp.providers.oidc.session.OidcSessionExpires;
 import com.tremolosecurity.idp.providers.oidc.trusts.DynamicLoadTrusts;
@@ -141,6 +142,10 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	
 	
 	private String sessionKeyName;
+
+	private UpdateClaims claimsUpdater;
+	
+	
 	
 	public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
@@ -1182,6 +1187,14 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		}
         
         this.sessionKeyName = GlobalEntries.getGlobalEntries().getConfigManager().getApp(this.idpName).getCookieConfig().getKeyAlias();
+        
+        if (init.get("updateClaimsClassName") != null) {
+        	try {
+				this.claimsUpdater = (UpdateClaims) Class.forName(init.get("updateClaimsClassName").getValues().get(0)).newInstance();
+			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+				logger.error("Could not initialize claim updater", e);
+			}
+        }
 
 	}
 
@@ -1334,6 +1347,11 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	    	for (String key : extraAttribs.keySet()) {
 	    		claims.setClaim(key, extraAttribs.get(key));
 	    	}
+	    }
+	    
+	    
+	    if (this.claimsUpdater != null) {
+	    	this.claimsUpdater.updateClaimsBeforeSigning(dn, cfg, url, trust, nonce, extraAttribs, entry, user, claims);
 	    }
 	    
 	    
