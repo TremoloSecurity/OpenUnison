@@ -153,6 +153,8 @@ public interface ProvisioningEngine {
 	void replaceDynamicWorkflow(WorkflowType wft) throws ProvisioningException;
 
 	void removeDynamicWorkflow(String name) throws ProvisioningException;
+
+	void initReports() throws ProvisioningException;
 	
 
 }

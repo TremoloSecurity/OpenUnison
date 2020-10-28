@@ -160,6 +160,7 @@ import com.tremolosecurity.provisioning.objects.WorkflowParameters;
 import com.tremolosecurity.provisioning.objects.Workflows;
 import com.tremolosecurity.provisioning.orgs.DynamicOrgs;
 import com.tremolosecurity.provisioning.portal.DynamicPortalUrls;
+import com.tremolosecurity.provisioning.reports.DynamicReports;
 import com.tremolosecurity.provisioning.scheduler.StopScheduler;
 import com.tremolosecurity.provisioning.targets.DynamicTargets;
 import com.tremolosecurity.provisioning.tasks.Approval;
@@ -625,6 +626,33 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 					throw new ProvisioningException("Could not initialize dynamic portal urls",e);
 				}
 			}
+		}
+	}
+	
+	@Override
+	public void initReports() throws ProvisioningException {
+		try {
+			
+			if (cfgMgr.getCfg().getProvisioning().getReports().getDynamicReports() != null && cfgMgr.getCfg().getProvisioning().getReports().getDynamicReports().isEnabled() ) {
+				DynamicPortalUrlsType dynamicReports = cfgMgr.getCfg().getProvisioning().getReports().getDynamicReports();
+				String className = dynamicReports.getClassName();
+				HashMap<String,Attribute> cfgAttrs = new HashMap<String,Attribute>();
+				for (ParamType pt : dynamicReports.getParams()) {
+					Attribute attr = cfgAttrs.get(pt.getName());
+					if (attr == null) {
+						attr = new Attribute(pt.getName());
+						cfgAttrs.put(pt.getName(), attr);
+					}
+					
+					attr.getValues().add(pt.getValue());
+				}
+			
+				DynamicReports dynamicReport= (DynamicReports) Class.forName(className).newInstance();
+				dynamicReport.loadDynamicReports(cfgMgr, this,cfgAttrs);
+			}
+			
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+			throw new ProvisioningException("Could not initialize dynamic targets",e);
 		}
 	}
 	

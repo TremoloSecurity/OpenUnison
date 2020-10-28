@@ -2260,6 +2260,7 @@
 
 	<complexType name="reportsType">
 		<sequence>
+			<element name="dynamicReports" type="tns:dynamicPortalUrlsType" maxOccurs="1" minOccurs="0"></element>
 			<element name="report" type="tns:reportType" minOccurs="0"
 				maxOccurs="unbounded"></element>
 		</sequence>
