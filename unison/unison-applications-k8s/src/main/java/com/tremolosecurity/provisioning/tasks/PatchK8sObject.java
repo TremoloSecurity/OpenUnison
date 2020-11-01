@@ -74,7 +74,9 @@ public class PatchK8sObject implements CustomTask {
 
 
         HttpCon con = null;
-        OpenShiftTarget os = (OpenShiftTarget) task.getConfigManager().getProvisioningEngine().getTarget(this.targetName).getProvider();
+        
+        String localTarget = task.renderTemplate(this.targetName, request);
+        OpenShiftTarget os = (OpenShiftTarget) task.getConfigManager().getProvisioningEngine().getTarget(localTarget).getProvider();
         try {
             String token = os.getAuthToken();
             con = os.createClient();
@@ -96,7 +98,7 @@ public class PatchK8sObject implements CustomTask {
                 if (! kind.equalsIgnoreCase(this.kind)) {
                     throw new ProvisioningException("Could not create " + kind + " with json '" + localTemplate + "' - '" + respJSON + "'" );
                 } else {
-                    this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ActionType.Replace,  approvalID, this.task.getWorkflow(), label, projectName);
+                    this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ActionType.Replace,  approvalID, this.task.getWorkflow(), label, projectName);
                 }
             } else {
                 throw new ProvisioningException("Object '" + localURL + "' does not exist");
