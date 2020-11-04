@@ -20,6 +20,7 @@ package com.tremolosecurity.provisioning.core;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Queue;
 import java.util.Stack;
 
@@ -27,8 +28,10 @@ import javax.jms.JMSException;
 import javax.jms.MessageProducer;
 
 import org.hibernate.SessionFactory;
+import org.quartz.SchedulerException;
 
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.config.xml.JobType;
 import com.tremolosecurity.config.xml.TargetType;
 import com.tremolosecurity.config.xml.WorkflowType;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
@@ -155,6 +158,9 @@ public interface ProvisioningEngine {
 	void removeDynamicWorkflow(String name) throws ProvisioningException;
 
 	void initReports() throws ProvisioningException;
+
+	void addNewJob(HashSet<String> jobKeys, JobType jobType)
+			throws SchedulerException, ProvisioningException, ClassNotFoundException;
 	
 
 }

@@ -1910,53 +1910,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			HashSet<String> jobKeys = new HashSet<String>();
 			
 			for (JobType jobType : sct.getJob()) {
-				jobKeys.add(jobType.getName() + "-" + jobType.getGroup());
-				JobKey jk = new JobKey(jobType.getName(),jobType.getGroup());
-				JobDetail jd = this.scheduler.getJobDetail(jk);
-				if (jd == null) {
-					logger.info("Adding new job '" + jobType.getName() + "' / '" + jobType.getGroup() + "'");
-					try {
-						addJob(jobType, jk);
-						
-					} catch (ClassNotFoundException e) {
-						throw new ProvisioningException("Could not initialize job",e);
-					}
-					
-				} else {
-					//check to see if we need to modify
-					StringBuffer cron = new StringBuffer();
-					cron.append(jobType.getCronSchedule().getSeconds()).append(' ')
-					    .append(jobType.getCronSchedule().getMinutes()).append(' ')
-					    .append(jobType.getCronSchedule().getHours()).append(' ')
-					    .append(jobType.getCronSchedule().getDayOfMonth()).append(' ')
-					    .append(jobType.getCronSchedule().getMonth()).append(' ')
-					    .append(jobType.getCronSchedule().getDayOfWeek()).append(' ')
-					    .append(jobType.getCronSchedule().getYear());
-					
-					Properties configProps = new Properties();
-					for (ParamType pt : jobType.getParam()) {
-						configProps.setProperty(pt.getName(), pt.getValue());
-					}
-					
-					Properties jobProps = new Properties();
-					for (String key : jd.getJobDataMap().getKeys()) {
-						jobProps.setProperty(key, (String) jd.getJobDataMap().getString(key));
-					}
-					
-					List<Trigger> triggers = (List<Trigger>) scheduler.getTriggersOfJob(jd.getKey());
-					CronTrigger trigger = (CronTrigger) triggers.get(0);
-					
-					if (! jobType.getClassName().equals(jd.getJobClass().getName())) {
-						logger.info("Reloading job '" + jobType.getName() + "' / '" + jobType.getGroup() + "' - change in class name");
-						reloadJob(jobType,jd);
-					} else if (! cron.toString().equalsIgnoreCase(trigger.getCronExpression())) {
-						logger.info("Reloading job '" + jobType.getName() + "' / '" + jobType.getGroup() + "' - change in schedule");
-						reloadJob(jobType,jd);
-					} else if (! configProps.equals(jobProps)) {
-						logger.info("Reloading job '" + jobType.getName() + "' / '" + jobType.getGroup() + "' - change in properties");
-						reloadJob(jobType,jd);
-					}
-				}
+				addNewJob(jobKeys, jobType);
 			}
 			
 			
@@ -1989,6 +1943,59 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 		
 		
+	}
+
+
+	@Override
+	public void addNewJob(HashSet<String> jobKeys, JobType jobType)
+			throws SchedulerException, ProvisioningException, ClassNotFoundException {
+		jobKeys.add(jobType.getName() + "-" + jobType.getGroup());
+		JobKey jk = new JobKey(jobType.getName(),jobType.getGroup());
+		JobDetail jd = this.scheduler.getJobDetail(jk);
+		if (jd == null) {
+			logger.info("Adding new job '" + jobType.getName() + "' / '" + jobType.getGroup() + "'");
+			try {
+				addJob(jobType, jk);
+				
+			} catch (ClassNotFoundException e) {
+				throw new ProvisioningException("Could not initialize job",e);
+			}
+			
+		} else {
+			//check to see if we need to modify
+			StringBuffer cron = new StringBuffer();
+			cron.append(jobType.getCronSchedule().getSeconds()).append(' ')
+			    .append(jobType.getCronSchedule().getMinutes()).append(' ')
+			    .append(jobType.getCronSchedule().getHours()).append(' ')
+			    .append(jobType.getCronSchedule().getDayOfMonth()).append(' ')
+			    .append(jobType.getCronSchedule().getMonth()).append(' ')
+			    .append(jobType.getCronSchedule().getDayOfWeek()).append(' ')
+			    .append(jobType.getCronSchedule().getYear());
+			
+			Properties configProps = new Properties();
+			for (ParamType pt : jobType.getParam()) {
+				configProps.setProperty(pt.getName(), pt.getValue());
+			}
+			
+			Properties jobProps = new Properties();
+			for (String key : jd.getJobDataMap().getKeys()) {
+				jobProps.setProperty(key, (String) jd.getJobDataMap().getString(key));
+			}
+			
+			List<Trigger> triggers = (List<Trigger>) scheduler.getTriggersOfJob(jd.getKey());
+			CronTrigger trigger = (CronTrigger) triggers.get(0);
+			
+			if (! jobType.getClassName().equals(jd.getJobClass().getName())) {
+				logger.info("Reloading job '" + jobType.getName() + "' / '" + jobType.getGroup() + "' - change in class name");
+				reloadJob(jobType,jd);
+			} else if (! cron.toString().equalsIgnoreCase(trigger.getCronExpression())) {
+				logger.info("Reloading job '" + jobType.getName() + "' / '" + jobType.getGroup() + "' - change in schedule");
+				reloadJob(jobType,jd);
+			} else if (! configProps.equals(jobProps)) {
+				logger.info("Reloading job '" + jobType.getName() + "' / '" + jobType.getGroup() + "' - change in properties");
+				reloadJob(jobType,jd);
+			}
+		}
 	}
 
 	private void addJob(JobType jobType, JobKey jk)

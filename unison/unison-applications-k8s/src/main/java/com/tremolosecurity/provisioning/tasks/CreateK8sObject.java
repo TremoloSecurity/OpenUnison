@@ -106,7 +106,8 @@ public class CreateK8sObject implements CustomTask {
         String localTemplateJSON = "";
 
         HttpCon con = null;
-        OpenShiftTarget os = (OpenShiftTarget) task.getConfigManager().getProvisioningEngine().getTarget(this.targetName).getProvider();
+        String localTarget = task.renderTemplate(this.targetName, request);
+        OpenShiftTarget os = (OpenShiftTarget) task.getConfigManager().getProvisioningEngine().getTarget(localTarget).getProvider();
         try {
             String token = os.getAuthToken();
             con = os.createClient();
@@ -171,12 +172,12 @@ public class CreateK8sObject implements CustomTask {
                     if (! kind.equalsIgnoreCase("Secret")) {
                         throw new ProvisioningException("Could not patch " + kind + "  '" + respJSON + "'" );
                     } else {
-                    	this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ProvisioningUtil.ActionType.Add,  approvalID, this.task.getWorkflow(), label, projectName);
+                    	this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Add,  approvalID, this.task.getWorkflow(), label, projectName);
                     }
             	}
             	
             } else {
-            	writeToAPIServer(localTemplateJSON, approvalID, localURL, con, os, token);
+            	writeToAPIServer(localTemplateJSON, approvalID, localURL, con, os, token,localTarget);
             }
             
         } catch (Exception e) {
@@ -190,7 +191,7 @@ public class CreateK8sObject implements CustomTask {
     }
 
 	private void writeToAPIServer(String localTemplate, int approvalID, String localURL, HttpCon con,
-			OpenShiftTarget os, String token)
+			OpenShiftTarget os, String token,String localTarget)
 			throws IOException, ClientProtocolException, ProvisioningException, ParseException {
 		
 		
@@ -213,7 +214,7 @@ public class CreateK8sObject implements CustomTask {
 		        if (! kind.equalsIgnoreCase(this.kind)) {
 		            throw new ProvisioningException("Could not create " + kind + " with json '" + localTemplate + "' - '" + respJSON + "'" );
 		        } else {
-		            this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ProvisioningUtil.ActionType.Add,  approvalID, this.task.getWorkflow(), label, projectName);
+		            this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Add,  approvalID, this.task.getWorkflow(), label, projectName);
 		        }
 		    }
 		} else {
@@ -232,7 +233,7 @@ public class CreateK8sObject implements CustomTask {
 		    if (! kind.equalsIgnoreCase(this.kind)) {
 		        throw new ProvisioningException("Could not create " + kind + " with json '" + localTemplate + "' - '" + respJSON + "'" );
 		    } else {
-		        this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ProvisioningUtil.ActionType.Replace,  approvalID, this.task.getWorkflow(), label, projectName);
+		        this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Replace,  approvalID, this.task.getWorkflow(), label, projectName);
 		    }
 		}
 	}
