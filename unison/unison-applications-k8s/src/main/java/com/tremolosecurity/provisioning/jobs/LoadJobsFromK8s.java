@@ -16,10 +16,12 @@
 package com.tremolosecurity.provisioning.jobs;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.quartz.SchedulerException;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.CronScheduleType;
@@ -62,7 +64,7 @@ public class LoadJobsFromK8s implements DynamicJobs, K8sWatchTarget {
 		
 	}
 
-	private void createJob(JSONObject item,String name) {
+	private void createJob(JSONObject item,String name) throws ProvisioningException {
 		
 		JobType job = new JobType();
 		job.setName(name);
@@ -135,20 +137,10 @@ public class LoadJobsFromK8s implements DynamicJobs, K8sWatchTarget {
 		
 		
 		
-		synchronized (this.cfgMgr.getCfg().getProvisioning().getReports()) {
-			ReportType existingRep = null;
-			for (ReportType rt : this.cfgMgr.getCfg().getProvisioning().getReports().getReport()) {
-				if (rt.getName().equals(report.getName())) {
-					existingRep = rt;
-					break;
-				}
-			}
-			
-			if (existingRep != null ) {
-				this.cfgMgr.getCfg().getProvisioning().getReports().getReport().remove(existingRep);
-			}
-			
-			this.cfgMgr.getCfg().getProvisioning().getReports().getReport().add(report);
+		try {
+			this.cfgMgr.getProvisioningEngine().addNewJob(new HashSet<String>(), job);
+		} catch (ClassNotFoundException | SchedulerException | ProvisioningException e) {
+			throw new ProvisioningException("Could not add job '" + name + "'",e);
 		}
 		
 		
@@ -158,8 +150,8 @@ public class LoadJobsFromK8s implements DynamicJobs, K8sWatchTarget {
 	public void modifyObject(TremoloType cfg, JSONObject item) throws ProvisioningException {
 		JSONObject metadata = (JSONObject) item.get("metadata");
 		String name = (String) metadata.get("name");
-		logger.info("Replacing report '" + name + "'");
-		createReport(item,name);
+		logger.info("Replacing job '" + name + "'");
+		this.createJob(item, name);
 		
 
 	}
@@ -169,22 +161,19 @@ public class LoadJobsFromK8s implements DynamicJobs, K8sWatchTarget {
 		JSONObject metadata = (JSONObject) item.get("metadata");
 		String name = (String) metadata.get("name");
 		JSONObject spec = (JSONObject) item.get("spec");
-		logger.info("Deleting report '" + name + "'");
-		String reportName = (String) spec.get("name");
-		synchronized (this.cfgMgr.getCfg().getProvisioning().getReports()) {
-			ReportType existingRep = null;
-			for (ReportType rt : this.cfgMgr.getCfg().getProvisioning().getReports().getReport()) {
-				if (rt.getName().equals(reportName)) {
-					existingRep = rt;
-					break;
-				}
-			}
-			
-			if (existingRep != null ) {
-				this.cfgMgr.getCfg().getProvisioning().getReports().getReport().remove(existingRep);
-			}
-			
+		logger.info("Deleting job '" + name + "'");
+		String groupName = (String) spec.get("group");
+		
+		HashSet<String> jobKeys = new HashSet<String>();
+		jobKeys.add(name);
+		
+		try {
+			this.cfgMgr.getProvisioningEngine().deleteJob(jobKeys, groupName);
+		} catch (SchedulerException e) {
+			throw new ProvisioningException("Could not delete job '" + name + "'",e);
 		}
+		
+		
 
 	}
 

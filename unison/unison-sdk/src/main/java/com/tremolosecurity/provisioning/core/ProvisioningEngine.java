@@ -28,6 +28,7 @@ import javax.jms.JMSException;
 import javax.jms.MessageProducer;
 
 import org.hibernate.SessionFactory;
+import org.quartz.JobKey;
 import org.quartz.SchedulerException;
 
 import com.tremolosecurity.config.util.ConfigManager;
@@ -161,6 +162,10 @@ public interface ProvisioningEngine {
 
 	void addNewJob(HashSet<String> jobKeys, JobType jobType)
 			throws SchedulerException, ProvisioningException, ClassNotFoundException;
+
+	
+
+	void deleteJob(HashSet<String> jobKeys, String groupName) throws SchedulerException;
 	
 
 }

@@ -1915,23 +1915,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			
 			for (String groupName : scheduler.getJobGroupNames()) {
-				 
-			     for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.jobGroupEquals(groupName))) {
-			 
-				  String jobName = jobKey.getName();
-				  String jobGroup = jobKey.getGroup();
-			 
-				  //get job's trigger
-				  List<Trigger> triggers = (List<Trigger>) scheduler.getTriggersOfJob(jobKey);
-				  
-				  if (! jobKeys.contains(jobName + "-" + jobGroup)) {
-					  logger.info("Removing jab '" + jobName + "' / '" + jobGroup + "'");
-					  scheduler.deleteJob(jobKey);
-				  }
-		 
-			  }
-		 
-		    }
+				this.deleteJob(jobKeys, groupName);
+			}
 		
 			
 			
@@ -1943,6 +1928,32 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 		
 		
+	}
+
+
+	@Override
+	public void deleteJob(HashSet<String> jobKeys, String groupName)
+			throws SchedulerException {
+		//get job's trigger
+		
+		
+			 
+	     for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.jobGroupEquals(groupName))) {
+	 
+		  String jobName = jobKey.getName();
+		  String jobGroup = jobKey.getGroup();
+	 
+		  
+		  List<Trigger> triggers = (List<Trigger>) scheduler.getTriggersOfJob(jobKey);
+		  
+		  if (! jobKeys.contains(jobName + "-" + jobGroup)) {
+			  logger.info("Removing job '" + jobName + "' / '" + jobGroup + "'");
+			  scheduler.deleteJob(jobKey);
+		  }
+		  
+	 
+	    }
+		  
 	}
 
 
