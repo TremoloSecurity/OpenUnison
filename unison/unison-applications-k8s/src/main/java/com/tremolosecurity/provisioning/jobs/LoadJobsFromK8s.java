@@ -164,11 +164,10 @@ public class LoadJobsFromK8s implements DynamicJobs, K8sWatchTarget {
 		logger.info("Deleting job '" + name + "'");
 		String groupName = (String) spec.get("group");
 		
-		HashSet<String> jobKeys = new HashSet<String>();
-		jobKeys.add(name);
+		
 		
 		try {
-			this.cfgMgr.getProvisioningEngine().deleteJob(jobKeys, groupName);
+			this.cfgMgr.getProvisioningEngine().deleteJob(name, groupName);
 		} catch (SchedulerException e) {
 			throw new ProvisioningException("Could not delete job '" + name + "'",e);
 		}

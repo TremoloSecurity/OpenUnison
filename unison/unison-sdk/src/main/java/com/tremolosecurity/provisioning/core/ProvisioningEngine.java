@@ -165,7 +165,7 @@ public interface ProvisioningEngine {
 
 	
 
-	void deleteJob(HashSet<String> jobKeys, String groupName) throws SchedulerException;
+	void deleteJob(String jobName, String groupName) throws SchedulerException;
 	
 
 }

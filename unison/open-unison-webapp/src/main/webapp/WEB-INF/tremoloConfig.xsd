@@ -2065,6 +2065,7 @@
 				perform jobs at specific times</documentation>
 		</annotation>
 		<sequence>
+		    <element name="dynamicJobs" type="tns:dynamicPortalUrlsType" maxOccurs="1" minOccurs="0"></element>
 			<element name="scheduleDB" type="tns:scheduleDBType"
 				minOccurs="0" maxOccurs="1">
 			</element>
@@ -2151,6 +2152,7 @@
 			<documentation>Configuration for a scheduled job</documentation>
 		</annotation>
 		<sequence>
+		    
 			<element name="cronSchedule" type="tns:cronScheduleType"
 				minOccurs="0" maxOccurs="1"></element>
 			<element name="param" type="tns:paramType" minOccurs="0"

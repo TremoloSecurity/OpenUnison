@@ -192,7 +192,7 @@ public class K8sWatcher implements StopableThread {
 			try {
 				String url = new StringBuilder().append(k8s.getUrl())
 						                        .append(this.uri)
-						                        .append("?watch=true&timeoutSeconds=10").toString();
+						                        .append("?watch=true&timeoutSecond=25").toString();
 				logger.info("watching " + url);
 				HttpGet get = new HttpGet(url);
 				get.setHeader("Authorization", new StringBuilder().append("Bearer ").append(k8s.getAuthToken()).toString());

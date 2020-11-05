@@ -145,6 +145,7 @@ import com.tremolosecurity.openunison.OpenUnisonConstants;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.jms.JMSConnectionFactory;
 import com.tremolosecurity.provisioning.jms.JMSSessionHolder;
+import com.tremolosecurity.provisioning.jobs.DynamicJobs;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
 import com.tremolosecurity.provisioning.objects.AllowedApprovers;
 import com.tremolosecurity.provisioning.objects.Approvals;
@@ -633,7 +634,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	public void initReports() throws ProvisioningException {
 		try {
 			
-			if (cfgMgr.getCfg().getProvisioning().getReports().getDynamicReports() != null && cfgMgr.getCfg().getProvisioning().getReports().getDynamicReports().isEnabled() ) {
+			if (cfgMgr.getCfg().getProvisioning().getReports() != null && cfgMgr.getCfg().getProvisioning().getReports().getDynamicReports() != null && cfgMgr.getCfg().getProvisioning().getReports().getDynamicReports().isEnabled() ) {
 				DynamicPortalUrlsType dynamicReports = cfgMgr.getCfg().getProvisioning().getReports().getDynamicReports();
 				String className = dynamicReports.getClassName();
 				HashMap<String,Attribute> cfgAttrs = new HashMap<String,Attribute>();
@@ -1914,8 +1915,32 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			}
 			
 			
+			DynamicPortalUrlsType dynamicJobs = cfgMgr.getCfg().getProvisioning().getScheduler().getDynamicJobs();
+			if (dynamicJobs != null && dynamicJobs.isEnabled()) {
+				String className = dynamicJobs.getClassName();
+				HashMap<String,Attribute> cfgAttrs = new HashMap<String,Attribute>();
+				for (ParamType pt : dynamicJobs.getParams()) {
+					Attribute attr = cfgAttrs.get(pt.getName());
+					if (attr == null) {
+						attr = new Attribute(pt.getName());
+						cfgAttrs.put(pt.getName(), attr);
+					}
+					
+					attr.getValues().add(pt.getValue());
+				}
+			
+				DynamicJobs dynJobs = null;
+				try {
+					dynJobs = (DynamicJobs) Class.forName(className).newInstance();
+				} catch (InstantiationException | IllegalAccessException e) {
+					throw new ProvisioningException("Could not create dynmaic job",e);
+				}
+				dynJobs.loadDynamicJobs(cfgMgr, this,cfgAttrs);
+			}
+			
+			
 			for (String groupName : scheduler.getJobGroupNames()) {
-				this.deleteJob(jobKeys, groupName);
+				this.deleteRemovedJobs(jobKeys, groupName);
 			}
 		
 			
@@ -1931,8 +1956,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	}
 
 
-	@Override
-	public void deleteJob(HashSet<String> jobKeys, String groupName)
+	
+	public void deleteRemovedJobs(HashSet<String> jobKeys, String groupName)
 			throws SchedulerException {
 		//get job's trigger
 		
@@ -2088,6 +2113,14 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	@Override
 	public void rebuildHibernate() {
 		this.initializeHibernate(this.cfgMgr.getCfg().getProvisioning().getApprovalDB());
+		
+	}
+
+
+	@Override
+	public void deleteJob(String jobName, String groupName) throws SchedulerException {
+		JobKey jobKey = new JobKey(jobName,groupName);
+		this.scheduler.deleteJob(jobKey);
 		
 	}
 	
