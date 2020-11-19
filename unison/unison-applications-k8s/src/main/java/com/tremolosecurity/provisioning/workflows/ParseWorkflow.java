@@ -41,12 +41,14 @@ import com.tremolosecurity.config.xml.EscalationType;
 import com.tremolosecurity.config.xml.IfAttrExistsType;
 import com.tremolosecurity.config.xml.IfAttrHasValueType;
 import com.tremolosecurity.config.xml.IfNotUserExistsType;
+import com.tremolosecurity.config.xml.ListType;
 import com.tremolosecurity.config.xml.MappingType;
 import com.tremolosecurity.config.xml.NotifyUserType;
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.config.xml.ProvisionMappingType;
 import com.tremolosecurity.config.xml.ProvisionMappingsType;
+import com.tremolosecurity.config.xml.ProvisionType;
 import com.tremolosecurity.config.xml.ResyncType;
 import com.tremolosecurity.config.xml.WorkflowChoiceTaskType;
 import com.tremolosecurity.config.xml.WorkflowTaskListType;
@@ -106,6 +108,7 @@ public class ParseWorkflow {
 		} 
 		
 		String taskType = (String) node.get("taskType");
+		node.remove("taskType");
 		String value;
 		
 		if (taskType.equals("notifyUser")) {
@@ -121,6 +124,7 @@ public class ParseWorkflow {
 		} else if (taskType.equals("resync")) {
 			createResync(node, path, parent, pw);
 		} else if (taskType.equals("customTask")) {
+			
 			createCustomTask(node, path, parent, pw);
 		} else if (taskType.equals("ifAttrExists")) {
 			createIfAttrExistsTask(node, path, parent, pw);
@@ -132,6 +136,8 @@ public class ParseWorkflow {
 			createMappingTask(node, path, parent, pw);
 		} else if (taskType.equals("approval")) {
 			createApprovalTask(node, path, parent, pw);
+		} else if (taskType.equals("provision")) {
+			createProvisionTask(node,path,parent,pw);
 		}
 		
 		else {
@@ -144,6 +150,60 @@ public class ParseWorkflow {
 	
 	
 	
+	private void createProvisionTask(JSONObject node, String path, List<WorkflowTaskType> parent, ParsedWorkflow pw) {
+		ProvisionType task = new ProvisionType();
+		task.setAttributes(new ListType());
+		
+		OptionType[] options = new OptionType[] {
+				new OptionType("target",true,OptionType.OptionValueType.STRING),
+				new OptionType("sync",true,OptionType.OptionValueType.BOOLEAN),
+				new OptionType("setPassword",false,OptionType.OptionValueType.BOOLEAN),
+				new OptionType("onlyPassedInAttributes",false,OptionType.OptionValueType.BOOLEAN),
+				
+				
+			};
+			
+			for (OptionType ot : options) {
+				setAttribute(node,ot,task,ProvisionType.class,pw,path);
+				if (pw.getError() != null) {
+					return;
+				}
+			}
+			
+			Object attrs = node.get("attributes");
+			node.remove("attributes");
+			if (attrs != null) {
+				if (! (attrs instanceof JSONArray)) {
+					pw.setErrorPath(pw.getErrorPath() + ".attributes");
+					pw.setError("must be a list");
+					return;
+				} else {
+					JSONArray attributes = (JSONArray) attrs;
+					int i = 0;
+					for (Object o : attributes) {
+						if (!(o instanceof String)) {
+							pw.setErrorPath(pw.getErrorPath() + ".attributes[" + i + "]");
+							pw.setError("must be a string");
+							return;
+						} else {
+							task.getAttributes().getValue().add((String) o);
+						}
+						i++;
+					}
+				}
+			}
+			
+			node.remove("attributes");
+			
+			if (! node.isEmpty()) {
+				pw.setError("Extra JSON keys : " + node.toString());
+				pw.setErrorPath(path);
+				return;
+			}
+			
+			parent.add(task);
+	}
+
 	private void createApprovalTask(JSONObject node, String path, List<WorkflowTaskType> parent, ParsedWorkflow pw) {
 		ApprovalType task = new ApprovalType();
 		task.setApprovers(new AzRulesType());
@@ -166,6 +226,7 @@ public class ParseWorkflow {
 			}
 			
 			Object o = node.get("approvers");
+			node.remove("approvers");
 			
 			parseApprovers(path + ".approvers", pw, task.getApprovers(), o,"approvers");
 			if (pw.getError() != null) {
@@ -175,6 +236,7 @@ public class ParseWorkflow {
 			
 			o = node.get("escalationPolicy");
 			if (o != null) {
+				node.remove("escalationPolicy");
 				task.setEscalationPolicy(new EscalationPolicyType());
 				
 				if (! (o instanceof JSONObject)) {
@@ -187,6 +249,7 @@ public class ParseWorkflow {
 				JSONObject escPolicy = (JSONObject) o;
 				
 				o = escPolicy.get("escalations");
+				escPolicy.remove("escalations");
 				if (o == null) {
 					pw.setErrorPath(path + ".escalationPolicy.escalations");
 					pw.setError("At least one escalation must be specified");
@@ -232,9 +295,16 @@ public class ParseWorkflow {
 					}
 					
 					o = jesc.get("azRules");
+					jesc.remove("azRules");
 					
 					parseApprovers(path + ".escalationPolicy.escalations[" + ii + "]", pw, esc.getAzRules(), o,"azRules");
 					if (pw.getError() != null) {
+						return;
+					}
+					
+					if (! jesc.isEmpty()) {
+						pw.setError("Extra JSON keys : " + jesc.toString());
+						pw.setErrorPath(path + ".escalationPolicy.escalations[" + ii + "]");
 						return;
 					}
 					
@@ -244,6 +314,7 @@ public class ParseWorkflow {
 				
 				
 				o = escPolicy.get("failure");
+				escPolicy.remove("failure");
 				if (o != null) {
 					if (! (o instanceof JSONObject)) {
 						pw.setErrorPath(path + ".escalationPolicy.failure");
@@ -270,12 +341,26 @@ public class ParseWorkflow {
 					}
 					
 					o = escFailure.get("azRules");
-					
+					escFailure.remove("azRules");
 					parseApprovers(path + ".escalationPolicy.failure", pw, eft.getAzRules(), o,"azRules");
 					if (pw.getError() != null) {
 						return;
-					}	
+					}
+					
+					if (! escFailure.isEmpty()) {
+						pw.setError("Extra JSON keys : " + escFailure.toString());
+						pw.setErrorPath(path + ".escalationPolicy.failure");
+						return;
+					}
+					
+					
 				
+				}
+				
+				if (! escPolicy.isEmpty()) {
+					pw.setError("Extra JSON keys : " + node.toString());
+					pw.setErrorPath(path + ".escalationPolicy");
+					return;
 				}
 			}
 			
@@ -283,6 +368,13 @@ public class ParseWorkflow {
 			
 			loadSubTasks(node, path, pw, task);
 			if (pw.getError() != null) {
+				return;
+			}
+			
+			
+			if (! node.isEmpty()) {
+				pw.setError("Extra JSON keys : " + node.toString());
+				pw.setErrorPath(path);
 				return;
 			}
 			
@@ -294,6 +386,7 @@ public class ParseWorkflow {
 	private void loadSubTasks(JSONObject node, String path, ParsedWorkflow pw, WorkflowChoiceTaskType task) {
 		
 		Object o = node.get("onSuccess");
+		node.remove("onSuccess");
 		
 		
 		if (o != null) {
@@ -325,6 +418,7 @@ public class ParseWorkflow {
 		
 		
 		o = node.get("onFailure");
+		node.remove("onFailure");
 		
 		if (o != null) {
 		
@@ -401,6 +495,12 @@ public class ParseWorkflow {
 				
 			}
 			
+			if (! approver.isEmpty()) {
+				pw.setError("Extra JSON keys : " + approver.toString());
+				pw.setErrorPath(path + "[" + ii + "]");
+				return;
+			}
+			
 			azt.getRule().add(at);
 			
 			
@@ -428,6 +528,7 @@ public class ParseWorkflow {
 			task.setMap(new ProvisionMappingsType());
 			
 			Object o = node.get("map");
+			node.remove("map");
 			if (o == null) {
 				pw.setError("map required and must be an array");
 				pw.setErrorPath(path);
@@ -467,6 +568,12 @@ public class ParseWorkflow {
 						return;
 					}
 				}
+				
+				if (! mapNode.isEmpty()) {
+					pw.setError("Extra JSON keys : " + mapNode.toString());
+					pw.setErrorPath(path + ".map[" + ii + "]");
+					return;
+				}
 				task.getMap().getMapping().add(pmt);
 				
 				
@@ -479,6 +586,11 @@ public class ParseWorkflow {
 				return;
 			}
 			
+			if (! node.isEmpty()) {
+				pw.setError("Extra JSON keys : " + node.toString());
+				pw.setErrorPath(path);
+				return;
+			}
 			
 			
 			parent.add(task);
@@ -506,6 +618,12 @@ public class ParseWorkflow {
 				return;
 			}
 			
+			if (! node.isEmpty()) {
+				pw.setError("Extra JSON keys : " + node.toString());
+				pw.setErrorPath(path);
+				return;
+			}
+			
 			parent.add(task);
 		
 		
@@ -529,6 +647,12 @@ public class ParseWorkflow {
 			
 			loadSubTasks(node, path, pw, task);
 			if (pw.getError() != null) {
+				return;
+			}
+			
+			if (! node.isEmpty()) {
+				pw.setError("Extra JSON keys : " + node.toString());
+				pw.setErrorPath(path);
 				return;
 			}
 			
@@ -559,11 +683,18 @@ public class ParseWorkflow {
 			}
 			
 			parent.add(task);
+			
+			if (! node.isEmpty()) {
+				pw.setError("Extra JSON keys : " + node.toString());
+				pw.setErrorPath(path);
+				return;
+			}
 		
 		
 	}
 
 	private void createCustomTask(JSONObject node, String path, List<WorkflowTaskType> parent, ParsedWorkflow pw) {
+		
 		CustomTaskType task = new CustomTaskType();
 		
 		OptionType[] options = new OptionType[] {
@@ -613,12 +744,29 @@ public class ParseWorkflow {
 					}
 				}
 				
+				if (! param.isEmpty()) {
+					pw.setError("Extra JSON keys : " + param.toString());
+					pw.setErrorPath(path + ".params[" + ii + "]");
+					return;
+				}
+				
 				task.getParam().add(pt);
 				
 				
 				ii++;
 			}
+			
+			node.remove("params");
 		}
+		
+		
+		if (! node.isEmpty()) {
+			pw.setError("Extra JSON keys : " + node.toString());
+			pw.setErrorPath(path);
+			return;
+		}
+		
+		
 		
 		parent.add(task);
 	}
@@ -640,7 +788,15 @@ public class ParseWorkflow {
 			}
 		}
 		
+		if (! node.isEmpty()) {
+			pw.setError("Extra JSON keys : " + node.toString());
+			pw.setErrorPath(path);
+			return;
+		}
+		
 		parent.add(task);
+		
+		
 	}
 
 	private void createDelete(JSONObject node, String path, List<WorkflowTaskType> parent, ParsedWorkflow pw) {
@@ -656,6 +812,12 @@ public class ParseWorkflow {
 			if (pw.getError() != null) {
 				return;
 			}
+		}
+		
+		if (! node.isEmpty()) {
+			pw.setError("Extra JSON keys : " + node.toString());
+			pw.setErrorPath(path);
+			return;
 		}
 		
 		parent.add(task);
@@ -676,6 +838,12 @@ public class ParseWorkflow {
 			}
 		}
 		
+		if (! node.isEmpty()) {
+			pw.setError("Extra JSON keys : " + node.toString());
+			pw.setErrorPath(path);
+			return;
+		}
+		
 		parent.add(task);
 	}
 
@@ -692,6 +860,12 @@ public class ParseWorkflow {
 			if (pw.getError() != null) {
 				return;
 			}
+		}
+		
+		if (! node.isEmpty()) {
+			pw.setError("Extra JSON keys : " + node.toString());
+			pw.setErrorPath(path);
+			return;
 		}
 		
 		parent.add(task);
@@ -714,6 +888,12 @@ public class ParseWorkflow {
 			}
 		}
 		
+		if (! node.isEmpty()) {
+			pw.setError("Extra JSON keys : " + node.toString());
+			pw.setErrorPath(path);
+			return;
+		}
+		
 		parent.add(task);
 	}
 
@@ -732,6 +912,12 @@ public class ParseWorkflow {
 			if (pw.getError() != null) {
 				return;
 			}
+		}
+		
+		if (! node.isEmpty()) {
+			pw.setError("Extra JSON keys : " + node.toString());
+			pw.setErrorPath(path);
+			return;
 		}
 		
 		parent.add(notifyUser);
@@ -796,6 +982,7 @@ public class ParseWorkflow {
 				val = new Integer(((Long) val).intValue());
 			}
 			setter.invoke(wfTask, val);
+			node.remove(ot.getName());
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			logger.warn("Could not set " + ot.getName(),e);
 			pw.setError("Error setting " + ot.getName());
