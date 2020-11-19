@@ -58,6 +58,14 @@ import org.apache.logging.log4j.Logger;
 import org.cryptacular.EncodingException;
 import org.cryptacular.StreamException;
 import org.cryptacular.util.CertUtil;
+import org.joda.time.DateTime;
+import org.jose4j.jwk.JsonWebKey;
+import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.jws.JsonWebSignature;
+import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.consumer.JwtConsumer;
+import org.jose4j.jwt.consumer.JwtConsumerBuilder;
+import org.jose4j.lang.JoseException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -66,6 +74,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.tremolosecurity.certs.CertManager;
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.config.xml.ApplicationType;
+import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.UserStoreProvider;
@@ -80,6 +90,16 @@ import com.tremolosecurity.unison.openshiftv3.model.Response;
 import com.tremolosecurity.unison.openshiftv3.model.groups.GroupItem;
 
 public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
+	
+	public enum TokenType {
+		NONE,
+		STATIC,
+		LEGACY,
+		TOKENAPI,
+		OIDC
+	}
+	
+	private TokenType tokenType;
 
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(OpenShiftTarget.class.getName());
 
@@ -96,6 +116,19 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	private String osToken;
 
 	private boolean localToken;
+
+	private String tokenPath;
+	private DateTime tokenExpires;
+	
+	private String oidcIdp;
+	private String oidcTrustName;
+	private String oidcIssuer;
+	private String oidcSub;
+	private String oidcCertName;
+
+	private String oidcAudience;
+
+	private String oidcIssuerHost;
 
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
@@ -449,9 +482,13 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 		b.append(this.getUrl()).append(uri);
 		HttpGet get = new HttpGet(b.toString());
-		b.setLength(0);
-		b.append("Bearer ").append(token);
-		get.addHeader(new BasicHeader("Authorization","Bearer " + token));
+		
+		if (token != null) {
+			b.setLength(0);
+			b.append("Bearer ").append(token);
+			get.addHeader(new BasicHeader("Authorization","Bearer " + token));
+		}
+		
 		HttpResponse resp = con.getHttp().execute(get);
 		
 		String json = EntityUtils.toString(resp.getEntity());
@@ -521,9 +558,13 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 		b.append(this.getUrl()).append(uri);
 		HttpDelete get = new HttpDelete(b.toString());
-		b.setLength(0);
-		b.append("Bearer ").append(token);
-		get.addHeader(new BasicHeader("Authorization","Bearer " + token));
+		
+		if (token != null) {
+			b.setLength(0);
+			b.append("Bearer ").append(token);
+			get.addHeader(new BasicHeader("Authorization","Bearer " + token));
+		}
+		
 		HttpResponse resp = con.getHttp().execute(get);
 		
 		String json = EntityUtils.toString(resp.getEntity());
@@ -535,9 +576,12 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 		b.append(this.getUrl()).append(uri);
 		HttpPut put = new HttpPut(b.toString());
-		b.setLength(0);
-		b.append("Bearer ").append(token);
-		put.addHeader(new BasicHeader("Authorization","Bearer " + token));
+		
+		if (token != null) {
+			b.setLength(0);
+			b.append("Bearer ").append(token);
+			put.addHeader(new BasicHeader("Authorization","Bearer " + token));
+		}
 		
 		StringEntity str = new StringEntity(json,ContentType.APPLICATION_JSON);
 		put.setEntity(str);
@@ -553,9 +597,12 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 		b.append(this.getUrl()).append(uri);
 		HttpPatch put = new HttpPatch(b.toString());
-		b.setLength(0);
-		b.append("Bearer ").append(token);
-		put.addHeader(new BasicHeader("Authorization","Bearer " + token));
+		
+		if (token != null) {
+			b.setLength(0);
+			b.append("Bearer ").append(token);
+			put.addHeader(new BasicHeader("Authorization","Bearer " + token));
+		}
 		
 		StringEntity str = new StringEntity(json,ContentType.create("application/merge-patch+json"));
 		put.setEntity(str);
@@ -571,9 +618,12 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 		b.append(this.getUrl()).append(uri);
 		HttpPost put = new HttpPost(b.toString());
-		b.setLength(0);
-		b.append("Bearer ").append(token);
-		put.addHeader(new BasicHeader("Authorization","Bearer " + token));
+		
+		if (token != null) {
+			b.setLength(0);
+			b.append("Bearer ").append(token);
+			put.addHeader(new BasicHeader("Authorization","Bearer " + token));
+		}
 		
 		StringEntity str = new StringEntity(json,ContentType.APPLICATION_JSON);
 		put.setEntity(str);
@@ -601,16 +651,41 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		} else {
 			
 		
+			String localTokenType = this.loadOptionalAttributeValue("tokenType", "tokenType",cfg,null);
 			
-			this.osToken = this.loadOptionalAttributeValue("token", "Token",cfg,"***************************");
+			if (localTokenType == null) {
+				localTokenType = "LEGACY";
+			}
 			
-			if (this.osToken == null || this.osToken.isEmpty()) {
+			this.tokenType = TokenType.valueOf(localTokenType.toUpperCase());
+			
+			switch (tokenType) {
+				case STATIC:  this.osToken = this.loadOptionalAttributeValue("token", "Token",cfg,"***************************"); break;
+				case LEGACY:
+					try {
+						this.osToken = new String(Files.readAllBytes(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/token")), StandardCharsets.UTF_8);
+					} catch (IOException e) {
+						throw new ProvisioningException("Could not load token",e);
+					}
+					break;
+				case TOKENAPI:
+					this.tokenPath = this.loadOption("tokenPath", cfg, false);
+					this.checkProjectedToken();
+					
+					break;
+				case NONE:
+					break;
+				case OIDC:
+					this.initRemoteOidc(cfg, cfgMgr, localTokenType);
+					break;
+					
+			}
+			
+			
+			
+			if (this.url.isEmpty()) {
 				this.localToken = true;
-				try {
-					this.osToken = new String(Files.readAllBytes(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/token")), StandardCharsets.UTF_8);
-				} catch (IOException e) {
-					throw new ProvisioningException("Could not load token",e);
-				}
+				
 				
 				String certAlias = this.loadOptionalAttributeValue("caCertAlias","caCertAlias", cfg,null);
 				if (certAlias == null) {
@@ -619,8 +694,13 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 				
 				try {
 					logger.info("Cert Alias Storing - '" + certAlias + "'");
-					
-					X509Certificate cert = CertUtil.readCertificate("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt");
+					X509Certificate cert = null;
+					if (tokenType == TokenType.LEGACY) {
+						cert = CertUtil.readCertificate("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt");
+					} else if (tokenType == TokenType.TOKENAPI) {
+						// -\("/)/-
+						cert = CertUtil.readCertificate(this.loadOption("certPath", cfg, false));
+					}
 					
 					logger.info("Certificate - " + cert);
 					
@@ -656,6 +736,54 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			throw new ProvisioningException("Could not rebuild http configuration",e);
 		}
 
+	}
+	
+	private void initRemoteOidc(Map<String, Attribute> cfg, ConfigManager cfgMgr, String name) throws ProvisioningException {
+		this.oidcIdp = this.loadOption("oidcIdp", cfg, false);
+		this.oidcIssuerHost = this.loadOptionalAttributeValue("oidcIssuerHost", "oidcIssuerHost", cfg, null);
+		this.oidcSub = this.loadOption("oidcSub", cfg, false);
+		this.oidcAudience = this.loadOption("oidcAudience", cfg, false);
+		
+		for (ApplicationType at : cfgMgr.getCfg().getApplications().getApplication()) {
+			if (at.getName().equals(this.oidcIdp)) {
+				for (ParamType pt : at.getUrls().getUrl().get(0).getIdp().getParams()) {
+					if (pt.getName().equals("jwtSigningKey")) {
+						this.oidcCertName = pt.getValue();
+					}
+				}
+				
+				if (this.oidcIssuerHost == null) {
+					this.oidcIssuerHost = at.getUrls().getUrl().get(0).getHost().get(0);
+				}
+				
+				this.oidcIssuer = "https://" + this.oidcIssuerHost + at.getUrls().getUrl().get(0).getUri();
+				
+			}
+		}
+		
+		
+		
+	}
+
+	private synchronized void checkProjectedToken() throws ProvisioningException {
+		try {
+			if (this.tokenExpires == null || this.tokenExpires.isBeforeNow()) {
+				
+				this.osToken = new String(Files.readAllBytes(Paths.get(this.tokenPath)), StandardCharsets.UTF_8);
+				
+				int firstPeriod = this.osToken.indexOf('.');
+				int lastPeriod = this.osToken.lastIndexOf('.');
+	
+				String json = new String(Base64.decodeBase64(this.osToken.substring(firstPeriod + 1,lastPeriod)));
+				JSONObject claims = (JSONObject) new JSONParser().parse(json);
+				long exp = ((Long)claims.get("exp")) * 1000L;
+				this.tokenExpires = new DateTime(exp);
+				
+				
+			}
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not generate new token",e);
+		}
 	}
 	
 	private String loadOptionalAttributeValue(String name,String label,Map<String, Attribute> config,String mask) throws ProvisioningException {
@@ -749,7 +877,19 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 				
 				return token;
 			} else {
-				return this.osToken;
+				
+				switch (this.tokenType) {
+					case NONE: return null;
+					case TOKENAPI: this.checkProjectedToken();
+					case LEGACY:
+					case STATIC: return this.osToken;
+					case OIDC: return this.generateOidcToken();
+					default:
+						throw new ProvisioningException("Unknown tokenType");
+					
+				}
+				
+				
 			}
 		} finally {
 			if (con != null) {
@@ -758,6 +898,31 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		}
 	}
 
+	private String generateOidcToken() throws JoseException {
+		JwtClaims claims = new JwtClaims();
+		claims.setIssuer(this.oidcIssuer);
+		claims.setAudience(this.oidcAudience);
+		claims.setExpirationTimeMinutesInTheFuture(1);
+		claims.setNotBeforeMinutesInThePast(1);
+		claims.setGeneratedJwtId();
+		claims.setIssuedAtToNow();
+		claims.setSubject(this.oidcSub);
+		
+		JsonWebSignature jws = new JsonWebSignature();
+		jws.setPayload(claims.toJson());
+		jws.setKey(this.cfgMgr.getPrivateKey(this.oidcCertName));
+		jws.setKeyIdHeaderValue(this.buildKID(this.cfgMgr.getCertificate(this.oidcCertName)));
+		jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+		
+		return jws.getCompactSerialization();
+	}
+
+	private String buildKID(X509Certificate cert) {
+		StringBuffer b = new StringBuffer();
+		b.append(cert.getSubjectDN().getName()).append('-').append(cert.getIssuerDN().getName()).append('-').append(cert.getSerialNumber().toString());
+		return b.toString();
+	}
+	
 	public void addUserToGroup(String token,HttpCon con,String userName,String groupName,int approvalID,Workflow workflow) throws Exception {
 		Gson gson = new Gson();
 		StringBuffer b = new StringBuffer();
