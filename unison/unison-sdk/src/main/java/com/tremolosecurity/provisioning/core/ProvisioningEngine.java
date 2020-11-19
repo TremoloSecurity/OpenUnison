@@ -33,6 +33,7 @@ import org.quartz.SchedulerException;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.JobType;
+import com.tremolosecurity.config.xml.MessageListenerType;
 import com.tremolosecurity.config.xml.TargetType;
 import com.tremolosecurity.config.xml.WorkflowType;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
@@ -166,6 +167,11 @@ public interface ProvisioningEngine {
 	
 
 	void deleteJob(String jobName, String groupName) throws SchedulerException;
+
+	void addMessageListener(MessageListenerType mlt) throws InstantiationException, IllegalAccessException,
+			ClassNotFoundException, ProvisioningException, JMSException;
+
+	void removeMessageListener(String name);
 	
 
 }

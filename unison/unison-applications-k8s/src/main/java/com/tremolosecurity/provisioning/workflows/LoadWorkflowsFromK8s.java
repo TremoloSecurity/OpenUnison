@@ -51,6 +51,7 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 
 	private ProvisioningEngine provisioningEngine;
 	private ConfigManager cfgMgr;
+	
 
 	@Override
 	public void addObject(TremoloType cfg, JSONObject item) throws ProvisioningException {
@@ -58,7 +59,29 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 		String name = (String) metadata.get("name");
 		logger.info("Creating workflow '" + name + "'");
 		
-		this.provisioningEngine.addDynamicWorkflow(this.createWorkflow(item, name));
+		WorkflowType newWorkflow = this.createWorkflow(item, name);
+		
+		synchronized (this.cfgMgr.getCfg().getProvisioning().getWorkflows().getWorkflow()) {
+			int index = -1;
+			int i = 0;
+			for (WorkflowType wt : this.cfgMgr.getCfg().getProvisioning().getWorkflows().getWorkflow()) {
+				if (wt.getName().equals(name)) {
+					index = i;
+					break;
+				}
+				i++;
+				
+			}
+			
+			if (index != -1) {
+				this.cfgMgr.getCfg().getProvisioning().getWorkflows().getWorkflow().remove(index);
+			}
+			
+			
+			this.cfgMgr.getCfg().getProvisioning().getWorkflows().getWorkflow().add(newWorkflow);
+		}
+		
+		this.provisioningEngine.addDynamicWorkflow(newWorkflow);
 		
 	}
 
@@ -68,7 +91,29 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 		String name = (String) metadata.get("name");
 		logger.info("Replacing workflow '" + name + "'");
 		
-		this.provisioningEngine.replaceDynamicWorkflow(this.createWorkflow(item, name));
+		WorkflowType newWorkflow = this.createWorkflow(item, name);
+		
+		synchronized (this.cfgMgr.getCfg().getProvisioning().getWorkflows().getWorkflow()) {
+			int index = -1;
+			int i = 0;
+			for (WorkflowType wt : this.cfgMgr.getCfg().getProvisioning().getWorkflows().getWorkflow()) {
+				if (wt.getName().equals(name)) {
+					index = i;
+					break;
+				}
+				i++;
+				
+			}
+			
+			if (index != -1) {
+				this.cfgMgr.getCfg().getProvisioning().getWorkflows().getWorkflow().remove(index);
+			}
+			
+			
+			this.cfgMgr.getCfg().getProvisioning().getWorkflows().getWorkflow().add(newWorkflow);
+		}
+		
+		this.provisioningEngine.replaceDynamicWorkflow(newWorkflow);
 		
 	}
 
@@ -77,6 +122,27 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 		JSONObject metadata = (JSONObject) item.get("metadata");
 		String name = (String) metadata.get("name");
 		logger.info("Deleting workflow '" + name + "'");
+		
+		synchronized (this.cfgMgr.getCfg().getProvisioning().getWorkflows().getWorkflow()) {
+			int index = -1;
+			int i = 0;
+			for (WorkflowType wt : this.cfgMgr.getCfg().getProvisioning().getWorkflows().getWorkflow()) {
+				if (wt.getName().equals(name)) {
+					index = i;
+					break;
+				}
+				i++;
+				
+			}
+			
+			if (index != -1) {
+				this.cfgMgr.getCfg().getProvisioning().getWorkflows().getWorkflow().remove(index);
+			}
+			
+			
+			
+		}
+		
 		this.provisioningEngine.removeDynamicWorkflow(name);
 		
 	}
@@ -90,6 +156,7 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 		wft.setInList(((Boolean)spec.get("inList")));
 		wft.setLabel((String)spec.get("label"));
 		wft.setOrgid((String) spec.get("orgId"));
+		wft.setDescription((String) spec.get("description"));
 		
 		JSONObject dynWfJson = (JSONObject) spec.get("dynamicConfiguration");
 		if (dynWfJson != null) {

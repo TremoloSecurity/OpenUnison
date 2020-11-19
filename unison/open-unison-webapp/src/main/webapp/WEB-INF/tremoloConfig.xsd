@@ -2232,6 +2232,7 @@
 			<documentation>List of message listeners</documentation>
 		</annotation>
 		<sequence>
+		    <element name="dynamicListeners" type="tns:dynamicPortalUrlsType" maxOccurs="1" minOccurs="0"></element>
 			<element name="listener" type="tns:messageListenerType"
 				minOccurs="0" maxOccurs="unbounded"></element>
 		</sequence>

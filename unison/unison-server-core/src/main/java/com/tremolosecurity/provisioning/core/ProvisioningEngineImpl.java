@@ -146,6 +146,7 @@ import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.jms.JMSConnectionFactory;
 import com.tremolosecurity.provisioning.jms.JMSSessionHolder;
 import com.tremolosecurity.provisioning.jobs.DynamicJobs;
+import com.tremolosecurity.provisioning.listeners.DynamicQueueListeners;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
 import com.tremolosecurity.provisioning.objects.AllowedApprovers;
 import com.tremolosecurity.provisioning.objects.Approvals;
@@ -264,6 +265,10 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 
 
 	private SessionFactory sessionFactory;
+
+
+
+	private HashMap<String, JMSSessionHolder> listenerSessions;
 	
 	
 	
@@ -2069,6 +2074,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 
 	@Override
 	public void initListeners() throws ProvisioningException {
+		this.listenerSessions = new HashMap<String,JMSSessionHolder>();
 		if (this.cfgMgr.getCfg().getProvisioning() == null || this.cfgMgr.getCfg().getProvisioning().getListeners() == null) {
 			logger.warn("No listeners defined");
 			return;
@@ -2078,28 +2084,71 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			
 			for (MessageListenerType mlt : this.cfgMgr.getCfg().getProvisioning().getListeners().getListener()) {
-				UnisonMessageListener uml = (UnisonMessageListener) Class.forName(mlt.getClassName()).newInstance();
-				
-				HashMap<String,Attribute> attrs = new HashMap<String,Attribute>();
-				for (ParamType pt : mlt.getParams()) {
-					Attribute attr = attrs.get(pt.getName());
-					if (attr == null) {
-						attr = new Attribute(pt.getName());
-						attrs.put(pt.getName(), attr);
-					}
-					attr.getValues().add(pt.getValue());
-				}
-				
-				uml.init(this.cfgMgr,attrs);
-				
-				
-				JMSSessionHolder session = JMSConnectionFactory.getConnectionFactory().getSession(mlt.getQueueName());
-				session.setMessageListener(uml);
+				addMessageListener(mlt);
 				
 				
 			}
+			
+			
+			if ( cfgMgr.getCfg().getProvisioning().getListeners().getDynamicListeners() != null && cfgMgr.getCfg().getProvisioning().getListeners().getDynamicListeners().isEnabled() ) {
+				DynamicPortalUrlsType dynamicMessageListeners = cfgMgr.getCfg().getProvisioning().getListeners().getDynamicListeners();
+				String className = dynamicMessageListeners.getClassName();
+				HashMap<String,Attribute> cfgAttrs = new HashMap<String,Attribute>();
+				for (ParamType pt : dynamicMessageListeners.getParams()) {
+					Attribute attr = cfgAttrs.get(pt.getName());
+					if (attr == null) {
+						attr = new Attribute(pt.getName());
+						cfgAttrs.put(pt.getName(), attr);
+					}
+					
+					attr.getValues().add(pt.getValue());
+				}
+			
+				DynamicQueueListeners dynamicQueueListener = (DynamicQueueListeners) Class.forName(className).newInstance();
+				dynamicQueueListener.loadDynamicQueueListeners(cfgMgr, this,cfgAttrs);
+			}
+			
+			
 		} catch (Exception e) {
 			logger.warn("Could not initialize listeners",e);
+		}
+	}
+
+
+	@Override
+	public void addMessageListener(MessageListenerType mlt) throws InstantiationException, IllegalAccessException,
+			ClassNotFoundException, ProvisioningException, JMSException {
+		UnisonMessageListener uml = (UnisonMessageListener) Class.forName(mlt.getClassName()).newInstance();
+		
+		HashMap<String,Attribute> attrs = new HashMap<String,Attribute>();
+		for (ParamType pt : mlt.getParams()) {
+			Attribute attr = attrs.get(pt.getName());
+			if (attr == null) {
+				attr = new Attribute(pt.getName());
+				attrs.put(pt.getName(), attr);
+			}
+			attr.getValues().add(pt.getValue());
+		}
+		
+		uml.init(this.cfgMgr,attrs);
+		
+		
+		JMSSessionHolder session = JMSConnectionFactory.getConnectionFactory().getSession(mlt.getQueueName());
+		session.setMessageListener(uml);
+		
+		this.listenerSessions.put(mlt.getQueueName(),session);
+	}
+	
+	@Override
+	public void removeMessageListener(String name) {
+		JMSSessionHolder session = this.listenerSessions.get(name);
+		if (session != null) {
+			try {
+				session.getSession().close();
+			} catch (Throwable t) {
+				logger.warn("Could not shutdown queue '" + name + "'",t);
+			}
+			this.listenerSessions.remove(name);
 		}
 	}
 
