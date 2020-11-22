@@ -127,7 +127,7 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 			}
 		}
 		
-		if (this.onSuccess != null) {
+		if (this.onFailure != null) {
 			for (WorkflowTask wft : this.onFailure) {
 				wft.reInit(cfgMgr,wf);
 			}
@@ -201,8 +201,12 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 						return false;
 					}
 				} else {
-					if (wft.canHaveChildren()) {
-						return wft.restartChildren();
+					if (wft.canHaveChildren() ) {
+						
+						
+						if (! wft.restartChildren()) {
+							return false;
+						}
 					}
 				}
 			}
@@ -217,7 +221,9 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 					}
 				} else {
 					if (wft.canHaveChildren()) {
-						return wft.restartChildren();
+						if (! wft.restartChildren()) {
+							return false;
+						}
 					}
 				}
 			}
@@ -397,6 +403,10 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 	@Override
 	public boolean canHaveChildren() {
 		return false;
+	}
+	
+	public void setOnSuccess(ArrayList<WorkflowTask> tasks) {
+		this.onSuccess = tasks;
 	}
 	
 	

@@ -129,6 +129,8 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	private String oidcAudience;
 
 	private String oidcIssuerHost;
+	
+	String label;
 
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
@@ -736,6 +738,10 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			throw new ProvisioningException("Could not rebuild http configuration",e);
 		}
 
+		this.label = this.loadOptionalAttributeValue("label", "label", cfg, null);
+		if (this.label == null) {
+			this.label = this.name;
+		}
 	}
 	
 	private void initRemoteOidc(Map<String, Attribute> cfg, ConfigManager cfgMgr, String name) throws ProvisioningException {
@@ -1139,4 +1145,8 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
         Collection<? extends java.security.cert.Certificate> c = cf.generateCertificates(bais);
         return (X509Certificate) c.iterator().next();
     }
+	
+	public String getLabel() { 
+		return this.label;
+	}
 }

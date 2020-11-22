@@ -137,7 +137,10 @@ public class WorkflowImpl implements  Workflow {
 	
 	private void reInitTask(WorkflowTask task) throws ProvisioningException {
 		
+		
 		task.reInit(cfgMgr,this);
+		
+		
 	}
 	
 	/* (non-Javadoc)

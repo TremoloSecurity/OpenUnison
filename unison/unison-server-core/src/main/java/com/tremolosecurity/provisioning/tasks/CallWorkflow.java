@@ -43,6 +43,16 @@ public class CallWorkflow extends WorkflowTaskImpl {
 		this.workflowName = ((CallWorkflowType) taskConfig).getName();
 		
 	}
+	
+	@Override
+	public boolean canHaveChildren() {
+		return true;
+	}
+	
+	@Override
+	public boolean restartChildren() throws ProvisioningException {
+		return super.restartChildren(this.getWorkflow().getUser(),this.getWorkflow().getRequest());
+	}
 
 	@Override
 	public boolean doTask(User user, Map<String, Object> request) throws ProvisioningException {
@@ -57,8 +67,10 @@ public class CallWorkflow extends WorkflowTaskImpl {
 			task.reInit(getConfigManager(), getWorkflow());
 		}
 		
+		super.setOnSuccess(tasksFromWf);
+		super.markComplete(true);
 		//this.getOnSuccess().addAll(toCall.getTasks());
-		boolean doContinue = super.runSubTasks(toCall.getTasks(), user, request);
+		boolean doContinue = super.runSubTasks(super.getOnSuccess(), user, request);
 		return doContinue;
 	}
 	
@@ -71,5 +83,7 @@ public CallWorkflow() {
 		super(taskConfig, cfg,wf);
 		
 	}
+	
+	
 
 }

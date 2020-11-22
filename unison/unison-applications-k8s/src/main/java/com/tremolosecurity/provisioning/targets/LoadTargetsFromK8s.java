@@ -123,6 +123,26 @@ public class LoadTargetsFromK8s implements DynamicTargets, K8sWatchTarget {
 				target.getTargetAttribute().add(ta);
 			}
 			
+			
+			
+			synchronized (this.tremolo.getProvisioning().getTargets().getTarget()) {
+				int found = -1;
+				int ii = 0;
+				for (TargetType tt : this.tremolo.getProvisioning().getTargets().getTarget()) {
+					if (tt.getName().equals(target.getName())) {
+						found = ii;
+						break;
+					}
+					ii++;
+				}
+				
+				if (found >= 0) {
+					this.tremolo.getProvisioning().getTargets().getTarget().remove(found);
+				}
+				
+				this.tremolo.getProvisioning().getTargets().getTarget().add(target);
+			}
+			
 			return target;
 			
 			
@@ -151,6 +171,27 @@ public class LoadTargetsFromK8s implements DynamicTargets, K8sWatchTarget {
 		JSONObject metadata = (JSONObject) item.get("metadata");
 		String name = (String) metadata.get("name");
 		logger.info("Deleting target '" + name + "'");
+		
+		
+		synchronized (this.tremolo.getProvisioning().getTargets().getTarget()) {
+			int found = -1;
+			int ii = 0;
+			for (TargetType tt : this.tremolo.getProvisioning().getTargets().getTarget()) {
+				if (tt.getName().equals(name)) {
+					found = ii;
+					break;
+				}
+				ii++;
+			}
+			
+			if (found >= 0) {
+				this.tremolo.getProvisioning().getTargets().getTarget().remove(found);
+			}
+			
+			
+		}
+		
+		
 		this.provisioningEngine.removeTarget(name);
 
 	}
