@@ -28,6 +28,7 @@ import org.apache.logging.log4j.Logger;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.FilterConfigType;
 import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import com.tremolosecurity.saml.*;
 
@@ -44,15 +45,23 @@ public class HttpFilterConfig {
 		this.params = new HashMap<String,Attribute>();
 		this.cfgMgr = cfgMgr;
 		
-		Iterator<ParamType> params = cfg.getParam().iterator();
+		Iterator<ParamWithValueType> params = cfg.getParam().iterator();
 		while (params.hasNext()) {
-			ParamType param = params.next();
+			ParamWithValueType param = params.next();
 			Attribute lparam = this.params.get(param.getName());
 			if (lparam == null) {
 				lparam = new Attribute(param.getName());
 				this.params.put(param.getName(), lparam);
 			}
-			lparam.getValues().add(param.getValue());
+			
+			
+			if (param.getValueAttribute() != null) {
+				lparam.getValues().add(param.getValueAttribute());
+			} else {
+				lparam.getValues().add(param.getValue());
+			}
+			
+			
 		}
 	}
 	

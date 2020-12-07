@@ -67,6 +67,7 @@ import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.FilterConfigType;
 import com.tremolosecurity.config.xml.IdpType;
 import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.config.xml.TrustType;
 import com.tremolosecurity.config.xml.UrlType;
 import com.tremolosecurity.idp.providers.Saml2Idp;
@@ -349,7 +350,7 @@ public class PreAuthFilter implements HttpFilter {
 		UrlType urlCfg = config.getConfigManager().findURL(this.url).getUrl();
 		for (FilterConfigType filterCfg : urlCfg.getFilterChain().getFilter()) {
 			if (filterCfg.getClazz().equalsIgnoreCase("com.tremolosecurity.proxy.filters.LastMile")) {
-				for (ParamType pt : filterCfg.getParam()) {
+				for (ParamWithValueType pt : filterCfg.getParam()) {
 					if (pt.getName().equalsIgnoreCase("encKeyAlias")) {
 						this.lastMileKeyAlias = pt.getValue();
 					} else if (pt.getName().equalsIgnoreCase("headerName")) {
@@ -359,7 +360,7 @@ public class PreAuthFilter implements HttpFilter {
 					}
 				}
 				
-				for (ParamType pt : filterCfg.getParam()) {
+				for (ParamWithValueType pt : filterCfg.getParam()) {
 					if (pt.getName().equalsIgnoreCase("attribs")) {
 						String param = pt.getValue();
 						String fromUser = param.substring(0,param.indexOf('='));

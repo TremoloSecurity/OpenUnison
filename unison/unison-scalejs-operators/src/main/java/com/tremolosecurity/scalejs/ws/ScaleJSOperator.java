@@ -38,6 +38,7 @@ import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.FilterConfigType;
 import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.config.xml.UrlType;
 import com.tremolosecurity.provisioning.service.util.TremoloUser;
 import com.tremolosecurity.provisioning.service.util.WFCall;
@@ -542,7 +543,7 @@ public class ScaleJSOperator implements HttpFilter {
 		
 		for (FilterConfigType filter : this.scaleJsUrl.getFilterChain().getFilter()) {
 			if (filter.getClazz().equalsIgnoreCase("com.tremolosecurity.scalejs.ws.ScaleMain")) {
-				for (ParamType pt : filter.getParam()) {
+				for (ParamWithValueType pt : filter.getParam()) {
 					if (pt.getName().equalsIgnoreCase("uiHelperClassName")) {
 						this.dec = (UiDecisions) Class.forName(pt.getValue()).newInstance();
 					} else if (pt.getName().equalsIgnoreCase("uihelper.params")) {

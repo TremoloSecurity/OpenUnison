@@ -34,6 +34,7 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.FilterConfigType;
 import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.config.xml.UrlType;
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.auth.AuthInfo;
@@ -157,7 +158,7 @@ public class CatchFirstLogin implements HttpFilter {
 			throw new Exception("No last mile configuration for '" + this.touchURL + "'");
 		}
 		
-		for (ParamType pt : filter.getParam()) {
+		for (ParamWithValueType pt : filter.getParam()) {
 			if (pt.getName().equalsIgnoreCase("encKeyAlias")) {
 				this.keyAlias = pt.getValue();
 			} else if (pt.getName().equalsIgnoreCase("headerName")) {

@@ -639,7 +639,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	public void initReports() throws ProvisioningException {
 		try {
 			
-			if (cfgMgr.getCfg().getProvisioning().getReports() != null && cfgMgr.getCfg().getProvisioning().getReports().getDynamicReports() != null && cfgMgr.getCfg().getProvisioning().getReports().getDynamicReports().isEnabled() ) {
+			if (cfgMgr.getCfg().getProvisioning() != null && cfgMgr.getCfg().getProvisioning().getReports() != null && cfgMgr.getCfg().getProvisioning().getReports().getDynamicReports() != null && cfgMgr.getCfg().getProvisioning().getReports().getDynamicReports().isEnabled() ) {
 				DynamicPortalUrlsType dynamicReports = cfgMgr.getCfg().getProvisioning().getReports().getDynamicReports();
 				String className = dynamicReports.getClassName();
 				HashMap<String,Attribute> cfgAttrs = new HashMap<String,Attribute>();
@@ -679,7 +679,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 		try {
 			
-			if (cfgMgr.getCfg().getProvisioning().getWorkflows().getDynamicWorkflows() != null && cfgMgr.getCfg().getProvisioning().getWorkflows().getDynamicWorkflows().isEnabled() ) {
+			if (cfgMgr.getCfg().getProvisioning() != null && cfgMgr.getCfg().getProvisioning().getWorkflows() != null && cfgMgr.getCfg().getProvisioning().getWorkflows().getDynamicWorkflows() != null && cfgMgr.getCfg().getProvisioning().getWorkflows().getDynamicWorkflows().isEnabled() ) {
 				DynamicPortalUrlsType dynamicWorkflows = cfgMgr.getCfg().getProvisioning().getWorkflows().getDynamicWorkflows();
 				String className = dynamicWorkflows.getClassName();
 				HashMap<String,Attribute> cfgAttrs = new HashMap<String,Attribute>();
