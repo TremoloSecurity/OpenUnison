@@ -40,6 +40,7 @@ import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.idp.providers.OpenIDConnectTrust;
 import com.tremolosecurity.k8s.watch.K8sWatchTarget;
 import com.tremolosecurity.k8s.watch.K8sWatcher;
+import com.tremolosecurity.openunison.util.config.OpenUnisonConfigLoader;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.util.HttpCon;
@@ -57,11 +58,15 @@ public class LoadOrgsFromK8s implements DynamicOrgs,K8sWatchTarget {
 	TremoloType tremolo;
 	Map<String,OrgType> orphanes;
 	
+
+	
 	
 	@Override
 	public void loadDynamicOrgs(ConfigManager cfgMgr, ProvisioningEngine provisioningEngine,Map<String, Attribute> init)
 			throws ProvisioningException {
 		this.tremolo = cfgMgr.getCfg();
+		
+		
 		String k8sTarget = 	init.get("k8starget").getValues().get(0);
 		String namespace = init.get("namespace").getValues().get(0);
 		String uri = "/apis/openunison.tremolo.io/v1/namespaces/" + namespace + "/orgs";
@@ -87,14 +92,37 @@ public class LoadOrgsFromK8s implements DynamicOrgs,K8sWatchTarget {
 		JSONObject spec = (JSONObject) trustObj.get("spec");
 		logger.info(metadata.get("name"));
 		
+		
+		StringBuffer b = new StringBuffer();
+		
 		OrgType org = new OrgType();
 		
 		
 		
+		String label = (String) spec.get("label");
 		
-		org.setName((String) metadata.get("name")); 
-		org.setDescription((String) spec.get("description"));
-		org.setUuid((String) spec.get("uuid"));
+		if (label == null) {
+			org.setName((String) metadata.get("name"));
+		} else {
+			b.setLength(0);
+			OpenUnisonConfigLoader.integrateIncludes(b,label );
+			org.setName(b.toString());
+			
+		}
+		
+		
+		if (spec.get("description")  != null) {
+		 
+			b.setLength(0);
+			OpenUnisonConfigLoader.integrateIncludes(b,(String) spec.get("description")  );
+			org.setDescription(b.toString());
+		}
+		
+		b.setLength(0);
+		OpenUnisonConfigLoader.integrateIncludes(b,(String) spec.get("uuid")  );
+		org.setUuid(b.toString());
+		
+		
 		org.setShowInPortal(((Boolean) spec.get("showInPortal")));
 		org.setShowInReports(((Boolean) spec.get("showInReports")));
 		org.setShowInRequestsAccess(((Boolean) spec.get("showInRequestAccess")));
@@ -110,8 +138,15 @@ public class LoadOrgsFromK8s implements DynamicOrgs,K8sWatchTarget {
 		for (Object orr : rules) {
 			JSONObject rule = (JSONObject) orr;
 			AzRuleType art = new AzRuleType();
-			art.setScope((String) rule.get("scope"));
-			art.setConstraint((String) rule.get("constraint"));
+			
+			b.setLength(0);
+			OpenUnisonConfigLoader.integrateIncludes(b,(String) rule.get("scope")  );
+			art.setScope(b.toString());
+			
+			b.setLength(0);
+			OpenUnisonConfigLoader.integrateIncludes(b,(String) rule.get("constraint")  );
+			art.setConstraint(b.toString());
+			
 			org.getAzRules().getRule().add(art);
 		}
 		

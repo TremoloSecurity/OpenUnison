@@ -44,7 +44,7 @@ public class ListClusters implements SourceList {
 		for (TargetType tt : targets) {
 			if (tt.getClassName().equalsIgnoreCase("com.tremolosecurity.unison.openshiftv3.OpenShiftTarget")) {
 				OpenShiftTarget target = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(tt.getName()).getProvider();
-				k8sTargets.add(new NVP(tt.getName(),target.getLabel()));
+				k8sTargets.add(new NVP(target.getLabel(),tt.getName()));
 			}
 		}
 		
