@@ -153,6 +153,11 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	}
 
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+		
+		if (request.getHeader("Accept") != null && request.getHeader("Accept").startsWith("application/json")) {
+			request.setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
+		}
+		
 		String action = (String) request.getAttribute(IDP.ACTION_NAME);
 		
 		UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
@@ -364,9 +369,11 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 		
+		if (request.getHeader("Accept") != null && request.getHeader("Accept").startsWith("application/json")) {
+			request.setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
+		}
 		
-		
-		
+		try {
 		String action = (String) request.getAttribute(IDP.ACTION_NAME);
 		if (action.contentEquals("completefed")) {
 			this.completeFederation(request, response);
@@ -416,6 +423,22 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			
 			
 		} 
+		} catch (Throwable t) {
+			if (request.getHeader("Accept") != null && request.getHeader("Accept").startsWith("application/json")) {
+				response.sendError(500);
+				response.setContentType("application/json");
+				response.getWriter().print("{\"error\":\"invalid_request\"}");
+				logger.error("Sending JSON Error",t);
+			} else {
+				if (t instanceof ServletException) {
+					throw (ServletException)t;
+				} else if (t instanceof IOException) {
+					throw (IOException)t;
+				} else {
+					throw new ServletException("Error processing post",t);
+				}
+			}
+		}
 
 	}
 
