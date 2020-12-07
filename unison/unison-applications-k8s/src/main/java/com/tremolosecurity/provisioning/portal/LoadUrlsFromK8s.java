@@ -39,6 +39,7 @@ import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.idp.providers.OpenIDConnectTrust;
 import com.tremolosecurity.k8s.watch.K8sWatchTarget;
 import com.tremolosecurity.k8s.watch.K8sWatcher;
+import com.tremolosecurity.openunison.util.config.OpenUnisonConfigLoader;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.util.HttpCon;
@@ -85,12 +86,29 @@ public class LoadUrlsFromK8s implements DynamicPortalUrls,K8sWatchTarget {
 		
 		PortalUrlType portalUrl = new PortalUrlType();
 		
+		StringBuffer b = new StringBuffer();
+		
 		
 		portalUrl.setName((String) metadata.get("name")); 
-		portalUrl.setLabel((String) spec.get("label"));
-		portalUrl.setOrg((String) spec.get("org"));
-		portalUrl.setUrl((String) spec.get("url"));
-		portalUrl.setIcon((String) spec.get("icon"));
+		
+		
+		b.setLength(0);
+		OpenUnisonConfigLoader.integrateIncludes(b,(String) spec.get("label")  );
+		portalUrl.setLabel(b.toString());
+		
+		b.setLength(0);
+		OpenUnisonConfigLoader.integrateIncludes(b,(String) spec.get("org")  );
+		portalUrl.setOrg(b.toString());
+		
+		b.setLength(0);
+		OpenUnisonConfigLoader.integrateIncludes(b,(String) spec.get("url")  );
+		portalUrl.setUrl(b.toString());
+		
+		b.setLength(0);
+		OpenUnisonConfigLoader.integrateIncludes(b,(String) spec.get("icon")  );
+		portalUrl.setIcon(b.toString());
+		
+		
 		portalUrl.setAzRules(new AzRulesType());
 		
 		JSONArray rules = (JSONArray) spec.get("azRules");
@@ -98,7 +116,10 @@ public class LoadUrlsFromK8s implements DynamicPortalUrls,K8sWatchTarget {
 			JSONObject rule = (JSONObject) orr;
 			AzRuleType art = new AzRuleType();
 			art.setScope((String) rule.get("scope"));
-			art.setConstraint((String) rule.get("constraint"));
+			
+			b.setLength(0);
+			OpenUnisonConfigLoader.integrateIncludes(b,(String) rule.get("constraint") );
+			art.setConstraint(b.toString());
 			portalUrl.getAzRules().getRule().add(art);
 		}
 		
