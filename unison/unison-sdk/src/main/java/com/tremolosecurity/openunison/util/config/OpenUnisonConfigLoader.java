@@ -81,6 +81,7 @@ public class OpenUnisonConfigLoader {
     }
 
     public static void integrateIncludes(StringBuffer newConfig, String originalConfig) {
+    	
         int begin,end;
 
 
@@ -90,7 +91,8 @@ public class OpenUnisonConfigLoader {
         String finalCfg = null;
 
         begin = originalConfig.indexOf("#[");
-        while (begin > 0) {
+        
+        while (begin >= 0) {
             if (end == 0) {
                 newConfig.append(originalConfig.substring(0,begin));
             } else {
@@ -100,6 +102,9 @@ public class OpenUnisonConfigLoader {
             end = originalConfig.indexOf(']',begin + 2);
 
             String envVarName = originalConfig.substring(begin + 2,end);
+            
+            
+            
             String defaultValue = "";
             if (envVarName.contains(":")) {
             	defaultValue = envVarName.substring(envVarName.indexOf(":") + 1);
@@ -108,6 +113,8 @@ public class OpenUnisonConfigLoader {
             
             
             String value = System.getenv(envVarName);
+            
+            
 
             if (envVarName.equals("all")) {
             	value = "#[all]";
@@ -118,8 +125,11 @@ public class OpenUnisonConfigLoader {
             }
 
             if (value == null) {
+            	
                 value = defaultValue;
             }
+            
+            
 
             if (logger.isDebugEnabled()) {
                 logger.debug("Environment Variable '" + envVarName + "'='" + value + "'");
