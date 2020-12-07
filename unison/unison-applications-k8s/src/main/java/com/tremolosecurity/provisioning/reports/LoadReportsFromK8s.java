@@ -112,6 +112,11 @@ public class LoadReportsFromK8s implements DynamicReports, K8sWatchTarget {
 			if (userKey != null && userKey) {
 				report.getParamater().add("userKey");
 			}
+			
+			Boolean currentUser = (Boolean) parameters.get("currentUser");
+			if (currentUser != null && currentUser) {
+				report.getParamater().add("currentUser");
+			}
 		}
 		
 		JSONArray headerFields = (JSONArray) spec.get("headerFields");
