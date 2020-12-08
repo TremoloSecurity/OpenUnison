@@ -104,6 +104,12 @@ public class OAuth2JWT extends OAuth2Bearer {
 			String lmToken) throws ServletException, IOException {
 		
 		String issuer = authParams.get("issuer").getValues().get(0);
+		HashSet<String> audiences = new HashSet<String>();
+		if (authParams.get("audience") == null) {
+			logger.warn("No audience configuration, all requests will fail");
+		} else {
+			audiences.addAll(authParams.get("audience").getValues());
+		}
 		
 		
 		String fromWellKnown = authParams.get("fromWellKnown") != null ? authParams.get("fromWellKnown").getValues().get(0) : "false";
@@ -236,6 +242,40 @@ public class OAuth2JWT extends OAuth2Bearer {
 				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
 				super.sendFail(response, realmName, scope, null, null);
 				return;
+			}
+			
+			Object aud = obj.get("aud");
+			
+			if (aud == null ) {
+				logger.warn("JWT has no aud");
+				as.setExecuted(true);
+				as.setSuccess(false);
+				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
+				super.sendFail(response, realmName, scope, null, null);
+				return;
+			} else if (aud instanceof JSONArray) {
+				JSONArray auds = (JSONArray) aud;
+				boolean found = false;
+				for (Object audVal : auds) {
+					if (audiences.contains((String) audVal)) {
+						found = true;
+					}
+				}
+				if (! found) {
+					as.setExecuted(true);
+					as.setSuccess(false);
+					cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
+					super.sendFail(response, realmName, scope, null, null);
+					return;
+				}
+			} else {
+				if (! audiences.contains((String) aud)) {
+					as.setExecuted(true);
+					as.setSuccess(false);
+					cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
+					super.sendFail(response, realmName, scope, null, null);
+					return;
+				}
 			}
 			
 			if (! linkToDirectory) {
