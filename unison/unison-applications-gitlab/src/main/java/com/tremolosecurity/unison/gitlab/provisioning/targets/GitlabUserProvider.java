@@ -541,7 +541,24 @@ public class GitlabUserProvider implements UserStoreProviderWithAddGroup {
 			if (users.size() == 0) {
 				return null;
 			} else if (users.size() > 1) {
-				throw new ProvisioningException(userID + " maps to multiple users");
+				int count = 0;
+				org.gitlab4j.api.models.User foundUser = null;
+				for (org.gitlab4j.api.models.User user : users) {
+					if (user.getName().equals(userID)) {
+						count++;
+						foundUser = user;
+					}
+					
+				}
+				
+				if (count > 1) {
+				
+					throw new ProvisioningException(userID + " maps to multiple users");
+				} else if (count == 0) {
+					return null;
+				} else {
+					return foundUser;
+				}
 			} else {
 				fromGitlab = users.get(0);
 			}
