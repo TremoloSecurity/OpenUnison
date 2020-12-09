@@ -493,7 +493,14 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 		HttpResponse resp = con.getHttp().execute(get);
 		
+		
+		
 		String json = EntityUtils.toString(resp.getEntity());
+		
+		if (resp.getStatusLine().getStatusCode() < 200 || resp.getStatusLine().getStatusCode() > 299 ) {
+			logger.warn("Unexpected result calling '" + get.getURI() + "' - " + resp.getStatusLine().getStatusCode() + " / " + json);
+		}
+		
 		return json;
 	}
 

@@ -209,6 +209,8 @@ public class OAuth2JWT extends OAuth2Bearer {
 				as.setExecuted(true);
 				as.setSuccess(false);
 				
+				logger.warn("Could not verify signature");
+				
 				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
 				super.sendFail(response, realmName, scope, null, null);
 				return;
@@ -223,6 +225,8 @@ public class OAuth2JWT extends OAuth2Bearer {
 				as.setExecuted(true);
 				as.setSuccess(false);
 				
+				logger.warn("JWT not yet valid");
+				
 				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
 				super.sendFail(response, realmName, scope, null, null);
 				return;
@@ -231,6 +235,9 @@ public class OAuth2JWT extends OAuth2Bearer {
 			if (new DateTime(nbf).isAfterNow()) {
 				as.setExecuted(true);
 				as.setSuccess(false);
+				
+				logger.warn("JWT expired");
+				
 				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
 				super.sendFail(response, realmName, scope, null, null);
 				return;
@@ -239,6 +246,9 @@ public class OAuth2JWT extends OAuth2Bearer {
 			if (! ((String) obj.get("iss")).equals(issuer)) {
 				as.setExecuted(true);
 				as.setSuccess(false);
+				
+				logger.warn("JWT invalid issuer");
+				
 				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
 				super.sendFail(response, realmName, scope, null, null);
 				return;
@@ -264,6 +274,7 @@ public class OAuth2JWT extends OAuth2Bearer {
 				if (! found) {
 					as.setExecuted(true);
 					as.setSuccess(false);
+					logger.warn("Invalid audience");
 					cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
 					super.sendFail(response, realmName, scope, null, null);
 					return;
@@ -272,6 +283,9 @@ public class OAuth2JWT extends OAuth2Bearer {
 				if (! audiences.contains((String) aud)) {
 					as.setExecuted(true);
 					as.setSuccess(false);
+					
+					logger.warn("Invalid audience");
+					
 					cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
 					super.sendFail(response, realmName, scope, null, null);
 					return;
