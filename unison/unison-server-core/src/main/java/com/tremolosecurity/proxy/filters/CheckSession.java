@@ -70,19 +70,34 @@ public class CheckSession implements HttpFilter {
 							
 							ExternalSessionExpires extSession = (ExternalSessionExpires) session.getAttribute(SessionManagerImpl.TREMOLO_EXTERNAL_SESSION);
 							
+							
+							int extMinLeft = -1;
+							int stdMinLeft = -1;
+							
 							if (extSession != null) {
 								long expires = extSession.getExpires();
-								if (expires <= 0) {
-									si.setMinsLeft(-1);
-								} else {
-									si.setMinsLeft((int) ((expires - System.currentTimeMillis()) / 1000 / 60));
-								}
-							} else {
-								DateTime lastAccessed = (DateTime) session.getAttribute(SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED);
-								DateTime now = new DateTime();
-								DateTime expires = lastAccessed.plusSeconds(this.timeoutSeconds);
 								
-								si.setMinsLeft((int) ((expires.getMillis() - System.currentTimeMillis()) / 1000 / 60));
+								
+								
+								if (expires <= 0) {
+									extMinLeft = -1;
+								} else {
+									extMinLeft = (int) ((expires - System.currentTimeMillis()) / 1000 / 60);
+								}
+							} 
+						
+							DateTime lastAccessed = (DateTime) session.getAttribute(SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED);
+							DateTime now = new DateTime();
+							DateTime expires = lastAccessed.plusSeconds(this.timeoutSeconds);
+							
+							stdMinLeft = (int) ((expires.getMillis() - System.currentTimeMillis()) / 1000 / 60);
+							
+							
+							
+							if (extMinLeft > stdMinLeft) {
+								si.setMinsLeft(extMinLeft);
+							} else {
+								si.setMinsLeft(stdMinLeft);
 							}
 							
 							
