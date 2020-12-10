@@ -711,46 +711,56 @@ public class ParseWorkflow {
 		
 		Object op = node.get("params");
 		if (op != null) {
-			if (! (op instanceof JSONArray)) {
-				pw.setError("params must be an array");
+			if (! (op instanceof JSONObject)) {
+				pw.setError("params must be an object");
 				pw.setErrorPath(path + ".params");
 				return;
 			}
 			
 			int ii = 0;
-			JSONArray params = (JSONArray) op;
+			JSONObject params = (JSONObject) op;
 			
-			options = new OptionType[] {
-					new OptionType("name",true,OptionType.OptionValueType.STRING),
-					new OptionType("value",true,OptionType.OptionValueType.STRING)
+			for (Object key : params.keySet()) {
+				if (! (key instanceof String)) {
+					pw.setError("parameter key must be a string");
+					pw.setErrorPath(path + ".params[" + ii + "]");
+					return;
+				}
+				
+				String paramName = (String) key;
+				
+				Object vals = params.get(paramName);
+				
+				if (vals instanceof String) {
+					ParamWithValueType pt = new ParamWithValueType();
+					pt.setName(paramName);
+					pt.setValue((String) vals);
+					task.getParam().add(pt);
+				} else if (vals instanceof JSONArray) {
+					JSONArray jsonVals = (JSONArray) vals;
+					int ll = 0;
 					
-				};
-			
-			for (Object o : params) {
-				if (! (o instanceof JSONObject)) {
-					pw.setError("each param must be an object");
-					pw.setErrorPath(path + ".params[" + ii + "]");
-					return;
-				}
-				
-				JSONObject param = (JSONObject) o;
-				
-				ParamWithValueType pt = new ParamWithValueType();
-				
-				for (OptionType ot : options) {
-					setAttribute(param,ot,pt,ParamWithValueType.class,pw,path + ".params[" + ii + "]");
-					if (pw.getError() != null) {
-						return;
+					for (Object v : jsonVals) {
+						if (! (v instanceof String)) {
+							pw.setError("all values of a parameter must be a string");
+							pw.setErrorPath(path + ".params[" + ii + "][" + ll + "]");
+							return;
+						}
+						
+						ParamWithValueType pt = new ParamWithValueType();
+						pt.setName(paramName);
+						pt.setValue((String) v);
+						task.getParam().add(pt);
+						
+						
+						
+						ll++;
 					}
-				}
-				
-				if (! param.isEmpty()) {
-					pw.setError("Extra JSON keys : " + param.toString());
+				} else {
+					pw.setError("parameter value must be a string or a list of strings");
 					pw.setErrorPath(path + ".params[" + ii + "]");
 					return;
 				}
-				
-				task.getParam().add(pt);
 				
 				
 				ii++;
