@@ -38,7 +38,7 @@
 		<jboss-as-logging.version>7.2.0.Final</jboss-as-logging.version>
 		<jboss-as-web.version>7.2.0.Final</jboss-as-web.version>
 		<gson.version>2.8.6</gson.version>
-		<bcprov-jdk15on.version>1.66</bcprov-jdk15on.version>
+		<bcprov-jdk15on.version>1.67</bcprov-jdk15on.version>
 		<bcprov-ext-jdk15on.version>1.66</bcprov-ext-jdk15on.version>
 		<catalina.version>6.0.53</catalina.version>
 		<undertow-1x.version>1.0.0.Final</undertow-1x.version>
