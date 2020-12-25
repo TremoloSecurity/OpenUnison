@@ -51,6 +51,7 @@ import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.UserStoreProvider;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
+import com.tremolosecurity.provisioning.util.GenPasswd;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.saml.Attribute;
 
@@ -101,8 +102,11 @@ public class MatterMostProvider implements UserStoreProvider {
 			}
 			
 			if (user.getPassword() != null) {
+				//user.setPassword(new GenPasswd(25,true,true,true,true).getPassword());
 				newUser.put("password", user.getPassword());
 			}
+			
+			
 			
 			this.callWSPost(con, "/api/v4/users", newUser.toString());
 			
@@ -381,7 +385,7 @@ public class MatterMostProvider implements UserStoreProvider {
 		
 	}
 
-	private JSONObject loadUserJson(String userID, HttpCon con)
+	public JSONObject loadUserJson(String userID, HttpCon con)
 			throws IOException, ClientProtocolException, ProvisioningException, ParseException {
 		StringBuilder sb = new StringBuilder();
 		sb.append("/api/v4/users/username/").append(userID);
