@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019, 2020 Tremolo Security, Inc.
+ * Copyright 2020 Tremolo Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,92 +15,77 @@
  *******************************************************************************/
 package com.tremolosecurity.proxy.filters;
 
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
-import com.tremolosecurity.proxy.auth.AuthController;
-import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.filter.HttpFilter;
 import com.tremolosecurity.proxy.filter.HttpFilterChain;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;
 import com.tremolosecurity.proxy.filter.HttpFilterRequest;
 import com.tremolosecurity.proxy.filter.HttpFilterResponse;
-import com.tremolosecurity.proxy.util.ProxyConstants;
-import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.unison.openshiftv3.OpenShiftTarget;
 
-public class K8sToken implements HttpFilter {
+public class CheckK8sTargetMetadata implements HttpFilter {
+	
+	static Logger logger = Logger.getLogger(CheckK8sTargetMetadata.class);
 
-	
-	String userNameAttribute;
-	String groupAttribute;
-	boolean useLdapGroups;
-	String targetName;
-	
-	
 	@Override
 	public void doFilter(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain)
 			throws Exception {
-		Iterator<String> it = request.getHeaderNames();
-		List<String> toRemove = new ArrayList<String>();
-		while (it.hasNext()) {
-			String headerName = it.next();
-			if (headerName.toLowerCase().startsWith("impersonate-") || headerName.equalsIgnoreCase("Authorization")) {
-				toRemove.add(headerName);
+		
+		request.getServletRequest().setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("URI : " + request.getRequestURI());
+		}
+		
+		String name = request.getRequestURI().substring(request.getRequestURI().lastIndexOf('/') + 1);
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("Looking up for target '" + name + "'");
+		}
+		
+		OpenShiftTarget k8s = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(name).getProvider();
+
+		if (logger.isDebugEnabled()) {
+			if (k8s == null) {
+				logger.debug(name + " not found");
+			} else {
+				logger.debug(name + " found");
 			}
 		}
 		
-		for (String headerToRemove : toRemove) {
-			request.removeHeader(headerToRemove);
+		JSONObject root = new JSONObject();
+		root.put("isGit", k8s.getGitUrl() != null && ! k8s.getGitUrl().isEmpty());
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("Response for " + name + " - " + root.toString());
 		}
 		
-		request.removeHeader("Authorization");
-		
-		
-		
-		
-		OpenShiftTarget target = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(this.targetName).getProvider();
-		
-		String token = target.getAuthToken();
-		
-		if (token != null) {
-			request.addHeader(new Attribute("Authorization",new StringBuilder().append("Bearer ").append(target.getAuthToken()).toString()));
-		}
-		
-		
-		
-		HashMap<String,String> uriParams = (HashMap<String,String>) request.getAttribute("TREMOLO_URI_PARAMS");
-		uriParams.put("k8s_url", target.getUrl());
-		
-		
-		chain.nextFilter(request, response, chain);
-		
-		
+		response.setContentType("application/json");
+		response.getWriter().println(root.toString());
+		response.getWriter().flush();
 	}
 
 	@Override
 	public void filterResponseText(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain,
 			StringBuffer data) throws Exception {
-		// TODO Auto-generated method stub
 		
+
 	}
 
 	@Override
 	public void filterResponseBinary(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain,
 			byte[] data, int length) throws Exception {
-		// TODO Auto-generated method stub
 		
+
 	}
 
 	@Override
 	public void initFilter(HttpFilterConfig config) throws Exception {
-		this.targetName = config.getAttribute("targetName").getValues().get(0);
 		
-		
+
 	}
 
 }

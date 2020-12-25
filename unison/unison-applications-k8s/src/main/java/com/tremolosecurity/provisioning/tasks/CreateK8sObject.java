@@ -18,6 +18,7 @@ package com.tremolosecurity.provisioning.tasks;
 
 import com.tremolosecurity.provisioning.core.*;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
+import com.tremolosecurity.provisioning.tasks.dataobj.GitFile;
 import com.tremolosecurity.provisioning.util.CustomTask;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.saml.Attribute;
@@ -33,7 +34,9 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -47,13 +50,17 @@ public class CreateK8sObject implements CustomTask {
     String label;
     boolean doPost;
     
-    boolean writeToSecret;
-    String secretName;
+    String writeToRequestConfig;
     String path;
-    String secretNamespace;
     boolean yaml;
     
     transient WorkflowTask task;
+    
+    String homeCluster;
+
+	private String requestAttribute;
+    
+    
 
     @Override
     public void init(WorkflowTask task, Map<String, Attribute> params) throws ProvisioningException {
@@ -65,14 +72,15 @@ public class CreateK8sObject implements CustomTask {
 
         this.doPost = params.get("doPost") == null || params.get("doPost").getValues().get(0).equalsIgnoreCase("true"); 
         
-        this.writeToSecret = false;
         
-        if (params.get("writeToSecret") != null) {
-        	this.writeToSecret = params.get("writeToSecret").getValues().get(0).equalsIgnoreCase("true");
-        	if (this.writeToSecret) {
-	        	this.secretName = params.get("secretName").getValues().get(0);
-	        	this.path = params.get("path").getValues().get(0);
-	        	this.secretNamespace = params.get("secretNamespace").getValues().get(0);
+        
+        this.writeToRequestConfig = "false";
+        
+        if (params.get("writeToRequest") != null) {
+        	this.writeToRequestConfig = params.get("writeToRequest").getValues().get(0);
+        	if (this.writeToRequestConfig != null) {
+	        	if (params.get("requestAttribute") != null) this.requestAttribute = params.get("requestAttribute").getValues().get(0);
+	        	if (params.get("path") != null ) this.path = params.get("path").getValues().get(0);
         	}
         }
         
@@ -119,9 +127,24 @@ public class CreateK8sObject implements CustomTask {
     			localTemplateJSON = jsonObject.toJSONString();
     		}
             
+            if (logger.isDebugEnabled()) {
+            	logger.debug("Write To Request  : '" + this.writeToRequestConfig + "'");
+            }
             
-            if (this.writeToSecret) {
+            boolean writeToRequest = false;
+            if (this.writeToRequestConfig != null) {
+            	writeToRequest = task.renderTemplate(this.writeToRequestConfig, request).equalsIgnoreCase("true");
+            }
+            
+            
+            
+            
+            if (writeToRequest) {
+            	logger.debug("Writing to secret");
             	if (! os.isObjectExists(token, con, localURL,localTemplateJSON)) {
+            		if (logger.isDebugEnabled()) {
+            			logger.debug("Url '" + localURL + "' doesn't exist");
+            		}
             		String localPath = task.renderTemplate(this.path, request);
             		String dirName;
             		String fileName;
@@ -139,41 +162,18 @@ public class CreateK8sObject implements CustomTask {
             		fileInfo.put("dirName",dirName);
             		fileInfo.put("data",Base64.getEncoder().encodeToString(localTemplate.getBytes("UTF-8")));
             		
+            		GitFile gitFile = new GitFile(fileName,dirName,localTemplate);
             		
+            		List<GitFile> gitFiles = (List<GitFile>) request.get(this.requestAttribute);
             		
+            		if (gitFiles == null) {
+            			gitFiles = new ArrayList<GitFile>();
+            			request.put(this.requestAttribute, gitFiles);
+            			
+            		}
             		
+            		gitFiles.add(gitFile);
             		
-            		JSONObject patch = new JSONObject();
-            		JSONObject data = new JSONObject();
-            		patch.put("data",data);
-            		data.put(UUID.randomUUID().toString().toLowerCase(), Base64.getEncoder().encodeToString(fileInfo.toString().getBytes("UTF-8")));
-            		
-            		String patchJson = patch.toString();
-            		
-            		logger.info(patchJson);
-            		
-            		String localNamespace = task.renderTemplate(this.secretNamespace, request);
-            		String localSecretName = task.renderTemplate(this.secretName, request);
-            		
-            		String secretUrl = "/api/v1/namespaces/" + localNamespace + "/secrets/" + localSecretName;
-            		
-            		String respJSON = os.callWSPatchJson(token, con, secretUrl, patchJson);
-
-                    //if (logger.isDebugEnabled()) {
-                        logger.info("Response for patching secret : '" + respJSON + "'");
-                    //}
-
-                    JSONParser parser = new JSONParser();
-                    JSONObject resp = (JSONObject) parser.parse(respJSON);
-                    String kind = (String) resp.get("kind");
-                    String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
-
-
-                    if (! kind.equalsIgnoreCase("Secret")) {
-                        throw new ProvisioningException("Could not patch " + kind + "  '" + respJSON + "'" );
-                    } else {
-                    	this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Add,  approvalID, this.task.getWorkflow(), label, projectName);
-                    }
             	}
             	
             } else {

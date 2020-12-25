@@ -22,6 +22,8 @@ import java.util.Map;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.yaml.snakeyaml.Yaml;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -35,6 +37,7 @@ import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.config.xml.WorkflowType;
 import com.tremolosecurity.k8s.watch.K8sWatchTarget;
 import com.tremolosecurity.k8s.watch.K8sWatcher;
+import com.tremolosecurity.openunison.util.config.OpenUnisonConfigLoader;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.targets.DynamicTargets;
@@ -81,7 +84,11 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 			this.cfgMgr.getCfg().getProvisioning().getWorkflows().getWorkflow().add(newWorkflow);
 		}
 		
-		this.provisioningEngine.addDynamicWorkflow(newWorkflow);
+		try {
+			this.provisioningEngine.addDynamicWorkflow(newWorkflow);
+		} catch (Throwable e) {
+			logger.warn("Could not add workflow '" + name + "'",e);
+		}
 		
 	}
 
@@ -152,9 +159,28 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 		
 		JSONObject spec = (JSONObject) item.get("spec");
 		
+		String jsonString = spec.toJSONString();
+		StringBuffer b = new StringBuffer();
+		b.setLength(0);
+		OpenUnisonConfigLoader.integrateIncludes(b,  jsonString);
+		try {
+			spec = (JSONObject) new JSONParser().parse(b.toString());
+		} catch (ParseException e1) {
+			throw new ProvisioningException("Could not parse workflow",e1);
+		}
+		
+		
 		wft.setName(name);
 		wft.setInList(((Boolean)spec.get("inList")));
+		
+		
+		
+		
+		
 		wft.setLabel((String)spec.get("label"));
+		
+		
+		
 		wft.setOrgid((String) spec.get("orgId"));
 		wft.setDescription((String) spec.get("description"));
 		

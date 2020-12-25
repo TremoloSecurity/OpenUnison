@@ -131,6 +131,8 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	private String oidcIssuerHost;
 	
 	String label;
+	
+	String gitUrl;
 
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
@@ -749,6 +751,8 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		if (this.label == null) {
 			this.label = this.name;
 		}
+		
+		this.gitUrl = this.loadOptionalAttributeValue("gitUrl", "gitUrl", cfg, null);
 	}
 	
 	private void initRemoteOidc(Map<String, Attribute> cfg, ConfigManager cfgMgr, String name) throws ProvisioningException {
@@ -1155,5 +1159,9 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	
 	public String getLabel() { 
 		return this.label;
+	}
+	
+	public String getGitUrl() {
+		return this.gitUrl;
 	}
 }

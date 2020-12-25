@@ -166,6 +166,8 @@ InputOptions.prototype = {
         var mobile = (ow <= 991);
         return ! mobile;
       };
+      
+      
 
       this.change_text_control = function(attr_cfg) {
     	  
@@ -175,6 +177,8 @@ InputOptions.prototype = {
     					  
     					  attr_cfg.values = response.data;
     					  
+    					  this.edit_event(attr_cfg);
+    					  
     				  },
     				  function(response) {
     					  
@@ -182,6 +186,17 @@ InputOptions.prototype = {
     				  
     		  );
     	  }
+      
+      
+      }
+      
+      this.edit_event = function(attr_cfg) {
+        alert("in edit_event");
+      	if ('editJavaScriptFunction' in attr_cfg) {
+      	    alert("calling " + attr_cfg.editJavaScriptFunction);
+      		eval(attr_cfg.editJavaScriptFunction);
+      	}
+      	
       }
 
       angular.element(document).ready(function () {

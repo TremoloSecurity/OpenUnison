@@ -18,6 +18,7 @@ package com.tremolosecurity.scalejs;
 import java.io.IOException;
 import java.util.List;
 
+import com.tremolosecurity.git.GitUtils;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.proxy.auth.AuthInfo;
@@ -61,6 +62,8 @@ public class K8sProjectCheck implements CreateRegisterUser {
 		
 		if (errors.size() == 0) {
 		
+			String targetName = newUser.getAttributes().get("cluster");
+			
 			OpenShiftTarget target = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(targetName).getProvider();
 			
 			HttpCon con = null;
@@ -71,14 +74,12 @@ public class K8sProjectCheck implements CreateRegisterUser {
 				
 				
 				if (target.isObjectExistsByName(token, con, "/api/v1/namespaces", newUser.getAttributes().get(this.projectAttributeName))) {
-					errors.add("Project name already exists");
+					errors.add("Namespace name already exists");
 					return "";
-				} else {
-					return this.workflowName;
-				}
+				} 
 				
 			} catch (Exception e) {
-				throw new ProvisioningException("Could not check if project exists",e);
+				throw new ProvisioningException("Could not check if namespace exists",e);
 			} finally {
 				if (con != null) {
 					try {
@@ -91,7 +92,35 @@ public class K8sProjectCheck implements CreateRegisterUser {
 				}
 			}
 		
+			if (target.getGitUrl() != null && ! target.getGitUrl().isEmpty()) {
+				String gitUrlForNs = newUser.getAttributes().get("gitUrl");
+				String sshPrivKey = newUser.getAttributes().get("gitSshKey");
+				
+				if (gitUrlForNs == null || gitUrlForNs.isEmpty()) {
+					errors.add("Git URL is required for clusters configured to use git");
+				}
+				
+				if (sshPrivKey == null || sshPrivKey.isEmpty()) {
+					errors.add("Git SSH Private Key is required for clusters configured to use git");
+				}
+				
+				if (errors.size() > 0) {
+					return "";
+				}
+				
+				GitUtils gitUtil = new GitUtils(gitUrlForNs,sshPrivKey);
+				
+				try {
+					gitUtil.checkOut();
+				} catch (Throwable t) {
+					logger.warn("Could not checkout '" + gitUrlForNs + "'",t);
+					errors.add(t.getMessage());
+				} finally {
+					gitUtil.cleanup();
+				}
+			}
 		
+			return this.workflowName;
 		
 		
 		} else {

@@ -92,6 +92,7 @@
 		<commons-beanutils.version>1.9.4</commons-beanutils.version>
 		<swagger-core.version>2.1.5</swagger-core.version>
 		<k8sapi.version>10.0.0</k8sapi.version>
+		<jgit.version>5.10.0.202012080955-r</jgit.version>
 	</properties>
 
 	<repositories>

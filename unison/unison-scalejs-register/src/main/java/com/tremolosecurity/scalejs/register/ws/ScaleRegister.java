@@ -501,6 +501,18 @@ public class ScaleRegister implements HttpFilter {
 				scaleAttr.getDynamicSource().init(scaleAttr, dynConfig);
 			}
 			
+			val = this.loadOptionalAttributeValue(attributeName + ".editJavaScriptFunction", "editJavaScriptFunction", config);
+			if (val != null) {
+				scaleAttr.setEditJavaScriptFunction(val);
+			}
+			
+			val = this.loadOptionalAttributeValue(attributeName + ".show", "show", config);
+			if (val != null) {
+				scaleAttr.setShow(val.equalsIgnoreCase("true"));
+			} else {
+				scaleAttr.setShow(true);
+			}
+			
 			
 			
 			scaleConfig.getAttributes().put(attributeName, scaleAttr);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2016 Tremolo Security, Inc.
+ * Copyright 2016, 2019 Tremolo Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,13 +43,24 @@ public class ScaleAttribute {
 	transient String dynamicSourceClassName;
 	transient Map<String,Attribute> dynamicSourceConfig;
 	
+	String editJavaScriptFunction;
 	
-	
+	boolean show;
+
+	public String getEditJavaScriptFunction() {
+		return editJavaScriptFunction;
+	}
+
+	public void setEditJavaScriptFunction(String editJavaScriptFunction) {
+		this.editJavaScriptFunction = editJavaScriptFunction;
+	}
+
 	private transient Pattern pattern;
 	
 	public ScaleAttribute() {
 		this.values = new ArrayList<NVP>();
 		this.dynamicSourceConfig = new HashMap<String,Attribute>();
+
 	}
 
 	public String getName() {
@@ -169,6 +180,14 @@ public class ScaleAttribute {
 
 	public void setDynamicSourceConfig(Map<String, Attribute> dynamicSourceConfig) {
 		this.dynamicSourceConfig = dynamicSourceConfig;
+	}
+
+	public boolean isShow() {
+		return show;
+	}
+
+	public void setShow(boolean show) {
+		this.show = show;
 	}
 	
 	
