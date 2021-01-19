@@ -79,7 +79,7 @@ public class CreateProject implements CustomTask {
 			
 			if (! os.isObjectExists(token, con, "/apis/project.openshift.io/v1/projects", localTemplate)) {
 
-				String respJSON = os.callWSPost(token, con, "/oapi/v1/projectrequests", localTemplate);
+				String respJSON = os.callWSPost(token, con, "/apis/project.openshift.io/v1/projectrequests", localTemplate);
 				
 				if (logger.isDebugEnabled()) {
 					logger.debug("Response for creating project : '" + respJSON + "'");

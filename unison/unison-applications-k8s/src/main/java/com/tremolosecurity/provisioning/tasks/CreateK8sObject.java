@@ -125,6 +125,8 @@ public class CreateK8sObject implements CustomTask {
     			Map<String,Object> map= (Map<String, Object>) yaml.load(new ByteArrayInputStream(localTemplate.getBytes("UTF-8")));
     			JSONObject jsonObject=new JSONObject(map);
     			localTemplateJSON = jsonObject.toJSONString();
+    		} else {
+    			localTemplateJSON = localTemplate;
     		}
             
             if (logger.isDebugEnabled()) {

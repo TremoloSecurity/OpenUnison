@@ -173,7 +173,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 				
 		
 				this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Add,  approvalID, workflow, "name", user.getUserID());
-				this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Add,  approvalID, workflow, "name", osUser.getMetadata().get("name"));
+				this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Add,  approvalID, workflow, "name", (String) osUser.getMetadata().get("name"));
 				
 				if (user.getAttribs().get("fullName") != null) {
 					this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Add,  approvalID, workflow, "fullName", osUser.getFullName());
@@ -445,7 +445,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 					
 					for (String attrName : osUser.getMetadata().keySet()) {
 						if (! attrName.equalsIgnoreCase("fullName") && attributes.contains(attrName)) {
-							user.getAttribs().put(attrName, new Attribute(attrName,osUser.getMetadata().get(attrName)));
+							user.getAttribs().put(attrName, new Attribute(attrName,(String) osUser.getMetadata().get(attrName)));
 						}
 					}
 					
@@ -1010,7 +1010,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			com.tremolosecurity.unison.openshiftv3.model.groups.Group group = new com.tremolosecurity.unison.openshiftv3.model.groups.Group();
 				group.setKind("Group");
 				group.setApiVersion("user.openshift.io/v1");
-				group.setMetadata(new HashMap<String,String>());
+				group.setMetadata(new HashMap<String,Object>());
 				group.getMetadata().put("name", name);
 				group.getMetadata().put("creationTimestamp", null);
 				group.setUsers(null);

@@ -37,7 +37,7 @@ public class User extends Response {
 	}
 	
 	public String getName() {
-		return this.getMetadata().get("name");
+		return (String) this.getMetadata().get("name");
 	}
 	
 	public void setName(String val) {
@@ -53,6 +53,6 @@ public class User extends Response {
 	}
 	
 	public String getUid() {
-		return this.getMetadata().get("uid");
+		return (String) this.getMetadata().get("uid");
 	}
 }

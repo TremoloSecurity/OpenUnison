@@ -19,7 +19,7 @@ public  class Response {
 
 	String kind;
 	String apiVersion;
-	protected Map<String,String> metadata;
+	protected Map<String,Object> metadata;
 	
 	String status;
 	String message;
@@ -28,7 +28,7 @@ public  class Response {
 	int code;
 
 	public Response() {
-		this.metadata = new HashMap<String,String>();
+		this.metadata = new HashMap<String,Object>();
 		this.details = new HashMap<String,String>();
 	}
 	
@@ -48,11 +48,11 @@ public  class Response {
 		this.apiVersion = apiVersion;
 	}
 
-	public Map<String, String> getMetadata() {
+	public Map<String, Object> getMetadata() {
 		return metadata;
 	}
 
-	public void setMetadata(Map<String, String> metadata) {
+	public void setMetadata(Map<String, Object> metadata) {
 		this.metadata = metadata;
 	}
 
