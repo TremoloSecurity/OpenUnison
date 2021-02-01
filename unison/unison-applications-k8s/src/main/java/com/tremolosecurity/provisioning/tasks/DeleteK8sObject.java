@@ -88,11 +88,27 @@ public class DeleteK8sObject implements CustomTask {
 		    String kind = (String) resp.get("kind");
 		    String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
 		    
-		    if (! kind.equalsIgnoreCase(this.kind)) {
-		        throw new ProvisioningException("Could not delete " + kind + " with url '" + localURL + "' - '" + respJSON + "'" );
+		    
+		    logger.info("kind : '" + kind + "' / '" + this.kind + "'");
+		    
+		    
+		    if (kind.equalsIgnoreCase(this.kind)) {
+		    	this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ProvisioningUtil.ActionType.Delete,  approvalID, this.task.getWorkflow(), label, projectName);
+		    } else if (resp.get("status") != null) {
+		    	String status = (String) resp.get("status");
+		    	logger.info("status : '" + status + "'");
+		    	if (status != null && status.equalsIgnoreCase("success"))  {
+		    		this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ProvisioningUtil.ActionType.Delete,  approvalID, this.task.getWorkflow(), label, projectName);
+			    } else {
+			    	throw new ProvisioningException("Could not delete " + kind + " with url '" + localURL + "' - '" + respJSON + "'" );
+			    }
 		    } else {
-		        this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ProvisioningUtil.ActionType.Delete,  approvalID, this.task.getWorkflow(), label, projectName);
+		    	throw new ProvisioningException("Could not delete " + kind + " with url '" + localURL + "' - '" + respJSON + "'" );
 		    }
+		    
+		    
+		    
+
         } catch (Exception e) {
             throw new ProvisioningException("Could not delete " + kind + " - " + localURL,e);
         } finally {
