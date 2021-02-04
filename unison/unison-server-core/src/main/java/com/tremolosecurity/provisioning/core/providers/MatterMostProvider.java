@@ -155,6 +155,8 @@ public class MatterMostProvider implements UserStoreProvider {
 	@Override
 	public void syncUser(User user, boolean addOnly, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
+		
+		user.setUserID(user.getUserID().toLowerCase());
 		int approvalID = 0;
 		if (request.containsKey("APPROVAL_ID")) {
 			approvalID = (Integer) request.get("APPROVAL_ID");
@@ -338,7 +340,7 @@ public class MatterMostProvider implements UserStoreProvider {
 	public User findUser(String userID, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
 		
-		
+		userID = userID.toLowerCase();
 		
 		HttpCon con = null;
 		
