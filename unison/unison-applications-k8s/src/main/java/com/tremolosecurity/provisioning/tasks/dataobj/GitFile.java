@@ -19,11 +19,26 @@ public class GitFile {
 	String fileName;
 	String dirName;
 	String data;
+	boolean delete;
+	boolean isNamespace;
+	boolean patch;
 	
 	public GitFile(String fileName,String dirName,String data) {
 		this.fileName = fileName;
 		this.dirName = dirName;
 		this.data = data;
+		this.delete = false;
+		this.isNamespace = false;
+		this.patch = false;
+	}
+	
+	public GitFile(String fileName,String dirName,boolean delete,boolean isNamespace) {
+		this.fileName = fileName;
+		this.dirName = dirName;
+		this.data = null;
+		this.delete = delete;
+		this.isNamespace = isNamespace;
+		this.patch = false;
 	}
 
 	public String getFileName() {
@@ -49,6 +64,33 @@ public class GitFile {
 	public void setData(String data) {
 		this.data = data;
 	}
+
+	public boolean isDelete() {
+		return delete;
+	}
+
+	public void setDelete(boolean delete) {
+		this.delete = delete;
+	}
+
+	public boolean isNamespace() {
+		return isNamespace;
+	}
+
+	public void setNamespace(boolean isNamespace) {
+		this.isNamespace = isNamespace;
+	}
+
+	public boolean isPatch() {
+		return patch;
+	}
+
+	public void setPatch(boolean patch) {
+		this.patch = patch;
+	}
+	
+	
+	
 	
 	
 }

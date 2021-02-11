@@ -157,6 +157,13 @@ public class MatterMostProvider implements UserStoreProvider {
 			throws ProvisioningException {
 		
 		user.setUserID(user.getUserID().toLowerCase());
+		
+		if (user.getAttribs().get("email") != null) {
+			String emailAddress = user.getAttribs().get("email").getValues().get(0).toLowerCase();
+			user.getAttribs().get("email").getValues().clear();
+			user.getAttribs().get("email").getValues().add(emailAddress);
+		}
+		
 		int approvalID = 0;
 		if (request.containsKey("APPROVAL_ID")) {
 			approvalID = (Integer) request.get("APPROVAL_ID");

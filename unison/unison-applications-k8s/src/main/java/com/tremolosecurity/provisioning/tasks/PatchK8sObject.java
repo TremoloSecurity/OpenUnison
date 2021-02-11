@@ -30,6 +30,8 @@
 package com.tremolosecurity.provisioning.tasks;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import com.tremolosecurity.provisioning.core.ProvisioningException;
@@ -37,6 +39,7 @@ import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.WorkflowTask;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
+import com.tremolosecurity.provisioning.tasks.dataobj.GitFile;
 import com.tremolosecurity.provisioning.util.CustomTask;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.saml.Attribute;
@@ -67,6 +70,10 @@ public class PatchK8sObject implements CustomTask {
     String url;
     String label;
     
+    String writeToRequestConfig;
+    private String requestAttribute;
+    String path;
+    
     
 
     transient WorkflowTask task;
@@ -96,28 +103,72 @@ public class PatchK8sObject implements CustomTask {
             String token = os.getAuthToken();
             con = os.createClient();
 
-            if (this.isObjectExists(os,token, con, localURL,localTemplate)) {
-
-                String respJSON = os.callWSPatchJson(token, con, localURL, localTemplate);
-
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Response for creating project : '" + respJSON + "'");
-                }
-
-                JSONParser parser = new JSONParser();
-                JSONObject resp = (JSONObject) parser.parse(respJSON);
-                String kind = (String) resp.get("kind");
-                String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
-
-
-                if (! kind.equalsIgnoreCase(this.kind)) {
-                    throw new ProvisioningException("Could not create " + kind + " with json '" + localTemplate + "' - '" + respJSON + "'" );
-                } else {
-                    this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ActionType.Replace,  approvalID, this.task.getWorkflow(), label, projectName);
-                }
-            } else {
-                throw new ProvisioningException("Object '" + localURL + "' does not exist");
+            boolean writeToRequest = false;
+            if (this.writeToRequestConfig != null) {
+            	writeToRequest = task.renderTemplate(this.writeToRequestConfig, request).equalsIgnoreCase("true");
             }
+            
+            if (writeToRequest) {
+            	logger.debug("Writing to secret");
+    
+        		String localPath = task.renderTemplate(this.path, request);
+        		String dirName;
+        		String fileName;
+        		int lastSlash = localPath.lastIndexOf('/');
+        		if (lastSlash == -1) {
+        			dirName = "";
+        			fileName = localPath;
+        		} else {
+        			dirName = localPath.substring(0,lastSlash);
+        			fileName = localPath.substring(lastSlash + 1);
+        		}
+        		
+        		
+        		
+        		
+        		GitFile gitFile = new GitFile(fileName,dirName,false,false);
+        		gitFile.setData(localTemplate);
+        		gitFile.setPatch(true);
+        		
+        		List<GitFile> gitFiles = (List<GitFile>) request.get(this.requestAttribute);
+        		
+        		if (gitFiles == null) {
+        			gitFiles = new ArrayList<GitFile>();
+        			request.put(this.requestAttribute, gitFiles);
+        			
+        		}
+        		
+        		gitFiles.add(gitFile);
+            		
+            	
+            	
+            } else {
+            	if (this.isObjectExists(os,token, con, localURL,localTemplate)) {
+
+                    String respJSON = os.callWSPatchJson(token, con, localURL, localTemplate);
+
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Response for creating project : '" + respJSON + "'");
+                    }
+
+                    JSONParser parser = new JSONParser();
+                    JSONObject resp = (JSONObject) parser.parse(respJSON);
+                    String kind = (String) resp.get("kind");
+                    String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
+
+
+                    if (! kind.equalsIgnoreCase(this.kind)) {
+                        throw new ProvisioningException("Could not create " + kind + " with json '" + localTemplate + "' - '" + respJSON + "'" );
+                    } else {
+                        this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ActionType.Replace,  approvalID, this.task.getWorkflow(), label, projectName);
+                    }
+                } else {
+                    throw new ProvisioningException("Object '" + localURL + "' does not exist");
+                }
+            }
+            
+            
+            
         } catch (Exception e) {
             throw new ProvisioningException("Could not create " + kind,e);
         } finally {
@@ -139,6 +190,16 @@ public class PatchK8sObject implements CustomTask {
         this.label = "kubernetes-" + this.kind.toLowerCase();
         
         this.task = task;
+        
+        this.writeToRequestConfig = "false";
+        
+        if (params.get("writeToRequest") != null) {
+        	this.writeToRequestConfig = params.get("writeToRequest").getValues().get(0);
+        	if (this.writeToRequestConfig != null) {
+	        	if (params.get("requestAttribute") != null) this.requestAttribute = params.get("requestAttribute").getValues().get(0);
+	        	if (params.get("path") != null ) this.path = params.get("path").getValues().get(0);
+        	}
+        }
 
 	}
 

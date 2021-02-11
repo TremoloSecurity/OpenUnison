@@ -15,13 +15,18 @@
  *******************************************************************************/
 package com.tremolosecurity.git;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -38,7 +43,15 @@ import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.util.FS;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import org.yaml.snakeyaml.Yaml;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonpatch.JsonPatchException;
+import com.github.fge.jsonpatch.mergepatch.JsonMergePatch;
 import com.google.common.io.Files;
 import com.tremolosecurity.provisioning.tasks.dataobj.GitFile;
 
@@ -122,16 +135,64 @@ public class GitUtils {
 		}
 	}
 
-	public void applyFiles(List<GitFile> files) throws IOException {
+	public void applyFiles(List<GitFile> files) throws IOException, NoFilepatternException, GitAPIException, JsonPatchException, ParseException {
 		
 		for (GitFile file : files) {
 			File targetFile = new File(this.tmpdir.getAbsolutePath() + File.separator + "gitrepo" + file.getDirName() + File.separator + file.getFileName());
-			logger.info("Creating '" + targetFile.getAbsolutePath() + "'");
-			Files.createParentDirs(targetFile);
-			FileOutputStream out = new FileOutputStream(targetFile);
-			out.write(file.getData().getBytes("UTF-8"));
-			out.flush();
-			out.close();
+			if (file.isDelete()) {
+				logger.info("Deleting '" + targetFile.getAbsolutePath() + "'");
+				
+				FileUtils.forceDelete(targetFile);
+				git.rm().addFilepattern(file.getDirName().substring(1) + File.separator + file.getFileName()).call();
+			} if (file.isPatch()) {
+				logger.info("Patching '" + targetFile.getAbsolutePath() + "'");
+				
+				InputStream in = new FileInputStream(targetFile);
+				Yaml yaml = new Yaml();
+    			Map<String,Object> map= (Map<String, Object>) yaml.load(in);
+    			JSONObject jsonObject=new JSONObject(map);
+    			
+				
+				
+				ObjectMapper mapper = new ObjectMapper();
+				
+				JsonNode toBePatched = mapper.readValue(jsonObject.toJSONString(), JsonNode.class);
+				JsonMergePatch patch = mapper.readValue(file.getData(), JsonMergePatch.class);
+				
+				JsonNode patched = patch.apply(toBePatched);
+				
+				String patchedJson = patched.toString();
+				String newYaml = yaml.dump(new JSONParser().parse(patchedJson));
+				
+				
+				FileOutputStream out = new FileOutputStream(targetFile);
+				out.write(newYaml.getBytes("UTF-8"));
+				out.flush();
+				out.close();
+				
+				
+			} else {
+				logger.info("Creating '" + targetFile.getAbsolutePath() + "'");
+				Files.createParentDirs(targetFile);
+				FileOutputStream out = new FileOutputStream(targetFile);
+				out.write(file.getData().getBytes("UTF-8"));
+				out.flush();
+				out.close();
+			}
+			
+		}
+		
+		for (GitFile file : files) {
+			File targetFile = new File(this.tmpdir.getAbsolutePath() + File.separator + "gitrepo" + file.getDirName() + File.separator + file.getFileName());
+			if (file.isDelete()) {
+				if (file.isNamespace()) {
+					logger.info("Deleting namespace, removing directory '" + file.getDirName() + "'");
+					//git.rm().addFilepattern("." + file.getDirName()).call();
+					FileUtils.forceDelete(new File(this.tmpdir.getAbsolutePath() + File.separator + "gitrepo" + file.getDirName()));
+					git.rm().addFilepattern(file.getDirName().substring(1)).call();
+				}
+			} 
+			
 		}
 		
 	}
@@ -140,10 +201,15 @@ public class GitUtils {
 		
 		git.add().addFilepattern(".").call();
 		
+		
+		
+		
 		RevCommit rev = git.commit().setAuthor(System.getProperty("GIT_USERNAME"), System.getProperty("GIT_EMAIL"))
 		            .setCommitter(System.getProperty("GIT_USERNAME"), System.getProperty("GIT_EMAIL"))
 		            .setMessage(wfMessage)
 		            .call();
+		
+		logger.info(rev);
 		
 		git.push().setTransportConfigCallback(this.sshCallBack).call();
 	}

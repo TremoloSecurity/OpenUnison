@@ -15,6 +15,9 @@
  *******************************************************************************/
 package com.tremolosecurity.provisioning.tasks;
 
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
@@ -26,6 +29,7 @@ import com.tremolosecurity.provisioning.core.ProvisioningUtil;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.WorkflowTask;
+import com.tremolosecurity.provisioning.tasks.dataobj.GitFile;
 import com.tremolosecurity.provisioning.util.CustomTask;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.saml.Attribute;
@@ -40,6 +44,10 @@ public class DeleteK8sObject implements CustomTask {
 	String kind;
     String label;
     
+    String writeToRequestConfig;
+    private String requestAttribute;
+    String path;
+    
     transient WorkflowTask task;
 
 	@Override
@@ -50,6 +58,17 @@ public class DeleteK8sObject implements CustomTask {
         this.label = "kubernetes-" + this.kind.toLowerCase();
         
         this.task = task;
+        
+        
+        this.writeToRequestConfig = "false";
+        
+        if (params.get("writeToRequest") != null) {
+        	this.writeToRequestConfig = params.get("writeToRequest").getValues().get(0);
+        	if (this.writeToRequestConfig != null) {
+	        	if (params.get("requestAttribute") != null) this.requestAttribute = params.get("requestAttribute").getValues().get(0);
+	        	if (params.get("path") != null ) this.path = params.get("path").getValues().get(0);
+        	}
+        }
 
 	}
 
@@ -71,40 +90,90 @@ public class DeleteK8sObject implements CustomTask {
         String localURL = task.renderTemplate(this.url,request);
         
         HttpCon con = null;
-        OpenShiftTarget os = (OpenShiftTarget) task.getConfigManager().getProvisioningEngine().getTarget(this.targetName).getProvider();
+        
+        String localTarget = task.renderTemplate(this.targetName, request);
+        
+        OpenShiftTarget os = (OpenShiftTarget) task.getConfigManager().getProvisioningEngine().getTarget(localTarget).getProvider();
         try {
             String token = os.getAuthToken();
             con = os.createClient();
-            String respJSON = os.callWSDelete(token, con, localURL);
             
-            //if (logger.isDebugEnabled()) {
-		        logger.info("Response for deleting object : '" + respJSON + "'");
-		    //}
-
-
-		    
-		    JSONParser parser = new JSONParser();
-		    JSONObject resp = (JSONObject) parser.parse(respJSON);
-		    String kind = (String) resp.get("kind");
-		    String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
-		    
-		    
-		    logger.info("kind : '" + kind + "' / '" + this.kind + "'");
-		    
-		    
-		    if (kind.equalsIgnoreCase(this.kind)) {
-		    	this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ProvisioningUtil.ActionType.Delete,  approvalID, this.task.getWorkflow(), label, projectName);
-		    } else if (resp.get("status") != null) {
-		    	String status = (String) resp.get("status");
-		    	logger.info("status : '" + status + "'");
-		    	if (status != null && status.equalsIgnoreCase("success"))  {
-		    		this.task.getConfigManager().getProvisioningEngine().logAction(this.targetName,true, ProvisioningUtil.ActionType.Delete,  approvalID, this.task.getWorkflow(), label, projectName);
+            
+            boolean writeToRequest = false;
+            if (this.writeToRequestConfig != null) {
+            	writeToRequest = task.renderTemplate(this.writeToRequestConfig, request).equalsIgnoreCase("true");
+            }
+            
+            
+            if (writeToRequest) {
+            	logger.debug("Writing to secret");
+    
+        		String localPath = task.renderTemplate(this.path, request);
+        		String dirName;
+        		String fileName;
+        		int lastSlash = localPath.lastIndexOf('/');
+        		if (lastSlash == -1) {
+        			dirName = "";
+        			fileName = localPath;
+        		} else {
+        			dirName = localPath.substring(0,lastSlash);
+        			fileName = localPath.substring(lastSlash + 1);
+        		}
+        		
+        		JSONObject fileInfo = new JSONObject();
+        		fileInfo.put("fileName",fileName);
+        		fileInfo.put("dirName",dirName);
+        		fileInfo.put("delete", true);
+        		
+        		
+        		GitFile gitFile = new GitFile(fileName,dirName,true,kind.equalsIgnoreCase("Namespace"));
+        		
+        		List<GitFile> gitFiles = (List<GitFile>) request.get(this.requestAttribute);
+        		
+        		if (gitFiles == null) {
+        			gitFiles = new ArrayList<GitFile>();
+        			request.put(this.requestAttribute, gitFiles);
+        			
+        		}
+        		
+        		gitFiles.add(gitFile);
+            		
+            	
+            	
+            } else {
+            
+	            String respJSON = os.callWSDelete(token, con, localURL);
+	            
+	            if (logger.isDebugEnabled()) {
+			        logger.debug("Response for deleting object : '" + respJSON + "'");
+			    }
+	
+	
+			    
+			    JSONParser parser = new JSONParser();
+			    JSONObject resp = (JSONObject) parser.parse(respJSON);
+			    String kind = (String) resp.get("kind");
+			    String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
+			    
+			    
+			    if (logger.isDebugEnabled()) {
+			    	logger.debug("kind : '" + kind + "' / '" + this.kind + "'");
+			    }
+			    
+			    if (kind.equalsIgnoreCase(this.kind)) {
+			    	this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Delete,  approvalID, this.task.getWorkflow(), label, projectName);
+			    } else if (resp.get("status") != null) {
+			    	String status = (String) resp.get("status");
+			    	logger.info("status : '" + status + "'");
+			    	if (status != null && status.equalsIgnoreCase("success"))  {
+			    		this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Delete,  approvalID, this.task.getWorkflow(), label, projectName);
+				    } else {
+				    	throw new ProvisioningException("Could not delete " + kind + " with url '" + localURL + "' - '" + respJSON + "'" );
+				    }
 			    } else {
 			    	throw new ProvisioningException("Could not delete " + kind + " with url '" + localURL + "' - '" + respJSON + "'" );
 			    }
-		    } else {
-		    	throw new ProvisioningException("Could not delete " + kind + " with url '" + localURL + "' - '" + respJSON + "'" );
-		    }
+            }
 		    
 		    
 		    

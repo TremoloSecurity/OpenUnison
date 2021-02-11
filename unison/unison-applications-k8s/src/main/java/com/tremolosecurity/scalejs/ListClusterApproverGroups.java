@@ -57,6 +57,7 @@ public class ListClusterApproverGroups implements DynamicWorkflow {
 				Map<String,String> workflow = new HashMap<String,String>();
 				workflow.put("groupName", group);
 				workflow.put("namespaceName", group.substring(sb.toString().length() + 1));
+				workflow.put("nameSpace", group.substring(sb.toString().length() + 1));
 				workflowdata.add(workflow);
 				
 			}
