@@ -676,9 +676,9 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 		b.append("Bearer ").append(this.oauth2Token);
 		get.addHeader(new BasicHeader("Authorization",b.toString()));
 		HttpResponse resp = con.getHttp().execute(get);
-		get.abort();
-		String json = EntityUtils.toString(resp.getEntity());
 		
+		String json = EntityUtils.toString(resp.getEntity());
+		get.abort();
 		if (logger.isDebugEnabled()) {
 			logger.debug("url : '" + uri + "'");
 			logger.debug("Response Code : " + resp.getStatusLine().getStatusCode());
@@ -712,19 +712,27 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 		b.append("Bearer ").append(this.oauth2Token);
 		get.addHeader(new BasicHeader("Authorization",b.toString()));
 		HttpResponse resp = con.getHttp().execute(get);
-		get.abort();
 		
-		if (resp.getStatusLine().getStatusCode() != 204) {
-			if (resp.getStatusLine().getStatusCode() == 401) {
-				if (callNumber == 1) {
-					throw new IOException("Patch failed " + EntityUtils.toString(resp.getEntity()));
+		try {
+		
+			if (resp.getStatusLine().getStatusCode() != 204) {
+				if (resp.getStatusLine().getStatusCode() == 401) {
+					if (callNumber == 1) {
+						throw new IOException("Patch failed " + EntityUtils.toString(resp.getEntity()));
+					} else {
+						get.abort();
+						get = null;
+						loadCredentials();
+						this.callDelete(con, uri, callNumber+1);
+					}
+					
 				} else {
-					loadCredentials();
-					this.callDelete(con, uri, callNumber+1);
+					throw new IOException("Patch failed " + EntityUtils.toString(resp.getEntity()));
 				}
-				
-			} else {
-				throw new IOException("Patch failed " + EntityUtils.toString(resp.getEntity()));
+			}
+		} finally {
+			if (get != null) {
+				get.abort();
 			}
 		}
 	}
@@ -748,28 +756,31 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 		put.setEntity(str);
 		
 		HttpResponse resp = con.getHttp().execute(put);
-		put.abort();
-		if (resp.getStatusLine().getStatusCode() != 204) {
-			
-			if (logger.isDebugEnabled()) {
-				logger.debug("url : '" + uri + "'");
-				logger.debug("Response Code : " + resp.getStatusLine().getStatusCode());
-				logger.debug(json);
-			}
-			
-			if (resp.getStatusLine().getStatusCode() == 401) {
-				if (callNumber == 1) {
-					throw new IOException("Patch failed " + EntityUtils.toString(resp.getEntity()));
-				} else {
-					loadCredentials();
-					this.callWSPatchJson(con, uri, json, callNumber + 1);
+		try {
+			if (resp.getStatusLine().getStatusCode() != 204) {
+				
+				if (logger.isDebugEnabled()) {
+					logger.debug("url : '" + uri + "'");
+					logger.debug("Response Code : " + resp.getStatusLine().getStatusCode());
+					logger.debug(json);
 				}
 				
-			} else {
-				throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
+				if (resp.getStatusLine().getStatusCode() == 401) {
+					if (callNumber == 1) {
+						throw new IOException("Patch failed " + EntityUtils.toString(resp.getEntity()));
+					} else {
+						loadCredentials();
+						this.callWSPatchJson(con, uri, json, callNumber + 1);
+					}
+					
+				} else {
+					throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
+				}
+				
+				
 			}
-			
-			
+		} finally {
+			put.abort();
 		}
 		
 		
@@ -838,30 +849,37 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 		put.setEntity(str);
 		
 		HttpResponse resp = con.getHttp().execute(put);
-		put.abort();
-		if (resp.getStatusLine().getStatusCode() != 201) {
-			
-			
-			if (logger.isDebugEnabled()) {
-				logger.debug("url : '" + uri + "'");
-				logger.debug("Response Code : " + resp.getStatusLine().getStatusCode());
-				logger.debug(json);
-			}
-			
-			if (resp.getStatusLine().getStatusCode() == 401) {
-				if (callNumber == 1) {
-					throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
+		try {
+			if (resp.getStatusLine().getStatusCode() != 201) {
+				
+				
+				if (logger.isDebugEnabled()) {
+					logger.debug("url : '" + uri + "'");
+					logger.debug("Response Code : " + resp.getStatusLine().getStatusCode());
+					logger.debug(json);
+				}
+				
+				if (resp.getStatusLine().getStatusCode() == 401) {
+					if (callNumber == 1) {
+						throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
+					} else {
+						put.abort();
+						put = null;
+						loadCredentials();
+						return this.callWSPostJsonReesponseExpected(con, uri, json, callNumber + 1);
+					}
+					
 				} else {
-					loadCredentials();
-					return this.callWSPostJsonReesponseExpected(con, uri, json, callNumber + 1);
+					throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
 				}
 				
 			} else {
-				throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
+				return EntityUtils.toString(resp.getEntity());
 			}
-			
-		} else {
-			return EntityUtils.toString(resp.getEntity());
+		} finally {
+			if (put != null) {
+				put.abort();
+			}
 		}
 		
 		
