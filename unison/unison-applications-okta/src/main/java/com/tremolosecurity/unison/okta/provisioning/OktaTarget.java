@@ -77,7 +77,7 @@ public class OktaTarget implements UserStoreProvider {
 		ub.setProfileProperties(profile);
 		
 		for (String group : user.getGroups()) {
-			GroupList gl = okta.listGroups(group, null);
+			GroupList gl = okta.listGroups(group, null,null);
 			
 			ub.addGroup(gl.iterator().next().getId());
 		}
@@ -156,7 +156,7 @@ public class OktaTarget implements UserStoreProvider {
 			}
 			
 			for (String group : groupsToAdd) {
-				GroupList gl = okta.listGroups(group, null);
+				GroupList gl = okta.listGroups(group, null,null);
 				fromOkta.addToGroup(gl.iterator().next().getId());
 			}
 			
