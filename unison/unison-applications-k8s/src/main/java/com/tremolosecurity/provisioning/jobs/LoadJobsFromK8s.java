@@ -15,6 +15,7 @@
  *******************************************************************************/
 package com.tremolosecurity.provisioning.jobs;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -65,7 +66,7 @@ public class LoadJobsFromK8s implements DynamicJobs, K8sWatchTarget {
 	}
 
 	private void createJob(JSONObject item,String name) throws ProvisioningException {
-		
+		HttpCon nonwatchHttp = null;
 		JobType job = new JobType();
 		job.setName(name);
 		JSONObject spec = (JSONObject) item.get("spec");
@@ -99,6 +100,40 @@ public class LoadJobsFromK8s implements DynamicJobs, K8sWatchTarget {
 			
 			
 			
+		}
+		
+		JSONArray secretParams = (JSONArray) spec.get("secretParams");
+		
+		if (secretParams != null) {
+			try {
+				
+				nonwatchHttp = this.k8sWatch.getK8s().createClient();
+				String token = this.k8sWatch.getK8s().getAuthToken();
+				for (Object o : secretParams) {
+					JSONObject secretParam = (JSONObject) o;
+					String paramName = (String) secretParam.get("name");
+					String secretName = (String) secretParam.get("secretName");
+					String secretKey = (String) secretParam.get("secretKey");
+					
+					String secretValue = this.k8sWatch.getSecretValue(secretName, secretKey, token, nonwatchHttp);
+					ParamType pt = new ParamType();
+					pt.setName(paramName);
+					pt.setValue(secretValue);
+					job.getParam().add(pt);
+					
+				}
+			} catch (Exception e) {
+				throw new ProvisioningException("Could not load secrets for '" + name + "'");
+			} finally {
+				if (nonwatchHttp != null) {
+					try {
+						nonwatchHttp.getHttp().close();
+					} catch (IOException e) {
+						
+					}
+					nonwatchHttp.getBcm().close();
+				}
+			}
 		}
 		
 		

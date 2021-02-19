@@ -15,6 +15,7 @@
  *******************************************************************************/
 package com.tremolosecurity.provisioning.targets;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -148,6 +149,15 @@ public class LoadTargetsFromK8s implements DynamicTargets, K8sWatchTarget {
 			
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not add target '" + name + "'",e);
+		} finally {
+			if (nonwatchHttp != null) {
+				try {
+					nonwatchHttp.getHttp().close();
+				} catch (IOException e) {
+					
+				}
+				nonwatchHttp.getBcm().close();
+			}
 		}
 		
 		
