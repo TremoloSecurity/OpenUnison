@@ -46,6 +46,8 @@ import javax.servlet.http.HttpSession;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ClientConnectionManager;
@@ -58,6 +60,7 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicHeader;
@@ -69,11 +72,15 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UnisonConfigManagerImpl;
 import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.proxy.ProxySys;
+import com.tremolosecurity.proxy.SessionManager;
+import com.tremolosecurity.proxy.SessionManagerImpl;
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import com.tremolosecurity.proxy.auth.AzSys;
 import com.tremolosecurity.proxy.logout.LogoutUtil;
 import com.tremolosecurity.proxy.ssl.TremoloTrustManager;
+import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 
 
 public abstract class PostProcess {
@@ -95,6 +102,8 @@ public abstract class PostProcess {
 			Exception {
 		boolean isText;
 		HttpEntity entity = null;
+		
+		
 		
 		try {
 			entity = response.getEntity();
@@ -483,28 +492,58 @@ public abstract class PostProcess {
 		}
 	}
 	
-	public CloseableHttpClient getHttp(String finalURL,HttpServletRequest request,ConfigManager cfgMgr) {
+	public CloseableHttpClient getHttp(String finalURL,HttpServletRequest request,UrlHolder holder) {
+		ConfigManager cfgMgr = holder.getConfig();
 		HttpSession session = request.getSession();
 		PoolingHttpClientConnectionManager phcm = (PoolingHttpClientConnectionManager) session.getAttribute("TREMOLO_HTTP_POOL");
 		CloseableHttpClient http = (CloseableHttpClient) session.getAttribute("TREMOLO_HTTP_CLIENT");
 		if (http == null) {
-			//create a new connection manager and client
-			phcm = new PoolingHttpClientConnectionManager(cfgMgr.getHttpClientSocketRegistry());
-			BigInteger num = cfgMgr.getCfg().getThreadsPerRoute();
-			if (num == null) {
-				phcm.setDefaultMaxPerRoute(6);
-			} else {
-				phcm.setDefaultMaxPerRoute(num.intValue());
-			}
-			phcm.setDefaultSocketConfig(SocketConfig.custom().setSoKeepAlive(true).build());
-			http = HttpClients.custom().setConnectionManager(phcm).setDefaultRequestConfig(cfgMgr.getGlobalHttpClientConfig()).build();
 			
-			session.setAttribute("TREMOLO_HTTP_POOL", phcm);
-			session.setAttribute("TREMOLO_HTTP_CLIENT", http);
+			if (holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig().isCookiesEnabled() == null || holder.getApp().getCookieConfig().isCookiesEnabled()) {
+			
+				//create a new connection manager and client
+				phcm = new PoolingHttpClientConnectionManager(cfgMgr.getHttpClientSocketRegistry());
+				BigInteger num = cfgMgr.getCfg().getThreadsPerRoute();
+				if (num == null) {
+					phcm.setDefaultMaxPerRoute(6);
+				} else {
+					phcm.setDefaultMaxPerRoute(num.intValue());
+				}
+				phcm.setDefaultSocketConfig(SocketConfig.custom().setSoKeepAlive(true).build());
+				phcm.close();
+				http = HttpClients.custom().setConnectionManager(phcm).setDefaultRequestConfig(cfgMgr.getGlobalHttpClientConfig()).build();
+				
+				session.setAttribute("TREMOLO_HTTP_POOL", phcm);
+				session.setAttribute("TREMOLO_HTTP_CLIENT", http);
+	
+	
+	
+				LogoutUtil.insertFirstLogoutHandler(request, new CloseHttpConnectionsOnLogout(http,phcm));
+			} else {
+				//no session, need to create single connection
+				
+				BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(
+						cfgMgr.getHttpClientSocketRegistry());
 
+				RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).setRedirectsEnabled(false)
+						.build();
 
-
-			LogoutUtil.insertFirstLogoutHandler(request, new CloseHttpConnectionsOnLogout(http,phcm));
+				http = HttpClients.custom()
+						                  .setConnectionManager(bhcm)
+						                  .setDefaultRequestConfig(rc)
+						                  .build();
+				
+				session.setAttribute("TREMOLO_HTTP_CM", bhcm);
+				session.setAttribute("TREMOLO_HTTP_CLIENT", http);
+				
+				// remove from the session pool
+				
+				SessionManager sessionMgr = (SessionManager) GlobalEntries.getGlobalEntries().getConfigManager().getContext()
+				        .getAttribute(ProxyConstants.TREMOLO_SESSION_MANAGER);
+				sessionMgr.removeSessionFromCache((TremoloHttpSession) session);
+				
+				
+			}
 			
 		}
 		

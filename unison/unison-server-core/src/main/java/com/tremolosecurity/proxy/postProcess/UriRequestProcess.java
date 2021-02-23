@@ -113,7 +113,7 @@ public class UriRequestProcess extends PostProcess {
 			upgradeRequestManager.proxyWebSocket(req, (HttpServletResponse) pr.getResponse(),proxyToURL.toString());
 			
 		} else {
-			CloseableHttpClient httpclient = this.getHttp(proxyTo, req.getServletRequest(), holder.getConfig());
+			CloseableHttpClient httpclient = this.getHttp(proxyTo, req.getServletRequest(), holder);
 			
 			//HttpGet httpget = new HttpGet(proxyToURL.toString());
 			

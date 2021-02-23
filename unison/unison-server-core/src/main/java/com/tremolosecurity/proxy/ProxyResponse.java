@@ -223,14 +223,18 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 		
 		org.joda.time.format.DateTimeFormatter expiresFormat = DateTimeFormat.forPattern( "EEE, dd-MMM-yyyy HH:mm:ss 'GMT'" ).withLocale(Locale.US);
 		
-		for (Cookie cookie : this.cookies) {
-				if (holder != null) {
-					addCookieToResponse(holder.getApp(), cookieVal, expiresFormat, cookie,this.resp);
-				}
+
+		if ((holder.getApp() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig().isCookiesEnabled() == null)  || holder.getApp().getCookieConfig().isCookiesEnabled()) {
+			logger.info("writing cookies");
+			for (Cookie cookie : this.cookies) {
+					if (holder != null) {
+						addCookieToResponse(holder.getApp(), cookieVal, expiresFormat, cookie,this.resp);
+					}
+					
+					//this.resp.addCookie(cookie);
+					
 				
-				//this.resp.addCookie(cookie);
-				
-			
+			}
 		}
 
 		
@@ -276,7 +280,9 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 	public static void addCookieToResponse(ApplicationType appConfig, StringBuilder cookieVal,
 			org.joda.time.format.DateTimeFormatter expiresFormat, Cookie cookie,HttpServletResponse resp) {
 		
-		
+		if (appConfig != null && appConfig.getCookieConfig() != null && appConfig.getCookieConfig().isCookiesEnabled() != null && ! appConfig.getCookieConfig().isCookiesEnabled()) {
+			return;
+		}
 		
 		
 		
@@ -467,7 +473,9 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 	}
 	
 	public static void addCookieToResponse(ApplicationType appConfig, Cookie sessionCookieName, HttpServletResponse resp2) {
+		
 		ProxyResponse.addCookieToResponse(appConfig, new StringBuilder(), DateTimeFormat.forPattern( "EEE, dd-MMM-yyyy HH:mm:ss 'GMT'" ).withLocale(Locale.US), sessionCookieName, resp2);	
+		
 	}
 
 }

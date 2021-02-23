@@ -341,7 +341,9 @@ public class AuthManagerImpl implements AuthManager {
 			sessionCookieName.setSecure(false);
 			//resp.addCookie(sessionCookieName);
 			
-			ProxyResponse.addCookieToResponse(holder, sessionCookieName, (HttpServletResponse)((ProxyResponse)resp).getResponse());
+			if ((holder.getApp() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig().isCookiesEnabled() == null)  || holder.getApp().getCookieConfig().isCookiesEnabled()) {
+				ProxyResponse.addCookieToResponse(holder, sessionCookieName, (HttpServletResponse)((ProxyResponse)resp).getResponse());
+			}
 
 			Cookie appCookieName = new Cookie("autoIdmAppName",
 					URLEncoder.encode(holder.getApp().getName(), "UTF-8"));
@@ -352,7 +354,9 @@ public class AuthManagerImpl implements AuthManager {
 			appCookieName.setMaxAge(-1);
 			appCookieName.setSecure(false);
 
-			ProxyResponse.addCookieToResponse(holder, appCookieName, (HttpServletResponse)((ProxyResponse)resp).getResponse());
+			if ((holder.getApp() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig().isCookiesEnabled() == null)  || holder.getApp().getCookieConfig().isCookiesEnabled()) {
+				ProxyResponse.addCookieToResponse(holder, appCookieName, (HttpServletResponse)((ProxyResponse)resp).getResponse());
+			}
 			//resp.addCookie(appCookieName);
 
 			String redirectURI = "";
@@ -616,7 +620,9 @@ public class AuthManagerImpl implements AuthManager {
 			sessionCookieName.setMaxAge(0);
 			sessionCookieName.setSecure(false);
 		    //resp.addCookie(sessionCookieName);
-			ProxyResponse.addCookieToResponse(holder, sessionCookieName, (HttpServletResponse)((ProxyResponse)resp).getResponse());
+			if ((holder.getApp() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig().isCookiesEnabled() == null)  || holder.getApp().getCookieConfig().isCookiesEnabled()) {
+				ProxyResponse.addCookieToResponse(holder, sessionCookieName, (HttpServletResponse)((ProxyResponse)resp).getResponse());
+			}
 
 			Cookie appCookieName = new Cookie("autoIdmAppName", "DNE");
 			if (domain != null) {
@@ -626,7 +632,9 @@ public class AuthManagerImpl implements AuthManager {
 			appCookieName.setMaxAge(0);
 			appCookieName.setSecure(false);
 			//resp.addCookie(appCookieName);
-			ProxyResponse.addCookieToResponse(holder, appCookieName, (HttpServletResponse)((ProxyResponse)resp).getResponse());
+			if ((holder.getApp() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig().isCookiesEnabled() == null)  || holder.getApp().getCookieConfig().isCookiesEnabled()) {
+				ProxyResponse.addCookieToResponse(holder, appCookieName, (HttpServletResponse)((ProxyResponse)resp).getResponse());
+			}
 
 			AuthMgrSys ams = new AuthMgrSys(null);
 			try {
@@ -655,8 +663,9 @@ public class AuthManagerImpl implements AuthManager {
 				sessionCookieName.setMaxAge(0);
 				sessionCookieName.setSecure(false);
 				//resp.addCookie(sessionCookieName);
-				
-				ProxyResponse.addCookieToResponse(holder, sessionCookieName, (HttpServletResponse)((ProxyResponse)resp).getResponse());
+				if ((holder.getApp() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig().isCookiesEnabled() == null)  || holder.getApp().getCookieConfig().isCookiesEnabled()) {
+					ProxyResponse.addCookieToResponse(holder, sessionCookieName, (HttpServletResponse)((ProxyResponse)resp).getResponse());
+				}
 
 				Cookie appCookieName = new Cookie("autoIdmAppName", "DNE");
 				if (domain != null) {
@@ -666,7 +675,9 @@ public class AuthManagerImpl implements AuthManager {
 				appCookieName.setMaxAge(0);
 				appCookieName.setSecure(false);
 				//resp.addCookie(appCookieName);
-				ProxyResponse.addCookieToResponse(holder, appCookieName, (HttpServletResponse)((ProxyResponse)resp).getResponse());
+				if ((holder.getApp() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig().isCookiesEnabled() == null)  || holder.getApp().getCookieConfig().isCookiesEnabled()) {
+					ProxyResponse.addCookieToResponse(holder, appCookieName, (HttpServletResponse)((ProxyResponse)resp).getResponse());
+				}
 
 				break;
 

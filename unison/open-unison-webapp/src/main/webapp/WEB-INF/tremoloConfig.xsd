@@ -784,6 +784,15 @@
 					</restriction>
 				</simpleType>
 			</element>
+			<element name="cookiesEnabled" minOccurs="0" maxOccurs="1" type="boolean" default="true">
+				<annotation>
+					<documentation>
+						if true, session cookies will be created and tracked.  if false,
+						no session will be tracked.  Defaults to true
+					</documentation>
+					</annotation>
+				
+			</element>
 		</sequence>
 	</complexType>
 

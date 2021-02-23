@@ -108,6 +108,13 @@ public class SessionManagerImpl implements SessionManager {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Invalidating Session : " + tsession.getId());
 		}
+		shutdownSession(tsession);
+		
+		sessions.remove(tsession.getId());
+	}
+
+	@Override
+	public void shutdownSession(TremoloHttpSession tsession) {
 		//we need to run the logout handlers
 		ArrayList<LogoutHandler> handlers = (ArrayList<LogoutHandler>) tsession.getAttribute(LogoutUtil.LOGOUT_HANDLERS);
 		if (handlers != null) {
@@ -118,6 +125,13 @@ public class SessionManagerImpl implements SessionManager {
 					logger.warn("Could not run logout handler",e);
 				}
 			}
+		}
+	}
+	
+	@Override
+	public void removeSessionFromCache(TremoloHttpSession tsession) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Removing Session : " + tsession.getId());
 		}
 		
 		sessions.remove(tsession.getId());
@@ -631,7 +645,10 @@ public class SessionManagerImpl implements SessionManager {
 		sessionCookie.setSecure(false);
 		sessionCookie.setMaxAge(-1);
 		//response.addCookie(sessionCookie);
-		ProxyResponse.addCookieToResponse(holder, sessionCookie, (HttpServletResponse) ((ProxyResponse) response).getResponse());
+		
+		if ((holder.getApp() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig().isCookiesEnabled() == null)  || holder.getApp().getCookieConfig().isCookiesEnabled()) {
+			ProxyResponse.addCookieToResponse(holder, sessionCookie, (HttpServletResponse) ((ProxyResponse) response).getResponse());
+		}
 	}
 
 	/*

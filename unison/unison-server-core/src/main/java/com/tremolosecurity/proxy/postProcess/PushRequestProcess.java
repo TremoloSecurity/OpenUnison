@@ -173,7 +173,7 @@ public  class PushRequestProcess extends PostProcess {
 		
 	
 		
-		CloseableHttpClient httpclient = this.getHttp(proxyToURL.toString(), req.getServletRequest(), holder.getConfig());
+		CloseableHttpClient httpclient = this.getHttp(proxyToURL.toString(), req.getServletRequest(), holder);
 		
 		
 		

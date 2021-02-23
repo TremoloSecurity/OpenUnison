@@ -54,4 +54,8 @@ public interface SessionManager {
 	
 	public abstract void stopSessionChecker();
 
+	public abstract void removeSessionFromCache(TremoloHttpSession tsession);
+
+	public abstract void shutdownSession(TremoloHttpSession tsession);
+
 }

@@ -39,6 +39,8 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.ConfigManager;
@@ -65,6 +67,7 @@ import com.tremolosecurity.proxy.logout.LogoutUtil;
 import com.tremolosecurity.proxy.util.NextSys;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 
 public class ConfigSys  {
 
@@ -327,9 +330,9 @@ public class ConfigSys  {
 						
 						
 						if (pd.getResponse() == null) {
-							this.procData(resp,holder, pd.isText(), pd.getIns());
+							this.procData(pd.getRequest(),resp,holder, pd.isText(), pd.getIns(),sessionManager);
 						} else {
-							this.procData(pd.getRequest(), pd.getResponse(), holder, pd.isText(), pd.getIns(), pd.getPostProc());
+							this.procData(pd.getRequest(), pd.getResponse(), holder, pd.isText(), pd.getIns(), pd.getPostProc(),sessionManager);
 						}
 						
 					 	
@@ -387,7 +390,7 @@ public class ConfigSys  {
 	
 
 	private void procData(HttpFilterRequest req, HttpFilterResponse resp,
-			UrlHolder holder, boolean isText, InputStream ins,PostProcess proc)
+			UrlHolder holder, boolean isText, InputStream ins,PostProcess proc,SessionManager sessionManager)
 			throws IOException, Exception {
 		byte[] buffer = new byte[10240];
 		//InputStream in = entity.getContent();
@@ -475,6 +478,8 @@ public class ConfigSys  {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Connection closed by remote host",e);
 					}
+				} finally {
+					shutdownSingleSession(req, holder, sessionManager);
 				}
 				
 				
@@ -482,9 +487,36 @@ public class ConfigSys  {
 				//out.close();
 			}
 	}
+
+	private void shutdownSingleSession(HttpFilterRequest req, UrlHolder holder, SessionManager sessionManager) {
+		if (holder.getApp().getCookieConfig() != null && (holder.getApp().getCookieConfig().isCookiesEnabled() != null && ! holder.getApp().getCookieConfig().isCookiesEnabled())) {
+			// no session, cleanup after connection
+			HttpSession session = req.getSession();
+			if (session != null) {
+				BasicHttpClientConnectionManager bhcm = (BasicHttpClientConnectionManager) session.getAttribute("TREMOLO_HTTP_CM");
+				CloseableHttpClient http = (CloseableHttpClient) session.getAttribute("TREMOLO_HTTP_CLIENT");
+				
+				if (http != null) {
+					try {
+						http.close();
+					} catch (IOException e) {
+						//do nothing
+					}
+				}
+				
+				if (bhcm != null) {
+					bhcm.close();
+				}
+				
+				sessionManager.shutdownSession((TremoloHttpSession) session);
+				
+				
+			}
+		}
+	}
 	
-	private void procData(HttpServletResponse resp,
-			UrlHolder holder, boolean isText, InputStream ins)
+	private void procData(HttpFilterRequest req,HttpServletResponse resp,
+			UrlHolder holder, boolean isText, InputStream ins,SessionManager sessionManager)
 			throws IOException, Exception {
 		byte[] buffer = new byte[1024];
 		//InputStream in = entity.getContent();
@@ -497,7 +529,7 @@ public class ConfigSys  {
 		
 		
 		
-		
+		try {
 		
 			if (isText) {
 				
@@ -562,6 +594,9 @@ public class ConfigSys  {
 				
 				//out.close();
 			}
+		} finally {
+			shutdownSingleSession(req, holder, sessionManager);
+		}
 	}
 
 	/* (non-Javadoc)

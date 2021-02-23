@@ -41,6 +41,7 @@ public class CloseHttpConnectionsOnLogout implements LogoutHandler {
 			HttpServletResponse response) throws ServletException {
 		try {
 			http.close();
+			
 		} catch (Throwable t) {
 			//do nothing
 		}
