@@ -224,8 +224,8 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 		org.joda.time.format.DateTimeFormatter expiresFormat = DateTimeFormat.forPattern( "EEE, dd-MMM-yyyy HH:mm:ss 'GMT'" ).withLocale(Locale.US);
 		
 
-		if ((holder.getApp() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig().isCookiesEnabled() == null)  || holder.getApp().getCookieConfig().isCookiesEnabled()) {
-			logger.info("writing cookies");
+		if ((holder == null || holder.getApp() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig().isCookiesEnabled() == null)  || holder.getApp().getCookieConfig().isCookiesEnabled()) {
+			
 			for (Cookie cookie : this.cookies) {
 					if (holder != null) {
 						addCookieToResponse(holder.getApp(), cookieVal, expiresFormat, cookie,this.resp);
