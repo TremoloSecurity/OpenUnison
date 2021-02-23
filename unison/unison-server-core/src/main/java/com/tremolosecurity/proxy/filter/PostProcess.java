@@ -510,7 +510,6 @@ public abstract class PostProcess {
 					phcm.setDefaultMaxPerRoute(num.intValue());
 				}
 				phcm.setDefaultSocketConfig(SocketConfig.custom().setSoKeepAlive(true).build());
-				phcm.close();
 				http = HttpClients.custom().setConnectionManager(phcm).setDefaultRequestConfig(cfgMgr.getGlobalHttpClientConfig()).build();
 				
 				session.setAttribute("TREMOLO_HTTP_POOL", phcm);
