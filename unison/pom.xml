@@ -29,9 +29,9 @@
 		<c3p0.version>0.9.5.5</c3p0.version>
 		<google-api-services-plus.version>v1-rev20190328-1.30.10</google-api-services-plus.version>
 		<google-api-services-oauth2.version>v2-rev20200213-1.31.0</google-api-services-oauth2.version>
-		<google-api-services-admin-directory.version>directory_v1-rev20210105-1.31.0</google-api-services-admin-directory.version>
+		<google-api-services-admin-directory.version>directory_v1-rev20210223-1.31.0</google-api-services-admin-directory.version>
 		<json-simple.version>1.1.1</json-simple.version>
-		<twilio-java-sdk.version>8.7.0</twilio-java-sdk.version>
+		<twilio-java-sdk.version>8.8.0</twilio-java-sdk.version>
 		<restfb.version>3.14.0</restfb.version>
 		<jbosssx-bare.version>4.1.6.Final</jbosssx-bare.version>
 		<jbosssx-client.version>4.1.6.Final</jbosssx-client.version>
@@ -63,14 +63,14 @@
 		<googleauth.version>1.5.0</googleauth.version>
 		<activemq.version>5.16.1</activemq.version>
 		<commons-pool2.version>2.9.0</commons-pool2.version>
-		<aws-java-sdk.version>1.11.955</aws-java-sdk.version>
+		<aws-java-sdk.version>1.11.963</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>1.0.8</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.0.2</stringtemplate.version>
 		<hibernate.version>5.4.28.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
 		<org.apache.poi.version>5.0.0</org.apache.poi.version>
 		<jose4j.version>0.7.6</jose4j.version>
-		<mongodb-driver.version>3.12.7</mongodb-driver.version>
+		<mongodb-driver.version>3.12.8</mongodb-driver.version>
 		<xalan.version>2.7.2</xalan.version>
 		<jackson.version>2.12.1</jackson.version>
 		<slf4j.version>1.7.30</slf4j.version>
@@ -79,10 +79,10 @@
 	  	<jastow.version>2.1.0.Final</jastow.version>
 	  	<jboss-jstl-api_1.2_spec.version>1.1.4.Final</jboss-jstl-api_1.2_spec.version>
 	  	<xmlsec.version>2.0.5</xmlsec.version>
-	  	<snakeyaml.version>1.27</snakeyaml.version>
+	  	<snakeyaml.version>1.28</snakeyaml.version>
 	  	<prometheus.version>0.10.0</prometheus.version>
 	  	<ibm-mq.version>9.2.1.0</ibm-mq.version>
-	  	<okta.version>3.0.2</okta.version>
+	  	<okta.version>3.0.3</okta.version>
 	  	<azure-auth.version>1.9.1</azure-auth.version>
 	  	<cryptacular.version>1.2.4</cryptacular.version>
 	  	<santuario-xmlsec.version>2.2.1</santuario-xmlsec.version>
