@@ -43,6 +43,16 @@ limitations under the License.
 			<version>${org.apache.poi.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-svgbrowser</artifactId>
+			<version>${batik-svgbrowser.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>xmlgraphics-commons</artifactId>
+			<version>${xmlgraphics-commons.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-scalejs-common</artifactId>
 			<version>${openunison.version}</version>
