@@ -85,13 +85,21 @@ public class CleanLabels implements CustomTask {
 			if (c == '.' || c == '-' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
 				newLabel.append(c);
 			} else {
- 				newLabel.append("-");
+ 				newLabel.append(this.replacementCharacter);
  			}
 			
 			
 		}
 		
+		char firstChar = newLabel.charAt(0);
+		if (! Character.isAlphabetic(firstChar) && ! Character.isDigit(firstChar)) {
+			newLabel.insert(0, 'x');
+		}
 		
+		char lastChar = newLabel.charAt(newLabel.length() - 1);
+		if (! Character.isAlphabetic(lastChar) && ! Character.isDigit(firstChar)) {
+			newLabel.append('x');
+		}
 		
 		return newLabel.toString();
 		
