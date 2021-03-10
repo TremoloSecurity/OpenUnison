@@ -282,6 +282,9 @@ public class OktaTarget implements UserStoreProvider {
 		
 		
 	}
+	public String getDomain() {
+		return domain;
+	}
 	
 	
 
