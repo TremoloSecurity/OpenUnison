@@ -47,6 +47,13 @@
 		<groupId>com.googlecode.json-simple</groupId>
 		<artifactId>json-simple</artifactId>
 		<version>${json-simple.version}</version>
+		<exclusions>
+				<exclusion>
+					<artifactId>junit</artifactId>
+					<groupId>junit</groupId>
+				</exclusion>
+				
+			</exclusions>
 	</dependency>
 	</dependencies>
 	<build>
