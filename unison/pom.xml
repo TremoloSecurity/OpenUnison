@@ -98,6 +98,7 @@
 		<xmlgraphics-commons.version>2.6</xmlgraphics-commons.version>
 		<json-smart.version>2.3</json-smart.version>
 		<xnio-api.version>3.8.4.Final</xnio-api.version>
+		<okta-authn.version>2.0.2</okta-authn.version>
 	</properties>
 
 	<repositories>
