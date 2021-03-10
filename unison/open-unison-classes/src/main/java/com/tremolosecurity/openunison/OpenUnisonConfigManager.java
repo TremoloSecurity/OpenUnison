@@ -253,6 +253,8 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 
 	@Override
 	public void loadKeystore(String path, String myVdPath) throws Exception {
+		
+		
 		if (unisonConfig.getKeyStorePath() != null && unisonConfig.getKeyStorePath().length() > 0) {
 			
 			ks = KeyStore.getInstance("PKCS12");
@@ -268,6 +270,7 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 				}
 				
 				ks.load(in, unisonConfig.getKeyStorePassword().toCharArray());
+				
 			} catch (Throwable t) {
 				ks = KeyStore.getInstance("JCEKS");
 				InputStream in;
@@ -279,6 +282,7 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 				}
 				
 				ks.load(in, unisonConfig.getKeyStorePassword().toCharArray());
+				
 
 			} 
 			KeyStore cacerts = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -290,7 +294,7 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 			if (cacertsPath.equalsIgnoreCase(unisonConfig.getKeyStorePath())) {
 				//the trust store IS the keystore and assume its already merged.  no need to re-merge
 				//set the password as a property
-				System.setProperty("javax.net.ssl.trustStorePassword", unisonConfig.getKeyStorePassword());
+				//System.setProperty("javax.net.ssl.trustStorePassword", unisonConfig.getKeyStorePassword());
 			} else {
 			
 				cacerts.load(new FileInputStream(cacertsPath), null);
@@ -308,6 +312,7 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 			
 			this.kmf = KeyManagerFactory.getInstance("SunX509");
 			kmf.init(this.ks, unisonConfig.getKeyStorePassword().toCharArray());
+			
 			
 			
 			

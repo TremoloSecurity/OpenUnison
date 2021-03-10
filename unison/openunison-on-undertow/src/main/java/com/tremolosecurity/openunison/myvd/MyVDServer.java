@@ -225,8 +225,18 @@ public class MyVDServer {
         directoryService.getChangeLog().setEnabled( false );
         directoryService.setDenormalizeOpAttrsEnabled( true );
         
+        String extraAttribs = props.getProperty("server.extraAttribs","");
+		StringTokenizer toker = new StringTokenizer(extraAttribs);
+		
+		
+		while (toker.hasMoreTokens()) {
+			String token = toker.nextToken().toLowerCase();
+			logger.info("Adding attribute '" + token + "' to schema");
+			ApacheDSUtil.addAttributeToSchema(new DefaultAttribute(token), directoryService.getSchemaManager());
+		}
+        
         String binaryAttributes = props.getProperty("server.binaryAttribs","");
-		StringTokenizer toker = new StringTokenizer(binaryAttributes);
+		toker = new StringTokenizer(binaryAttributes);
 		
 		HashSet<String> binaryAttrs = new HashSet<String>();
 		while (toker.hasMoreTokens()) {

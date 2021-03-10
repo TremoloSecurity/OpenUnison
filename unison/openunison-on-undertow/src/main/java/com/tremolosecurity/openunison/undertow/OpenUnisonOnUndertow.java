@@ -546,16 +546,32 @@ public class OpenUnisonOnUndertow {
         directoryService.getChangeLog().setEnabled( false );
         directoryService.setDenormalizeOpAttrsEnabled( true );
         
-        //String binaryAttributes = props.getProperty("server.binaryAttribs","");
-		//StringTokenizer toker = new StringTokenizer(binaryAttributes);
-		
-		HashSet<String> binaryAttrs = new HashSet<String>();
-		/*while (toker.hasMoreTokens()) {
-			String token = toker.nextToken().toLowerCase();
-			binaryAttrs.add(token);
-			ApacheDSUtil.addBinaryAttributeToSchema(new DefaultAttribute(token), directoryService.getSchemaManager());
-		}*/
         
+        String extraAttribs = System.getProperty("myvd.schema.extraAttribs","");
+        if (extraAttribs != null) {
+			StringTokenizer toker = new StringTokenizer(extraAttribs);
+			
+			
+			while (toker.hasMoreTokens()) {
+				String token = toker.nextToken().toLowerCase();
+				logger.info("Adding attribute '" + token + "' to schema");
+				ApacheDSUtil.addAttributeToSchema(new DefaultAttribute(token), directoryService.getSchemaManager());
+			}
+        }
+        
+        
+        String binaryAttributes = System.getProperty("myvd.schema.binaryAttribs","");
+        HashSet<String> binaryAttrs = new HashSet<String>();
+        if (binaryAttributes != null) {
+        	StringTokenizer toker = new StringTokenizer(binaryAttributes);
+			
+			
+			while (toker.hasMoreTokens()) {
+				String token = toker.nextToken().toLowerCase();
+				binaryAttrs.add(token);
+				ApacheDSUtil.addBinaryAttributeToSchema(new DefaultAttribute(token), directoryService.getSchemaManager());
+			}
+        }
         
         List<Interceptor> newlist = new ArrayList<Interceptor>();
         newlist.add(new MyVDInterceptor(globalChain,router,directoryService.getSchemaManager(),binaryAttrs));
