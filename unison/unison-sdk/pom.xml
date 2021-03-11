@@ -20,6 +20,12 @@
 			<groupId>net.sourceforge.myvd</groupId>
 			<artifactId>myvd-server</artifactId>
 			<version>${myvd-server.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.tremolosecurity.myvd</groupId>
+					<artifactId>apacheds-service</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>

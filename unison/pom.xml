@@ -186,6 +186,7 @@
 		<module>unison-auth-u2f</module>
 		<module>unison-auth-duo</module>
 		<module>openunison-on-undertow</module>
+		<module>myvd-on-undertow</module>
 		<module>openunison-util-classes</module>
 		<module>unison-service-undertow</module>
 		<module>myvirtualdirectory-server</module>

@@ -29,6 +29,12 @@
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-applications-wordpress</artifactId>
 			<version>${openunison.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.tremolosecurity.myvd</groupId>
+					<artifactId>apacheds-service</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 
