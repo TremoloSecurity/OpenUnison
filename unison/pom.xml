@@ -29,7 +29,7 @@
 		<c3p0.version>0.9.5.5</c3p0.version>
 		<google-api-services-plus.version>v1-rev20190328-1.30.10</google-api-services-plus.version>
 		<google-api-services-oauth2.version>v2-rev20200213-1.31.0</google-api-services-oauth2.version>
-		<google-api-services-admin-directory.version>directory_v1-rev20210302-1.31.0</google-api-services-admin-directory.version>
+		<google-api-services-admin-directory.version>directory_v1-rev20210309-1.31.0</google-api-services-admin-directory.version>
 		<json-simple.version>1.1.1</json-simple.version>
 		<twilio-java-sdk.version>8.8.0</twilio-java-sdk.version>
 		<restfb.version>3.15.0</restfb.version>
@@ -55,7 +55,7 @@
 		<log4j.version>2.14.0</log4j.version>
 		<joda-time.version>2.10.10</joda-time.version>
 		<javax.mail-api.version>1.6.2</javax.mail-api.version>
-		<sun.mail-api.version>1.6.5</sun.mail-api.version>
+		<sun.mail-api.version>1.6.2</sun.mail-api.version>
 		<bcpkix-jdk15on.version>1.68</bcpkix-jdk15on.version>
 		<net.sourceforge.spnego.version>7.1</net.sourceforge.spnego.version>
 		<reflections.version>0.9.12</reflections.version>
@@ -63,10 +63,10 @@
 		<googleauth.version>1.5.0</googleauth.version>
 		<activemq.version>5.16.1</activemq.version>
 		<commons-pool2.version>2.9.0</commons-pool2.version>
-		<aws-java-sdk.version>1.11.963</aws-java-sdk.version>
+		<aws-java-sdk.version>1.11.972</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>1.0.8</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.0.2</stringtemplate.version>
-		<hibernate.version>5.4.28.Final</hibernate.version>
+		<hibernate.version>5.4.29.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
 		<org.apache.poi.version>5.0.0</org.apache.poi.version>
 		<jose4j.version>0.7.6</jose4j.version>
@@ -86,7 +86,7 @@
 	  	<azure-auth.version>1.9.1</azure-auth.version>
 	  	<cryptacular.version>1.2.4</cryptacular.version>
 	  	<santuario-xmlsec.version>2.2.1</santuario-xmlsec.version>
-		<netty-codec.version>4.1.59.Final</netty-codec.version>
+		<netty-codec.version>4.1.60.Final</netty-codec.version>
 		<dom4j.version>2.1.3</dom4j.version>  
 		<gitlab.version>4.15.7</gitlab.version>
 		<commons-beanutils.version>1.9.4</commons-beanutils.version>
@@ -132,7 +132,7 @@
 			<!--  <id>nexus.tremolo.io</id>  -->
 			<id>nexus.tremolo.io</id>
 			<name>tremolo.io-releases</name>
-			<url>s3://tremolosecurity-maven/repository/betas</url>  
+			<url>s3://tremolosecurity-maven/repository/releases</url>  
 		</repository>
 
 	</distributionManagement>

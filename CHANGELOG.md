@@ -1,3 +1,40 @@
+## 1.0.21-2021031101
+
+**Tasks:**
+ - Remove apacheds-m20 from openunison-webapp [\#521](https://github.com/TremoloSecurity/OpenUnison/issues/521)
+ - 1.0.21 build [\#474](https://github.com/TremoloSecurity/OpenUnison/issues/474)
+
+**enhancements:**
+ - MyVD - list new attribute types [\#520](https://github.com/TremoloSecurity/OpenUnison/issues/520)
+ - Better Okta MyVD support [\#519](https://github.com/TremoloSecurity/OpenUnison/issues/519)
+ - k8s - task to clean labels [\#482](https://github.com/TremoloSecurity/OpenUnison/issues/482)
+ - oidc idp - pre-process JWT before signing [\#488](https://github.com/TremoloSecurity/OpenUnison/issues/488)
+ - k8s - support writing to git [\#481](https://github.com/TremoloSecurity/OpenUnison/issues/481)
+ - create dynamic reports [\#487](https://github.com/TremoloSecurity/OpenUnison/issues/487)
+ - k8s dynamic queues [\#478](https://github.com/TremoloSecurity/OpenUnison/issues/478)
+ - support mattermost provisioning [\#502](https://github.com/TremoloSecurity/OpenUnison/issues/502)
+ - support SameSite parameter in cookies [\#483](https://github.com/TremoloSecurity/OpenUnison/issues/483)
+ - k8s target - more configurable token management [\#491](https://github.com/TremoloSecurity/OpenUnison/issues/491)
+ - kubernetes target - support direct certificate configuration [\#480](https://github.com/TremoloSecurity/OpenUnison/issues/480)
+ - k8s dynamic jobs [\#477](https://github.com/TremoloSecurity/OpenUnison/issues/477)
+ - k8s dynamic provisioning target [\#475](https://github.com/TremoloSecurity/OpenUnison/issues/475)
+ - move from openshift 3 to 4 apis [\#508](https://github.com/TremoloSecurity/OpenUnison/issues/508)
+ - k8s dynamic workflows [\#476](https://github.com/TremoloSecurity/OpenUnison/issues/476)
+ - Provision to remote k8s clusters [\#489](https://github.com/TremoloSecurity/OpenUnison/issues/489)
+ - support cdata in filter parameters [\#496](https://github.com/TremoloSecurity/OpenUnison/issues/496)
+ - dynamically call workflows [\#479](https://github.com/TremoloSecurity/OpenUnison/issues/479)
+ - create k8s watch framework [\#473](https://github.com/TremoloSecurity/OpenUnison/issues/473)
+
+**bugs:**
+ - Streaming logs through reverse proxy stops after about 30 seconds [\#517](https://github.com/TremoloSecurity/OpenUnison/issues/517)
+ - AzureAD - premature closed connection causing exception [\#516](https://github.com/TremoloSecurity/OpenUnison/issues/516)
+ - oauth2 jwt verifier not verifying audiences [\#500](https://github.com/TremoloSecurity/OpenUnison/issues/500)
+ - ScaleJS Main - When using an external session (k8s) session check doesn't work [\#501](https://github.com/TremoloSecurity/OpenUnison/issues/501)
+ - gitlab provider - searching for username returns all users that start with user [\#495](https://github.com/TremoloSecurity/OpenUnison/issues/495)
+ - oidc idp - json errors not returned when expected [\#498](https://github.com/TremoloSecurity/OpenUnison/issues/498)
+ - if `#[]` is the first character of a string, it's ignored [\#497](https://github.com/TremoloSecurity/OpenUnison/issues/497)
+
+
 ## 1.0.20-2020082001
 
 **Tasks:**

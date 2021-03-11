@@ -46,7 +46,8 @@ GIT_LOG_FORMAT = '%x1f'.join(GIT_LOG_FORMAT) + '%x1e'
 allIssues = []
 
 p = Popen('git log --format="%s" ' % GIT_LOG_FORMAT, shell=True, stdout=PIPE)
-(log, _) = p.communicate()
+(logb, _) = p.communicate()
+log = str(logb,"utf-8")
 log = log.strip('\n\x1e').split("\x1e")
 log = [row.strip().split("\x1f") for row in log]
 log = [dict(zip(GIT_COMMIT_FIELDS, row)) for row in log]
@@ -77,7 +78,7 @@ for issue in allIssues:
 
 
 for label in bylabels:
-    print '**' + label + 's:**'
+    print('**' + label + 's:**')
     for issue in bylabels[label]:
-        print ' - ' + issue['title'] + ' [\\#' + `issue['number']` + '](' + issue['html_url'] + ')'
-    print
+        print(' - ' + issue['title'] + ' [\\#' + str(issue['number']) + '](' + issue['html_url'] + ')')
+    print()
