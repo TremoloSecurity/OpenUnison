@@ -93,7 +93,7 @@ import io.undertow.servlet.Servlets;
 import io.undertow.servlet.api.DeploymentInfo;
 import io.undertow.servlet.api.DeploymentManager;
 import io.undertow.servlet.api.ErrorPage;
-import net.sf.ehcache.config.CacheConfiguration;
+
 import net.sourceforge.myvd.core.InsertChain;
 import net.sourceforge.myvd.router.Router;
 import net.sourceforge.myvd.server.ServerCore;

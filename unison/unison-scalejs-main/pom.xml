@@ -44,6 +44,11 @@ limitations under the License.
 		</dependency>
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
+    		<artifactId>batik-all</artifactId>
+			<version>${batik-svgbrowser.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-svgbrowser</artifactId>
 			<version>${batik-svgbrowser.version}</version>
 		</dependency>
