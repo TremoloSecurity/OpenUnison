@@ -138,36 +138,43 @@
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-core</artifactId>
 			<version>${opensaml.version}</version>
+			
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-saml-api</artifactId>
 			<version>${opensaml.version}</version>
+
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-saml-impl</artifactId>
 			<version>${opensaml.version}</version>
+
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-messaging-api</artifactId>
 			<version>${opensaml.version}</version>
+
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-messaging-impl</artifactId>
 			<version>${opensaml.version}</version>
+
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-soap-api</artifactId>
 			<version>${opensaml.version}</version>
+
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-soap-impl</artifactId>
 			<version>${opensaml.version}</version>
+
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -191,8 +198,22 @@
 			<artifactId>dom4j</artifactId>
 			<version>${dom4j.version}</version>
 		</dependency>
+		
+		<dependency>
+		  <groupId>com.fasterxml.woodstox</groupId>
+		  <artifactId>woodstox-core</artifactId>
+		  <version>${woodstox.version}</version>
+		 
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+  			<artifactId>spring-core</artifactId>
+  			<version>${spring.version}</version>
+		</dependency>
 	</dependencies>
 
+
+	
 
 
 

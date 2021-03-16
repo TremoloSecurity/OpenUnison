@@ -21,7 +21,7 @@
 		<commons-collections.version>3.2.2</commons-collections.version>
 		<commons-cli.version>1.4</commons-cli.version>
 		<commons-codec.version>1.15</commons-codec.version>
-		<opensaml.version>3.4.6</opensaml.version>
+		<opensaml.version>4.0.1</opensaml.version>
 		<xerces.version>2.12.1</xerces.version>
 		<alfresco-client.version>5.0.a</alfresco-client.version>
 		<javax.xml.rpc-api.version>1.1.2</javax.xml.rpc-api.version>
@@ -99,6 +99,9 @@
 		<json-smart.version>2.3</json-smart.version>
 		<xnio-api.version>3.8.4.Final</xnio-api.version>
 		<okta-authn.version>2.0.2</okta-authn.version>
+		<jersey.version>3.0.1</jersey.version>
+		<woodstox.version>6.2.4</woodstox.version>
+		<spring.version>5.3.4</spring.version>
 	</properties>
 
 	<repositories>
@@ -144,7 +147,7 @@
 		<module>unison-lastmile-servlet-3.x</module>
 		<module>unison-lastmile-tomcat-6</module>
 		<module>unison-applications-drupal</module>
-		<module>unison-applications-sharepoint2007</module>
+		
 		<module>unison-applications-sugarcrm-6.x</module>
 		<module>unison-lastmile-sdk</module>
 		<module>unison-provisioning-sdk</module>

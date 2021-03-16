@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import net.shibboleth.utilities.java.support.security.RandomIdentifierGenerationStrategy;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -46,12 +45,7 @@ import java.security.NoSuchAlgorithmException;
  */
 public class OpenSAMLUtils {
     private static Logger logger = LoggerFactory.getLogger(OpenSAMLUtils.class);
-    private static RandomIdentifierGenerationStrategy secureRandomIdGenerator;
-
-    static {
-        secureRandomIdGenerator = new RandomIdentifierGenerationStrategy();
-
-    }
+    
 
     public static <T> T buildSAMLObject(final Class<T> clazz) {
         T object = null;
@@ -68,9 +62,7 @@ public class OpenSAMLUtils {
         return object;
     }
 
-    public static String generateSecureRandomId() {
-        return secureRandomIdGenerator.generateIdentifier();
-    }
+
 
     public static String xml2str(final XMLObject object) throws TransformerFactoryConfigurationError, TransformerException {
         Element element = null;

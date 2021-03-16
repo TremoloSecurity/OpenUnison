@@ -24,6 +24,7 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -109,9 +110,9 @@ public  class Saml2Assertion {
 	
 	
 	
-	org.joda.time.DateTime notBefore;
-	org.joda.time.DateTime notAfter;
-	org.joda.time.DateTime issueInstant;
+	Instant notBefore;
+	Instant notAfter;
+	Instant issueInstant;
 	
 	ArrayList<Attribute> attribs;
 	
@@ -138,10 +139,13 @@ public  class Saml2Assertion {
 		
 		long now = System.currentTimeMillis();
 		
-		this.notBefore = (new DateTime(now - (5 * 60 * 1000))).withZone(DateTimeZone.UTC);
-		this.notAfter = (new DateTime(now + (5 * 60 * 1000))).withZone(DateTimeZone.UTC);
+		
+		this.issueInstant = Instant.now();//(new DateTime()).withZone(DateTimeZone.UTC);
+		
+		this.notBefore =  this.issueInstant.minusMillis(5 * 60 * 1000);//        (new DateTime(now - ())).withZone(DateTimeZone.UTC);
+		this.notAfter =  this.issueInstant.plusMillis(5 * 60 * 1000);//  (new DateTime(now + (5 * 60 * 1000))).withZone(DateTimeZone.UTC);
 		this.attribs = new ArrayList<Attribute>();
-		this.issueInstant = (new DateTime()).withZone(DateTimeZone.UTC);
+		
 		
 		this.issuer = issuer;
 		this.recepient = recepient;
@@ -398,7 +402,7 @@ public  class Saml2Assertion {
 		AuthnContext authnCtx = authnCtxBuilder.buildObject();
 		AuthnContextClassRefBuilder accrb = new AuthnContextClassRefBuilder();
 		AuthnContextClassRef accrf = accrb.buildObject();
-		accrf.setAuthnContextClassRef(this.authnContextRef);
+		accrf.setURI(this.authnContextRef);
 		authnCtx.setAuthnContextClassRef(accrf);
 		authn.setAuthnContext(authnCtx);
 		//AuthnContextClassRefBuilder accrb = new AuthnContextClassRefBuilder();
@@ -452,7 +456,7 @@ public  class Saml2Assertion {
 		AudienceBuilder ab = new AudienceBuilder();
 		Audience a = ab.buildObject();
 		
-		a.setAudienceURI(this.audience);
+		a.setURI(this.audience);
 		
 		ar.getAudiences().add(a);
 		
@@ -482,11 +486,14 @@ public  class Saml2Assertion {
 	}
 
 	public org.joda.time.DateTime getNotBefore() {
-		return notBefore;
+		
+		return new DateTime(this.notBefore.toEpochMilli());
+		
+		
 	}
 
 	public org.joda.time.DateTime getNotAfter() {
-		return notAfter;
+		return new DateTime(this.notAfter.toEpochMilli());
 	}
 	
 	private Element generateSignedAssertion(String id) throws Exception {

@@ -22,6 +22,7 @@ import java.net.URLEncoder;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.util.Enumeration;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -132,8 +133,8 @@ public class Saml2SingleLogout implements LogoutHandler {
 			LogoutResponseBuilder lrb = new LogoutResponseBuilder();
 			LogoutResponse lr = lrb.buildObject();
 			
-			DateTime dt = new DateTime();
-			lr.setIssueInstant(dt);
+			
+			lr.setIssueInstant(Instant.now());
 			lr.setInResponseTo(respToKey);
 			lr.setDestination(logoutURL);
 			
@@ -166,8 +167,8 @@ public class Saml2SingleLogout implements LogoutHandler {
 			LogoutRequestBuilder lrb = new LogoutRequestBuilder();
 			LogoutRequest lr = lrb.buildObject();
 			
-			DateTime dt = new DateTime();
-			lr.setIssueInstant(dt);
+			
+			lr.setIssueInstant(Instant.now());
 			
 			lr.setDestination(logoutURL);
 			
@@ -193,7 +194,7 @@ public class Saml2SingleLogout implements LogoutHandler {
 			
 			SessionIndexBuilder sib = new SessionIndexBuilder();
 			SessionIndex si = sib.buildObject();
-			si.setSessionIndex(sessionIndex);
+			si.setValue(sessionIndex);
 			lr.getSessionIndexes().add(si);
 			
 			xmlObj = lr;

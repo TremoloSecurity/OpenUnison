@@ -346,11 +346,11 @@ public class Saml2Idp implements IdentityProvider {
 		
 		String authnCtx = null;
 		
-		if (authn.getRequestedAuthnContext() == null || authn.getRequestedAuthnContext().getAuthnContextClassRefs().size() == 0 || authn.getRequestedAuthnContext().getAuthnContextClassRefs().get(0).getAuthnContextClassRef() == null) {
+		if (authn.getRequestedAuthnContext() == null || authn.getRequestedAuthnContext().getAuthnContextClassRefs().size() == 0 || authn.getRequestedAuthnContext().getAuthnContextClassRefs().get(0).getURI() == null) {
 			//no authnCtx information, use default
 			authnCtx = null;
 		} else {
-			authnCtx = authn.getRequestedAuthnContext().getAuthnContextClassRefs().get(0).getAuthnContextClassRef();
+			authnCtx = authn.getRequestedAuthnContext().getAuthnContextClassRefs().get(0).getURI();
 		}
 		
 		

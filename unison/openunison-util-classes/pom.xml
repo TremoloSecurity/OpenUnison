@@ -31,11 +31,13 @@
             <groupId>org.opensaml</groupId>
             <artifactId>opensaml-core</artifactId>
             <version>${opensaml.version}</version>
+            
         </dependency>
         <dependency>
             <groupId>org.opensaml</groupId>
             <artifactId>opensaml-saml-api</artifactId>
             <version>${opensaml.version}</version>
+            
         </dependency>
         <dependency>
             <groupId>org.opensaml</groupId>
@@ -47,6 +49,7 @@
                     <groupId>org.apache.httpcomponents</groupId>
                     <artifactId>httpclient</artifactId>
                 </exclusion>
+				
             </exclusions>
         </dependency>
         <dependency>
@@ -58,12 +61,14 @@
                     <artifactId>httpclient</artifactId>
                     <groupId>org.apache.httpcomponents</groupId>
                 </exclusion>
+                
             </exclusions>
         </dependency>
         <dependency>
             <groupId>org.opensaml</groupId>
             <artifactId>opensaml-messaging-impl</artifactId>
             <version>${opensaml.version}</version>
+            
         </dependency>
         <dependency>
             <groupId>org.opensaml</groupId>
@@ -74,12 +79,14 @@
                     <artifactId>httpclient</artifactId>
                     <groupId>org.apache.httpcomponents</groupId>
                 </exclusion>
+                
             </exclusions>
         </dependency>
         <dependency>
             <groupId>org.opensaml</groupId>
             <artifactId>opensaml-soap-impl</artifactId>
             <version>${opensaml.version}</version>
+            
         </dependency>
 
         <dependency>

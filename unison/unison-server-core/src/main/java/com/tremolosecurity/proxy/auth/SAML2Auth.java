@@ -48,6 +48,8 @@ import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -310,7 +312,7 @@ public class SAML2Auth implements AuthMechanism {
 			authn.setProtocolBinding("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST");
 			//authn.setDestination(postAuthnReqTo);
 			authn.setDestination(redirAuthnReqTo);
-			DateTime dt = new DateTime();
+			
 		
 			String authMechanism = authParams.get("authCtxRef").getValues().get(0);
 			
@@ -330,7 +332,8 @@ public class SAML2Auth implements AuthMechanism {
 			String id = b.toString();
 			
 			
-			authn.setIssueInstant(dt);
+			
+			authn.setIssueInstant(Instant.now());
 			//authn.setID(Long.toString(random.nextLong()));
 			authn.setID(id.toString());
 			session.setAttribute("AUTOIDM_SAML2_REQUEST", authn.getID());
@@ -358,7 +361,7 @@ public class SAML2Auth implements AuthMechanism {
 				AuthnContextClassRefBuilder accrb = new AuthnContextClassRefBuilder();
 				AuthnContextClassRef accr = accrb.buildObject();
 				 
-				accr.setAuthnContextClassRef(authMechanism);
+				accr.setURI(authMechanism);
 				
 				//accr.setAuthnContextClassRef("urn:federation:authentication:windows");
 				//accr.setAuthnContextClassRef("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport");
@@ -742,8 +745,8 @@ public class SAML2Auth implements AuthMechanism {
 					assertion.getAuthnStatements().get(0).getAuthnContext().getAuthnContextClassRef() == null || 
 							assertion.getAuthnStatements().get(0).getAuthnContext() == null ||
 							assertion.getAuthnStatements().get(0).getAuthnContext().getAuthnContextClassRef() == null ||
-							assertion.getAuthnStatements().get(0).getAuthnContext().getAuthnContextClassRef().getAuthnContextClassRef() == null ||
-							! assertion.getAuthnStatements().get(0).getAuthnContext().getAuthnContextClassRef().getAuthnContextClassRef().equalsIgnoreCase(authnContextClassRef.getValues().get(0))
+							assertion.getAuthnStatements().get(0).getAuthnContext().getAuthnContextClassRef().getURI() == null ||
+							! assertion.getAuthnStatements().get(0).getAuthnContext().getAuthnContextClassRef().getURI().equalsIgnoreCase(authnContextClassRef.getValues().get(0))
 					)) {
 				logger.warn("Can not validate the authentication context classref");
 				as.setSuccess(false);
