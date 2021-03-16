@@ -82,6 +82,12 @@
 			<groupId>org.apache.santuario</groupId>
 			<artifactId>xmlsec</artifactId>
 			<version>${santuario-xmlsec.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>jakarta.activation</groupId>
+					<artifactId>jakarta.activation-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -124,6 +130,10 @@
 				<exclusion>
 					<artifactId>el-api</artifactId>
 					<groupId>javax.el</groupId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.activation</groupId>
+					<artifactId>javax.activation-api</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -209,6 +219,12 @@
 			<groupId>org.springframework</groupId>
   			<artifactId>spring-core</artifactId>
   			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.activation</groupId>
+			<artifactId>javax.activation</artifactId>
+			<version>${activation.version}</version>
+			
 		</dependency>
 	</dependencies>
 
