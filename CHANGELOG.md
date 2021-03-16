@@ -1,10 +1,9 @@
-## 1.0.21-2021031501
-
-**Tasks:**
- - Remove apacheds-m20 from openunison-webapp [\#521](https://github.com/TremoloSecurity/OpenUnison/issues/521)
- - 1.0.21 build [\#474](https://github.com/TremoloSecurity/OpenUnison/issues/474)
+## 1.0.21-2021031601
 
 **enhancements:**
+ - Upgrade to OpenSAML 4 [\#523](https://github.com/TremoloSecurity/OpenUnison/issues/523)
+ - Update to Java 11 [\#524](https://github.com/TremoloSecurity/OpenUnison/issues/524)
+ - k8s target - more configurable token management [\#491](https://github.com/TremoloSecurity/OpenUnison/issues/491)
  - MyVD - list new attribute types [\#520](https://github.com/TremoloSecurity/OpenUnison/issues/520)
  - Better Okta MyVD support [\#519](https://github.com/TremoloSecurity/OpenUnison/issues/519)
  - k8s - task to clean labels [\#482](https://github.com/TremoloSecurity/OpenUnison/issues/482)
@@ -14,7 +13,6 @@
  - k8s dynamic queues [\#478](https://github.com/TremoloSecurity/OpenUnison/issues/478)
  - support mattermost provisioning [\#502](https://github.com/TremoloSecurity/OpenUnison/issues/502)
  - support SameSite parameter in cookies [\#483](https://github.com/TremoloSecurity/OpenUnison/issues/483)
- - k8s target - more configurable token management [\#491](https://github.com/TremoloSecurity/OpenUnison/issues/491)
  - kubernetes target - support direct certificate configuration [\#480](https://github.com/TremoloSecurity/OpenUnison/issues/480)
  - k8s dynamic jobs [\#477](https://github.com/TremoloSecurity/OpenUnison/issues/477)
  - k8s dynamic provisioning target [\#475](https://github.com/TremoloSecurity/OpenUnison/issues/475)
@@ -24,6 +22,10 @@
  - support cdata in filter parameters [\#496](https://github.com/TremoloSecurity/OpenUnison/issues/496)
  - dynamically call workflows [\#479](https://github.com/TremoloSecurity/OpenUnison/issues/479)
  - create k8s watch framework [\#473](https://github.com/TremoloSecurity/OpenUnison/issues/473)
+
+**Tasks:**
+ - Remove apacheds-m20 from openunison-webapp [\#521](https://github.com/TremoloSecurity/OpenUnison/issues/521)
+ - 1.0.21 build [\#474](https://github.com/TremoloSecurity/OpenUnison/issues/474)
 
 **bugs:**
  - Streaming logs through reverse proxy stops after about 30 seconds [\#517](https://github.com/TremoloSecurity/OpenUnison/issues/517)
