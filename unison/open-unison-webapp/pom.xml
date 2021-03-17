@@ -82,7 +82,17 @@
 		</dependency>  -->
 	</dependencies>
 
-
+	<build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.3.1</version>
+        <configuration>
+          <packagingExcludes>WEB-INF/lib/slf4j-log4j12-*.jar</packagingExcludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 
 
