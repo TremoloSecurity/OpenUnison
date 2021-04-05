@@ -96,7 +96,7 @@
 		<json-patch.version>1.13</json-patch.version>
 		<batik-svgbrowser.version>1.14</batik-svgbrowser.version>
 		<xmlgraphics-commons.version>2.6</xmlgraphics-commons.version>
-		<json-smart.version>2.3</json-smart.version>
+		<json-smart.version>2.4.1</json-smart.version>
 		<xnio-api.version>3.8.4.Final</xnio-api.version>
 		<okta-authn.version>2.0.2</okta-authn.version>
 		<jersey.version>3.0.1</jersey.version>
