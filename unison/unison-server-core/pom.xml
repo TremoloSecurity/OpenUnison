@@ -239,6 +239,11 @@
 			<version>${json-smart.version}</version>
 		</dependency>
 		
+		<dependency>
+		  <groupId>com.nimbusds</groupId>
+		  <artifactId>oauth2-oidc-sdk</artifactId>
+		  <version>${nimbusds.version}</version>
+		</dependency>
 		
 <dependency>
   <groupId>com.microsoft.azure</groupId>

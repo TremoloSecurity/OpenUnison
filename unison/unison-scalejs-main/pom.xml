@@ -68,5 +68,11 @@ limitations under the License.
 			<artifactId>unison-scalejs-common</artifactId>
 			<version>${openunison.version}</version>
 		</dependency>
+		<dependency>
+		  <groupId>org.apache.pdfbox</groupId>
+		  <artifactId>pdfbox</artifactId>
+		  <version>${pdfbox.version}</version>
+		  
+		</dependency>
   	</dependencies>
 </project>
