@@ -50,6 +50,7 @@ import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.embedd.LocalSessionRequest;
 import com.tremolosecurity.embedd.NextEmbSys;
 import com.tremolosecurity.proxy.ProxyRequest;
+import com.tremolosecurity.proxy.ProxyResponse;
 import com.tremolosecurity.proxy.ProxyUtil;
 import com.tremolosecurity.proxy.SessionManager;
 import com.tremolosecurity.proxy.auth.AuthController;
@@ -266,7 +267,11 @@ static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonServl
 								lsessionCookieName.setPath("/");
 								lsessionCookieName.setMaxAge(-1);
 								lsessionCookieName.setSecure(false);
-								resp.addCookie(lsessionCookieName);
+								//resp.addCookie(lsessionCookieName);
+								
+								if ((holder.getApp() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig().isCookiesEnabled() == null)  || holder.getApp().getCookieConfig().isCookiesEnabled()) {
+									ProxyResponse.addCookieToResponse(holder, lsessionCookieName, (HttpServletResponse) response);
+								}
 								
 								Cookie appCookieName = new Cookie("autoIdmAppName",URLEncoder.encode(holder.getApp().getName(),"UTF-8"));
 								if (domain != null) {
@@ -276,7 +281,11 @@ static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonServl
 								appCookieName.setMaxAge(-1);
 								appCookieName.setSecure(false);
 								
-								resp.addCookie(appCookieName);
+								if ((holder.getApp() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig().isCookiesEnabled() == null)  || holder.getApp().getCookieConfig().isCookiesEnabled()) {
+									ProxyResponse.addCookieToResponse(holder, appCookieName, (HttpServletResponse) response);
+								}
+								//resp.addCookie(appCookieName);
+								
 							}
 						}
 					}
