@@ -1,3 +1,11 @@
+## 1.0.22-2021041301
+
+**Tasks:**
+ - 1.0.22 Build [\#532](https://github.com/TremoloSecurity/OpenUnison/issues/532)
+
+**bugs:**
+ - In some instances, global session cookies not honoring secure and http [\#530](https://github.com/TremoloSecurity/OpenUnison/issues/530)
+
 ## 1.0.21-2021031601
 
 **enhancements:**
