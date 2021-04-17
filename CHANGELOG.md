@@ -1,9 +1,10 @@
-## 1.0.22-2021041301
+## 1.0.22-2021041601
 
 **Tasks:**
  - 1.0.22 Build [\#532](https://github.com/TremoloSecurity/OpenUnison/issues/532)
 
 **bugs:**
+ - gitlab integration broken [\#525](https://github.com/TremoloSecurity/OpenUnison/issues/525)
  - In some instances, global session cookies not honoring secure and http [\#530](https://github.com/TremoloSecurity/OpenUnison/issues/530)
 
 ## 1.0.21-2021031601
