@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
+import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
@@ -32,6 +34,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.config.xml.TremoloType;
+
+import net.sourceforge.myvd.types.Bool;
 
 public class QueUtils {
 
@@ -66,70 +70,107 @@ public class QueUtils {
 			logger.info("Creating queue " + dlqName);
 
 			Session session = con.createSession(false, Session.CLIENT_ACKNOWLEDGE);
+			
+			
+			
 			Queue queue = session.createQueue(dlqName);
 
 			MessageConsumer consumer = session.createConsumer(queue);
 
 			logger.info("Checking for messages");
-
-			Message receivedMessage = consumer.receive(1000);
-
+			
+			
+			
+			
+			final Bool runDone = new Bool(false);
+			
+			
+			
+			LastMessageTime last = new LastMessageTime();
+			last.lastMessageTime = System.currentTimeMillis();
 			HashMap<String, MessageProducer> qs = new HashMap<String, MessageProducer>();
-
-			while (receivedMessage != null) {
-				logger.info("Processing message : " + receivedMessage.getJMSMessageID());
-
-				if (receivedMessage.getStringProperty("dlqRunID") != null && receivedMessage.getStringProperty("dlqRunID").equalsIgnoreCase(dlqSessionID)) {
-					logger.info("Message already processed, stopping the run");
-					break;
-				}
-				
-				if (receivedMessage.getBooleanProperty("unisonignore")) {
-					
-					if (logger.isDebugEnabled()) {
-						logger.debug("ignoring message");
+			
+			consumer.setMessageListener(receivedMessage -> {
+				try {
+					logger.info("Processing message : " + receivedMessage.getJMSMessageID());
+					synchronized(last) {
+						last.lastMessageTime = System.currentTimeMillis();
 					}
+					if (receivedMessage.getStringProperty("dlqRunID") != null && receivedMessage.getStringProperty("dlqRunID").equalsIgnoreCase(dlqSessionID)) {
+						logger.info("Message already processed, stopping the run");
+						runDone.setValue(true);
+						return;
+					}
+					
+					if (receivedMessage.getBooleanProperty("unisonignore")) {
+						
+						if (logger.isDebugEnabled()) {
+							logger.debug("ignoring message");
+						}
+						receivedMessage.acknowledge();
+						receivedMessage = consumer.receive(1000);
+						return;
+					}
+
+
+					String originalQueue = receivedMessage.getStringProperty("OriginalQueue");
+					logger.info("Adding message " + receivedMessage.getJMSMessageID() + " to queue " + originalQueue);
+
+					TextMessage m = session.createTextMessage();
+					
+					
+
+					m.setStringProperty("dlqRunID", dlqSessionID);
+
+					m.setText(((TextMessage) receivedMessage).getText());
+
+					Enumeration enumer = receivedMessage.getPropertyNames();
+					while (enumer.hasMoreElements()) {
+						String propName = (String) enumer.nextElement();
+						m.setObjectProperty(propName, receivedMessage.getObjectProperty(propName));
+					}
+
+
+					if (qs.containsKey(originalQueue)) {
+						qs.get(originalQueue).send(m);
+					} else {
+						Queue q = session.createQueue(originalQueue);
+						MessageProducer lmp = session.createProducer(q);
+						qs.put(originalQueue, lmp);
+						lmp.send(m);
+					}
+
 					receivedMessage.acknowledge();
-					receivedMessage = consumer.receive(1000);
-					continue;
+					//session.commit();
+
+					logger.info("Message Sent");
+				} catch (JMSException e) {
+					runDone.setValue(true);
+					logger.error("Could not process message",e);
 				}
-
-
-				String originalQueue = receivedMessage.getStringProperty("OriginalQueue");
-				logger.info("Adding message " + receivedMessage.getJMSMessageID() + " to queue " + originalQueue);
-
-				TextMessage m = session.createTextMessage();
+            });
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			while (! runDone.getValue()) {
+				logger.info("Sleeping for 1 second...");
+				Thread.sleep(1000);
 				
-				
-
-				m.setStringProperty("dlqRunID", dlqSessionID);
-
-				m.setText(((TextMessage) receivedMessage).getText());
-
-				Enumeration enumer = receivedMessage.getPropertyNames();
-				while (enumer.hasMoreElements()) {
-					String propName = (String) enumer.nextElement();
-					m.setObjectProperty(propName, receivedMessage.getObjectProperty(propName));
+				synchronized (last) {
+					if (System.currentTimeMillis() - last.lastMessageTime > 1000) {
+						logger.info("No new messages for 1 second, ending run");
+						runDone.setValue(true);
+					}
 				}
-
-
-				if (qs.containsKey(originalQueue)) {
-					qs.get(originalQueue).send(m);
-				} else {
-					Queue q = session.createQueue(originalQueue);
-					MessageProducer lmp = session.createProducer(q);
-					qs.put(originalQueue, lmp);
-					lmp.send(m);
-				}
-
-				receivedMessage.acknowledge();
-				//session.commit();
-
-				logger.info("Message Sent");
-				logger.info("Receiving Next Message");
-				receivedMessage = consumer.receive(1000);
 			}
-
+			
+			
 			for (String key : qs.keySet()) {
 				qs.get(key).close();
 			}
@@ -143,4 +184,8 @@ public class QueUtils {
 			logger.warn("Error while clearing DLQ",t);
 		}
 	}
+}
+
+class LastMessageTime {
+	long lastMessageTime;
 }
