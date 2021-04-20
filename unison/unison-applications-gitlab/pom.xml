@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison</artifactId>
-		<version>1.0.22</version>
+		<version>1.0.23</version>
 	</parent>
 	<artifactId>unison-applications-gitlab</artifactId>
 	<name>unison-applications-gitlab</name>
