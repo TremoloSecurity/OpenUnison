@@ -89,6 +89,7 @@ import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.AuthMechType;
 import com.tremolosecurity.config.xml.CustomAzRuleType;
+import com.tremolosecurity.config.xml.DynamicPortalUrlsType;
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.config.xml.MechanismType;
@@ -98,12 +99,14 @@ import com.tremolosecurity.config.xml.ApplicationsType.ErrorPage;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningEngineImpl;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
+import com.tremolosecurity.provisioning.workflows.DynamicWorkflows;
 import com.tremolosecurity.proxy.HttpUpgradeRequestManager;
 import com.tremolosecurity.proxy.auth.AnonAuth;
 import com.tremolosecurity.proxy.auth.AuthMechanism;
 import com.tremolosecurity.proxy.auth.sys.AuthManager;
 import com.tremolosecurity.proxy.auth.sys.AuthManagerImpl;
 import com.tremolosecurity.proxy.az.CustomAuthorization;
+import com.tremolosecurity.proxy.dynamicloaders.DynamicResultGroups;
 import com.tremolosecurity.proxy.myvd.MyVDConnection;
 import com.tremolosecurity.proxy.ssl.TremoloTrustManager;
 import com.tremolosecurity.saml.Attribute;
@@ -475,6 +478,31 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		this.provEnvgine.initScheduler();
 		this.provEnvgine.initListeners();
 		this.provEnvgine.initReports();
+		
+		
+		try {
+			
+			if (this.getCfg().getResultGroups() != null && this.getCfg().getResultGroups().getDynamicResultGroups() != null && this.getCfg().getResultGroups().getDynamicResultGroups().isEnabled() ) {
+				DynamicPortalUrlsType dynamicResultGroups = this.getCfg().getResultGroups().getDynamicResultGroups();
+				String className = dynamicResultGroups.getClassName();
+				HashMap<String,Attribute> cfgAttrs = new HashMap<String,Attribute>();
+				for (ParamType pt : dynamicResultGroups.getParams()) {
+					Attribute attr = cfgAttrs.get(pt.getName());
+					if (attr == null) {
+						attr = new Attribute(pt.getName());
+						cfgAttrs.put(pt.getName(), attr);
+					}
+					
+					attr.getValues().add(pt.getValue());
+				}
+			
+				DynamicResultGroups dynResGroups = (DynamicResultGroups) Class.forName(className).newInstance();
+				dynResGroups.loadDynamicResultGroups(this, this.getProvisioningEngine(), cfgAttrs);
+			}
+			
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+			throw new ProvisioningException("Could not initialize dynamic targets",e);
+		}
 		
 		
 		this.postInitialize();
@@ -1163,6 +1191,25 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	public SSLContext getSSLContext() {
 		return this.sslctx;
 	}
+
+
+	@Override
+	public void addResultGroup(ResultGroupType rgt) {
+		synchronized(this.resGroups) {
+			this.resGroups.put(rgt.getName(), rgt);
+		}
+		
+	}
+
+
+	@Override
+	public void removeResultGroup(ResultGroupType rgtToRemove) {
+		synchronized(this.resGroups) {
+			this.resGroups.remove(rgtToRemove.getName());
+		}
+		
+	}
+	
 	
 	
 	

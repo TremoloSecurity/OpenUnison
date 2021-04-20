@@ -633,6 +633,7 @@
 			<documentation>List of result groups</documentation>
 		</annotation>
 		<sequence>
+		    <element name="dynamicResultGroups" type="tns:dynamicPortalUrlsType" maxOccurs="1" minOccurs="0"></element>
 			<element name="resultGroup" type="tns:resultGroupType"
 				maxOccurs="unbounded" minOccurs="0"></element>
 		</sequence>
@@ -2471,6 +2472,8 @@
 		</sequence>
 	</complexType>
 
+	
+
 	<complexType name="dynamicWorkflowType">
 		<annotation>
 			<documentation>Optional element used to configure a workflow as dynamic</documentation>
@@ -2542,4 +2545,6 @@
 		<attribute name="enabled" type="boolean" default="false"></attribute>
 		<attribute name="className" type="string"></attribute>
 	</complexType>
+	
+	
 </schema>

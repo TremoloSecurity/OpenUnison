@@ -376,6 +376,10 @@ public interface ConfigManager {
 
 	void buildHttpConfig()
 			throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException;
+
+	public abstract void addResultGroup(ResultGroupType rgt);
+
+	public abstract void removeResultGroup(ResultGroupType rgtToRemove);
 	
 	
 
