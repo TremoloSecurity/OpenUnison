@@ -47,8 +47,7 @@ public class JMSConnection {
 	int count;
 	int max;
 	
-	Session keepAliveSession;
-	MessageProducer keepAliveMp;
+
 	
 	public JMSConnection(ConnectionFactory cf,int max) throws JMSException {
 		if (logger.isDebugEnabled()) {
@@ -112,27 +111,15 @@ public class JMSConnection {
 				while (keepRunning) {
 					long now = System.currentTimeMillis();
 					if (lastCheck == 0 || (now-lastCheck >= timeToWait)) {
-						synchronized(keepAliveSession) {
-							try {
-								TextMessage tm = keepAliveSession.createTextMessage(UUID.randomUUID().toString());
-								tm.setStringProperty("JMSXGroupID", "unison-keepalive");
-								tm.setBooleanProperty("unisonignore", true);
-								
-								
-								if (logger.isDebugEnabled()) {
-									logger.debug("Sending keepalive for " + con);
-								}
-								
-								keepAliveMp.send(tm);
-							} catch (Throwable t) {
-								logger.warn("Could not send keep alive for " + con + ", recreating",t);
-								try {
-									rebuild();
-								} catch (JMSException e) {
-									logger.error("Could not recreate connection",e);
-								}
+						
+						
+						for (JMSSessionHolder session : sessions) {
+							synchronized (session.getSession()) {
+								sendKeepAliveMessage(session);
 							}
 						}
+						
+						
 						lastCheck = now;
 					} else {
 						try {
@@ -144,6 +131,28 @@ public class JMSConnection {
 					}
 				}
 				
+			}
+
+			private void sendKeepAliveMessage(JMSSessionHolder sessionHolder) {
+				try {
+					TextMessage tm = sessionHolder.getSession().createTextMessage(UUID.randomUUID().toString());
+					tm.setStringProperty("JMSXGroupID", "unison-keepalive");
+					tm.setBooleanProperty("unisonignore", true);
+					
+					
+					if (logger.isDebugEnabled()) {
+						logger.debug("Sending keepalive for " + sessionHolder.getQueueName());
+					}
+					
+					sessionHolder.getMessageProduceer().send(tm);
+				} catch (Throwable t) {
+					logger.warn("Could not send keep alive for " + sessionHolder.getQueueName() + ", recreating",t);
+					try {
+						rebuild();
+					} catch (JMSException e) {
+						logger.error("Could not recreate connection",e);
+					}
+				}
 			}
 
 			@Override
@@ -194,8 +203,7 @@ public class JMSConnection {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Creating keepalive session for '" + queueName + "'");
 		}
-		this.keepAliveSession = this.con.createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
-		this.keepAliveMp = this.keepAliveSession.createProducer(this.keepAliveSession.createQueue(queueName));
+
 	}
 	
 	public void rebuild() throws JMSException {
@@ -210,27 +218,7 @@ public class JMSConnection {
 		createKeepAlive();
 	}
 	
-	public void sendKeepAlive() throws ProvisioningException {
-		try {
-			TextMessage tm = this.keepAliveSession.createTextMessage(UUID.randomUUID().toString());
-			tm.setStringProperty("JMSXGroupID", "unison-keepalive");
-			tm.setBooleanProperty("unisonignore", true);
-			
-			
-			if (logger.isDebugEnabled()) {
-				logger.debug("Sending keepalive for " + this.con);
-			}
-			
-			this.keepAliveMp.send(tm);
-		} catch (Throwable t) {
-			logger.warn("Could not send keepalive for " + this.con + ", recreating",t);
-			try {
-				this.rebuild();
-			} catch (JMSException e) {
-				throw new ProvisioningException("Could not recreate connection",e);
-			}
-		}
-	}
+
 	
 	public synchronized JMSSessionHolder createSession(String queueName) throws JMSException {
 		if (count < max) {

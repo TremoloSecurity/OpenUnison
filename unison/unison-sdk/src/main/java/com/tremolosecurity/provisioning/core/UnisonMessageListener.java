@@ -41,8 +41,22 @@ public abstract class UnisonMessageListener implements MessageListener {
 	
 	@Override
 	public void onMessage(Message msg) {
+		
+		
+		
 		try {
 			TextMessage smsg = (TextMessage) msg;
+			
+			if (smsg.getBooleanProperty("unisonignore")) {
+				
+				if (logger.isDebugEnabled()) {
+					logger.debug("ignoring message");
+				}
+				smsg.acknowledge();
+				return;
+			}
+			
+			
 			ConfigManager cfgMgr = (ConfigManager) GlobalEntries.getGlobalEntries().get(ProxyConstants.CONFIG_MANAGER);
 			Gson gson = new Gson();
 			Object obj;

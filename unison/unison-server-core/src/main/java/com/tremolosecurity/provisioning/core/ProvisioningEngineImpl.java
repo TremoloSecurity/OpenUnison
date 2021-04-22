@@ -2353,7 +2353,18 @@ class SendMessageThread implements MessageListener {
 	public void onMessage(javax.jms.Message msg) {
 		TextMessage fromq = (TextMessage) msg;
 		
+		
+		
 		try {
+			
+			if (fromq.getBooleanProperty("unisonignore")) {
+				
+				if (logger.isDebugEnabled()) {
+					logger.debug("ignoring message");
+				}
+				fromq.acknowledge();
+				return;
+			}
 			
 			Gson gson = new Gson();
 			SmtpMessage email = gson.fromJson(fromq.getText(), SmtpMessage.class);
