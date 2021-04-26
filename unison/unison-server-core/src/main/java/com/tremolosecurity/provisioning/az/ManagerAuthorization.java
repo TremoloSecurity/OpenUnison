@@ -202,6 +202,11 @@ public class ManagerAuthorization implements CustomAuthorization {
 		}
 	}
 
+	@Override
+	public Workflow getWorkflow() {
+		return this.wf;
+	}
+
 	
 	
 	

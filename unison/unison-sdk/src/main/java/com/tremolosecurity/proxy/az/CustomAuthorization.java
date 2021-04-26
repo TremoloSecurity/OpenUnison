@@ -71,5 +71,12 @@ public interface CustomAuthorization {
 	public abstract List<String> listPossibleApprovers(String...params) throws AzException;
 
 
+	/**
+	 * Return ths current workflow
+	 * @return
+	 */
+	public abstract Workflow getWorkflow();
+
+
 	
 }

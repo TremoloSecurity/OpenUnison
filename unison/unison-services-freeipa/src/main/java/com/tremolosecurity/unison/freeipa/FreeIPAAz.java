@@ -150,5 +150,12 @@ public class FreeIPAAz implements CustomAuthorization{
         }
 	}
 
+	@Override
+	public Workflow getWorkflow() {
+		return null;
+	}
+	
+	
+
     
 }

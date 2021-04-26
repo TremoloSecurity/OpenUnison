@@ -105,7 +105,10 @@ import com.tremolosecurity.proxy.auth.AnonAuth;
 import com.tremolosecurity.proxy.auth.AuthMechanism;
 import com.tremolosecurity.proxy.auth.sys.AuthManager;
 import com.tremolosecurity.proxy.auth.sys.AuthManagerImpl;
+import com.tremolosecurity.proxy.az.AzException;
+import com.tremolosecurity.proxy.az.AzRule;
 import com.tremolosecurity.proxy.az.CustomAuthorization;
+import com.tremolosecurity.proxy.dynamicloaders.DynamicAuthorizations;
 import com.tremolosecurity.proxy.dynamicloaders.DynamicResultGroups;
 import com.tremolosecurity.proxy.myvd.MyVDConnection;
 import com.tremolosecurity.proxy.ssl.TremoloTrustManager;
@@ -401,22 +404,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		this.customAzRules = new HashMap<String,CustomAuthorization>();
 		if (this.cfg.getCustomAzRules() != null) {
 			for (CustomAzRuleType azrule : this.cfg.getCustomAzRules().getAzRule()) {
-				HashMap<String,Attribute> azCfg = new HashMap<String,Attribute>();
-				for (ParamType pt : azrule.getParams()) {
-					Attribute attr = azCfg.get(pt.getName());
-					if (attr == null) {
-						attr = new Attribute(pt.getName());
-						azCfg.put(pt.getName(), attr);
-					}
-					
-					attr.getValues().add(pt.getValue());
-					
-				}
-				
-				CustomAuthorization cuz = (CustomAuthorization) Class.forName(azrule.getClassName()).newInstance();
-				cuz.init(azCfg);
-				
-				this.customAzRules.put(azrule.getName(), cuz);
+				createCustomAuthorizationRule(azrule);
 			}
 		}
 		
@@ -505,10 +493,56 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		}
 		
 		
+		try {
+			
+			if (this.getCfg().getCustomAzRules() != null && this.getCfg().getCustomAzRules().getDynamicCustomAuthorizations() != null && this.getCfg().getCustomAzRules().getDynamicCustomAuthorizations().isEnabled() ) {
+				DynamicPortalUrlsType dynamicCustomAuthorization = this.getCfg().getCustomAzRules().getDynamicCustomAuthorizations();
+				String className = dynamicCustomAuthorization.getClassName();
+				HashMap<String,Attribute> cfgAttrs = new HashMap<String,Attribute>();
+				for (ParamType pt : dynamicCustomAuthorization.getParams()) {
+					Attribute attr = cfgAttrs.get(pt.getName());
+					if (attr == null) {
+						attr = new Attribute(pt.getName());
+						cfgAttrs.put(pt.getName(), attr);
+					}
+					
+					attr.getValues().add(pt.getValue());
+				}
+			
+				DynamicAuthorizations dynCustomAz = (DynamicAuthorizations) Class.forName(className).newInstance();
+				dynCustomAz.loadDynamicAuthorizations(this, this.getProvisioningEngine(), cfgAttrs);
+			}
+			
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+			throw new ProvisioningException("Could not initialize dynamic targets",e);
+		}
+		
+		
 		this.postInitialize();
 		
 		
 		
+	}
+
+
+	private void createCustomAuthorizationRule(CustomAzRuleType azrule)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, AzException {
+		HashMap<String,Attribute> azCfg = new HashMap<String,Attribute>();
+		for (ParamType pt : azrule.getParams()) {
+			Attribute attr = azCfg.get(pt.getName());
+			if (attr == null) {
+				attr = new Attribute(pt.getName());
+				azCfg.put(pt.getName(), attr);
+			}
+			
+			attr.getValues().add(pt.getValue());
+			
+		}
+		
+		CustomAuthorization cuz = (CustomAuthorization) Class.forName(azrule.getClassName()).newInstance();
+		cuz.init(azCfg);
+		
+		this.customAzRules.put(azrule.getName(), cuz);
 	}
 
 
@@ -1210,7 +1244,30 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		
 	}
 	
+	@Override
+	public  void addCustomerAuthorization(CustomAzRuleType azrt) {
+		synchronized (this.customAzRules) {
+			try {
+				this.createCustomAuthorizationRule(azrt);
+			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | AzException e) {
+				logger.warn("Could not initialize " + azrt.getName(),e);
+				return;
+			}
+		}
+		
+		CustomAuthorization caz = this.customAzRules.get(azrt.getName());
+		AzRule.replaceCustomAuthorization(azrt.getName(), caz);
+	}
 	
+	
+	@Override
+	public void removeCustomAuthorization(String azName) {
+		synchronized (this.customAzRules) {
+			this.customAzRules.remove(azName);
+		}
+		AzRule.deleteCustomAuthorization(azName);
+		
+	}
 	
 	
 	

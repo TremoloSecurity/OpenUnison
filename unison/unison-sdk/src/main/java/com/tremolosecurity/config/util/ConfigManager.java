@@ -50,6 +50,7 @@ import org.apache.http.params.HttpParams;
 import com.novell.ldap.LDAPException;
 import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.AuthChainType;
+import com.tremolosecurity.config.xml.CustomAzRuleType;
 import com.tremolosecurity.config.xml.MechanismType;
 import com.tremolosecurity.config.xml.ResultGroupType;
 import com.tremolosecurity.config.xml.TremoloType;
@@ -381,6 +382,9 @@ public interface ConfigManager {
 
 	public abstract void removeResultGroup(ResultGroupType rgtToRemove);
 	
+	public abstract void addCustomerAuthorization(CustomAzRuleType azrt);
+	
+	public abstract void removeCustomAuthorization(String azName);
 	
 
 }

@@ -2467,6 +2467,7 @@
 			</documentation>
 		</annotation>
 		<sequence>
+		    <element name="dynamicCustomAuthorizations" type="tns:dynamicPortalUrlsType" maxOccurs="1" minOccurs="0"></element>
 			<element name="azRule" type="tns:customAzRuleType" minOccurs="0"
 				maxOccurs="unbounded"></element>
 		</sequence>

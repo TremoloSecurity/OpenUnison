@@ -18,7 +18,10 @@ limitations under the License.
 package com.tremolosecurity.proxy.az;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.logging.log4j.Logger;
@@ -35,6 +38,9 @@ public class AzRule  {
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AzRule.class.getName());
 	private static HashSet<UUID> usedGUIDS = new HashSet<UUID>();
 	
+	
+	private static Map<String,Set<AzRule>> customRules;  
+	
 	public enum ScopeType {
 		Group,
 		DynamicGroup,
@@ -50,6 +56,11 @@ public class AzRule  {
 	private CustomAuthorization customAz;
 
 	private String[] customParams;
+	
+	
+	static {
+		customRules = new HashMap<String,Set<AzRule>>();
+	}
 	
 	public AzRule(String scopeType,String constraint, String className,ConfigManager cfgMgr,Workflow wf) throws ProvisioningException {
 		if (scopeType.equalsIgnoreCase("group")) {
@@ -77,10 +88,21 @@ public class AzRule  {
 			
 			if (caz == null) {
 				logger.warn("Could not find custom authorization rule : '" + className + "'");
+				caz = new AlwaysFail();
 			}
 			
 			String json = JsonWriter.objectToJson(caz);
 			this.customAz = (CustomAuthorization) JsonReader.jsonToJava(json);
+			
+			synchronized (customRules) {
+				Set<AzRule> azRules = customRules.get(constraint);
+				if (azRules == null) {
+					azRules = new HashSet<AzRule>();
+					customRules.put(constraint, azRules);
+				}
+				azRules.add(this);
+			}
+			
 			try {
 				this.customAz.setWorkflow(wf);
 			} catch (AzException e) {
@@ -123,9 +145,65 @@ public class AzRule  {
 	public CustomAuthorization getCustomAuthorization() {
 		return this.customAz;
 	}
+	
+	public void setCustomAuthorization(CustomAuthorization caz) {
+		this.customAz = caz;
+	}
 
 	public String[] getCustomParameters() {
 		return this.customParams;
+	}
+	
+	public static void replaceCustomAuthorization(String name,CustomAuthorization caz) {
+		Set<AzRule> azRules = customRules.get(name);
+		
+		if (azRules == null) {
+			logger.warn("Custom rule '" + name + "' not referenced by any authorization rules");
+			return;
+		}
+		
+		
+		
+		for (AzRule rule : azRules) {
+			synchronized (rule) {
+				String json = JsonWriter.objectToJson(caz);
+				CustomAuthorization newCazInstance = (CustomAuthorization) JsonReader.jsonToJava(json);
+				try {
+					newCazInstance.setWorkflow(rule.getCustomAuthorization().getWorkflow());
+				} catch (AzException e) {
+					logger.warn("Could not set workflow on '" + name +"' replacement",e);
+				}
+				rule.setCustomAuthorization(newCazInstance);
+			}
+			
+			
+		}
+	}
+	
+	public static void deleteCustomAuthorization(String name) {
+		Set<AzRule> azRules = customRules.get(name);
+		
+		if (azRules == null) {
+			logger.warn("Custom rule '" + name + "' not referenced by any authorization rules");
+			return;
+		}
+		
+		
+		
+		for (AzRule rule : azRules) {
+			synchronized (rule) {
+				
+				CustomAuthorization newCazInstance = new AlwaysFail();
+				try {
+					newCazInstance.setWorkflow(rule.getCustomAuthorization().getWorkflow());
+				} catch (AzException e) {
+					logger.warn("Could not set workflow on '" + name +"' replacement",e);
+				}
+				rule.setCustomAuthorization(newCazInstance);
+			}
+			
+			
+		}
 	}
 	
 }
