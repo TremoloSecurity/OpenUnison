@@ -361,15 +361,32 @@ public class AuthManagerImpl implements AuthManager {
 
 			String redirectURI = "";
 
+			MechanismType nextAuthConfiguration = null;
+			
 			if (holder.getConfig().getContextPath().equalsIgnoreCase("/")) {
-				redirectURI = holder.getConfig().getAuthMechs()
-						.get(amt.getName()).getUri();
+				nextAuthConfiguration = holder.getConfig().getAuthMechs()
+						.get(amt.getName());
+				
+				if (nextAuthConfiguration == null) {
+					StringBuilder sb = new StringBuilder().append("Authentication mechanism '").append(amt.getName()).append("' does not exist, will always fail");
+					logger.warn(sb.toString());
+					nextAuthConfiguration = holder.getConfig().getAuthFailMechanism();
+				}
+				
+				redirectURI = nextAuthConfiguration.getUri();
 			} else {
-
+				nextAuthConfiguration = holder.getConfig().getAuthMechs()
+						.get(amt.getName());
+				
+				if (nextAuthConfiguration == null) {
+					StringBuilder sb = new StringBuilder().append("Authentication mechanism '").append(amt.getName()).append("' does not exist, will always fail");
+					logger.warn(sb.toString());
+					nextAuthConfiguration = holder.getConfig().getAuthFailMechanism();
+				}
+				
 				redirectURI = new StringBuffer()
 						.append(holder.getConfig().getContextPath())
-						.append(holder.getConfig().getAuthMechs()
-								.get(amt.getName()).getUri()).toString();
+						.append(nextAuthConfiguration.getUri()).toString();
 			}
 
 			req.getSession().setAttribute("TREMOLO_AUTH_URI", redirectURI);

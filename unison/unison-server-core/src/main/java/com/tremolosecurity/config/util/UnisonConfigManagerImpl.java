@@ -88,11 +88,13 @@ import com.tremolosecurity.config.ssl.TremoloX509KeyManager;
 import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.AuthMechType;
+import com.tremolosecurity.config.xml.ConfigType;
 import com.tremolosecurity.config.xml.CustomAzRuleType;
 import com.tremolosecurity.config.xml.DynamicPortalUrlsType;
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.config.xml.MechanismType;
+import com.tremolosecurity.config.xml.ParamListType;
 import com.tremolosecurity.config.xml.ResultGroupType;
 import com.tremolosecurity.config.xml.UrlType;
 import com.tremolosecurity.config.xml.ApplicationsType.ErrorPage;
@@ -101,6 +103,7 @@ import com.tremolosecurity.provisioning.core.ProvisioningEngineImpl;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.workflows.DynamicWorkflows;
 import com.tremolosecurity.proxy.HttpUpgradeRequestManager;
+import com.tremolosecurity.proxy.auth.AlwaysFail;
 import com.tremolosecurity.proxy.auth.AnonAuth;
 import com.tremolosecurity.proxy.auth.AuthMechanism;
 import com.tremolosecurity.proxy.auth.sys.AuthManager;
@@ -108,6 +111,7 @@ import com.tremolosecurity.proxy.auth.sys.AuthManagerImpl;
 import com.tremolosecurity.proxy.az.AzException;
 import com.tremolosecurity.proxy.az.AzRule;
 import com.tremolosecurity.proxy.az.CustomAuthorization;
+import com.tremolosecurity.proxy.dynamicloaders.DynamicAuthMechs;
 import com.tremolosecurity.proxy.dynamicloaders.DynamicAuthorizations;
 import com.tremolosecurity.proxy.dynamicloaders.DynamicResultGroups;
 import com.tremolosecurity.proxy.myvd.MyVDConnection;
@@ -170,6 +174,8 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	private AuthChainType anonAct;
 
 	private AnonAuth anonAuthMech;
+	private AlwaysFail alwaysFailAuth;
+	private MechanismType alwaysFailAuthMech;
 
 	private String ctxPath;
 
@@ -770,28 +776,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 				while (mechs.hasNext()) {
 					MechanismType mt = mechs.next();
 					
-					AuthMechanism authMech = (AuthMechanism) Class.forName(mt.getClassName().trim()).newInstance();
-					
-					HashMap<String,Attribute> attrs = new HashMap<String,Attribute>();
-					Iterator<ParamType> params = mt.getInit().getParam().iterator();
-					
-					while (params.hasNext()) {
-						ParamType pt = params.next();
-						Attribute attr = attrs.get(pt.getName());
-						if (attr == null) {
-							attr = new Attribute(pt.getName());
-							attrs.put(pt.getName(),attr);
-						}
-						attr.getValues().add(pt.getValue());
-					}
-					
-					authMech.init(ctx, attrs);
-					
-					if (this.ctxPath.equalsIgnoreCase("/")) {
-						this.mechs.put(mt.getUri(), authMech);
-					} else {
-						this.mechs.put(this.ctxPath +  mt.getUri(), authMech);
-					}
+					initializeAuthenticationMechanism(mt);
 					
 					
 				}
@@ -806,7 +791,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 				this.anonAct = act;
 				String mechName = act.getAuthMech().get(0).getName();
 				this.anonAuthMech =  (AnonAuth) this.getAuthMech(this.authMechs.get(mechName).getUri());
-			}
+			} 
 		}
 		
 		
@@ -819,6 +804,81 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 			this.anonAuthMech = new AnonAuth();
 			
 		}
+		
+		if (this.alwaysFailAuth == null) {
+			this.alwaysFailAuth = new AlwaysFail();
+			
+			String failAuthUri = this.ctxPath + "/fail"; 
+			this.mechs.put(failAuthUri, alwaysFailAuth);
+			
+			MechanismType fmt = new MechanismType();
+			fmt.setClassName("com.tremolosecurity.proxy.auth.AlwaysFail");
+			fmt.setInit(new ConfigType());
+			fmt.setParams(new ParamListType());
+			fmt.setName("fail");
+			fmt.setUri(failAuthUri);
+			this.cfg.getAuthMechs().getMechanism().add(fmt);
+			this.alwaysFailAuthMech = fmt;
+		}
+		
+		try {
+			
+			if (this.getCfg().getAuthMechs() != null && this.getCfg().getAuthMechs().getDynamicAuthMechs() != null && this.getCfg().getAuthMechs().getDynamicAuthMechs().isEnabled() ) {
+				DynamicPortalUrlsType dynamicAuthMechs = this.getCfg().getAuthMechs().getDynamicAuthMechs();
+				String className = dynamicAuthMechs.getClassName();
+				HashMap<String,Attribute> cfgAttrs = new HashMap<String,Attribute>();
+				for (ParamType pt : dynamicAuthMechs.getParams()) {
+					Attribute attr = cfgAttrs.get(pt.getName());
+					if (attr == null) {
+						attr = new Attribute(pt.getName());
+						cfgAttrs.put(pt.getName(), attr);
+					}
+					
+					attr.getValues().add(pt.getValue());
+				}
+			
+				DynamicAuthMechs dynCustomAuMechs = (DynamicAuthMechs) Class.forName(className).newInstance();
+				dynCustomAuMechs.loadDynamicAuthMechs(this, this.getProvisioningEngine(), cfgAttrs);
+			}
+			
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | ProvisioningException e) {
+			throw new ServletException("Could not initialize authentication mechanisms",e);
+		}
+	}
+
+
+	private void initializeAuthenticationMechanism(MechanismType mt)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		AuthMechanism authMech = (AuthMechanism) Class.forName(mt.getClassName().trim()).newInstance();
+		
+		HashMap<String,Attribute> attrs = new HashMap<String,Attribute>();
+		Iterator<ParamType> params = mt.getInit().getParam().iterator();
+		
+		while (params.hasNext()) {
+			ParamType pt = params.next();
+			Attribute attr = attrs.get(pt.getName());
+			if (attr == null) {
+				attr = new Attribute(pt.getName());
+				attrs.put(pt.getName(),attr);
+			}
+			attr.getValues().add(pt.getValue());
+		}
+		
+		authMech.init(ctx, attrs);
+		
+		if (this.ctxPath.equalsIgnoreCase("/")) {
+			this.mechs.put(mt.getUri(), authMech);
+		} else {
+			this.mechs.put(this.ctxPath +  mt.getUri(), authMech);
+		}
+		
+		if (mt.getClassName().equals("com.tremolosecurity.proxy.auth.AlwaysFail")) {
+			this.alwaysFailAuth = (AlwaysFail) authMech;
+			this.alwaysFailAuthMech = mt;
+		}
+		
+		
+		
 	}
 	
 	/* (non-Javadoc)
@@ -1269,6 +1329,35 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		
 	}
 	
+
+	@Override
+	public MechanismType getAuthFailMechanism() {
+		return this.alwaysFailAuthMech;
+	}
 	
+	@Override
+	public void addAuthenticationMechanism(MechanismType mt) {
+		synchronized (this.authMechs) {
+			synchronized (this.mechs) {
+				try {
+					initializeAuthenticationMechanism(mt);
+					this.authMechs.put(mt.getName(), mt);
+				} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+					logger.warn("Could not initialize " + mt.getName(),e);
+				}
+			}
+		}
+	}
+	
+	@Override
+	public void removeAuthenticationMechanism(String name) {
+		synchronized (this.authMechs) {
+			synchronized (this.mechs) {
+				this.authMechs.remove(name);
+				this.mechs.remove(name);
+			}
+			
+		}
+	}
 	
 }

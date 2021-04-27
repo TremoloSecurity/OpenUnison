@@ -406,6 +406,7 @@
 			</documentation>
 		</annotation>
 		<sequence>
+		    <element name="dynamicAuthMechs" type="tns:dynamicPortalUrlsType" maxOccurs="1" minOccurs="0"></element>
 			<element name="mechanism" type="tns:mechanismType" maxOccurs="unbounded"
 				minOccurs="0"></element>
 		</sequence>

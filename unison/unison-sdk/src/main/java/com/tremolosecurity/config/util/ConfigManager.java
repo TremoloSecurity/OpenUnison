@@ -385,6 +385,12 @@ public interface ConfigManager {
 	public abstract void addCustomerAuthorization(CustomAzRuleType azrt);
 	
 	public abstract void removeCustomAuthorization(String azName);
+
+	public abstract MechanismType getAuthFailMechanism();
+
+	public abstract void addAuthenticationMechanism(MechanismType mt);
+
+	public abstract void removeAuthenticationMechanism(String name);
 	
 
 }
