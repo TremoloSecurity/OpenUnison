@@ -41,6 +41,7 @@ import com.tremolosecurity.proxy.dynamicloaders.DynamicAuthMechs;
 import com.tremolosecurity.proxy.dynamicloaders.DynamicAuthorizations;
 import com.tremolosecurity.proxy.dynamicloaders.DynamicResultGroups;
 import com.tremolosecurity.provisioning.targets.LoadTargetsFromK8s;
+import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 
@@ -55,7 +56,7 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 	private ConfigManager cfgMgr;
 	
 	
-	private MechanismType createAuthMech (JSONObject item, String name) throws ProvisioningException {
+	private MechanismType createAuthMech (JSONObject item, String name) throws Exception {
 		MechanismType mechType = new MechanismType();
 		
 		JSONObject spec = (JSONObject) item.get("spec");
@@ -84,6 +85,33 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 					pt.setValue((String) ov);
 					mechType.getInit().getParam().add(pt);
 				}
+			}
+		}
+		
+		JSONArray secretParams = (JSONArray) spec.get("secretParams");
+		
+		if (secretParams != null) {
+			HttpCon nonwatchHttp = this.k8sWatch.getK8s().createClient();
+			String token = this.k8sWatch.getK8s().getAuthToken();
+			
+			try {
+				for (Object o : secretParams) {
+					JSONObject secretParam = (JSONObject) o;
+					String paramName = (String) secretParam.get("name");
+					String secretName = (String) secretParam.get("secretName");
+					String secretKey = (String) secretParam.get("secretKey");
+					
+					String secretValue = this.k8sWatch.getSecretValue(secretName, secretKey, token, nonwatchHttp);
+					ParamType pt = new ParamType();
+					pt.setName(paramName);
+					pt.setValue(secretValue);
+					
+					mechType.getInit().getParam().add(pt);
+					
+				}
+			} finally {
+				nonwatchHttp.getHttp().close();
+				nonwatchHttp.getBcm().close();
 			}
 		}
 		
@@ -133,12 +161,18 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 			
 			logger.info("Adding authentication mechanism " + name);
 			
-			MechanismType mt = this.createAuthMech(item, name);
+			
+			try {
+				MechanismType mt = this.createAuthMech(item, name);
+				GlobalEntries.getGlobalEntries().getConfigManager().addAuthenticationMechanism(mt);
+			} catch (Exception e) {
+				logger.warn("Could not initialize authentication mechanism " + name,e);
+				return;
+			}
 			
 			
 			
 			
-			GlobalEntries.getGlobalEntries().getConfigManager().addAuthenticationMechanism(mt);
 		} catch (ParseException e) {
 			throw new ProvisioningException("Could not parse custom authorization",e);
 		}
@@ -165,9 +199,15 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 			
 			logger.info("Modifying authentication mechanism " + name);
 			
-			MechanismType mt = this.createAuthMech(item, name);
+			try {
+				MechanismType mt = this.createAuthMech(item, name);
+				GlobalEntries.getGlobalEntries().getConfigManager().addAuthenticationMechanism(mt);
+			} catch (Exception e) {
+				logger.warn("Could not initialize authentication mechanism " + name,e);
+				return;
+			}
 			
-			GlobalEntries.getGlobalEntries().getConfigManager().addAuthenticationMechanism(mt);
+			
 		} catch (ParseException e) {
 			throw new ProvisioningException("Could not parse custom authorization",e);
 		}
