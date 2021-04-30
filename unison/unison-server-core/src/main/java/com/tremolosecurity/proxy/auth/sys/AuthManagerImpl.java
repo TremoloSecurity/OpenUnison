@@ -117,6 +117,10 @@ public class AuthManagerImpl implements AuthManager {
 		}
 
 		AuthChainType act = holder.getConfig().getAuthChains().get(actName);
+		
+		if (act == null) {
+			act = holder.getConfig().getAuthFailChain();
+		}
 
 		/*
 		 * if (reqHolder != null && ! mt.getUri().equals(req.getRequestURI())) {
@@ -154,7 +158,7 @@ public class AuthManagerImpl implements AuthManager {
 		ConfigManager cfg = (ConfigManager) req
 				.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
 
-		if (act.getLevel() == 0) {
+		if (act.getLevel() == 0 && (act != cfg.getAuthFailChain())) {
 			AuthController actl = (AuthController) session
 					.getAttribute(ProxyConstants.AUTH_CTL);
 

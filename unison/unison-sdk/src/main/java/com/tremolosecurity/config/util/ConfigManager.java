@@ -391,6 +391,8 @@ public interface ConfigManager {
 	public abstract void addAuthenticationMechanism(MechanismType mt);
 
 	public abstract void removeAuthenticationMechanism(String name);
+
+	public abstract AuthChainType getAuthFailChain();
 	
 
 }

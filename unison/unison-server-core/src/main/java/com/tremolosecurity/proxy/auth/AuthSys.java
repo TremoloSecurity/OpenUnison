@@ -149,7 +149,15 @@ public class AuthSys  {
 				next.nextSys((HttpServletRequest) req, (HttpServletResponse) resp);
 			}
 		} else {
-			if (authData.getAuthLevel() < act.getLevel()) {
+			boolean mustFail = false;
+			if (act == null) {
+				StringBuilder sb = new StringBuilder().append("Authentication chain '").append(urlChain).append("' does not exist. All authentication requests will fail");
+				logger.warn(sb.toString());
+				act = cfg.getAuthFailChain();
+				mustFail = true;
+			}
+			
+			if (authData.getAuthLevel() < act.getLevel() || mustFail) {
 				//step up authentication, clear existing auth data
 				
 				session.removeAttribute(ProxyConstants.AUTH_CTL);

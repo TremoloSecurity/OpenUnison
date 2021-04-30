@@ -501,6 +501,7 @@
 			<documentation>List of authentication chains</documentation>
 		</annotation>
 		<sequence>
+		    <element name="dynamicAuthChains" type="tns:dynamicPortalUrlsType" maxOccurs="1" minOccurs="0"></element>
 			<element name="chain" type="tns:authChainType" maxOccurs="unbounded"
 				minOccurs="0"></element>
 		</sequence>

@@ -87,6 +87,7 @@ import com.novell.ldap.LDAPException;
 import com.tremolosecurity.config.ssl.TremoloX509KeyManager;
 import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.AuthChainType;
+import com.tremolosecurity.config.xml.AuthMechParamType;
 import com.tremolosecurity.config.xml.AuthMechType;
 import com.tremolosecurity.config.xml.ConfigType;
 import com.tremolosecurity.config.xml.CustomAzRuleType;
@@ -111,6 +112,7 @@ import com.tremolosecurity.proxy.auth.sys.AuthManagerImpl;
 import com.tremolosecurity.proxy.az.AzException;
 import com.tremolosecurity.proxy.az.AzRule;
 import com.tremolosecurity.proxy.az.CustomAuthorization;
+import com.tremolosecurity.proxy.dynamicloaders.DynamicAuthChains;
 import com.tremolosecurity.proxy.dynamicloaders.DynamicAuthMechs;
 import com.tremolosecurity.proxy.dynamicloaders.DynamicAuthorizations;
 import com.tremolosecurity.proxy.dynamicloaders.DynamicResultGroups;
@@ -193,6 +195,8 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	private HttpUpgradeRequestManager upgradeManager;
 
 	private SSLContext sslctx;
+
+	private AuthChainType authFailChain;
 
 	
 	@Override
@@ -524,6 +528,31 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		}
 		
 		
+		try {
+			
+			if (this.getCfg().getAuthChains() != null && this.getCfg().getAuthChains().getDynamicAuthChains() != null && this.getCfg().getAuthChains().getDynamicAuthChains().isEnabled() ) {
+				DynamicPortalUrlsType dynamicAuthChains = this.getCfg().getAuthChains().getDynamicAuthChains();
+				String className = dynamicAuthChains.getClassName();
+				HashMap<String,Attribute> cfgAttrs = new HashMap<String,Attribute>();
+				for (ParamType pt : dynamicAuthChains.getParams()) {
+					Attribute attr = cfgAttrs.get(pt.getName());
+					if (attr == null) {
+						attr = new Attribute(pt.getName());
+						cfgAttrs.put(pt.getName(), attr);
+					}
+					
+					attr.getValues().add(pt.getValue());
+				}
+			
+				DynamicAuthChains dynAuthChains = (DynamicAuthChains) Class.forName(className).newInstance();
+				dynAuthChains.loadDynamicAuthChains(this, provEnvgine, cfgAttrs);
+			}
+			
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+			throw new ProvisioningException("Could not initialize dynamic targets",e);
+		}
+		
+		
 		this.postInitialize();
 		
 		
@@ -819,6 +848,28 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 			fmt.setUri(failAuthUri);
 			this.cfg.getAuthMechs().getMechanism().add(fmt);
 			this.alwaysFailAuthMech = fmt;
+		}
+		
+		for (String key : this.authChains.keySet()) {
+			AuthChainType act = this.authChains.get(key);
+			for (AuthMechType amt : act.getAuthMech()) {
+				if (amt.getName().equals(this.alwaysFailAuthMech.getName())) {
+					this.authFailChain = act;
+					break;
+				}
+			}
+		}
+		
+		if (this.authFailChain == null) {
+			this.authFailChain = new AuthChainType();
+			this.authFailChain.setLevel(0);
+			this.authFailChain.setName("alwaysfail");
+			
+			AuthMechType amt = new AuthMechType();
+			amt.setName(this.alwaysFailAuthMech.getName());
+			amt.setRequired("required");
+			amt.setParams(new AuthMechParamType());
+			this.authFailChain.getAuthMech().add(amt);
 		}
 		
 		try {
@@ -1358,6 +1409,11 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 			}
 			
 		}
+	}
+	
+	@Override
+	public AuthChainType getAuthFailChain() {
+		return this.authFailChain;
 	}
 	
 }
