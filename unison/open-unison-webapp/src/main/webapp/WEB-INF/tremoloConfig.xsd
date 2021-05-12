@@ -20,6 +20,7 @@
 				application</documentation>
 		</annotation>
 		<sequence>
+		    
 			<element name="results" type="tns:resultRefType" maxOccurs="1"
 				minOccurs="0">
 
@@ -309,6 +310,7 @@
 				</attribute>
 				</complexType>
 			</element>
+			<element name="dynamicApplications" type="tns:dynamicPortalUrlsType" maxOccurs="1" minOccurs="0"></element>
 			<element name="application" type="tns:applicationType"
 				maxOccurs="unbounded" minOccurs="0">
 			</element>

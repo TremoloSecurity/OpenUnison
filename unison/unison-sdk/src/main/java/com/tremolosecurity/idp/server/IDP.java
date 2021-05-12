@@ -49,6 +49,12 @@ public class IDP extends HttpServlet  implements ReloadNotification {
 	private ConfigManager cfgMgr;
 	private ServletConfig config;
 	
+	static IDP idp;
+	
+	public static IDP getIdp() {
+		return idp;
+	}
+	
 	@Override
 	protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
@@ -160,6 +166,8 @@ public class IDP extends HttpServlet  implements ReloadNotification {
 		this.config = config;
 		cfgMgr.addReloadNotifier(this);
 		initIdPs(config, cfgMgr);
+		
+		idp = this;
 	}
 
 	private void initIdPs(ServletConfig config, ConfigManager cfgMgr)
@@ -235,6 +243,10 @@ public class IDP extends HttpServlet  implements ReloadNotification {
 		holder.idpConfig = idp;
 		this.idps.put(idpName, holder);
 	}
+	
+	public void removeIdP(String name) {
+		this.idps.remove(name);
+	}
 
 	@Override
 	public void reload() {
@@ -244,6 +256,10 @@ public class IDP extends HttpServlet  implements ReloadNotification {
 			logger.error("Error initializing IdPs",e);
 		}
 		
+	}
+	
+	public ServletConfig getServletConfig() {
+		return this.config;
 	}
 
 }

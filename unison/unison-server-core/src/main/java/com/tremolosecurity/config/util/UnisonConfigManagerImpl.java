@@ -99,6 +99,7 @@ import com.tremolosecurity.config.xml.ParamListType;
 import com.tremolosecurity.config.xml.ResultGroupType;
 import com.tremolosecurity.config.xml.UrlType;
 import com.tremolosecurity.config.xml.ApplicationsType.ErrorPage;
+import com.tremolosecurity.idp.server.IDP;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningEngineImpl;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
@@ -112,6 +113,7 @@ import com.tremolosecurity.proxy.auth.sys.AuthManagerImpl;
 import com.tremolosecurity.proxy.az.AzException;
 import com.tremolosecurity.proxy.az.AzRule;
 import com.tremolosecurity.proxy.az.CustomAuthorization;
+import com.tremolosecurity.proxy.dynamicloaders.DynamicApplications;
 import com.tremolosecurity.proxy.dynamicloaders.DynamicAuthChains;
 import com.tremolosecurity.proxy.dynamicloaders.DynamicAuthMechs;
 import com.tremolosecurity.proxy.dynamicloaders.DynamicAuthorizations;
@@ -197,6 +199,8 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	private SSLContext sslctx;
 
 	private AuthChainType authFailChain;
+	
+	private Map<String,List<UrlHolder>> appUrls;
 
 	
 	@Override
@@ -553,6 +557,31 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		}
 		
 		
+		try {
+			
+			if (this.getCfg().getApplications() != null && this.getCfg().getApplications().getDynamicApplications() != null && this.getCfg().getApplications().getDynamicApplications().isEnabled() ) {
+				DynamicPortalUrlsType dynamicApps = this.getCfg().getApplications().getDynamicApplications();
+				String className = dynamicApps.getClassName();
+				HashMap<String,Attribute> cfgAttrs = new HashMap<String,Attribute>();
+				for (ParamType pt : dynamicApps.getParams()) {
+					Attribute attr = cfgAttrs.get(pt.getName());
+					if (attr == null) {
+						attr = new Attribute(pt.getName());
+						cfgAttrs.put(pt.getName(), attr);
+					}
+					
+					attr.getValues().add(pt.getValue());
+				}
+			
+				DynamicApplications dynApps = (DynamicApplications) Class.forName(className).newInstance();
+				dynApps.loadDynamicApplications(this, provEnvgine, cfgAttrs);
+			}
+			
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+			throw new ProvisioningException("Could not initialize dynamic targets",e);
+		}
+		
+		
 		this.postInitialize();
 		
 		
@@ -599,34 +628,126 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 
 
 	private void loadApplicationObjects() throws Exception {
-		Iterator<ApplicationType> apps = this.cfg.getApplications().getApplication().iterator();
+		this.appUrls = new HashMap<String,List<UrlHolder>>();
+		for (ApplicationType app : this.cfg.getApplications().getApplication()) {
+			this.addAppInternal(app);
+		}
+	}
+	
+	@Override
+	public List<UrlHolder> addApplication(ApplicationType app) throws Exception {
 		
-		while (apps.hasNext()) {
-			ApplicationType app = apps.next();
-			Iterator<UrlType> urls = app.getUrls().getUrl().iterator();
+		if (this.apps != null) {
+			synchronized (this.apps) {
+				this.apps.put(app.getName(), app);
+			}
+		}
+		
+		
+		
+		synchronized (this.cfg) {
+			this.cfg.getApplications().getApplication().add(app);
 			
-			while (urls.hasNext()) {
-				UrlType url = urls.next();
+		}
+		
+		List<UrlHolder> urls = addAppInternal(app);
+		
+		if (! app.isIsApp()) {
+			if (IDP.getIdp() != null) {
+				IDP.getIdp().configIdp(app, urls.get(0).getUrl(), urls.get(0).getUrl().getIdp() , IDP.getIdp().getServletConfig());
+			}
+		}
+		
+		return urls;
+	}
+
+
+	@Override
+	public void deleteApp(String name) {
+		ApplicationType appToDel = null; 
+		for (ApplicationType app : this.cfg.getApplications().getApplication()) {
+			if (app.getName().equals(name)) {
+				appToDel = app;
 				
-				Iterator<String> hosts = url.getHost().iterator();
-				
-				while (hosts.hasNext()) {
-					String host = hosts.next();
-					ArrayList<UrlHolder> hostUrls = this.byHost.get(host);
-					if (hostUrls == null) {
-						hostUrls = new ArrayList<UrlHolder>();
-						this.byHost.put(host, hostUrls);
+				List<UrlHolder> appURLs = this.appUrls.get(app.getName());
+				if (appURLs != null) {
+					this.appUrls.remove(app.getName());
+					
+					Map<String,List<UrlHolder>> urlsByHost = new HashMap<String,List<UrlHolder>>();
+					for (UrlHolder url : appURLs) {
+						for (String host : url.getUrl().getHost()) {
+							List<UrlHolder> urlsForHost = urlsByHost.get(host);
+							if (urlsForHost == null) {
+								urlsForHost = new ArrayList<UrlHolder>();
+								urlsByHost.put(host, urlsForHost);
+							}
+							
+							urlsForHost.add(url);
+						}
+						
 					}
 					
-					if (logger.isDebugEnabled()) {
-						logger.debug("Configuring Application : '" + app.getName() + "'");
-						logger.debug("Configuring URL : '" + url.getHost().toString() + "' / '" + url.getUri() + "'");
+					
+					for (String host : urlsByHost.keySet()) {
+						List<UrlHolder> urls = this.byHost.get(host);
+						if (urls != null) {
+							urls.removeAll(urlsByHost.get(host));
+						}
 					}
-					hostUrls.add(new UrlHolder(app,url,this));
+					
+					
 				}
 			}
-			
-			
+		}
+		
+		if (appToDel != null) {
+			this.cfg.getApplications().getApplication().remove(appToDel);
+		}
+		
+		this.apps.remove(name);
+		
+		if (! appToDel.isIsApp()) {
+			IDP.getIdp().removeIdP(name);
+		}
+	}
+	
+	
+	private List<UrlHolder> addAppInternal(ApplicationType app) throws Exception {
+		List<UrlHolder> added = new ArrayList<UrlHolder>();
+		for (UrlType url : app.getUrls().getUrl()) {
+			for (String hostName : url.getHost()) {
+				synchronized (this.byHost) {
+					ArrayList<UrlHolder> hostUrls = this.byHost.get(hostName);
+					if (hostUrls == null) {
+						hostUrls = new ArrayList<UrlHolder>();
+						this.byHost.put(hostName, hostUrls);
+					}
+					
+					synchronized (hostUrls) {
+						if (logger.isDebugEnabled()) {
+							logger.debug("Configuring Application : '" + app.getName() + "'");
+							logger.debug("Configuring URL : '" + url.getHost().toString() + "' / '" + url.getUri() + "'");
+						}
+						
+						UrlHolder holder = new UrlHolder(app,url,this);
+						added.add(holder);
+						hostUrls.add(holder);
+					}
+				}
+			}
+		}
+		
+		this.appUrls.put(app.getName(), added);
+		
+		return added;
+	}
+	
+	@Override
+	public void initializeUrls(List<UrlHolder> holders) throws Exception {
+		synchronized (this.byHost) {
+			for (UrlHolder holder : holders) {
+				holder.init();
+			}
 		}
 	}
 	

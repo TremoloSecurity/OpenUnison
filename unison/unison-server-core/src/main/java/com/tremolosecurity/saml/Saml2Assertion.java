@@ -87,7 +87,12 @@ import org.opensaml.xmlsec.encryption.support.DataEncryptionParameters;
 import org.opensaml.xmlsec.encryption.support.EncryptionConstants;
 import org.opensaml.xmlsec.encryption.support.EncryptionException;
 import org.opensaml.xmlsec.encryption.support.KeyEncryptionParameters;
+import org.opensaml.xmlsec.signature.KeyInfo;
 import org.opensaml.xmlsec.signature.Signature;
+import org.opensaml.xmlsec.signature.X509Data;
+import org.opensaml.xmlsec.signature.impl.KeyInfoBuilder;
+import org.opensaml.xmlsec.signature.impl.X509CertificateBuilder;
+import org.opensaml.xmlsec.signature.impl.X509DataBuilder;
 import org.opensaml.xmlsec.signature.support.SignatureConstants;
 import org.opensaml.xmlsec.signature.support.Signer;
 import org.w3c.dom.Element;
@@ -315,6 +320,18 @@ public  class Saml2Assertion {
 			signature.setSignatureAlgorithm(SignatureConstants.ALGO_ID_SIGNATURE_RSA_SHA1);
 			signature.setCanonicalizationAlgorithm(SignatureConstants.ALGO_ID_C14N_EXCL_OMIT_COMMENTS);
 			
+			KeyInfo sigKeyInfo = new KeyInfoBuilder().buildObject();
+			X509Data x509Data = new X509DataBuilder().buildObject();
+			
+			org.opensaml.xmlsec.signature.X509Certificate cert = new X509CertificateBuilder().buildObject();
+			x509Data.getX509Certificates().add(cert);
+			
+			cert.setValue(new String(java.util.Base64.getEncoder().encode(this.sigCert.getEncoded())));
+			
+			sigKeyInfo.getX509Datas().add(x509Data);
+			
+			signature.setKeyInfo(sigKeyInfo);
+			
 			r.setSignature(signature); 
 			//Element e = Configuration.getMarshallerFactory().getMarshaller(r).marshall(r); 
 			
@@ -514,6 +531,19 @@ public  class Saml2Assertion {
 		signature.setSigningCredential(signingCredential);
 		signature.setSignatureAlgorithm(SignatureConstants.ALGO_ID_SIGNATURE_RSA_SHA1);
 		signature.setCanonicalizationAlgorithm(SignatureConstants.ALGO_ID_C14N_EXCL_OMIT_COMMENTS);
+		
+		KeyInfo sigKeyInfo = new KeyInfoBuilder().buildObject();
+		X509Data x509Data = new X509DataBuilder().buildObject();
+		
+		org.opensaml.xmlsec.signature.X509Certificate cert = new X509CertificateBuilder().buildObject();
+		x509Data.getX509Certificates().add(cert);
+		
+		cert.setValue(new String(java.util.Base64.getEncoder().encode(this.sigCert.getEncoded())));
+		
+		sigKeyInfo.getX509Datas().add(x509Data);
+		
+		signature.setKeyInfo(sigKeyInfo);
+		
 		
 		assertion.setSignature(signature);
 		Element e = null;

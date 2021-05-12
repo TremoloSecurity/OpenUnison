@@ -30,6 +30,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.crypto.SecretKey;
@@ -393,6 +394,12 @@ public interface ConfigManager {
 	public abstract void removeAuthenticationMechanism(String name);
 
 	public abstract AuthChainType getAuthFailChain();
+
+	List<UrlHolder> addApplication(ApplicationType app) throws Exception;
+
+	void initializeUrls(List<UrlHolder> holders) throws Exception;
+
+	void deleteApp(String name);
 	
 
 }
