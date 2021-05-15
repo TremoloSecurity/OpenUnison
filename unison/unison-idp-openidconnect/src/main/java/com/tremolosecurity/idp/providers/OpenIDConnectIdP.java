@@ -27,6 +27,7 @@ import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.UUID;
@@ -144,6 +145,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	private String sessionKeyName;
 
 	private UpdateClaims claimsUpdater;
+
+	private HashSet<String> scopes;
 	
 	
 	
@@ -255,16 +258,30 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				transaction.setRedirectURI(redirectURI);
 			}
 			
-			if (transaction.getScope().size() == 0 || ! transaction.getScope().get(0).equals("openid")) {
-				StringBuffer b = new StringBuffer();
-				b.append(transaction.getRedirectURI()).append("?error=invalid_scope");
-				logger.warn("First scope not openid");
-				AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() , "NONE");
-				response.sendRedirect(b.toString());
-				return;
+			
+			if (this.scopes == null) {
+				if (transaction.getScope().size() == 0 || ! transaction.getScope().get(0).equals("openid")) {
+					StringBuffer b = new StringBuffer();
+					b.append(transaction.getRedirectURI()).append("?error=invalid_scope");
+					logger.warn("First scope not openid");
+					AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() , "NONE");
+					response.sendRedirect(b.toString());
+					return;
+				} else {
+					//we don't need the openid scope anymore
+					transaction.getScope().remove(0);
+				}
 			} else {
-				//we don't need the openid scope anymore
-				transaction.getScope().remove(0);
+				for (String indvScope : transaction.getScope()) {
+					if (! this.scopes.contains(indvScope)) {
+						StringBuffer b = new StringBuffer();
+						b.append(transaction.getRedirectURI()).append("?error=invalid_scope");
+						logger.warn(new StringBuilder().append("Scope '").append(indvScope).append("' not recognized"));
+						AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() , "NONE");
+						response.sendRedirect(b.toString());
+						return;
+					}
+				}
 			}
 			
 			String authChain = trust.getAuthChain();
@@ -1217,6 +1234,11 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
 				logger.error("Could not initialize claim updater", e);
 			}
+        }
+        
+        if (init.get("scopes") != null) {
+        	this.scopes = new HashSet<String>();
+        	this.scopes.addAll(init.get("scopes").getValues());
         }
 
 	}
