@@ -357,7 +357,7 @@ public class BasicDB implements BasicDBInterface {
 		ResultSet rs;
 		StringBuffer select = new StringBuffer("SELECT ");
 		this.getFieldName(this.groupPrimaryKey,select).append(",");
-		this.getFieldName(this.groupName,select).append(" FROM ").append(this.groupTable).append(" WHERE ");
+		this.getFieldName(this.groupName,select).append(" FROM ").append(escapeTableName(this.groupTable)).append(" WHERE ");
 		for (String group : user.getGroups()) {
 			this.getFieldName(this.groupName,select).append("=? OR ");
 		}
@@ -730,7 +730,7 @@ public class BasicDB implements BasicDBInterface {
 				select.append(this.userSQL.replaceAll("\\%S", this.userPrimaryKey).replaceAll("\\%L", "?"));
 			} else {
 				select.append("SELECT ");
-				this.getFieldName(this.userPrimaryKey,select).append(" FROM ").append(this.userTable).append(" WHERE ");
+				this.getFieldName(this.userPrimaryKey,select).append(" FROM ").append(escapeTableName(this.userTable)).append(" WHERE ");
 				this.getFieldName(this.userName,select).append("=?");
 			}
 			
@@ -754,7 +754,7 @@ public class BasicDB implements BasicDBInterface {
 				this.customDBProvider.deleteUser(con, id,request);
 			} else {
 				select.setLength(0);
-				select.append("DELETE FROM ").append(this.userTable).append(" WHERE ");
+				select.append("DELETE FROM ").append(escapeTableName(this.userTable)).append(" WHERE ");
 				this.getFieldName(this.userPrimaryKey,select).append("=?");
 				ps = con.prepareStatement(select.toString());
 				ps.setInt(1, id);
@@ -764,7 +764,7 @@ public class BasicDB implements BasicDBInterface {
 					case None : break;
 					case One2Many : 
 						select.setLength(0);
-						select.append("DELETE FROM ").append(this.groupTable).append(" WHERE ");
+						select.append("DELETE FROM ").append(escapeTableName(this.groupTable)).append(" WHERE ");
 						this.getFieldName(this.groupUserKey,select).append("=?");
 						ps = con.prepareStatement(select.toString());
 						ps.setInt(1, id);
@@ -806,7 +806,7 @@ public class BasicDB implements BasicDBInterface {
 			int id) throws SQLException {
 		PreparedStatement ps;
 		select.setLength(0);
-		select.append("DELETE FROM ").append(this.groupLinkTable).append(" WHERE ");
+		select.append("DELETE FROM ").append(escapeTableName(this.groupLinkTable)).append(" WHERE ");
 		this.getFieldName(this.groupUserKey,select).append("=?");
 		ps = con.prepareStatement(select.toString());
 		ps.setInt(1, id);
@@ -891,7 +891,7 @@ public class BasicDB implements BasicDBInterface {
 				case One2Many : 
 					select.setLength(0);
 					select.append("SELECT ");
-					getFieldName(this.groupName,select).append(" FROM ").append(this.groupTable).append(" WHERE ");
+					getFieldName(this.groupName,select).append(" FROM ").append(escapeTableName(this.groupTable)).append(" WHERE ");
 					this.getFieldName(this.groupUserKey,select).append("=?");
 					ps = con.prepareStatement(select.toString());
 					ps.setInt(1, userKey);
@@ -940,13 +940,30 @@ public class BasicDB implements BasicDBInterface {
 		
 	}
 
+	
+	private String escapeTableName(String tableName) {
+		StringBuilder sb = new StringBuilder();
+	
+		if (this.beginEscape != null) {
+			sb.append(this.beginEscape);
+		}
+		
+		sb.append(tableName);
+		
+		if (this.endEscape != null) {
+			sb.append(this.endEscape);
+		}
+		
+		return sb.toString();
+	}
+	
 	private void many2manyLoadGroups(StringBuffer select, Connection con,
 			User user, int userKey) throws SQLException {
 		PreparedStatement ps;
 		ResultSet rs;
 		select.setLength(0);
 		select.append("SELECT ");
-		getFieldName(this.groupName,select).append(" FROM ").append(this.groupTable).append(" INNER JOIN ").append(this.groupLinkTable).append(" ON ").append(this.groupTable).append(".").append(this.groupPrimaryKey).append("=").append(this.groupLinkTable).append(".").append(this.groupGroupKey).append(" INNER JOIN ").append(this.userTable).append(" ON ").append(this.userTable).append(".").append(this.userPrimaryKey).append("=").append(this.groupLinkTable).append(".").append(this.groupUserKey).append(" WHERE ").append(this.userTable).append(".").append(this.userPrimaryKey).append("=?");
+		getFieldName(this.groupName,select).append(" FROM ").append(escapeTableName(this.groupTable)).append(" INNER JOIN ").append(escapeTableName(this.groupLinkTable)).append(" ON ").append(escapeTableName(this.groupTable)).append(".").append(this.groupPrimaryKey).append("=").append(escapeTableName(this.groupLinkTable)).append(".").append(this.groupGroupKey).append(" INNER JOIN ").append(escapeTableName(this.userTable)).append(" ON ").append(escapeTableName(this.userTable)).append(".").append(this.userPrimaryKey).append("=").append(escapeTableName(this.groupLinkTable)).append(".").append(this.groupUserKey).append(" WHERE ").append(escapeTableName(this.userTable)).append(".").append(this.userPrimaryKey).append("=?");
 		
 		ps = con.prepareStatement(select.toString());
 		ps.setInt(1, userKey);
@@ -1355,7 +1372,25 @@ public class BasicDB implements BasicDBInterface {
 		Workflow workflow = (Workflow) request.get("WORKFLOW");
 		
 		if (this.groupMode == BasicDB.GroupManagementMode.Many2Many || this.groupMode == BasicDB.GroupManagementMode.One2Many) {
-			String sql = "DELETE FROM " + this.groupTable + " WHERE " + this.groupName + "=?";
+			//String sql = "DELETE FROM " + this.groupTable + " WHERE " + this.groupName + "=?";
+			
+			StringBuilder sb = new StringBuilder();
+			sb.append("DELETE FROM ");
+			
+			if (this.beginEscape != null) {
+				sb.append(this.beginEscape);
+			}
+			
+			sb.append(this.groupTable);
+			
+			if (this.endEscape != null) {
+				sb.append(this.endEscape);
+			}
+			
+			sb.append(" WHERE ").append(this.groupName).append("=?");
+			
+			String sql = sb.toString();
+			
 			Connection con = null;
 			try {
 				con = this.ds.getConnection();
@@ -1388,7 +1423,22 @@ public class BasicDB implements BasicDBInterface {
 	@Override
 	public boolean isGroupExists(String name, User user, Map<String, Object> request) throws ProvisioningException {
 		if (this.groupMode == BasicDB.GroupManagementMode.Many2Many || this.groupMode == BasicDB.GroupManagementMode.One2Many) {
-			String sql = "SELECT * FROM " + this.groupTable + " WHERE " + this.groupName + "=?";
+			StringBuilder sb = new StringBuilder();
+			sb.append("SELECT * FROM ");
+			if (this.beginEscape != null) {
+				sb.append(this.beginEscape);
+			}
+			
+			sb.append(this.groupTable);
+			
+			if (this.endEscape != null) {
+				sb.append(this.endEscape);
+			}
+			
+			sb.append(" WHERE ").append(this.groupName).append("=?");
+			
+			String sql = sb.toString(); //"SELECT * FROM " + this.groupTable + " WHERE " + this.groupName + "=?";
+			
 			Connection con = null;
 			try {
 				con = this.ds.getConnection();
