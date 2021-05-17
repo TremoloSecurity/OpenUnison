@@ -46,6 +46,8 @@ public class OpenUnisonConfig extends ListenerConfig {
 	List<ErrorPageConfig> errorPages;
 
 	boolean redirectToContextRoot;
+	
+	QueueConfig queueConfiguration;
 
 	/**
 	 * @return the forceToLowerCase
@@ -198,6 +200,16 @@ public class OpenUnisonConfig extends ListenerConfig {
 	public void setLdapsKeyName(String ldapsKeyName) {
 		this.ldapsKeyName = ldapsKeyName;
 	}
+
+	public QueueConfig getQueueConfiguration() {
+		return queueConfiguration;
+	}
+
+	public void setQueueConfiguration(QueueConfig queueConfiguration) {
+		this.queueConfiguration = queueConfiguration;
+	}
+	
+	
 	
 	
 }

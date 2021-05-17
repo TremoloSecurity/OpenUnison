@@ -74,6 +74,8 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.tremolosecurity.config.ssl.AliasX509KeyManager;
+import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.config.xml.QueueConfigType;
 import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.openunison.OpenUnisonConfigManager;
 import com.tremolosecurity.openunison.OpenUnisonServletFilter;
@@ -161,6 +163,8 @@ public class OpenUnisonOnUndertow {
 			logger.info("Socket shutdown port : '" + config.getSocketShutdownPort() + "'");
 			logger.info("Socket shutdown command : '" + config.getSocketShutdownCommand() + "'");
 		}
+		
+		logger.info("Override Queue Configuration : '" + config.getQueueConfiguration() != null + "'");
 
 		logger.info("Creating unisonServiceProps");
 		
@@ -196,6 +200,38 @@ public class OpenUnisonOnUndertow {
 			logger.info("Adding property : '" + name + "'");
 			System.setProperty((String) name,env.getProperty((String) name));
 		}
+		
+		
+		if (config.getQueueConfiguration() != null) {
+			QueueConfigType qc = new QueueConfigType();
+			qc.setConnectionFactory(config.getQueueConfiguration().getConnectionFactory());
+			qc.setEncryptionKeyName(config.getQueueConfiguration().getEncryptionKeyName());
+			qc.setIsUseInternalQueue(config.getQueueConfiguration().isUseInternalQueue());
+			qc.setKeepAliveMillis(config.getQueueConfiguration().getKeepAliveMillis());
+			qc.setMaxConsumers(((Long)config.getQueueConfiguration().getMaxConsumers()).intValue());
+			qc.setMaxProducers(((Long) config.getQueueConfiguration().getMaxProducers()).intValue());
+			qc.setMaxSessionsPerConnection(((Long)config.getQueueConfiguration().getMaxSessionsPerConnection()).intValue());
+			qc.setMultiTaskQueues(config.getQueueConfiguration().isMultiTaskQueues());
+			qc.setNumQueues(((Long)config.getQueueConfiguration().getNumQueues()).intValue());
+			qc.setSmtpQueueName(config.getQueueConfiguration().getSmtpQueueName());
+			qc.setTaskQueueName(config.getQueueConfiguration().getTaskQueueName());
+			
+			for (QueueConfigParam param : config.getQueueConfiguration().getParams()) {
+				ParamType pt = new ParamType();
+				pt.setName(param.getName());
+				if (param.getSourceType().equalsIgnoreCase("static")) {
+					pt.setValue(param.getValue());
+				} else {
+					pt.setValue(System.getProperty(param.getValue()));
+				}
+				
+				qc.getParam().add(pt);
+			}
+			
+			
+			GlobalEntries.getGlobalEntries().set("openunison.queueconfig", qc);
+		}
+		
 		
 		logger.info("Loading keystore for Undertow");
 		

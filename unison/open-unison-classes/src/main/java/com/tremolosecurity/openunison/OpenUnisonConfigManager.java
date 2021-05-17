@@ -57,9 +57,12 @@ import org.w3c.dom.traversal.NodeFilter;
 import org.w3c.dom.traversal.TreeWalker;
 
 import com.tremolosecurity.config.util.UnisonConfigManagerImpl;
+import com.tremolosecurity.config.xml.ProvisioningType;
+import com.tremolosecurity.config.xml.QueueConfigType;
 import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.proxy.myvd.MyVDConnection;
+import com.tremolosecurity.server.GlobalEntries;
 
 
 public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
@@ -246,7 +249,15 @@ public class OpenUnisonConfigManager extends UnisonConfigManagerImpl {
 		JAXBElement<TremoloType> cfg = (JAXBElement<TremoloType>) obj;
 		this.unisonConfig = cfg.getValue();
 		
+		QueueConfigType qct = (QueueConfigType) GlobalEntries.getGlobalEntries().get("openunison.queueconfig");
 		
+		if (qct != null) {
+			logger.info("Overriding Queue Configuration");
+			if (cfg.getValue().getProvisioning() == null) {
+				cfg.getValue().setProvisioning(new ProvisioningType());
+			}
+			cfg.getValue().getProvisioning().setQueueConfig(qct);
+		}
 		
 		return cfg;
 	}
