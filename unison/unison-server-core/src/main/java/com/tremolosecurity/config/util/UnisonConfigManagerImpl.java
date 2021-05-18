@@ -89,6 +89,7 @@ import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.AuthMechParamType;
 import com.tremolosecurity.config.xml.AuthMechType;
+import com.tremolosecurity.config.xml.AuthMechTypes;
 import com.tremolosecurity.config.xml.ConfigType;
 import com.tremolosecurity.config.xml.CustomAzRuleType;
 import com.tremolosecurity.config.xml.DynamicPortalUrlsType;
@@ -967,6 +968,12 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 			fmt.setParams(new ParamListType());
 			fmt.setName("fail");
 			fmt.setUri(failAuthUri);
+			if (this.cfg.getAuthMechs() == null) {
+				this.cfg.setAuthMechs(new AuthMechTypes());
+			}
+			
+			
+			
 			this.cfg.getAuthMechs().getMechanism().add(fmt);
 			this.alwaysFailAuthMech = fmt;
 		}
