@@ -153,7 +153,7 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 				
 				int i = 0;
 				while (fromAzure == null) {
-					if (i > 10) {
+					if (i > 100) {
 						throw new ProvisioningException("New user not available");
 					}
 					Thread.sleep(1000);
