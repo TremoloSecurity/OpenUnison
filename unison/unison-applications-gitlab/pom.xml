@@ -57,7 +57,17 @@
 			<artifactId>bcpkix-jdk15on</artifactId>
 			<version>${bcpkix-jdk15on.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-common</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		
 
 
 	<dependency>

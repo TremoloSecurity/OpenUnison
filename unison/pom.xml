@@ -108,7 +108,7 @@
 		<pdfbox.version>2.0.23</pdfbox.version>
 		<ws.rs-api.version>2.1.1</ws.rs-api.version>
 		<qpid.version>0.58.0</qpid.version>
-		
+		<commons-io.version>2.8.0</commons-io.version>
 	</properties>
 
 	<repositories>
