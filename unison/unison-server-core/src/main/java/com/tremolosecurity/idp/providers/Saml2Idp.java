@@ -53,6 +53,10 @@ import org.opensaml.core.config.InitializationService;
 import org.opensaml.core.xml.io.UnmarshallingException;
 import org.opensaml.saml.saml2.core.AuthnRequest;
 import org.opensaml.saml.saml2.core.impl.AuthnRequestUnmarshaller;
+import org.opensaml.saml.security.impl.SAMLSignatureProfileValidator;
+import org.opensaml.security.credential.BasicCredential;
+import org.opensaml.security.credential.UsageType;
+import org.opensaml.xmlsec.signature.support.SignatureValidator;
 import org.stringtemplate.v4.ST;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -384,41 +388,65 @@ public class Saml2Idp implements IdentityProvider {
 			throw new Exception(b.toString());
 		}
 		
-		String authnSig = request.getParameter("Signature");
-		if (authnSig != null) {
-			String sigAlg = request.getParameter("SigAlg");
-			StringBuffer query = new StringBuffer();
-			query.append("SAMLRequest=").append(URLEncoder.encode(request.getParameter("SAMLRequest"),"UTF-8"));
-			if (relayState != null) {
-				query.append("&RelayState=").append(URLEncoder.encode(relayState,"UTF-8"));
+		if (request.getMethod().equalsIgnoreCase("POST")) {
+			if (authn.getSignature() != null) {
+				if (logger.isDebugEnabled()) logger.debug("requiring authn request is signed");
+				String validationCert = trust.spSigCert;
+				if (logger.isDebugEnabled()) logger.debug("validation cert name : '" + validationCert + "'");
+				UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
+				java.security.cert.X509Certificate cert = holder.getConfig().getCertificate(validationCert);
+				if (logger.isDebugEnabled()) logger.debug("validation cert : '" + cert + "'");
+				
+				BasicCredential sigCred = new BasicCredential(cert.getPublicKey());
+				sigCred.setUsageType(UsageType.SIGNING);
+
+				
+				SAMLSignatureProfileValidator profileValidator = new SAMLSignatureProfileValidator();
+	            profileValidator.validate(authn.getSignature());
+	            SignatureValidator.validate(authn.getSignature(), sigCred);
+		            
+				
+			} else if (this.requireSignedAuthn) {
+				throw new Exception("No signature on the authentication request");
 			}
-			query.append("&SigAlg=").append(URLEncoder.encode(sigAlg,"UTF-8"));
-			
-			String validationCert = trust.spSigCert;
-			UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
-			java.security.cert.X509Certificate cert = holder.getConfig().getCertificate(validationCert);
-			
-			if (! Saml2Idp.xmlDigSigAlgs.containsKey(sigAlg)  ) {
-				throw new Exception("Invalid signature algorithm : " + sigAlg);
+		} else {
+		
+			String authnSig = request.getParameter("Signature");
+			if (authnSig != null) {
+				String sigAlg = request.getParameter("SigAlg");
+				StringBuffer query = new StringBuffer();
+				query.append("SAMLRequest=").append(URLEncoder.encode(request.getParameter("SAMLRequest"),"UTF-8"));
+				if (relayState != null) {
+					query.append("&RelayState=").append(URLEncoder.encode(relayState,"UTF-8"));
+				}
+				query.append("&SigAlg=").append(URLEncoder.encode(sigAlg,"UTF-8"));
+				
+				String validationCert = trust.spSigCert;
+				UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
+				java.security.cert.X509Certificate cert = holder.getConfig().getCertificate(validationCert);
+				
+				if (! Saml2Idp.xmlDigSigAlgs.containsKey(sigAlg)  ) {
+					throw new Exception("Invalid signature algorithm : " + sigAlg);
+				}
+				
+				if (! authn.getDestination().equals(request.getRequestURL().toString())) {
+					throw new Exception("Invalid destination");
+				}
+				
+				Signature sigv = Signature.getInstance(Saml2Idp.javaDigSigAlgs.get(sigAlg));
+				
+				
+				
+				sigv.initVerify(cert.getPublicKey());
+				sigv.update(query.toString().getBytes("UTF-8"));
+				
+				if (! sigv.verify(Base64.decodeBase64(authnSig.getBytes("UTF-8")))) {
+					throw new Exception("Signature verification failed");
+				}
+				
+			} else if (this.requireSignedAuthn) {
+				throw new Exception("No signature on the authentication request");
 			}
-			
-			if (! authn.getDestination().equals(request.getRequestURL().toString())) {
-				throw new Exception("Invalid destination");
-			}
-			
-			Signature sigv = Signature.getInstance(Saml2Idp.javaDigSigAlgs.get(sigAlg));
-			
-			
-			
-			sigv.initVerify(cert.getPublicKey());
-			sigv.update(query.toString().getBytes("UTF-8"));
-			
-			if (! sigv.verify(Base64.decodeBase64(authnSig.getBytes("UTF-8")))) {
-				throw new Exception("Signature verification failed");
-			}
-			
-		} else if (this.requireSignedAuthn) {
-			throw new Exception("No signature on the authentication request");
 		}
 		
 		doFederation(request, response, issuer, nameID, authnCtx, url,relayState,trust);
