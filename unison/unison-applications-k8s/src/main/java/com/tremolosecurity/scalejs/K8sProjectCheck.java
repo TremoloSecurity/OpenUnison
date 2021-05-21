@@ -64,6 +64,10 @@ public class K8sProjectCheck implements CreateRegisterUser {
 		
 			String targetName = newUser.getAttributes().get("cluster");
 			
+			if (targetName == null) {
+				targetName = this.targetName;
+			}
+			
 			OpenShiftTarget target = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(targetName).getProvider();
 			
 			HttpCon con = null;
