@@ -66,7 +66,7 @@
 		<aws-java-sdk.version>1.11.1023</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>1.0.8</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.0.2</stringtemplate.version>
-		<hibernate.version>5.4.301.Final</hibernate.version>
+		<hibernate.version>5.4.31.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
 		<org.apache.poi.version>5.0.0</org.apache.poi.version>
 		<jose4j.version>0.7.7</jose4j.version>
