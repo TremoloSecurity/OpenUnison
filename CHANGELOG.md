@@ -1,3 +1,26 @@
+## 1.0.23-2021052201
+
+**Tasks:**
+ - 1.0.23 build [\#534](https://github.com/TremoloSecurity/OpenUnison/issues/534)
+
+**bugs:**
+ - Saml2 AuthnRequest POST signature verification fails [\#547](https://github.com/TremoloSecurity/OpenUnison/issues/547)
+ - CheckK8sProject - not backwards compatible [\#546](https://github.com/TremoloSecurity/OpenUnison/issues/546)
+ - BasicDB - ManyToMany groups fails with MySQL 8 if groups table is named "groups" [\#529](https://github.com/TremoloSecurity/OpenUnison/issues/529)
+ - OIDC IDP: make scopes configurable [\#543](https://github.com/TremoloSecurity/OpenUnison/issues/543)
+ - Remove debug code from the github auth mech [\#533](https://github.com/TremoloSecurity/OpenUnison/issues/533)
+
+**enhancements:**
+ - AzureAD invited users slower to provision [\#545](https://github.com/TremoloSecurity/OpenUnison/issues/545)
+ - Dynamically load Authentication Mechanisms [\#539](https://github.com/TremoloSecurity/OpenUnison/issues/539)
+ - Load queue configuration from CRD [\#544](https://github.com/TremoloSecurity/OpenUnison/issues/544)
+ - Dynamically load Applications [\#541](https://github.com/TremoloSecurity/OpenUnison/issues/541)
+ - Dynamically load Authentication Chains [\#540](https://github.com/TremoloSecurity/OpenUnison/issues/540)
+ - Dynamically Load Custom Authorizations [\#538](https://github.com/TremoloSecurity/OpenUnison/issues/538)
+ - Better support for Azure Service Bus [\#536](https://github.com/TremoloSecurity/OpenUnison/issues/536)
+ - Load ResultGroups dynamically [\#535](https://github.com/TremoloSecurity/OpenUnison/issues/535)
+
+
 ## 1.0.22-2021041601
 
 **Tasks:**
