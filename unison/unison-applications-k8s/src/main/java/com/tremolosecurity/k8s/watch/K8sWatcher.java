@@ -136,7 +136,7 @@ public class K8sWatcher implements StopableThread {
 					logger.info("Resource " + resourceVersion + " already processed, skipping");
 				} else {
 					this.resourceVersions.add(resourceVersion);
-					this.watchee.addObject(cfgMgr.getCfg(), (JSONObject) o);
+					this.watchee.addObject(cfgMgr.getCfg(), jsonObj);
 				}
 				
 				
