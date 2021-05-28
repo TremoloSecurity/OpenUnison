@@ -22,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -71,12 +72,79 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 	boolean isParamsInBody;
 	boolean isPush;
 	
+	
+	boolean secure;
+	
+	int port;
+	
+	String protocol;
+	
+	String requestUrl;
+	
 	public boolean isParamsInBody() {
 		return isParamsInBody;
 	}
 
 	public ProxyRequest(HttpServletRequest req,HttpSession session) throws Exception {
 		super(req);
+		
+		StringBuffer sb = new StringBuffer();
+		String fwdProto = req.getHeader("X-Forwarded-Proto");
+		
+		if (fwdProto == null) {
+			fwdProto = req.getHeader("x-forwarded-proto");
+		}
+		
+		if (fwdProto == null) {
+			this.protocol = req.getProtocol();
+		} else {
+			this.protocol = fwdProto;
+		}
+		
+		this.secure = this.protocol.equalsIgnoreCase("https");
+		
+		String fwdPort = req.getHeader("X-Forwarded-Port");
+		
+		if (fwdPort == null) {
+			
+			fwdPort = req.getHeader("x-forwarded-port");
+		}
+		
+		
+		if (fwdPort != null) {
+			try {
+				this.port = Integer.parseInt(fwdPort);
+			} catch (NumberFormatException e) {
+				logger.warn(new StringBuilder().append("Invalid port '").append(fwdPort).append("'"));
+				this.port = req.getServerPort();
+			}
+		} else {
+			this.port = req.getServerPort();
+		}
+		
+		
+		StringBuffer newUrl = new StringBuffer();
+		
+		URL urlFromReq = new URL(req.getRequestURL().toString());
+		
+		String urlHost = urlFromReq.getHost();
+		String urlPath = urlFromReq.getPath();
+		String queryString = urlFromReq.getQuery();
+		
+		
+		newUrl.append(this.protocol).append("://").append(urlHost);
+		
+		if (this.port != 80 && this.port != 443 && this.port > 0) {
+			newUrl.append(':').append(this.port);
+		}
+		
+		newUrl.append(urlPath);
+		
+		if (queryString != null) {
+			newUrl.append("?").append(queryString);
+		}
+		
+		this.requestUrl = newUrl.toString();
 		
 		
 		
@@ -386,4 +454,28 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 	public List<String> getFormParam(String name) {
 		return this.reqParams.get(name);
 	}
+
+	@Override
+	public String getProtocol() {
+		return this.protocol;
+	}
+
+	@Override
+	public boolean isSecure() {
+		return this.secure;
+	}
+
+	@Override
+	public int getServerPort() {
+		return this.port;
+	}
+
+	@Override
+	public StringBuffer getRequestURL() {
+		return new StringBuffer(this.requestUrl);
+	}
+	
+	
+	
+	
 }

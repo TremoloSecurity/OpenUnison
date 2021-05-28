@@ -152,7 +152,16 @@ public class ProxySys {
 			StringTokenizer toker = new StringTokenizer(qs, "&", false);
 			while (toker.hasMoreTokens()) {
 				String qsParam = toker.nextToken();
-				String paramName = qsParam.substring(0, qsParam.indexOf('='));
+				int eqIndex = qsParam.indexOf('=');
+				String paramName;
+				
+				if (eqIndex == -1) {
+					paramName = qsParam;
+				} else {
+					paramName = qsParam.substring(0, eqIndex);
+				}
+				
+				
 				if (!queryParams.contains(paramName)) {
 					queryParams.add(paramName);
 				}

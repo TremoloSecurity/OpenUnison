@@ -105,8 +105,24 @@ public class ProxyTools {
 			sb.append(req.getServerName());
 			
 			
-			if (req.getServerPort() != 80 && req.getServerPort() != 443) {
-				sb.append(':').append(req.getServerPort());
+			String fwdPort = req.getHeader("X-Forwarded-Port");
+			
+			if (fwdPort == null) {
+				
+				fwdPort = req.getHeader("x-forwarded-port");
+			}
+			
+			int serverPort = req.getServerPort();
+			if (fwdPort != null) {
+				try {
+					serverPort = Integer.parseInt(fwdPort);
+				} catch (NumberFormatException e) {
+					logger.warn(new StringBuilder().append("Invalid port '").append(fwdPort).append("'"));
+				}
+			}
+			
+			if (serverPort != 80 && serverPort != 443 && serverPort != -1) {
+				sb.append(':').append(serverPort);
 			}
 			
 			sb.append(url);
