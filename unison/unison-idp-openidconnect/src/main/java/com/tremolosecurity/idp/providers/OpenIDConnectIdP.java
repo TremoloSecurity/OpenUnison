@@ -118,6 +118,7 @@ import com.tremolosecurity.proxy.filter.PostProcess;
 import com.tremolosecurity.proxy.logout.LogoutUtil;
 import com.tremolosecurity.proxy.util.NextSys;
 import com.tremolosecurity.proxy.util.ProxyConstants;
+import com.tremolosecurity.proxy.util.ProxyTools;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.server.StopableThread;
@@ -810,7 +811,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		extraAttribs.put("session_id", encryptedSessionID);
 		String accessToken = null;
 		try {
-			accessToken = this.produceJWT(this.generateClaims(dn,  cfgMgr, new URL(request.getRequestURL().toString()), trust,nonce,extraAttribs),cfgMgr).getCompactSerialization();
+			accessToken = this.produceJWT(this.generateClaims(dn,  cfgMgr, new URL(request.getRequestURL().toString()), trust,nonce,extraAttribs,request),cfgMgr).getCompactSerialization();
 		} catch (JoseException | LDAPException | ProvisioningException e1) {
 			throw new ServletException("Could not generate jwt",e1);
 		} 
@@ -825,7 +826,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		access.setAccess_token(accessToken);
 		access.setExpires_in((int) (trust.getAccessTokenTimeToLive() / 1000));
 		try {
-			access.setId_token(this.produceJWT(this.generateClaims(dn,  cfgMgr, new URL(request.getRequestURL().toString()), trust,nonce,null),cfgMgr).getCompactSerialization());
+			access.setId_token(this.produceJWT(this.generateClaims(dn,  cfgMgr, new URL(request.getRequestURL().toString()), trust,nonce,null,request),cfgMgr).getCompactSerialization());
 		} catch (Exception e) {
 			throw new ServletException("Could not generate JWT",e);
 		} 
@@ -1294,14 +1295,14 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	}
 	
 	
-	public JwtClaims generateClaims(AuthInfo user,ConfigManager cfg,String trustName,String urlOfRequest) throws JoseException, LDAPException, ProvisioningException, MalformedURLException {
+	public JwtClaims generateClaims(AuthInfo user,ConfigManager cfg,String trustName,String urlOfRequest,HttpServletRequest request) throws JoseException, LDAPException, ProvisioningException, MalformedURLException {
 		String url = urlOfRequest;
 		int end = url.indexOf('/',url.indexOf("://") + 3);
 		if (end != -1) {
 			url = url.substring(0,end);
 		}
 		
-		return generateClaims(user.getUserDN(), cfg, new URL(url), this.trusts.get(trustName), null,null);
+		return generateClaims(user.getUserDN(), cfg, new URL(url), this.trusts.get(trustName), null,null,request);
 	}
 	
 	
@@ -1338,20 +1339,19 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	    return jws;
 	}
 
-	private JwtClaims generateClaims(String dn, ConfigManager cfg, URL url, OpenIDConnectTrust trust, String nonce, HashMap<String, String> extraAttribs)
+	private JwtClaims generateClaims(String dn, ConfigManager cfg, URL url, OpenIDConnectTrust trust, String nonce, HashMap<String, String> extraAttribs,HttpServletRequest request)
 			throws LDAPException, ProvisioningException {
 		StringBuffer issuer = new StringBuffer();
-		issuer.append(url.getProtocol()).append("://").append(url.getHost());
-		if (url.getPort() > 0) {
-			issuer.append(':').append(url.getPort());
-		}
+		
 	
 		issuer.append(cfg.getAuthIdPPath()).append(this.idpName);
+		
+		String issuerUrl = ProxyTools.getInstance().getFqdnUrl(issuer.toString(), request);
 		
 		
 		// Create the Claims, which will be the content of the JWT
 	    JwtClaims claims = new JwtClaims();
-	    claims.setIssuer(issuer.toString());  // who creates the token and signs it
+	    claims.setIssuer(issuerUrl);  // who creates the token and signs it
 	    claims.setAudience(trust.getClientID()); // to whom the token is intended to be sent
 	    claims.setExpirationTimeMinutesInTheFuture(trust.getAccessTokenTimeToLive() / 1000 / 60); // time when the token will expire (10 minutes from now)
 	    

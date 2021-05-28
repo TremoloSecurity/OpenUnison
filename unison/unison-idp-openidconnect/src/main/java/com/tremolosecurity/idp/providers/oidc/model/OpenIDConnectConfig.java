@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
 import com.tremolosecurity.proxy.util.ProxyConstants;
+import com.tremolosecurity.proxy.util.ProxyTools;
 
 public class OpenIDConnectConfig {
 	private String issuer;
@@ -42,26 +43,15 @@ public class OpenIDConnectConfig {
 	public OpenIDConnectConfig(String idpName,HttpServletRequest request, MapIdentity mapper) throws MalformedURLException {
 		this.idpName = idpName;
 		StringBuffer b = new StringBuffer();
-		URL url = new URL(request.getRequestURL().toString());
+
 		
-		if (request.isSecure()) {
-			b.append("https://");
-		} else {
-			b.append("http://");
-		}
-		
-		b.append(url.getHost());
-		
-		if (url.getPort() != -1) {
-			b.append(':').append(url.getPort());
-		}
 		
 		
 		ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
 		//issuer.append(holder.getUrl().getUri());
 		b.append(cfg.getAuthIdPPath()).append(this.idpName);
 		
-		this.issuer = b.toString();
+		this.issuer = ProxyTools.getInstance().getFqdnUrl(b.toString(), request);
 		
 		b.setLength(0);
 		b.append(this.issuer).append("/auth");

@@ -96,7 +96,7 @@ public class OpenIDConnectToken {
 			throw new ServletException("Could not find idp '" + this.idpName + "'");
 		}
 
-		generateClaimsData(ac, idp);
+		generateClaimsData(ac, idp,request);
 		
 		
 		UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
@@ -108,15 +108,15 @@ public class OpenIDConnectToken {
 		
 	}
 
-	private void generateClaimsData(AuthController ac, OpenIDConnectIdP idp)
+	private void generateClaimsData(AuthController ac, OpenIDConnectIdP idp,HttpServletRequest request)
 			throws JoseException, LDAPException, ProvisioningException, MalformedURLException, MalformedClaimException {
 		this.idClaims = idp.generateClaims(ac.getAuthInfo(), GlobalEntries.getGlobalEntries().getConfigManager(),
-				trustName, this.urlOfRequest);
+				trustName, this.urlOfRequest,request);
 		this.idJws = idp.generateJWS(getClaims());
 		this.idEncodedJSON = this.idJws.getCompactSerialization();
 
 		this.accessClaims = idp.generateClaims(ac.getAuthInfo(), GlobalEntries.getGlobalEntries().getConfigManager(),
-				trustName, this.urlOfRequest);
+				trustName, this.urlOfRequest,request);
 		this.accessJws = idp.generateJWS(getClaims());
 		this.accessEncodedJSON = this.idJws.getCompactSerialization();
 
@@ -135,7 +135,7 @@ public class OpenIDConnectToken {
 			throw new ServletException("Could not find idp '" + this.idpName + "'");
 		}
 
-		generateClaimsData(ac, idp);
+		generateClaimsData(ac, idp,request);
 		
 	}
 
