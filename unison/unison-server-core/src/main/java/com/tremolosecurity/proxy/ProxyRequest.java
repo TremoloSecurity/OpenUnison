@@ -96,7 +96,9 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 		}
 		
 		if (fwdProto == null) {
-			this.protocol = req.getProtocol();
+			String urlFromReq = req.getRequestURL().toString();
+			int  protoEnd = urlFromReq.indexOf("://");
+			this.protocol = urlFromReq.substring(0,protoEnd);
 		} else {
 			this.protocol = fwdProto;
 		}
@@ -455,10 +457,7 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 		return this.reqParams.get(name);
 	}
 
-	@Override
-	public String getProtocol() {
-		return this.protocol;
-	}
+
 
 	@Override
 	public boolean isSecure() {
@@ -473,6 +472,10 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 	@Override
 	public StringBuffer getRequestURL() {
 		return new StringBuffer(this.requestUrl);
+	}
+	
+	public String getUrlProtocol() {
+		return this.protocol;
 	}
 	
 	
