@@ -30,6 +30,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.openunison.util.config.OpenUnisonConfigLoader;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.orgs.LoadOrgsFromK8s;
@@ -96,6 +97,13 @@ public class K8sWatcher implements StopableThread {
 				return;
 			}
 			
+			
+			
+			
+			
+			
+			
+			
 			JSONObject list = (JSONObject) new JSONParser().parse(json);
 			JSONArray items = (JSONArray) list.get("items");
 			
@@ -106,6 +114,19 @@ public class K8sWatcher implements StopableThread {
 			
 			for (Object o : items) {
 				JSONObject jsonObj = (JSONObject) o;
+				
+				String strjson = jsonObj.toString();
+				
+				if (logger.isDebugEnabled()) logger.debug("json before includes : " + strjson);
+				
+				StringBuffer b = new StringBuffer();
+				b.setLength(0);
+				OpenUnisonConfigLoader.integrateIncludes(b,  strjson);
+				
+				if (logger.isDebugEnabled()) logger.debug("json after includes : " + b.toString());
+				
+				jsonObj = (JSONObject) new JSONParser().parse(b.toString());
+				
 				JSONObject metadata = (JSONObject) jsonObj.get("metadata");
 				
 				
@@ -206,6 +227,18 @@ public class K8sWatcher implements StopableThread {
 					JSONObject event = (JSONObject) new JSONParser().parse(line);
 					String action = (String) event.get("type");
 					JSONObject jsonObject = (JSONObject) event.get("object");
+					
+					String strjson = jsonObject.toString();
+					
+					if (logger.isDebugEnabled()) logger.debug("json before includes : " + strjson);
+					
+					StringBuffer b = new StringBuffer();
+					b.setLength(0);
+					OpenUnisonConfigLoader.integrateIncludes(b,  strjson);
+					
+					if (logger.isDebugEnabled()) logger.debug("json after includes : " + b.toString());
+					
+					jsonObject = (JSONObject) new JSONParser().parse(b.toString());
 					
 					JSONObject metadata = (JSONObject) jsonObject.get("metadata");
 					

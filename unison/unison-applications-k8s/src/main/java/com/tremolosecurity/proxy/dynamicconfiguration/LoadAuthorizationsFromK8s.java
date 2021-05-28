@@ -37,6 +37,7 @@ import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.proxy.dynamicloaders.DynamicAuthorizations;
 import com.tremolosecurity.proxy.dynamicloaders.DynamicResultGroups;
 import com.tremolosecurity.provisioning.targets.LoadTargetsFromK8s;
+import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 
@@ -76,6 +77,37 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 					pt.setValue((String) ov);
 					cart.getParams().add(pt);
 				}
+			}
+		}
+		
+		JSONArray secretParams = (JSONArray) spec.get("secretParams");
+		
+		if (secretParams != null) {
+			try {
+				HttpCon nonwatchHttp = this.k8sWatch.getK8s().createClient();
+				String token = this.k8sWatch.getK8s().getAuthToken();
+				
+				try {
+					for (Object ox : secretParams) {
+						JSONObject secretParam = (JSONObject) ox;
+						String paramName = (String) secretParam.get("name");
+						String secretName = (String) secretParam.get("secretName");
+						String secretKey = (String) secretParam.get("secretKey");
+						
+						String secretValue = this.k8sWatch.getSecretValue(secretName, secretKey, token, nonwatchHttp);
+						ParamType pt = new ParamType();
+						pt.setName(paramName);
+						pt.setValue(secretValue);
+						
+						cart.getParams().add(pt);
+						
+					}
+				} finally {
+					nonwatchHttp.getHttp().close();
+					nonwatchHttp.getBcm().close();
+				}
+			} catch (Exception e) {
+				throw new ProvisioningException("Could not generate secret params from '" + name + "'",e);
 			}
 		}
 		

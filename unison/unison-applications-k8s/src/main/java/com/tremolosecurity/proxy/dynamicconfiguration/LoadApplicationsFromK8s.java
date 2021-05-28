@@ -78,7 +78,8 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 	private ConfigManager cfgMgr;
 	
 	
-	public static ApplicationType createApplication (JSONObject item, String name) throws Exception {
+	
+	public  ApplicationType createApplication (JSONObject item, String name) throws Exception {
 		ApplicationType app = new ApplicationType();
 		
 		app.setName(name);
@@ -134,6 +135,34 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 									ft.getParam().add(pt);
 								}
 							}
+						}
+					}
+					
+					JSONArray secretParams = (JSONArray) jsonFilter.get("secretParams");
+					
+					if (secretParams != null) {
+						HttpCon nonwatchHttp = this.k8sWatch.getK8s().createClient();
+						String token = this.k8sWatch.getK8s().getAuthToken();
+						
+						try {
+							for (Object ox : secretParams) {
+								JSONObject secretParam = (JSONObject) ox;
+								String paramName = (String) secretParam.get("name");
+								String secretName = (String) secretParam.get("secretName");
+								String secretKey = (String) secretParam.get("secretKey");
+								
+								String secretValue = this.k8sWatch.getSecretValue(secretName, secretKey, token, nonwatchHttp);
+								ParamWithValueType pt = new ParamWithValueType();
+								pt.setName(paramName);
+								pt.setValue(secretValue);
+								pt.setValueAttribute(secretValue);
+								
+								ft.getParam().add(pt);
+								
+							}
+						} finally {
+							nonwatchHttp.getHttp().close();
+							nonwatchHttp.getBcm().close();
 						}
 					}
 					
@@ -221,7 +250,7 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 
 
 
-	private static void createIdpOnUrl(JSONObject jsonUrl, UrlType url) {
+	private  void createIdpOnUrl(JSONObject jsonUrl, UrlType url) throws ProvisioningException, Exception {
 		IdpType idp = new IdpType();
 		JSONObject jsonIdp = (JSONObject) jsonUrl.get("idp");
 		url.setIdp(idp);
@@ -249,6 +278,34 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 						idp.getParams().add(pt);
 					}
 				}
+			}
+		}
+		
+		JSONArray secretParams = (JSONArray) jsonIdp.get("secretParams");
+		
+		if (secretParams != null) {
+			HttpCon nonwatchHttp = this.k8sWatch.getK8s().createClient();
+			String token = this.k8sWatch.getK8s().getAuthToken();
+			
+			try {
+				for (Object ox : secretParams) {
+					JSONObject secretParam = (JSONObject) ox;
+					String paramName = (String) secretParam.get("name");
+					String secretName = (String) secretParam.get("secretName");
+					String secretKey = (String) secretParam.get("secretKey");
+					
+					String secretValue = this.k8sWatch.getSecretValue(secretName, secretKey, token, nonwatchHttp);
+					ParamType pt = new ParamType();
+					pt.setName(paramName);
+					pt.setValue(secretValue);
+					
+					
+					idp.getParams().add(pt);
+					
+				}
+			} finally {
+				nonwatchHttp.getHttp().close();
+				nonwatchHttp.getBcm().close();
 			}
 		}
 		
