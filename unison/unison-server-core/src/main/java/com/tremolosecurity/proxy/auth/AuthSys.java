@@ -72,37 +72,7 @@ public class AuthSys  {
 	//public static final String AUTH_CURR_STEP = "TREMOLO_CUR_STEP";
 	
 	
-	@Deprecated
-	public static StringBuffer getGetRedirectURL(RequestHolder reqHolder) {
-		StringBuffer redirURL = new StringBuffer(reqHolder.getURL());
 
-		if (reqHolder.isForceAuth() || redirURL.indexOf("?") > 0) {
-			return redirURL;
-		}
-
-		Iterator<String> it = reqHolder.getParams().keySet().iterator();
-		boolean first = true;
-
-		while (it.hasNext()) {
-			String key = it.next();
-			Attribute attrib = reqHolder.getParams().get(key);
-
-			Iterator<String> itvals = attrib.getValues().iterator();
-			while (itvals.hasNext()) {
-				String val = itvals.next();
-				if (first) {
-					first = false;
-					redirURL.append('?').append(attrib.getName()).append('=')
-							.append(URLEncoder.encode(val));
-				} else {
-					redirURL.append('&').append(attrib.getName()).append('=')
-							.append(URLEncoder.encode(val));
-				}
-			}
-
-		}
-		return redirURL;
-	}
 	
 	
 	/* (non-Javadoc)
