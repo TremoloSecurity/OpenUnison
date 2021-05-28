@@ -133,6 +133,8 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	String label;
 	
 	String gitUrl;
+	
+	private boolean useDefaultCaPath;
 
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
@@ -651,7 +653,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 		
 		
-		
+		this.useDefaultCaPath = false;
 		
 		String tmpUseToken = this.loadOptionalAttributeValue("useToken", "Use Token", cfg,null);
 		this.useToken = tmpUseToken != null && tmpUseToken.equalsIgnoreCase("true");
@@ -678,6 +680,28 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 					} catch (IOException e) {
 						throw new ProvisioningException("Could not load token",e);
 					}
+					
+					// check if token is projected, starting in 1.21 this is the default
+					
+					int firstPeriod = this.osToken.indexOf('.');
+					int lastPeriod = this.osToken.lastIndexOf('.');
+					
+					String json = new String(Base64.decodeBase64(this.osToken.substring(firstPeriod + 1,lastPeriod)));
+					try {
+						JSONObject claims = (JSONObject) new JSONParser().parse(json);
+						
+						if (claims.containsKey("exp")) {
+							logger.info("Default token is projected, switching to TokenAPI");
+							this.tokenType = TokenType.TOKENAPI;
+							this.tokenPath = "/var/run/secrets/kubernetes.io/serviceaccount/token";
+							this.useDefaultCaPath = true;
+							this.checkProjectedToken();
+						}
+						
+					} catch (ParseException e1) {
+						throw new ProvisioningException("Could not load token",e1);
+					}
+					
 					break;
 				case TOKENAPI:
 					this.tokenPath = this.loadOption("tokenPath", cfg, false);
@@ -706,7 +730,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 				try {
 					logger.info("Cert Alias Storing - '" + certAlias + "'");
 					X509Certificate cert = null;
-					if (tokenType == TokenType.LEGACY) {
+					if (tokenType == TokenType.LEGACY || this.useDefaultCaPath) {
 						cert = CertUtil.readCertificate("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt");
 					} else if (tokenType == TokenType.TOKENAPI) {
 						// -\("/)/-
