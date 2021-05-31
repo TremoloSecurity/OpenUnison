@@ -1,9 +1,10 @@
-## 1.0.23-2021052201
-
-**Tasks:**
- - 1.0.23 build [\#534](https://github.com/TremoloSecurity/OpenUnison/issues/534)
+## 1.0.23-2021053101
 
 **bugs:**
+ - k8s watches - broken connections to the API server fails to recover [\#553](https://github.com/TremoloSecurity/OpenUnison/issues/553)
+ - post auth redirects - X-FORWARDED-PROTO not honored [\#548](https://github.com/TremoloSecurity/OpenUnison/issues/548)
+ - query parameters with no value crashes request [\#551](https://github.com/TremoloSecurity/OpenUnison/issues/551)
+ - oidc idp - not honoring X-Forwarded-Proto in issuer [\#549](https://github.com/TremoloSecurity/OpenUnison/issues/549)
  - Saml2 AuthnRequest POST signature verification fails [\#547](https://github.com/TremoloSecurity/OpenUnison/issues/547)
  - CheckK8sProject - not backwards compatible [\#546](https://github.com/TremoloSecurity/OpenUnison/issues/546)
  - BasicDB - ManyToMany groups fails with MySQL 8 if groups table is named "groups" [\#529](https://github.com/TremoloSecurity/OpenUnison/issues/529)
@@ -11,6 +12,8 @@
  - Remove debug code from the github auth mech [\#533](https://github.com/TremoloSecurity/OpenUnison/issues/533)
 
 **enhancements:**
+ - k8s watchers - include params in all read objects [\#552](https://github.com/TremoloSecurity/OpenUnison/issues/552)
+ - k8s/openshift target - support expiring "legacy" tokens [\#550](https://github.com/TremoloSecurity/OpenUnison/issues/550)
  - AzureAD invited users slower to provision [\#545](https://github.com/TremoloSecurity/OpenUnison/issues/545)
  - Dynamically load Authentication Mechanisms [\#539](https://github.com/TremoloSecurity/OpenUnison/issues/539)
  - Load queue configuration from CRD [\#544](https://github.com/TremoloSecurity/OpenUnison/issues/544)
@@ -19,6 +22,9 @@
  - Dynamically Load Custom Authorizations [\#538](https://github.com/TremoloSecurity/OpenUnison/issues/538)
  - Better support for Azure Service Bus [\#536](https://github.com/TremoloSecurity/OpenUnison/issues/536)
  - Load ResultGroups dynamically [\#535](https://github.com/TremoloSecurity/OpenUnison/issues/535)
+
+**Tasks:**
+ - 1.0.23 build [\#534](https://github.com/TremoloSecurity/OpenUnison/issues/534)
 
 
 ## 1.0.22-2021041601
