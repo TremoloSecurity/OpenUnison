@@ -194,7 +194,7 @@ public class K8sWatcher implements StopableThread {
 	public void run() {
 		logger.info("Starting watch");
 		while (this.keepRunning) {
-			HttpCon http;
+			
 			OpenShiftTarget k8s;
 			try {
 				k8s = (OpenShiftTarget) this.provisioningEngine.getTarget(k8sTarget).getProvider();
@@ -202,85 +202,99 @@ public class K8sWatcher implements StopableThread {
 				logger.error("Could not load target, stopping watch",e2);
 				return;
 			}
-			try {
-				
-				http = k8s.createClient();
-			} catch (Exception e1) {
-				logger.error("Could not create connection",e1);
-				return;
-			}
 			
-			try {
-				String url = new StringBuilder().append(k8s.getUrl())
-						                        .append(this.uri)
-						                        .append("?watch=true&timeoutSecond=25").toString();
-				logger.info("watching " + url);
-				HttpGet get = new HttpGet(url);
-				get.setHeader("Authorization", new StringBuilder().append("Bearer ").append(k8s.getAuthToken()).toString());
-				HttpResponse resp = http.getHttp().execute(get);
-				BufferedReader in = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
-				String line = null;
-				
-				HttpCon nonwatchHttp = k8s.createClient();
-				
-				while ((line = in.readLine()) != null) {
-					JSONObject event = (JSONObject) new JSONParser().parse(line);
-					String action = (String) event.get("type");
-					JSONObject jsonObject = (JSONObject) event.get("object");
-					
-					String strjson = jsonObject.toString();
-					
-					if (logger.isDebugEnabled()) logger.debug("json before includes : " + strjson);
-					
-					StringBuffer b = new StringBuffer();
-					b.setLength(0);
-					OpenUnisonConfigLoader.integrateIncludes(b,  strjson);
-					
-					if (logger.isDebugEnabled()) logger.debug("json after includes : " + b.toString());
-					
-					jsonObject = (JSONObject) new JSONParser().parse(b.toString());
-					
-					JSONObject metadata = (JSONObject) jsonObject.get("metadata");
-					
-					
-					String resourceVersion = (String) metadata.get("resourceVersion");
-					
-					if (this.resourceVersions.contains(resourceVersion)) {
-						logger.info("Resource " + resourceVersion + " already processed, skipping");
-					} else {
-						this.resourceVersions.add(resourceVersion);
-						if (action.equalsIgnoreCase("ADDED")) {
-							
-							this.watchee.addObject(this.cfgMgr.getCfg(),jsonObject);
-						} else if (action.equalsIgnoreCase("MODIFIED")) {
-							this.watchee.modifyObject(this.cfgMgr.getCfg(),jsonObject);
-						}
-						
-						else {
-							//deleted
-							this.watchee.deleteObject(this.cfgMgr.getCfg(),jsonObject);
-						}
-					}
-				}
-				
-				nonwatchHttp.getHttp().close();
-				nonwatchHttp.getBcm().close();
-				
-			} catch (Exception e) {
-				logger.error("Could not get authentication token",e);
-				return;
-			} finally {
-				if (http != null) {
-					try {
-						http.getHttp().close();
-					} catch (IOException e) {
-						
-					}
-					http.getBcm().close();
-				}
-			}
+			runWatch(k8s);
 		}
 		
+	}
+
+	private void runWatch(OpenShiftTarget k8s) {
+		HttpCon http;
+		try {
+			
+			http = k8s.createClient();
+		} catch (Exception e1) {
+			logger.error("Could not create connection",e1);
+			return;
+		}
+		
+		try {
+			String url = new StringBuilder().append(k8s.getUrl())
+					                        .append(this.uri)
+					                        .append("?watch=true&timeoutSecond=25").toString();
+			logger.info("watching " + url);
+			HttpGet get = new HttpGet(url);
+			get.setHeader("Authorization", new StringBuilder().append("Bearer ").append(k8s.getAuthToken()).toString());
+			HttpResponse resp = http.getHttp().execute(get);
+			BufferedReader in = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
+			String line = null;
+			
+			HttpCon nonwatchHttp = k8s.createClient();
+			
+			while ((line = in.readLine()) != null) {
+				JSONObject event = (JSONObject) new JSONParser().parse(line);
+				String action = (String) event.get("type");
+				JSONObject jsonObject = (JSONObject) event.get("object");
+				
+				String strjson = jsonObject.toString();
+				
+				if (logger.isDebugEnabled()) logger.debug("json before includes : " + strjson);
+				
+				StringBuffer b = new StringBuffer();
+				b.setLength(0);
+				OpenUnisonConfigLoader.integrateIncludes(b,  strjson);
+				
+				if (logger.isDebugEnabled()) logger.debug("json after includes : " + b.toString());
+				
+				jsonObject = (JSONObject) new JSONParser().parse(b.toString());
+				
+				JSONObject metadata = (JSONObject) jsonObject.get("metadata");
+				
+				
+				String resourceVersion = (String) metadata.get("resourceVersion");
+				
+				if (this.resourceVersions.contains(resourceVersion)) {
+					logger.info("Resource " + resourceVersion + " already processed, skipping");
+				} else {
+					this.resourceVersions.add(resourceVersion);
+					if (action.equalsIgnoreCase("ADDED")) {
+						
+						this.watchee.addObject(this.cfgMgr.getCfg(),jsonObject);
+					} else if (action.equalsIgnoreCase("MODIFIED")) {
+						this.watchee.modifyObject(this.cfgMgr.getCfg(),jsonObject);
+					}
+					
+					else {
+						//deleted
+						this.watchee.deleteObject(this.cfgMgr.getCfg(),jsonObject);
+					}
+				}
+			}
+			
+			nonwatchHttp.getHttp().close();
+			nonwatchHttp.getBcm().close();
+			
+		} catch (Exception e) {
+			logger.error("Could not run watch, waiting 10 seconds",e);
+			
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e1) {
+				//do nothing
+			}
+			
+			return;
+		} finally {
+			if (http != null) {
+				try {
+					http.getHttp().close();
+				} catch (IOException e) {
+					
+				}
+				http.getBcm().close();
+			}
+		}
+		return;
 	}
 
 	@Override
