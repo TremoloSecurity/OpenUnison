@@ -29,6 +29,7 @@ public class ScaleConfig {
 	boolean canEditUser;
 	boolean showPortalOrgs;
 	String logoutURL;
+	boolean enableApprovals;
 	
 	transient String workflowName;
 	transient List<String> userAttributeList;
@@ -65,6 +66,7 @@ public class ScaleConfig {
 		this.canDelegate = from.canDelegate;
 		this.canPreApprove = from.canPreApprove;
 		this.userAttributeList = from.userAttributeList;
+		this.enableApprovals = from.enableApprovals;
 	}
 	
 	public ScaleConfig() {
@@ -186,6 +188,14 @@ public class ScaleConfig {
 
 	public void setCanPreApprove(PreCheckAllowed canPreApprove) {
 		this.canPreApprove = canPreApprove;
+	}
+
+	public boolean isEnableApprovals() {
+		return enableApprovals;
+	}
+
+	public void setEnableApprovals(boolean enableApprovals) {
+		this.enableApprovals = enableApprovals;
 	}
 	
 	

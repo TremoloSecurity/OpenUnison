@@ -1443,6 +1443,8 @@ public class ScaleMain implements HttpFilter {
 		scaleConfig.setLogoutURL(this.loadAttributeValue("logoutURL", "Logout URL", config));
 		scaleConfig.setWarnMinutesLeft(Integer.parseInt(this.loadAttributeValue("warnMinutesLeft", "Warn when number of minutes left in the user's session", config)));
 		
+		
+		
 		String val = this.loadOptionalAttributeValue("canDelegate", "canDelegate", config);
 		if (val == null) {
 			val = "NO";
@@ -1457,6 +1459,13 @@ public class ScaleMain implements HttpFilter {
 		
 		scaleConfig.setCanPreApprove(PreCheckAllowed.valueOf(val.toUpperCase()));
 		
+		
+		val = this.loadOptionalAttributeValue("enableApprovals", "enableApprovals", config);
+		if (val == null) {
+			scaleConfig.setEnableApprovals(true);
+		} else {
+			scaleConfig.setEnableApprovals(val.equalsIgnoreCase("true"));
+		}
 		
 		val = this.loadOptionalAttributeValue("roleAttribute", "Role Attribute Name", config);
 				
