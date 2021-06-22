@@ -30,6 +30,7 @@ import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
@@ -47,6 +48,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1802,11 +1804,12 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		try {
 			String json = JsonWriter.objectToJson(o);
 			
+			byte[] encoded = json.getBytes("UTF-8");
 			EncryptedMessage msg = new EncryptedMessage();
 			
 			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 			cipher.init(Cipher.ENCRYPT_MODE, key);
-			msg.setMsg(cipher.doFinal(json.getBytes("UTF-8")));
+			msg.setMsg(cipher.doFinal(encoded));
 			msg.setIv(cipher.getIV());
 			return msg;
 		} catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
@@ -1831,8 +1834,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			byte[] bytes = cipher.doFinal(msg.getMsg());
 			
-			return JsonReader.jsonToJava(new String(bytes));
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException  e) {
+			
+			return JsonReader.jsonToJava(new String(bytes,"UTF-8"));
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException | UnsupportedEncodingException  e) {
 			throw new ProvisioningException("Could not decrypt message",e);
 		}
 		

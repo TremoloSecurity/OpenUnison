@@ -52,6 +52,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.util.NVP;
 
+import jcifs.util.Base64;
+
 public class ProxyRequest extends HttpServletRequestWrapper {
 	
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ProxyRequest.class);
@@ -252,7 +254,12 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 						baos.write(buffer, 0, len);
 					}
 					
-					req.setAttribute(ProxySys.MSG_BODY, baos.toByteArray());
+					byte[] rawBody = baos.toByteArray();
+					
+							
+					
+					req.setAttribute(ProxySys.MSG_BODY, rawBody);
+					
 				} else if (contentType.startsWith("application/x-www-form-urlencoded")) {
 					ByteArrayOutputStream baos = new ByteArrayOutputStream();
 					InputStream in = req.getInputStream();

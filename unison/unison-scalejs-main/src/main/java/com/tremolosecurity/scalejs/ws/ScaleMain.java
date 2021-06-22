@@ -24,6 +24,7 @@ import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -52,6 +53,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.WorkbookUtil;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.bouncycastle.util.encoders.Base64;
 import org.hibernate.Session;
 import org.hibernate.jdbc.Work;
 import org.joda.time.DateTime;
@@ -864,7 +866,12 @@ public class ScaleMain implements HttpFilter {
 	private void executeWorkflows(HttpFilterRequest request, HttpFilterResponse response, Gson gson)
 			throws Exception {
 		Type listType = new TypeToken<ArrayList<WorkflowRequest>>() {}.getType();
-		List<WorkflowRequest> reqs = gson.fromJson(new String((byte[])request.getAttribute(ProxySys.MSG_BODY)), listType);
+		
+		byte[] requestBytes = (byte[]) request.getAttribute(ProxySys.MSG_BODY);
+		String requestString = new String(requestBytes,StandardCharsets.UTF_8);
+		
+		
+		List<WorkflowRequest> reqs = gson.fromJson(requestString, listType);
 		HashMap<String,String> results = new HashMap<String,String>();
 		
 		for (WorkflowRequest req : reqs) {
