@@ -29,7 +29,7 @@
 	
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
-			<artifactId>unison-sdk</artifactId>
+			<artifactId>unison-server-core</artifactId>
 			<version>${openunison.version}</version>
 		</dependency>
 		
