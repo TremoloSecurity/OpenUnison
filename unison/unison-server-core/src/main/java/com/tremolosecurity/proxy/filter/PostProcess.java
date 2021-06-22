@@ -227,7 +227,7 @@ public abstract class PostProcess {
 					respcookie.setVersion(cookie.getVersion());
 					resp.addCookie(respcookie);
 				}
-			} else if (header.getName().equals("Location")) {
+			} else if (header.getName().equalsIgnoreCase("Location")) {
 				
 				if (holder.isOverrideHost()) {
 					fixRedirect(req, resp, finalURL, header);
