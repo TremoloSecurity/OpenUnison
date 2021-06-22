@@ -212,6 +212,22 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 				synchronized(GlobalEntries.getGlobalEntries().getConfigManager().getAuthChains()) {
 					GlobalEntries.getGlobalEntries().getConfigManager().getAuthChains().put(name, act);
 				}
+				
+				synchronized (GlobalEntries.getGlobalEntries().getConfigManager().getCfg()) {
+					AuthChainType curAct = null;
+					for (AuthChainType itAct : GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getAuthChains().getChain()) {
+						if (itAct.getName().equals(act.getName())) {
+							curAct = itAct;
+							break;
+						}
+					}
+					
+					if (curAct != null) {
+						GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getAuthChains().getChain().remove(curAct);
+					}
+					
+					GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getAuthChains().getChain().add(act);
+				}
 			} catch (Exception e) {
 				logger.warn("Could not initialize authentication chain " + name,e);
 			}
@@ -246,6 +262,22 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 				AuthChainType act = this.createAuthChain(item, name);
 				synchronized(GlobalEntries.getGlobalEntries().getConfigManager().getAuthChains()) {
 					GlobalEntries.getGlobalEntries().getConfigManager().getAuthChains().put(name, act);
+				}
+				
+				synchronized (GlobalEntries.getGlobalEntries().getConfigManager().getCfg()) {
+					AuthChainType curAct = null;
+					for (AuthChainType itAct : GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getAuthChains().getChain()) {
+						if (itAct.getName().equals(act.getName())) {
+							curAct = itAct;
+							break;
+						}
+					}
+					
+					if (curAct != null) {
+						GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getAuthChains().getChain().remove(curAct);
+					}
+					
+					GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getAuthChains().getChain().add(act);
 				}
 			} catch (Exception e) {
 				logger.warn("Could not initialize authentication chain " + name,e);

@@ -23,6 +23,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.ConfigType;
 import com.tremolosecurity.config.xml.CustomAzRuleType;
 import com.tremolosecurity.config.xml.MechanismType;
@@ -165,6 +166,23 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 			try {
 				MechanismType mt = this.createAuthMech(item, name);
 				GlobalEntries.getGlobalEntries().getConfigManager().addAuthenticationMechanism(mt);
+				
+				
+				synchronized (GlobalEntries.getGlobalEntries().getConfigManager().getCfg()) {
+					MechanismType curMech = null;
+					for (MechanismType itMech : GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getAuthMechs().getMechanism()) {
+						if (itMech.getName().equals(mt.getName())) {
+							curMech = itMech;
+							break;
+						}
+					}
+					
+					if (curMech != null) {
+						GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getAuthMechs().getMechanism().remove(curMech);
+					}
+					
+					GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getAuthMechs().getMechanism().add(mt);
+				}
 			} catch (Exception e) {
 				logger.warn("Could not initialize authentication mechanism " + name,e);
 				return;
@@ -202,6 +220,22 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 			try {
 				MechanismType mt = this.createAuthMech(item, name);
 				GlobalEntries.getGlobalEntries().getConfigManager().addAuthenticationMechanism(mt);
+				
+				synchronized (GlobalEntries.getGlobalEntries().getConfigManager().getCfg()) {
+					MechanismType curMech = null;
+					for (MechanismType itMech : GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getAuthMechs().getMechanism()) {
+						if (itMech.getName().equals(mt.getName())) {
+							curMech = itMech;
+							break;
+						}
+					}
+					
+					if (curMech != null) {
+						GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getAuthMechs().getMechanism().remove(curMech);
+					}
+					
+					GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getAuthMechs().getMechanism().add(mt);
+				}
 			} catch (Exception e) {
 				logger.warn("Could not initialize authentication mechanism " + name,e);
 				return;
