@@ -544,7 +544,7 @@ public class GitlabUserProvider implements UserStoreProviderWithAddGroup {
 				int count = 0;
 				org.gitlab4j.api.models.User foundUser = null;
 				for (org.gitlab4j.api.models.User user : users) {
-					if (user.getName().equals(userID)) {
+					if (user.getUsername().equals(userID)) {
 						count++;
 						foundUser = user;
 					}
