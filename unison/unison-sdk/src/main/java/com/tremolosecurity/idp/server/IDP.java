@@ -155,7 +155,7 @@ public class IDP extends HttpServlet  implements ReloadNotification {
 		//System.out.println("idpName : '" + idpName + "'");
 
 		
-		return this.idps.get(idpName);
+		return this.idps.get(idpName.toLowerCase());
 	}
 
 	@Override
@@ -241,11 +241,11 @@ public class IDP extends HttpServlet  implements ReloadNotification {
 		IdpHolder holder = new IdpHolder();
 		holder.idp = identityProvider;
 		holder.idpConfig = idp;
-		this.idps.put(idpName, holder);
+		this.idps.put(idpName.toLowerCase(), holder);
 	}
 	
 	public void removeIdP(String name) {
-		this.idps.remove(name);
+		this.idps.remove(name.toLowerCase());
 	}
 
 	@Override

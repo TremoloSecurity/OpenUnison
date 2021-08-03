@@ -361,6 +361,34 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 					}
 				}
 				
+				secretParams = (JSONArray) jsonTrust.get("secretParams");
+				
+				if (secretParams != null) {
+					HttpCon nonwatchHttp = this.k8sWatch.getK8s().createClient();
+					String token = this.k8sWatch.getK8s().getAuthToken();
+					
+					try {
+						for (Object ox : secretParams) {
+							JSONObject secretParam = (JSONObject) ox;
+							String paramName = (String) secretParam.get("name");
+							String secretName = (String) secretParam.get("secretName");
+							String secretKey = (String) secretParam.get("secretKey");
+							
+							String secretValue = this.k8sWatch.getSecretValue(secretName, secretKey, token, nonwatchHttp);
+							ParamType pt = new ParamType();
+							pt.setName(paramName);
+							pt.setValue(secretValue);
+							
+							
+							trust.getParam().add(pt);
+							
+						}
+					} finally {
+						nonwatchHttp.getHttp().close();
+						nonwatchHttp.getBcm().close();
+					}
+				}
+				
 				tt.getTrust().add(trust);
 			}
 			

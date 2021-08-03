@@ -41,23 +41,36 @@ public class CheckSession implements HttpFilter {
 
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(CheckSession.class);
 	
-	String applicationName;
-	String cookieName;
-	int timeoutSeconds;
-	private SecretKey secretKey;
+	AppConfig appConfig;
+	
+	HttpFilterConfig filterConfig;
 	
 	Gson gson;
 	
 	@Override
 	public void doFilter(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain)
 			throws Exception {
-				request.setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
-		ArrayList<Cookie> sessionCookies = request.getCookies(this.cookieName);
+		
+		
+		synchronized(this.appConfig) {
+			if (this.appConfig.cookieName == null) {
+				this.loadConfigData(this.filterConfig);
+			}
+			
+			if (this.appConfig.cookieName == null) {
+				response.sendError(401);
+				return;
+			}
+		}
+		
+		
+		request.setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
+		ArrayList<Cookie> sessionCookies = request.getCookies(this.appConfig.cookieName);
 		if (sessionCookies == null || sessionCookies.isEmpty()) {
 			response.sendError(401);
 		} else {
 			for (Cookie cookie : sessionCookies) {
-				TremoloHttpSession session = SessionManagerImpl.findSessionFromCookie(cookie, this.secretKey, (SessionManagerImpl) GlobalEntries.getGlobalEntries().get(ProxyConstants.TREMOLO_SESSION_MANAGER));
+				TremoloHttpSession session = SessionManagerImpl.findSessionFromCookie(cookie, this.appConfig.secretKey, (SessionManagerImpl) GlobalEntries.getGlobalEntries().get(ProxyConstants.TREMOLO_SESSION_MANAGER));
 				if (session == null) {
 					response.sendError(401);
 				} else {
@@ -66,7 +79,7 @@ public class CheckSession implements HttpFilter {
 						response.sendError(401);
 					} else {
 						SessionInfo si = new SessionInfo();
-						if (this.timeoutSeconds > 0) {
+						if (this.appConfig.timeoutSeconds > 0) {
 							
 							ExternalSessionExpires extSession = (ExternalSessionExpires) session.getAttribute(SessionManagerImpl.TREMOLO_EXTERNAL_SESSION);
 							
@@ -88,7 +101,7 @@ public class CheckSession implements HttpFilter {
 						
 							DateTime lastAccessed = (DateTime) session.getAttribute(SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED);
 							DateTime now = new DateTime();
-							DateTime expires = lastAccessed.plusSeconds(this.timeoutSeconds);
+							DateTime expires = lastAccessed.plusSeconds(this.appConfig.timeoutSeconds);
 							
 							stdMinLeft = (int) ((expires.getMillis() - System.currentTimeMillis()) / 1000 / 60);
 							
@@ -133,28 +146,35 @@ public class CheckSession implements HttpFilter {
 
 	@Override
 	public void initFilter(HttpFilterConfig config) throws Exception {
+		this.appConfig = new AppConfig();
+		this.filterConfig = config;
+		loadConfigData(config);
+		
+	}
+
+	private void loadConfigData(HttpFilterConfig config) throws Exception {
 		Attribute attr = config.getAttribute("applicationName");
 		if (attr == null) {
 			throw new Exception("Application name not set");
 		}
 		
-		this.applicationName = attr.getValues().get(0);
+		this.appConfig.applicationName = attr.getValues().get(0);
 		ApplicationType app = null;
 		for (ApplicationType at : config.getConfigManager().getCfg().getApplications().getApplication()) {
-			if (at.getName().equalsIgnoreCase(this.applicationName)) {
+			if (at.getName().equalsIgnoreCase(this.appConfig.applicationName)) {
 				app = at;
 			}
 		}
 		
 		if (app == null) {
-			throw new Exception(this.applicationName + " not found");
+			logger.warn(this.appConfig.applicationName + " not found");
+			return;
 		}
 
-		this.cookieName = app.getCookieConfig().getSessionCookieName();
-		this.secretKey = config.getConfigManager().getSecretKey(app.getCookieConfig().getKeyAlias());
-		this.timeoutSeconds = app.getCookieConfig().getTimeout();
+		this.appConfig.cookieName = app.getCookieConfig().getSessionCookieName();
+		this.appConfig.secretKey = config.getConfigManager().getSecretKey(app.getCookieConfig().getKeyAlias());
+		this.appConfig.timeoutSeconds = app.getCookieConfig().getTimeout();
 		this.gson = new Gson();
-		
 	}
 
 }
@@ -177,4 +197,11 @@ class SessionInfo {
 	
 	
 	
+}
+
+class AppConfig {
+	String applicationName;
+	String cookieName;
+	int timeoutSeconds;
+	SecretKey secretKey;
 }

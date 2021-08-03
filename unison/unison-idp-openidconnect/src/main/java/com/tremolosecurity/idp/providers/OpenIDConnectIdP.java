@@ -148,6 +148,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	private UpdateClaims claimsUpdater;
 
 	private HashSet<String> scopes;
+
+	private String authURI;
 	
 	
 	
@@ -175,7 +177,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		if (action.equalsIgnoreCase(".well-known/openid-configuration")) {
 			
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
-			String json = gson.toJson(new OpenIDConnectConfig(this.idpName,request,mapper));
+			String json = gson.toJson(new OpenIDConnectConfig(this.authURI,request,mapper));
 			response.setContentType("application/json");
 			response.getWriter().print(json);
 			
@@ -1160,6 +1162,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		final String localIdPName = idpName;
 		this.idpName = idpName;
 		
+		this.authURI = GlobalEntries.getGlobalEntries().getConfigManager().getApp(this.idpName).getUrls().getUrl().get(0).getUri();
+		
 		loadStaticTrusts(trustCfg);
 		
 		if (init.get("trustConfigurationClassName") != null) {
@@ -1344,7 +1348,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		StringBuffer issuer = new StringBuffer();
 		
 	
-		issuer.append(cfg.getAuthIdPPath()).append(this.idpName);
+		//issuer.append(cfg.getAuthIdPPath()).append(this.idpName);
+		issuer.append(this.authURI);
 		
 		String issuerUrl = ProxyTools.getInstance().getFqdnUrl(issuer.toString(), request);
 		
