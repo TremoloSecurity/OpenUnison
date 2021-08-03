@@ -39,6 +39,7 @@ import com.tremolosecurity.proxy.auth.util.AuthStep;
 import com.tremolosecurity.proxy.auth.util.OpenIDConnectToken;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;
 import com.tremolosecurity.proxy.util.ProxyConstants;
+import com.tremolosecurity.proxy.util.ProxyTools;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 
@@ -95,6 +96,7 @@ public class GenerateOIDCTokens implements AuthMechanism {
 		
 		OpenIDConnectToken token = new OpenIDConnectToken(idpName,trustName,overrideURL);
 		try {
+			request.setAttribute(ProxyTools.OVERRIDE_HOST, System.getProperty("OU_HOST"));
 			token.generateToken(request);
 		} catch (MalformedClaimException | JoseException | LDAPException | ProvisioningException e) {
 			throw new ServletException("Could not generate token",e);

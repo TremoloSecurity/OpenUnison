@@ -27,6 +27,7 @@ import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.proxy.auth.GenerateOIDCTokens;
 import com.tremolosecurity.proxy.auth.util.OpenIDConnectToken;
 import com.tremolosecurity.proxy.results.CustomResult;
+import com.tremolosecurity.proxy.util.ProxyTools;
 
 public class InjectIdToken implements CustomResult {
 
@@ -44,6 +45,7 @@ public class InjectIdToken implements CustomResult {
 			synchronized(token) {
 				if (token.isExpired()) {
 					try {
+						request.setAttribute(ProxyTools.OVERRIDE_HOST, System.getProperty("OU_HOST"));
 						token.refreshProxyToken(request);
 					} catch (MalformedURLException | MalformedClaimException | JoseException | LDAPException
 							| ProvisioningException e) {
