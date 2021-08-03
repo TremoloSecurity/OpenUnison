@@ -1,3 +1,12 @@
+## 1.0.23-1-2021080301
+
+**Tasks:**
+ - 1.0.23-1 build [\#566](https://github.com/TremoloSecurity/OpenUnison/issues/566)
+
+**bugs:**
+ - k8s dashboard not generating correct issuer [\#563](https://github.com/TremoloSecurity/OpenUnison/issues/563)
+
+
 ## 1.0.23-2021053101
 
 **bugs:**
