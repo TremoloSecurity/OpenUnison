@@ -4,6 +4,7 @@
  - 1.0.23-1 build [\#566](https://github.com/TremoloSecurity/OpenUnison/issues/566)
 
 **bugs:**
+ - Java module overlap causing build issuers [\#567](https://github.com/TremoloSecurity/OpenUnison/issues/567)
  - k8s dashboard not generating correct issuer [\#563](https://github.com/TremoloSecurity/OpenUnison/issues/563)
 
 
