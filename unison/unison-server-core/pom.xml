@@ -56,6 +56,12 @@
 			<artifactId>xercesImpl</artifactId>
 			<version>${xerces.version}</version>
 			<type>jar</type>
+			<exclusions>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 
