@@ -38,6 +38,8 @@ import com.tremolosecurity.proxy.myvd.MyVDConnection;
 import com.tremolosecurity.saml.Attribute;
 
 public class ProxyTools {
+	public static final String OVERRIDE_HOST = "openunison.overridehost";
+
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ProxyTools.class);
 	
 	static ProxyTools instance;
@@ -100,9 +102,16 @@ public class ProxyTools {
 				sb.append("http://");
 			}
 			
+			String overrideHost = (String) req.getAttribute(ProxyTools.OVERRIDE_HOST);
+			
+			if (overrideHost != null) {
+				sb.append(overrideHost);
+			} else {
+				sb.append(req.getServerName());
+			}
 			
 			
-			sb.append(req.getServerName());
+			
 			
 			
 			String fwdPort = req.getHeader("X-Forwarded-Port");
