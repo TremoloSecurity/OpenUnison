@@ -32,6 +32,8 @@ import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
+import com.tremolosecurity.unison.proxy.auth.openidconnect.OidcIdpUrls;
+import com.tremolosecurity.unison.proxy.auth.openidconnect.OpenIDConnectAuthMech;
 import com.tremolosecurity.unison.proxy.auth.openidconnect.sdk.LoadUserData;
 
 public class LoadAttributesFromWS implements LoadUserData {
@@ -39,7 +41,16 @@ public class LoadAttributesFromWS implements LoadUserData {
 	public Map loadUserAttributesFromIdP(HttpServletRequest request, HttpServletResponse response, ConfigManager cfg,
 			HashMap<String, Attribute> authParams, Map accessToken) throws Exception {
 		String bearerTokenName = authParams.get("bearerTokenName").getValues().get(0);
-		String url = authParams.get("restURL").getValues().get(0);
+		
+		OidcIdpUrls idp = (OidcIdpUrls) request.getAttribute(OpenIDConnectAuthMech.OIDC_IDP);
+		
+		String url;
+		
+		if (idp != null && idp.getUserInfoUrl() != null) {
+			url = idp.getUserInfoUrl();
+		} else {
+			url = authParams.get("restURL").getValues().get(0);
+		}
 		
 		BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(GlobalEntries.getGlobalEntries().getConfigManager().getHttpClientSocketRegistry());
 		RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();

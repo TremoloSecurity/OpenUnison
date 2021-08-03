@@ -39,14 +39,18 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.jose4j.json.internal.json_simple.JSONArray;
 import org.jose4j.json.internal.json_simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
@@ -76,12 +80,14 @@ import com.tremolosecurity.unison.proxy.auth.openidconnect.sdk.LoadUserData;
 
 public class OpenIDConnectAuthMech implements AuthMechanism {
 
+	public static final String OIDC_IDP = "com.tremolosecurity.openunison.oidc.idp";
+
 	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(OpenIDConnectAuthMech.class.getName());
 	
-	
+	Map<String,OidcIdpUrls> idpUrls;
 	
 	public void init(ServletContext ctx, HashMap<String, Attribute> init) {
-		// TODO Auto-generated method stub
+		this.idpUrls = new HashMap<String,OidcIdpUrls>();
 
 	}
 
@@ -99,10 +105,90 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 		
 		MyVDConnection myvd = cfg.getMyVD();
 		
+		String idpURL;
+		String loadTokenURL;
+		
+		if (authParams.get("issuer" ) != null) {
+			StringBuffer b = new StringBuffer();
+			String issuer = authParams.get("issuer").getValues().get(0);
+			
+			b.append(issuer);
+			
+			if (issuer.charAt(issuer.length()-1) != '/') {
+				b.append('/');
+			}
+			
+			b.append(".well-known/openid-configuration");
+			
+			String discoveryUrl = b.toString();
+			
+			OidcIdpUrls idp = this.idpUrls .get(discoveryUrl);
+			
+			if (idp == null) {
+				
+				idp = new OidcIdpUrls();
+				this.idpUrls.put(discoveryUrl, idp);
+				
+				
+				
+				BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(GlobalEntries.getGlobalEntries().getConfigManager().getHttpClientSocketRegistry());
+				RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
+				CloseableHttpClient http = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(rc).build();
+				
+				try {
+					HttpGet get = new HttpGet(b.toString());
+					
+					
+					CloseableHttpResponse resp = http.execute(get);
+					
+					if (resp.getStatusLine().getStatusCode() == 200) {
+						String json = EntityUtils.toString(resp.getEntity());
+						resp.close();
+						JSONParser parser = new JSONParser();
+						org.json.simple.JSONObject root = (org.json.simple.JSONObject) parser.parse(json);
+						
+						idp.setIdpUrl((String) root.get("authorization_endpoint"));
+						idp.setTokenUrl((String) root.get("token_endpoint"));
+						idp.setUserInfoUrl((String) root.get("userinfo_endpoint"));
+						
+					} else {
+						idp.setIdpUrl(authParams.get("idpURL").getValues().get(0));
+						idp.setTokenUrl(loadTokenURL = authParams.get("loadTokenURL").getValues().get(0));
+					}
+				} catch (ParseException e) {
+					throw new ServletException("Could not parse discovery document",e);
+				} finally {
+					try {
+						http.close();
+					} catch (Throwable e) {
+						
+					}
+					
+					bhcm.close();
+				}
+			} 
+			
+			request.setAttribute(OIDC_IDP, idp);
+			
+			idpURL = idp.getIdpUrl();
+			loadTokenURL = idp.getTokenUrl();
+			
+			
+			
+			
+			
+			
+		} else {
+			idpURL = authParams.get("idpURL").getValues().get(0);
+			loadTokenURL = authParams.get("loadTokenURL").getValues().get(0);
+		}
+		
+		
+		
 		String bearerTokenName = authParams.get("bearerTokenName").getValues().get(0);
 		String clientid = authParams.get("clientid").getValues().get(0);
 		String secret = authParams.get("secretid").getValues().get(0);
-		String idpURL = authParams.get("idpURL").getValues().get(0);
+		
 		String responseType = authParams.get("responseType").getValues().get(0);
 		String scope = authParams.get("scope").getValues().get(0);
 		boolean linkToDirectory = Boolean.parseBoolean(authParams.get("linkToDirectory").getValues().get(0));
@@ -147,7 +233,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 		
 		
 		String hd = authParams.get("hd").getValues().get(0);
-		String loadTokenURL = authParams.get("loadTokenURL").getValues().get(0);
+		
 		
 		
 		if (request.getParameter("state") == null) {

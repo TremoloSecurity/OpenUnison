@@ -38,10 +38,10 @@ public class OpenIDConnectConfig {
 	private List<String> token_endpoint_auth_methods_supported;
 	private List<String> claims_supported;
 	private List<String> code_challenge_methods_supported;
-	private transient String idpName;
 	
-	public OpenIDConnectConfig(String idpName,HttpServletRequest request, MapIdentity mapper) throws MalformedURLException {
-		this.idpName = idpName;
+	
+	public OpenIDConnectConfig(String authUrl,HttpServletRequest request, MapIdentity mapper) throws MalformedURLException {
+		
 		StringBuffer b = new StringBuffer();
 
 		
@@ -49,7 +49,8 @@ public class OpenIDConnectConfig {
 		
 		ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
 		//issuer.append(holder.getUrl().getUri());
-		b.append(cfg.getAuthIdPPath()).append(this.idpName);
+		//b.append(cfg.getAuthIdPPath()).append(this.idpName);
+		b.append(authUrl);
 		
 		this.issuer = ProxyTools.getInstance().getFqdnUrl(b.toString(), request);
 		
@@ -172,9 +173,7 @@ public class OpenIDConnectConfig {
 		return code_challenge_methods_supported;
 	}
 
-	public String getIdpName() {
-		return idpName;
-	}
+
 	
 	
 }
