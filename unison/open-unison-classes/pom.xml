@@ -78,6 +78,12 @@
 			<artifactId>unison-scalejs-main</artifactId>
 			<version>${openunison.version}</version>
 			<type>jar</type>
+			<exclusions>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		
 		<dependency>
@@ -143,6 +149,12 @@
   		<groupId>com.tremolosecurity.unison</groupId>
   		<artifactId>unison-server-core</artifactId>
   		<version>${openunison.version}</version>
+  		<exclusions>
+  			<exclusion>
+  				<groupId>xml-apis</groupId>
+  				<artifactId>xml-apis</artifactId>
+  			</exclusion>
+  		</exclusions>
   	</dependency>
 
 	  <dependency>
