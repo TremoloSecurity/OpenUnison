@@ -87,7 +87,7 @@ public  class AmqSingleKeyProvider extends org.apache.activemq.ActiveMQSslConnec
 		
 		KeyManagerFactory kmf;
 		try {
-			kmf = KeyManagerFactory.getInstance("PKCS12");
+			kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 			kmf.init(ks, GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getKeyStorePassword().toCharArray());
 			super.keyManager = kmf.getKeyManagers();
 		} catch (NoSuchAlgorithmException | UnrecoverableKeyException | KeyStoreException e) {
@@ -96,7 +96,7 @@ public  class AmqSingleKeyProvider extends org.apache.activemq.ActiveMQSslConnec
 		}
 		
 		try {
-			TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKCS12");
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 			tmf.init(ks);
 			super.trustManager = tmf.getTrustManagers();
 		} catch (NoSuchAlgorithmException  | KeyStoreException e) {
