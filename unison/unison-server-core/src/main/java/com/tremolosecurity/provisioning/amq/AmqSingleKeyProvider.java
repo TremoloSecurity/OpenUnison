@@ -79,7 +79,7 @@ public  class AmqSingleKeyProvider extends org.apache.activemq.ActiveMQSslConnec
 		}
 		
 		try {
-			ks.setKeyEntry(this.keyAlias, GlobalEntries.getGlobalEntries().getConfigManager().getPrivateKey(this.keyAlias).getEncoded(), new java.security.cert.X509Certificate[] {GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.keyAlias)});
+			ks.setKeyEntry(this.keyAlias, GlobalEntries.getGlobalEntries().getConfigManager().getPrivateKey(this.keyAlias),GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getKeyStorePassword().toCharArray(), new java.security.cert.X509Certificate[] {GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.keyAlias)});
 		} catch (KeyStoreException e) {
 			logger.error("Could not add certificate to keystore",e);
 			return null;
