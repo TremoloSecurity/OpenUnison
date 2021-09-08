@@ -28,6 +28,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
@@ -49,6 +50,8 @@ import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 
 public class OpenIDConnectToken {
+	static Logger logger = Logger.getLogger(OpenIDConnectToken.class);
+	
 	JwtClaims idClaims;
 	JsonWebSignature idJws;
 	String idEncodedJSON;
@@ -73,7 +76,12 @@ public class OpenIDConnectToken {
         HashMap<String,OpenIDConnectIdP> oidcIdPs = (HashMap<String,OpenIDConnectIdP>) GlobalEntries.getGlobalEntries().get(OpenIDConnectIdP.UNISON_OPENIDCONNECT_IDPS);
         
         OpenIDConnectIdP idp = oidcIdPs.get(this.idpName);
-        this.oidcSession = idp.getSessionStore().getSession(this.oidcSession.getSessionID());
+        
+        try {
+        	this.oidcSession = idp.getSessionStore().getSession(this.oidcSession.getSessionID());
+        } catch (Exception e) {
+        	logger.warn("Could not replace state");
+        }
 	}
 	
 	public OpenIDConnectToken(String idpName, String trustName, String urlOfRequest) {
@@ -102,7 +110,7 @@ public class OpenIDConnectToken {
 		UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
 		
 		OpenIDConnectAccessToken accessToken = new OpenIDConnectAccessToken();
-		oidcSession = idp.createUserSession(request, this.trustName, holder, idp.getTrusts().get(this.trustName), ac.getAuthInfo().getUserDN(), GlobalEntries.getGlobalEntries().getConfigManager(), accessToken,UUID.randomUUID().toString());
+		oidcSession = idp.createUserSession(request, this.trustName, holder, idp.getTrusts().get(this.trustName), ac.getAuthInfo().getUserDN(), GlobalEntries.getGlobalEntries().getConfigManager(), accessToken,UUID.randomUUID().toString(),ac.getAuthInfo().getAuthChain());
 		
 		
 		

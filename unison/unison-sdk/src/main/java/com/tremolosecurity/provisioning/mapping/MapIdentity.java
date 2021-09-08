@@ -404,6 +404,18 @@ public class MapIdentity implements Serializable {
 	}
 	
 	
+	public String getSourceAttributeName(String mapTo) {
+		MappingEntry mapFrom = this.map.get(mapTo);
+		if (mapFrom != null) {
+			if (mapFrom.type == MappingType.userAttr) {
+				return mapFrom.userAttr;
+			}
+		}
+		
+		return null;
+	}
+	
+	
 }
 
 class MappingEntry implements Serializable {

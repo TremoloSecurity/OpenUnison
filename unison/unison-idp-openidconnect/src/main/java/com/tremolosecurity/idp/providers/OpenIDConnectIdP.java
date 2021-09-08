@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.UUID;
 import java.util.zip.Deflater;
@@ -84,6 +85,7 @@ import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.idp.providers.oidc.db.DbOidcSessionStore;
+import com.tremolosecurity.idp.providers.oidc.db.StsRequest;
 import com.tremolosecurity.idp.providers.oidc.model.OIDCSession;
 import com.tremolosecurity.idp.providers.oidc.model.OidcSessionState;
 import com.tremolosecurity.idp.providers.oidc.model.OpenIDConnectConfig;
@@ -105,9 +107,11 @@ import com.tremolosecurity.proxy.SessionManagerImpl;
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.AzSys;
+import com.tremolosecurity.proxy.auth.PostAuthSuccess;
 import com.tremolosecurity.proxy.auth.RequestHolder;
 import com.tremolosecurity.proxy.auth.passwordreset.PasswordResetRequest;
 import com.tremolosecurity.proxy.auth.util.AuthUtil;
+import com.tremolosecurity.proxy.az.AzRule;
 import com.tremolosecurity.proxy.filter.HttpFilterChain;
 import com.tremolosecurity.proxy.filter.HttpFilterChainImpl;
 import com.tremolosecurity.proxy.filter.HttpFilterRequest;
@@ -129,10 +133,12 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(OpenIDConnectIdP.class.getName());
 	
-	private static final String TRANSACTION_DATA = "unison.openidconnect.session";
+	static final String TRANSACTION_DATA = "unison.openidconnect.session";
 
 	public static final String UNISON_SESSION_OIDC_ACCESS_TOKEN = "unison.session.oidc.access.token";
 	public static final String UNISON_SESSION_OIDC_ID_TOKEN = "unison.session.oidc.id.token";
+
+	public static final String STS_TRANSACTION = "unison.session.oidc.sts.request";;
 	String idpName;
 	HashMap<String,OpenIDConnectTrust> trusts;
 	String jwtSigningKeyName;
@@ -150,6 +156,11 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	private HashSet<String> scopes;
 
 	private String authURI;
+
+	private String subAttribute;
+	
+	private Map<String,String> authChainToAmr;
+	private Map<String,String> amrToAuthChain;
 	
 	
 	
@@ -353,8 +364,30 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		UrlHolder holder = (UrlHolder) req.getAttribute(ProxyConstants.AUTOIDM_CFG);
 		String urlChain = holder.getUrl().getAuthChain();
 		
+		if (urlChain == null) {
+			//we now know which chain name it is
+			holder.getUrl().setAuthChain(act.getName());
+		}
 		
 		StringBuffer b = genFinalURL(req);
+		
+		
+		return holder.getConfig().getAuthManager().execAuth(req, resp, session, jsRedirect, holder, act,b.toString());
+	}
+	
+	private boolean nextTokenAuth(HttpServletRequest req,HttpServletResponse resp,HttpSession session,boolean jsRedirect,AuthChainType act) throws ServletException, IOException {
+		
+		RequestHolder reqHolder;
+		
+		UrlHolder holder = (UrlHolder) req.getAttribute(ProxyConstants.AUTOIDM_CFG);
+		String urlChain = holder.getUrl().getAuthChain();
+		
+		if (urlChain == null) {
+			//we now know which chain name it is
+			holder.getUrl().setAuthChain(act.getName());
+		}
+		
+		StringBuffer b = genTokenURL(req);
 		
 		
 		return holder.getConfig().getAuthManager().execAuth(req, resp, session, jsRedirect, holder, act,b.toString());
@@ -373,6 +406,23 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		if (logger.isDebugEnabled()) {
 			logger.debug("final url : '" + b + "'");
+		}
+		return b;
+	}
+	
+	private StringBuffer genTokenURL(HttpServletRequest req) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("url : '" + req.getRequestURL() + "'");
+		}
+		
+		ConfigManager cfg = (ConfigManager) req.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
+		
+		String url = req.getRequestURL().substring(0,req.getRequestURL().indexOf("/",8));
+		StringBuffer b = new StringBuffer(url);
+		b.append(cfg.getAuthIdPPath()).append(this.idpName).append("/token");
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("token url : '" + b + "'");
 		}
 		return b;
 	}
@@ -435,6 +485,77 @@ public class OpenIDConnectIdP implements IdentityProvider {
 					AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() ,  "NONE");
 					response.sendError(401);
 				} 
+				
+				
+			} else if (grantType.equalsIgnoreCase("urn:ietf:params:oauth:grant-type:token-exchange")) {
+				StsRequest stsRequest = new StsRequest();
+				
+				stsRequest.setAudience(request.getParameter("audience"));
+				stsRequest.setDelegation(request.getParameter("actor_token") != null);
+				stsRequest.setImpersonation(! stsRequest.isDelegation());
+				stsRequest.setSubjectToken(request.getParameter("subject_token"));
+				stsRequest.setSubjectTokenType(request.getParameter("subject_token_type"));
+				
+				OpenIDConnectTrust trust = this.trusts.get(clientID);
+				
+				if (trust == null ) {
+					String errorMessage = new StringBuilder().append("Trust '").append(clientID).append("' not found").toString();
+					logger.warn(errorMessage);
+					throw new Exception(errorMessage);
+				}
+				
+				if (! trust.isSts()) {
+					String errorMessage = new StringBuilder().append("Trust '").append(clientID).append("' not an sts").toString();
+					logger.warn(errorMessage);
+					response.sendError(401);
+					return;
+				}
+				
+				String authChain = trust.getAuthChain();
+				
+				if (authChain == null) {
+					StringBuffer b = new StringBuffer();
+					b.append("IdP does not have an authenticaiton chain configured");
+					throw new ServletException(b.toString());
+				}
+				
+				HttpSession session = request.getSession();
+				
+				AuthInfo authData = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+				
+				
+				AuthChainType act = holder.getConfig().getAuthChains().get(authChain);
+				OpenIDConnectTransaction transaction = new OpenIDConnectTransaction();
+				transaction.setClientID(clientID);
+				session.setAttribute(OpenIDConnectIdP.TRANSACTION_DATA, transaction);
+				
+				
+				TokenPostAuth postAuth = new TokenPostAuth(transaction,trust,stsRequest,this);
+				request.setAttribute(PostAuthSuccess.POST_AUTH_ACTION, postAuth);
+				
+				
+				
+				if (authData == null || ! authData.isAuthComplete() && ! (authData.getAuthLevel() < act.getLevel()) ) {
+					nextTokenAuth(request,response,session,false,act);
+				} else {
+					if (authData.getAuthLevel() < act.getLevel()) {
+						//step up authentication, clear existing auth data
+
+						
+						session.removeAttribute(ProxyConstants.AUTH_CTL);
+						holder.getConfig().createAnonUser(session);
+						
+						nextTokenAuth(request,response,session,false,act);
+					} else {
+						
+						// authenticated, next step
+						
+						postAuth.runAfterSuccessfulAuthentication(request, response, holder, act, null, ac, null);
+						
+					}
+				}
+				
+				
 				
 				
 			} else {
@@ -535,7 +656,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		AuthInfo remUser = new AuthInfo();
 		remUser.setUserDN(dbSession.getUserDN());
-		
+		AccessLog.log(AccessEvent.AuSuccess, holder.getApp(), (HttpServletRequest) request, remUser ,  "NONE");
 		AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, remUser ,  "NONE");
 	}
 
@@ -719,6 +840,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		Attribute dn = null;
 		Attribute scopes = null;
 		Attribute nonce = null;
+		Attribute authChainName = null;
 		
 		for (Attribute attr : lmreq.getAttributes()) {
 			if (attr.getName().equalsIgnoreCase("dn")) {
@@ -727,7 +849,9 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				scopes = attr;
 			} else if (attr.getName().equalsIgnoreCase("nonce")) {
 				nonce = attr;
-			} 
+			} else if (attr.getName().equalsIgnoreCase("authChainName")) {
+				authChainName = attr;
+			}
 		}
 		
 		
@@ -760,7 +884,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		String accessToken = null;
 		
-		OidcSessionState oidcSession = createUserSession(request, clientID, holder, trust, dn.getValues().get(0), cfgMgr, access,(nonce != null ? nonce.getValues().get(0) : UUID.randomUUID().toString())); 
+		OidcSessionState oidcSession = createUserSession(request, clientID, holder, trust, dn.getValues().get(0), cfgMgr, access,(nonce != null ? nonce.getValues().get(0) : UUID.randomUUID().toString()),authChainName.getValues().get(0)); 
 		
 		
 		
@@ -793,7 +917,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	}
 
 	public OidcSessionState createUserSession(HttpServletRequest request, String clientID, UrlHolder holder,
-			OpenIDConnectTrust trust, String dn,  ConfigManager cfgMgr, OpenIDConnectAccessToken access,String nonce)
+			OpenIDConnectTrust trust, String dn,  ConfigManager cfgMgr, OpenIDConnectAccessToken access,String nonce,String authChain)
 			throws UnsupportedEncodingException, IOException, ServletException, MalformedURLException {
 		
 		
@@ -813,7 +937,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		extraAttribs.put("session_id", encryptedSessionID);
 		String accessToken = null;
 		try {
-			accessToken = this.produceJWT(this.generateClaims(dn,  cfgMgr, new URL(request.getRequestURL().toString()), trust,nonce,extraAttribs,request),cfgMgr).getCompactSerialization();
+			accessToken = this.produceJWT(this.generateClaims(dn,  cfgMgr, new URL(request.getRequestURL().toString()), trust,nonce,extraAttribs,request,authChain),cfgMgr).getCompactSerialization();
 		} catch (JoseException | LDAPException | ProvisioningException e1) {
 			throw new ServletException("Could not generate jwt",e1);
 		} 
@@ -828,7 +952,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		access.setAccess_token(accessToken);
 		access.setExpires_in((int) (trust.getAccessTokenTimeToLive() / 1000));
 		try {
-			access.setId_token(this.produceJWT(this.generateClaims(dn,  cfgMgr, new URL(request.getRequestURL().toString()), trust,nonce,null,request),cfgMgr).getCompactSerialization());
+			access.setId_token(this.produceJWT(this.generateClaims(dn,  cfgMgr, new URL(request.getRequestURL().toString()), trust,nonce,null,request,authChain),cfgMgr).getCompactSerialization());
 		} catch (Exception e) {
 			throw new ServletException("Could not generate JWT",e);
 		} 
@@ -1130,6 +1254,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		if (transaction.getNonce() != null) {
 			lmreq.getAttributes().add(new Attribute("nonce",transaction.getNonce()));
 		}
+		lmreq.getAttributes().add(new Attribute("authChainName",authInfo.getAuthChain()));
 		SecretKey key = cfgMgr.getSecretKey(trust.getCodeLastmileKeyName());
 		
 		String codeToken = lmreq.generateLastMileToken(key);
@@ -1164,7 +1289,11 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		this.authURI = GlobalEntries.getGlobalEntries().getConfigManager().getApp(this.idpName).getUrls().getUrl().get(0).getUri();
 		
-		loadStaticTrusts(trustCfg);
+		try {
+			loadStaticTrusts(trustCfg);
+		} catch (Exception e1) {
+			logger.warn("could not load trusts",e1);
+		}
 		
 		if (init.get("trustConfigurationClassName") != null) {
 			String className = init.get("trustConfigurationClassName").getValues().get(0);
@@ -1184,11 +1313,28 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			
 		
 		
+		this.amrToAuthChain = new HashMap<String,String>();
+		this.authChainToAmr = new HashMap<String,String>();
 		
+		Attribute au2Amr = init.get("authChainToAmr");
+		
+		if (au2Amr != null) {
+			for (String val : au2Amr.getValues()) {
+				String au = val.substring(0,val.indexOf('='));
+				String amr = val.substring(val.indexOf('=') + 1);
+				
+				this.authChainToAmr.put(au, amr);
+				this.amrToAuthChain.put(amr, au);
+			}
+		}
 		
 		
 		
 		this.mapper = mapper;
+		
+		this.subAttribute = mapper.getSourceAttributeName("sub");
+		
+		
 		this.jwtSigningKeyName = init.get("jwtSigningKey").getValues().get(0);
 		
 		HashMap<String,OpenIDConnectIdP> oidcIdPs = (HashMap<String, OpenIDConnectIdP>) GlobalEntries.getGlobalEntries().get(UNISON_OPENIDCONNECT_IDPS);
@@ -1248,7 +1394,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 	}
 
-	private void loadStaticTrusts(HashMap<String, HashMap<String, Attribute>> trustCfg) {
+	private void loadStaticTrusts(HashMap<String, HashMap<String, Attribute>> trustCfg) throws Exception {
 		this.trusts = new HashMap<String,OpenIDConnectTrust>();
 		for (String trustName : trustCfg.keySet()) {
 			HashMap<String,Attribute> attrs = trustCfg.get(trustName);
@@ -1267,6 +1413,70 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 			
 			trust.setSignedUserInfo(attrs.get("signedUserInfo") != null && attrs.get("signedUserInfo").getValues().get(0).equalsIgnoreCase("true"));
+			
+			
+			
+			
+			
+			
+			trust.setSts(attrs.get("isSts") != null && attrs.get("isSts").getValues().get(0).equalsIgnoreCase("true"));
+			if (trust.isSts()) {
+				Attribute clientAzRuleCfg = attrs.get("clientAzRules");
+				if (clientAzRuleCfg != null) {
+					for (String ruleCfg : clientAzRuleCfg.getValues()) {
+						
+						StringTokenizer toker = new StringTokenizer(ruleCfg,";",false);
+						toker.hasMoreTokens();
+						String scope = toker.nextToken();
+						toker.hasMoreTokens();
+						String constraint = toker.nextToken();
+						
+						try {
+							AzRule rule = new AzRule(scope,constraint,null,GlobalEntries.getGlobalEntries().getConfigManager(),null);
+							trust.getClientAzRules().add(rule);
+						} catch (ProvisioningException e) {
+							throw new ServletException("Could not create az rule",e);
+						}
+					}
+				}
+				
+				Attribute allowedAudiences = attrs.get("authorizedAudiences");
+				if (allowedAudiences != null) {
+					trust.getAllowedAudiences().addAll(allowedAudiences.getValues());
+				}
+				
+				Attribute subjectAzRuleCfg = attrs.get("subjectAzRules");
+				if (subjectAzRuleCfg != null) {
+					for (String ruleCfg : subjectAzRuleCfg.getValues()) {
+						
+						StringTokenizer toker = new StringTokenizer(ruleCfg,";",false);
+						toker.hasMoreTokens();
+						String scope = toker.nextToken();
+						toker.hasMoreTokens();
+						String constraint = toker.nextToken();
+						
+						try {
+							AzRule rule = new AzRule(scope,constraint,null,GlobalEntries.getGlobalEntries().getConfigManager(),null);
+							trust.getSubjectAzRules().add(rule);
+						} catch (ProvisioningException e) {
+							throw new ServletException("Could not create az rule",e);
+						}
+					}
+				}
+				
+				trust.setStsImpersonation(attrs.get("stsImpersonation") != null && attrs.get("stsImpersonation").getValues().get(0).equalsIgnoreCase("true"));
+				trust.setStsDelegation(attrs.get("stsDelegation") != null && attrs.get("stsDelegation").getValues().get(0).equalsIgnoreCase("true"));
+				
+			}
+			
+			
+			
+			
+			
+			
+			
+			
+			
 			
 			
 			
@@ -1306,7 +1516,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			url = url.substring(0,end);
 		}
 		
-		return generateClaims(user.getUserDN(), cfg, new URL(url), this.trusts.get(trustName), null,null,request);
+		return generateClaims(user.getUserDN(), cfg, new URL(url), this.trusts.get(trustName), null,null,request,user.getAuthChain());
 	}
 	
 	
@@ -1343,7 +1553,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	    return jws;
 	}
 
-	private JwtClaims generateClaims(String dn, ConfigManager cfg, URL url, OpenIDConnectTrust trust, String nonce, HashMap<String, String> extraAttribs,HttpServletRequest request)
+	private JwtClaims generateClaims(String dn, ConfigManager cfg, URL url, OpenIDConnectTrust trust, String nonce, HashMap<String, String> extraAttribs,HttpServletRequest request,String authChainName)
 			throws LDAPException, ProvisioningException {
 		StringBuffer issuer = new StringBuffer();
 		
@@ -1391,6 +1601,10 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	    	}
 	    }
 	    
+	    String amr = this.authChainToAmr.get(authChainName);
+	    if (amr != null) {
+	    	claims.setClaim("amr", new String[] {amr});
+	    }
 	    
 	    
 	    if (extraAttribs != null) {
@@ -1473,6 +1687,23 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		}
 		
 	}
+	
+	public String getUidAttributeFromMap() {
+		return this.subAttribute;
+	}
+	
+	public MapIdentity getMapper() {
+		return this.mapper;
+	}
+
+	public Map<String, String> getAuthChainToAmr() {
+		return authChainToAmr;
+	}
+
+	public Map<String, String> getAmrToAuthChain() {
+		return amrToAuthChain;
+	}
+	
 	
 	
 }

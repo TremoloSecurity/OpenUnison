@@ -12,7 +12,12 @@
  *******************************************************************************/
 package com.tremolosecurity.idp.providers;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import com.tremolosecurity.proxy.az.AzRule;
 
 public class OpenIDConnectTrust {
 	HashSet<String> redirectURI;
@@ -30,9 +35,23 @@ public class OpenIDConnectTrust {
 	boolean verifyRedirect;
 	
 	boolean signedUserInfo;
+	
+	
+	boolean sts;
+	
+	List<AzRule> clientAzRules;
+	List<AzRule> subjectAzRules;
+	
+	Set<String> allowedAudiences;
+	
+	boolean stsImpersonation;
+	boolean stsDelegation;
 
 	public OpenIDConnectTrust() {
 		this.redirectURI = new HashSet<String>();
+		this.clientAzRules = new ArrayList<AzRule>();
+		this.allowedAudiences = new HashSet<String>();
+		this.subjectAzRules = new ArrayList<AzRule>();
 	}
 	
 	public boolean isVerifyRedirect() {
@@ -126,6 +145,45 @@ public class OpenIDConnectTrust {
 	public void setRedirectURI(HashSet<String> redirectURI) {
 		this.redirectURI = redirectURI;
 	}
+
+	public boolean isSts() {
+		return sts;
+	}
+
+	public void setSts(boolean sts) {
+		this.sts = sts;
+	}
+
+	public List<AzRule> getClientAzRules() {
+		return clientAzRules;
+	}
+
+	public Set<String> getAllowedAudiences() {
+		return allowedAudiences;
+	}
+
+	public List<AzRule> getSubjectAzRules() {
+		return subjectAzRules;
+	}
+
+	public boolean isStsImpersonation() {
+		return stsImpersonation;
+	}
+
+	public void setStsImpersonation(boolean stsImpersonation) {
+		this.stsImpersonation = stsImpersonation;
+	}
+
+	public boolean isStsDelegation() {
+		return stsDelegation;
+	}
+
+	public void setStsDelegation(boolean stsDelegation) {
+		this.stsDelegation = stsDelegation;
+	}
+	
+	
+	
 	
 	
 	

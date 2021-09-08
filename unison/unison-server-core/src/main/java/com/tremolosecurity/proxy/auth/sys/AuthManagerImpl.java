@@ -61,6 +61,7 @@ import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.AuthMechanism;
 import com.tremolosecurity.proxy.auth.AuthMgrSys;
 import com.tremolosecurity.proxy.auth.AuthSys;
+import com.tremolosecurity.proxy.auth.PostAuthSuccess;
 import com.tremolosecurity.proxy.auth.RequestHolder;
 import com.tremolosecurity.proxy.auth.util.AuthStep;
 import com.tremolosecurity.proxy.util.NextSys;
@@ -767,7 +768,14 @@ public class AuthManagerImpl implements AuthManager {
 			// (redirURL.toString().equalsIgnoreCase(req.getRequestURL().toString())
 			// || ( actl.getAuthSteps().size() == 1 && !
 			// req.getRequestURI().startsWith(cfg.getAuthPath()))) {
-			if (!req.getRequestURI().startsWith(cfg.getAuthPath())) {
+			
+			
+			
+			PostAuthSuccess postAuth = (PostAuthSuccess) req.getAttribute(PostAuthSuccess.POST_AUTH_ACTION);
+			
+			if (postAuth != null) {
+				postAuth.runAfterSuccessfulAuthentication(req, resp, holder, act, reqHolder, actl, next);
+			} else if (!req.getRequestURI().startsWith(cfg.getAuthPath())) {
 
 				next.nextSys(req, resp);
 

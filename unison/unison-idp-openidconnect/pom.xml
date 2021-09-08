@@ -88,6 +88,12 @@
 			<artifactId>jose4j</artifactId>
 			<version>${jose4j.version}</version>
 		</dependency> 
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-scalejs-token</artifactId>
+			<version>${openunison.version}</version>
+			<scope>provided</scope>
+		</dependency>
 		
 	</dependencies>
 </project>
