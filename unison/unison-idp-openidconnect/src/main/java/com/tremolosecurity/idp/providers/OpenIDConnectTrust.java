@@ -46,6 +46,8 @@ public class OpenIDConnectTrust {
 	
 	boolean stsImpersonation;
 	boolean stsDelegation;
+	
+	boolean enableClientCredentialGrant;
 
 	public OpenIDConnectTrust() {
 		this.redirectURI = new HashSet<String>();
@@ -180,6 +182,14 @@ public class OpenIDConnectTrust {
 
 	public void setStsDelegation(boolean stsDelegation) {
 		this.stsDelegation = stsDelegation;
+	}
+
+	public boolean isEnableClientCredentialGrant() {
+		return enableClientCredentialGrant;
+	}
+
+	public void setEnableClientCredentialGrant(boolean enableClientCredentialGrant) {
+		this.enableClientCredentialGrant = enableClientCredentialGrant;
 	}
 	
 	

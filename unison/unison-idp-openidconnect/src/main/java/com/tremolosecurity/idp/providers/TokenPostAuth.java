@@ -235,18 +235,19 @@ public class TokenPostAuth implements PostAuthSuccess {
 			return;
 		}
 		
-		if (this.stsRequest.isImpersonation()) {
-			AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), req, authData, new StringBuilder().append("client '").append(trust.getTrustName()).append("' impersonating '").append(subjectUid).append("'").toString());
-		}
+		
 		
 		OpenIDConnectAccessToken access = new OpenIDConnectAccessToken();
 		
 		OidcSessionState oidcSession = idp.createUserSession(req, stsRequest.getAudience(), holder, targetTrust, subjectForAz.getUserDN(), GlobalEntries.getGlobalEntries().getConfigManager(), access,UUID.randomUUID().toString(),subjectForAz.getAuthChain()); 
 		
 		
+		if (this.stsRequest.isImpersonation()) {
+			AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), req, authData, new StringBuilder().append("client '").append(trust.getTrustName()).append("' impersonating '").append(subjectUid).append("', jti : '").append(access.getIdTokenId()).append("'").toString());
+		}
 		
 		
-		
+		String idtoken = access.getId_token();
 		
 		
 		access.setRefresh_token(oidcSession.getRefreshToken());

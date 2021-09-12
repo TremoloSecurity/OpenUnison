@@ -12,6 +12,8 @@
  *******************************************************************************/
 package com.tremolosecurity.idp.providers;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -22,6 +24,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
@@ -74,9 +77,15 @@ import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.lang.JoseException;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.novell.ldap.LDAPAttribute;
+import com.novell.ldap.LDAPAttributeSet;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
@@ -161,6 +170,20 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	
 	private Map<String,String> authChainToAmr;
 	private Map<String,String> amrToAuthChain;
+	
+	private static HashSet<String> ignoredClaims;
+	
+	static {
+		ignoredClaims = new HashSet<String>();
+		ignoredClaims.add("iss");
+		ignoredClaims.add("aud");
+		ignoredClaims.add("exp");
+		ignoredClaims.add("jti");
+		ignoredClaims.add("iat");
+		ignoredClaims.add("nbf");
+
+		
+	}
 	
 	
 	
@@ -495,6 +518,12 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				stsRequest.setImpersonation(! stsRequest.isDelegation());
 				stsRequest.setSubjectToken(request.getParameter("subject_token"));
 				stsRequest.setSubjectTokenType(request.getParameter("subject_token_type"));
+				stsRequest.setActorToken(request.getParameter("actor_token"));
+				stsRequest.setActorTokenType(request.getParameter("actor_token_type"));
+				
+				
+				stsRequest.setImpersonation(stsRequest.getActorToken() == null);
+				stsRequest.setDelegation(stsRequest.getActorToken() != null);
 				
 				OpenIDConnectTrust trust = this.trusts.get(clientID);
 				
@@ -511,54 +540,159 @@ public class OpenIDConnectIdP implements IdentityProvider {
 					return;
 				}
 				
-				String authChain = trust.getAuthChain();
-				
-				if (authChain == null) {
-					StringBuffer b = new StringBuffer();
-					b.append("IdP does not have an authenticaiton chain configured");
-					throw new ServletException(b.toString());
-				}
-				
-				HttpSession session = request.getSession();
-				
-				AuthInfo authData = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
-				
-				
-				AuthChainType act = holder.getConfig().getAuthChains().get(authChain);
-				OpenIDConnectTransaction transaction = new OpenIDConnectTransaction();
-				transaction.setClientID(clientID);
-				session.setAttribute(OpenIDConnectIdP.TRANSACTION_DATA, transaction);
-				
-				
-				TokenPostAuth postAuth = new TokenPostAuth(transaction,trust,stsRequest,this);
-				request.setAttribute(PostAuthSuccess.POST_AUTH_ACTION, postAuth);
-				
-				
-				
-				if (authData == null || ! authData.isAuthComplete() && ! (authData.getAuthLevel() < act.getLevel()) ) {
-					nextTokenAuth(request,response,session,false,act);
+				if (stsRequest.isImpersonation()) {
+					stsImpersontion(request, response, clientID, ac, holder, stsRequest, trust);
 				} else {
-					if (authData.getAuthLevel() < act.getLevel()) {
-						//step up authentication, clear existing auth data
+					// delegation
+					
+					
+					if (! trust.isStsDelegation()) {
+						logger.warn(new StringBuilder().append("clientid '").append(clientID).append("' does not support delegation"));
+						response.sendError(403);
+					}
+					
+					// validate the actor
+					
+					X509Certificate sigCert = GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.getJwtSigningKeyName());
+					
+					if (sigCert == null) {
+						logger.error(new StringBuilder().append("JWT Signing Certificate '").append(this.getJwtSigningKeyName()).append("' does not exist").toString());
+						response.sendError(500);
+						return;
+					}
+					
+					StringBuffer issuer = new StringBuffer();
+					
+					
+					//issuer.append(cfg.getAuthIdPPath()).append(this.idpName);
+					issuer.append(holder.getApp().getUrls().getUrl().get(0).getUri());
+					
+					String issuerUrl = ProxyTools.getInstance().getFqdnUrl(issuer.toString(), request);
+					
+					
+					HttpSession session = request.getSession();
+					AuthInfo authData = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+					
+					TokenData actorTokenData = this.validateToken(stsRequest.getActorToken(), "actor_token",sigCert.getPublicKey(), issuerUrl, clientID, holder, request, authData, response, false);
+					if (actorTokenData == null) {
+						return;
+					}
+					
+					String uidAttribute = this.getUidAttributeFromMap();
+					if (uidAttribute == null) {
+						logger.error(new StringBuilder().append("IdP ").append(holder.getApp().getName()).append(" does not have a sub attribute mapped to a user attribute").toString());
+						response.sendError(500);
+						return;
+					}
+					
+					String authChainName = null;
+					AuthChainType actorAuthChain = null;
+					if (actorTokenData.amr != null) {
+						authChainName = this.getAmrToAuthChain().get(actorTokenData.amr);
+						if (authChainName != null) {
+							actorAuthChain = GlobalEntries.getGlobalEntries().getConfigManager().getAuthChains().get(authChainName);
+						}
+					}
+					
+					
+					AuthInfo actorAuth = this.jwtToAuthInfo(actorTokenData, uidAttribute, actorAuthChain, authChainName);
+					if (actorAuth == null) {
+						//don't think this can happen
+						logger.error("Could not create user auth object from jwt");
+						response.sendError(500);
+						return;
+					}
+					
+					
+					
+					AzSys azSys = new AzSys();
+					
+					if (! azSys.checkRules(actorAuth, GlobalEntries.getGlobalEntries().getConfigManager(), trust.getClientAzRules(), new HashMap<String,Object>())) {
+						AccessLog.log(AccessEvent.AzFail, holder.getApp(), request, actorAuth, new StringBuilder().append("client not authorized to exchange token for subject '").append(actorTokenData.subjectUid).append("'").toString());
+						response.sendError(403);
+						return;
+					} 
+					
+					if (! trust.getAllowedAudiences().contains(stsRequest.getAudience())) {
+						AccessLog.log(AccessEvent.AzFail, holder.getApp(), request, actorAuth, new StringBuilder().append("Audience '").append(stsRequest.getAudience()).append("' is not an authorized audience for sts '").append(trust.getTrustName()).append("'").toString());
+						response.sendError(403);
+						return;
+					}
+					
+					OpenIDConnectTrust targetTrust = this.getTrusts().get(stsRequest.getAudience());
+					if (targetTrust == null) {
+						logger.warn(new StringBuilder().append("Audience '").append(stsRequest.getAudience()).append("' does not exist").toString());
+						
+						response.sendError(404);
+						return;
+					}
+					
+					
+					TokenData subjectTokenData = this.validateToken(stsRequest.getSubjectToken(), "subject_token",sigCert.getPublicKey(), issuerUrl, null, holder, request, authData, response, true);
+					if (subjectTokenData == null) {
+						return;
+					}
+					
+					authChainName = null;
+					actorAuthChain = null;
+					if (subjectTokenData.amr != null) {
+						authChainName = this.getAmrToAuthChain().get(subjectTokenData.amr);
+						if (authChainName != null) {
+							actorAuthChain = GlobalEntries.getGlobalEntries().getConfigManager().getAuthChains().get(authChainName);
+						}
+					}
+					
+					
+					AuthInfo subjectAuth = this.jwtToAuthInfo(subjectTokenData, uidAttribute, actorAuthChain, authChainName);
+					if (subjectAuth == null) {
+						//don't think this can happen
+						logger.error("Could not create user auth object from jwt");
+						response.sendError(500);
+						return;
+					}
 
-						
-						session.removeAttribute(ProxyConstants.AUTH_CTL);
-						holder.getConfig().createAnonUser(session);
-						
-						nextTokenAuth(request,response,session,false,act);
-					} else {
-						
-						// authenticated, next step
-						
-						postAuth.runAfterSuccessfulAuthentication(request, response, holder, act, null, ac, null);
-						
+					
+					if (! azSys.checkRules(subjectAuth, GlobalEntries.getGlobalEntries().getConfigManager(), trust.getSubjectAzRules(), new HashMap<String,Object>())) {
+						AccessLog.log(AccessEvent.AzFail, holder.getApp(), request, actorAuth, new StringBuilder().append("client not authorized to exchange token for subject '").append(subjectTokenData.subjectUid).append("'").toString());
+						response.sendError(403);
+						return;
+					} 
+					
+					OpenIDConnectAccessToken access = new OpenIDConnectAccessToken();
+					
+					OidcSessionState oidcSession = this.createUserSession(request, stsRequest.getAudience(), holder, targetTrust, subjectAuth.getUserDN(), GlobalEntries.getGlobalEntries().getConfigManager(), access,UUID.randomUUID().toString(),subjectAuth.getAuthChain(),subjectTokenData.root,actorTokenData.root); 
+					
+					AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), request, actorAuth, new StringBuilder().append("client '").append(trust.getTrustName()).append("' delegated to by '").append(subjectTokenData.subjectUid).append("', jti : '").append(access.getIdTokenId()).append("'").toString());
+					
+					
+					
+					String idtoken = access.getId_token();
+					
+					
+					access.setRefresh_token(oidcSession.getRefreshToken());
+					
+					
+					Gson gson = new Gson();
+					String json = gson.toJson(access);
+					
+					response.setContentType("application/json");
+					response.getOutputStream().write(json.getBytes("UTF-8"));
+					response.getOutputStream().flush();
+					
+					if (logger.isDebugEnabled()) {
+						logger.debug("Token JSON : '" + json + "'");
 					}
 				}
 				
 				
 				
 				
-			} else {
+			} else if (grantType.equalsIgnoreCase("client_credentials")) {
+				clientCredentialsGrant(request, response, clientID, clientSecret, ac, holder);
+				
+				
+			}
+			else {
 				completeUserLogin(request, response, code, clientID, clientSecret, holder, ac.getAuthInfo());
 			}
 			
@@ -581,6 +715,305 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			}
 		}
 
+	}
+	
+	
+	
+	private TokenData validateToken(String token,String tokenType,Key validationKey,String requiredIssuer,String requiredAudience, UrlHolder holder, HttpServletRequest req, AuthInfo authData, HttpServletResponse resp,boolean requiresAmr) throws ServletException {
+		JsonWebSignature jws = new JsonWebSignature();
+		TokenData td = new TokenData();
+		try {
+			jws.setCompactSerialization(token);
+			jws.setKey(validationKey);
+			if (! jws.verifySignature()) {
+				AccessLog.log(AccessEvent.AzFail, holder.getApp(), req, authData, new StringBuilder().append("Invalid ").append(tokenType).append(" signature").toString());
+				resp.sendError(403);
+				return null;
+			}
+			
+			String json = jws.getPayload();
+			JSONObject obj = (JSONObject) new JSONParser().parse(json);
+			td.root = obj;
+			long exp = ((Long)obj.get("exp")) * 1000L;
+			long nbf = ((Long)obj.get("nbf")) * 1000L;
+			
+			if (new DateTime(exp).isBeforeNow()) {
+				AccessLog.log(AccessEvent.AzFail, holder.getApp(), req, authData, new StringBuilder().append(tokenType).append(" has expired").toString());
+				resp.sendError(403);
+				return null;
+			}
+			
+			if (new DateTime(nbf).isAfterNow()) {
+				AccessLog.log(AccessEvent.AzFail, holder.getApp(), req, authData, new StringBuilder().append(tokenType).append(" is not yet valid").toString());
+				resp.sendError(403);
+				return null;
+			}
+			
+			StringBuffer issuer = new StringBuffer();
+			
+			
+			//issuer.append(cfg.getAuthIdPPath()).append(this.idpName);
+			issuer.append(holder.getApp().getUrls().getUrl().get(0).getUri());
+			
+			String issuerUrl = ProxyTools.getInstance().getFqdnUrl(issuer.toString(), req);
+			
+			if (! ((String) obj.get("iss")).equals(issuerUrl)) {
+				AccessLog.log(AccessEvent.AzFail, holder.getApp(), req, authData, new StringBuilder().append(tokenType).append(" has an invalid issuer").toString());
+				resp.sendError(403);
+				return null;
+			}
+			
+			if (requiredAudience != null) {
+				if (! ((String) obj.get("aud")).equals(requiredAudience)  ) {
+					AccessLog.log(AccessEvent.AzFail, holder.getApp(), req, authData, new StringBuilder().append(tokenType).append(" has an invalid audience").toString());
+					resp.sendError(403);
+					return null;
+				}
+			}
+			
+			td.subjectUid = (String) obj.get("sub");
+			if (td.subjectUid == null) {
+				logger.error("Subject has no sub claim");
+				resp.sendError(422);
+				return null;
+			}
+			
+			JSONArray amrs = (JSONArray) obj.get("amr");
+			if (amrs == null ) {
+				if (requiresAmr) {
+					logger.warn("subject_token does not contain an amr claim");
+					resp.sendError(422);
+					return null;
+				}
+			} else {
+				td.amr = (String) amrs.get(0);
+			}
+			
+			return td;
+			
+			
+		} catch (JoseException | ParseException | IOException e) {
+			throw new ServletException("Could not verify subject JWT",e);
+		}
+	}
+	
+	private AuthInfo jwtToAuthInfo(TokenData td,String uidAttr,AuthChainType act,String subjectAuthMethod) throws ServletException {
+		String filter = "";
+		
+		
+		
+		
+		if (td.subjectUid == null) {
+			filter = "(!(objectClass=*))";
+		} else {
+			filter = equal(uidAttr,td.subjectUid).toString();
+		}
+		
+		
+		try {
+			
+			String root = act.getRoot();
+			if (root == null || root.trim().isEmpty()) {
+				root = GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot();
+			}
+			
+			
+			AuthChainType actForSubject = GlobalEntries.getGlobalEntries().getConfigManager().getAuthChains().get(subjectAuthMethod);
+			if (actForSubject == null) {
+				logger.warn(new StringBuilder("No authentication chain named '").append(subjectAuthMethod).append("'"));
+			}
+			
+			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(root, 2, filter, new ArrayList<String>());
+			
+			if (res.hasMore()) {
+				LDAPEntry entry = res.next();
+				
+				
+				
+				AuthInfo authInfo = new AuthInfo(entry.getDN(),null,actForSubject != null ? actForSubject.getName() : null,actForSubject != null ? actForSubject.getLevel() : 0);
+				User user = new User(entry);
+				user = this.getMapper().mapUser(user);
+				
+				for (String attrName : user.getAttribs().keySet()) {
+					authInfo.getAttribs().put(attrName, user.getAttribs().get(attrName));
+				}
+				
+				if (authInfo.getAttribs().get(uidAttr) == null) {
+					authInfo.getAttribs().put(uidAttr, new Attribute(uidAttr,td.subjectUid));
+				}
+				return authInfo;
+			}  else {
+				String dn = new StringBuilder().append(uidAttr).append("=").append(td.subjectUid).append(",ou=oauth2,").append(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot()).toString();
+				AuthInfo authInfo = new AuthInfo(dn,null,actForSubject != null ? actForSubject.getName() : null,actForSubject != null ? actForSubject.getLevel() : 0);
+				
+				for (Object key : td.root.keySet()) {
+					Attribute attr = new Attribute(key.toString());
+					
+					if (attr.getName().equalsIgnoreCase("sub")) {
+						authInfo.getAttribs().put(uidAttr, new Attribute(uidAttr,(String) td.root.get(key)));
+					}
+					
+					
+					if (td.root.get(key) instanceof JSONArray) {
+						attr.getValues().addAll(((JSONArray)td.root.get(key)));
+					} else {
+						attr.getValues().add(td.root.get(key).toString());
+					}
+					
+					authInfo.getAttribs().put((String) key, attr);
+					
+					return authInfo;
+				}
+			}
+			
+		} catch (LDAPException | ProvisioningException e) {
+			throw new ServletException("Could not lookup sts subject",e);
+		}
+		return null;
+	}
+
+	private void stsImpersontion(HttpServletRequest request, HttpServletResponse response, String clientID,
+			AuthController ac, UrlHolder holder, StsRequest stsRequest, OpenIDConnectTrust trust)
+			throws ServletException, IOException {
+		String authChain = trust.getAuthChain();
+		
+		if (authChain == null) {
+			StringBuffer b = new StringBuffer();
+			b.append("IdP does not have an authenticaiton chain configured");
+			throw new ServletException(b.toString());
+		}
+		
+		HttpSession session = request.getSession();
+		
+		AuthInfo authData = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+		
+		
+		AuthChainType act = holder.getConfig().getAuthChains().get(authChain);
+		OpenIDConnectTransaction transaction = new OpenIDConnectTransaction();
+		transaction.setClientID(clientID);
+		session.setAttribute(OpenIDConnectIdP.TRANSACTION_DATA, transaction);
+		
+		
+		TokenPostAuth postAuth = new TokenPostAuth(transaction,trust,stsRequest,this);
+		request.setAttribute(PostAuthSuccess.POST_AUTH_ACTION, postAuth);
+		
+		
+		
+		if (authData == null || ! authData.isAuthComplete() && ! (authData.getAuthLevel() < act.getLevel()) ) {
+			nextTokenAuth(request,response,session,false,act);
+		} else {
+			if (authData.getAuthLevel() < act.getLevel()) {
+				//step up authentication, clear existing auth data
+
+				
+				session.removeAttribute(ProxyConstants.AUTH_CTL);
+				holder.getConfig().createAnonUser(session);
+				
+				nextTokenAuth(request,response,session,false,act);
+			} else {
+				
+				// authenticated, next step
+				
+				postAuth.runAfterSuccessfulAuthentication(request, response, holder, act, null, ac, null);
+				
+			}
+		}
+	}
+
+	private void clientCredentialsGrant(HttpServletRequest request, HttpServletResponse response, String clientID,
+			String clientSecret, AuthController ac, UrlHolder holder) throws Exception, IOException, ServletException {
+		OpenIDConnectTrust trust = this.trusts.get(clientID);
+		
+		if (trust == null ) {
+			String errorMessage = new StringBuilder().append("Trust '").append(clientID).append("' not found").toString();
+			logger.warn(errorMessage);
+			throw new Exception(errorMessage);
+		}
+		
+		if (! trust.isEnableClientCredentialGrant()) {
+			logger.error(new StringBuilder().append("Trust '").append(clientID).append("' does not support the client_credentials grant").toString());
+			response.sendError(403);
+			return;
+		}
+		
+		String authChain = trust.getAuthChain();
+		
+		if (authChain == null) {
+			
+			
+			
+			if (trust.isPublicEndpoint()) {
+				StringBuffer b = new StringBuffer();
+				b.append("IdP does not have an authenticaiton chain configured, but is set to public");
+				throw new ServletException(b.toString());
+			} else {
+				if (clientSecret == null || ! clientSecret.equals(trust.getClientSecret())) {
+					logger.warn(new StringBuilder().append("Invalid client secret for '").append(clientID).append("'"));
+					response.sendError(401);
+					
+				} else {
+					HttpSession session = request.getSession();
+					
+					AuthInfo authData = new AuthInfo();
+					authData.setUserDN(new StringBuilder().append("uid=").append(clientID).append(",ou=oauth2,").append(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot()).toString());
+					authData.setAuthLevel(0);
+					authData.setAuthChain("anonymous");
+					authData.getAttribs().put("uid", new Attribute("uid",clientID));
+					authData.getAttribs().put("objectClass", new Attribute("objectClass",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getUserObjectClass()));
+
+					((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).setAuthInfo(authData);
+					
+					AuthChainType act = holder.getConfig().getAuthChains().get(authChain);
+					
+					OpenIDConnectTransaction transaction = new OpenIDConnectTransaction();
+					transaction.setClientID(clientID);
+					session.setAttribute(OpenIDConnectIdP.TRANSACTION_DATA, transaction);
+					
+					ClientCredentialsGrantPostAuth postAuth = new ClientCredentialsGrantPostAuth(transaction,trust,this);
+					request.setAttribute(PostAuthSuccess.POST_AUTH_ACTION, postAuth);
+					
+					postAuth.runAfterSuccessfulAuthentication(request, response, holder, act, null, ac, null);
+					
+				}
+				
+				return;
+			}
+		}
+		
+		HttpSession session = request.getSession();
+		
+		AuthInfo authData = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+		
+		
+		AuthChainType act = holder.getConfig().getAuthChains().get(authChain);
+		OpenIDConnectTransaction transaction = new OpenIDConnectTransaction();
+		transaction.setClientID(clientID);
+		session.setAttribute(OpenIDConnectIdP.TRANSACTION_DATA, transaction);
+		
+		ClientCredentialsGrantPostAuth postAuth = new ClientCredentialsGrantPostAuth(transaction,trust,this);
+		request.setAttribute(PostAuthSuccess.POST_AUTH_ACTION, postAuth);
+		
+		
+		
+		if (authData == null || ! authData.isAuthComplete() && ! (authData.getAuthLevel() < act.getLevel()) ) {
+			nextTokenAuth(request,response,session,false,act);
+		} else {
+			if (authData.getAuthLevel() < act.getLevel()) {
+				//step up authentication, clear existing auth data
+
+				
+				session.removeAttribute(ProxyConstants.AUTH_CTL);
+				holder.getConfig().createAnonUser(session);
+				
+				nextTokenAuth(request,response,session,false,act);
+			} else {
+				
+				// authenticated, next step
+				
+				postAuth.runAfterSuccessfulAuthentication(request, response, holder, act, null, ac, null);
+				
+			}
+		}
 	}
 
 	private void processUserInfoRequest(HttpServletRequest request, HttpServletResponse response)
@@ -919,6 +1352,12 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	public OidcSessionState createUserSession(HttpServletRequest request, String clientID, UrlHolder holder,
 			OpenIDConnectTrust trust, String dn,  ConfigManager cfgMgr, OpenIDConnectAccessToken access,String nonce,String authChain)
 			throws UnsupportedEncodingException, IOException, ServletException, MalformedURLException {
+		return this.createUserSession(request, clientID, holder, trust, dn, cfgMgr, access, nonce, authChain, null,null);
+	}
+	
+	public OidcSessionState createUserSession(HttpServletRequest request, String clientID, UrlHolder holder,
+			OpenIDConnectTrust trust, String dn,  ConfigManager cfgMgr, OpenIDConnectAccessToken access,String nonce,String authChain, JSONObject existingClaims,JSONObject actor)
+			throws UnsupportedEncodingException, IOException, ServletException, MalformedURLException {
 		
 		
 		
@@ -937,7 +1376,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		extraAttribs.put("session_id", encryptedSessionID);
 		String accessToken = null;
 		try {
-			accessToken = this.produceJWT(this.generateClaims(dn,  cfgMgr, new URL(request.getRequestURL().toString()), trust,nonce,extraAttribs,request,authChain),cfgMgr).getCompactSerialization();
+			accessToken = this.produceJWT(this.generateClaims(dn,  cfgMgr, new URL(request.getRequestURL().toString()), trust,nonce,extraAttribs,request,authChain,existingClaims,actor),cfgMgr).getCompactSerialization();
 		} catch (JoseException | LDAPException | ProvisioningException e1) {
 			throw new ServletException("Could not generate jwt",e1);
 		} 
@@ -952,7 +1391,9 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		access.setAccess_token(accessToken);
 		access.setExpires_in((int) (trust.getAccessTokenTimeToLive() / 1000));
 		try {
-			access.setId_token(this.produceJWT(this.generateClaims(dn,  cfgMgr, new URL(request.getRequestURL().toString()), trust,nonce,null,request,authChain),cfgMgr).getCompactSerialization());
+			JwtClaims claims = this.generateClaims(dn,  cfgMgr, new URL(request.getRequestURL().toString()), trust,nonce,null,request,authChain,existingClaims,actor);
+			access.setIdTokenId(claims.getJwtId());
+			access.setId_token(this.produceJWT(claims,cfgMgr).getCompactSerialization());
 		} catch (Exception e) {
 			throw new ServletException("Could not generate JWT",e);
 		} 
@@ -1406,7 +1847,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			
 			
 			trust.setCodeLastmileKeyName(attrs.get("codeLastMileKeyName").getValues().get(0));
-			trust.setAuthChain(attrs.get("authChainName").getValues().get(0));
+			trust.setAuthChain(attrs.get("authChainName") != null ? attrs.get("authChainName").getValues().get(0) : null);
 			trust.setCodeTokenTimeToLive(Long.parseLong(attrs.get("codeTokenSkewMilis").getValues().get(0)));
 			trust.setAccessTokenTimeToLive(Long.parseLong(attrs.get("accessTokenTimeToLive").getValues().get(0)));
 			trust.setAccessTokenSkewMillis(Long.parseLong(attrs.get("accessTokenSkewMillis").getValues().get(0)));
@@ -1467,6 +1908,10 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				trust.setStsImpersonation(attrs.get("stsImpersonation") != null && attrs.get("stsImpersonation").getValues().get(0).equalsIgnoreCase("true"));
 				trust.setStsDelegation(attrs.get("stsDelegation") != null && attrs.get("stsDelegation").getValues().get(0).equalsIgnoreCase("true"));
 				
+			}
+			Attribute enableClientCredentialsGrant = attrs.get("enableClientCredentialsGrant");
+			if (enableClientCredentialsGrant != null) {
+				trust.setEnableClientCredentialGrant(enableClientCredentialsGrant.getValues().get(0).equalsIgnoreCase("true"));
 			}
 			
 			
@@ -1553,7 +1998,11 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	    return jws;
 	}
 
-	private JwtClaims generateClaims(String dn, ConfigManager cfg, URL url, OpenIDConnectTrust trust, String nonce, HashMap<String, String> extraAttribs,HttpServletRequest request,String authChainName)
+	private JwtClaims generateClaims(String dn, ConfigManager cfg, URL url, OpenIDConnectTrust trust, String nonce, HashMap<String, String> extraAttribs,HttpServletRequest request,String authChainName) throws LDAPException, ProvisioningException {
+		return this.generateClaims(dn, cfg, url, trust, nonce, extraAttribs, request, authChainName,null,null);
+	}
+	
+	private JwtClaims generateClaims(String dn, ConfigManager cfg, URL url, OpenIDConnectTrust trust, String nonce, HashMap<String, String> extraAttribs,HttpServletRequest request,String authChainName,JSONObject existingClaims,JSONObject actor)
 			throws LDAPException, ProvisioningException {
 		StringBuffer issuer = new StringBuffer();
 		
@@ -1577,27 +2026,80 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	    if (nonce != null) {
 	    	claims.setClaim("nonce", nonce);
 	    }
+	    
+	    
+	    
+	    LDAPEntry entry = null;
+	    User user = null;
+	    
 	    ArrayList<String> attrs = new ArrayList<String>();
-	    LDAPSearchResults res = cfg.getMyVD().search(dn,0, "(objectClass=*)", attrs);
-	    
-	    res.hasMore();
-	    LDAPEntry entry = res.next();
-	    
-	    User user = new User(entry); 
-	    user = this.mapper.mapUser(user, true);
-	    
-	    
-	    
-	    for (String attrName : user.getAttribs().keySet()) {
-	    	Attribute attr = user.getAttribs().get(attrName);
-	    	if (attr != null) {
-		    	if (attr.getName().equalsIgnoreCase("sub")) {
-		    		claims.setSubject(attr.getValues().get(0));
-		    	} else if (attr.getValues().size() == 1) {
-		    		claims.setClaim(attrName,attr.getValues().get(0));
-		    	} else {
-		    		claims.setStringListClaim(attrName, attr.getValues());
+	    try {
+		    if (existingClaims != null) {
+		    	LDAPAttributeSet atts = new LDAPAttributeSet();
+		    	
+		    	for (Object key : existingClaims.keySet()) {
+		    		if (! ignoredClaims.contains((String) key)) {
+		    			LDAPAttribute attr = new LDAPAttribute((String)key);
+		    			atts.add(attr);
+		    			Object o = existingClaims.get(key);
+		    			if (o instanceof JSONArray) {
+		    				JSONArray vals = (JSONArray) o;
+		    				for (Object x : vals) {
+		    					try {
+									attr.addValue(x.toString().getBytes("UTF-8"));
+								} catch (UnsupportedEncodingException e) {
+									//can't happen
+								}
+		    				}
+		    			} else {
+		    				try {
+								attr.addValue(o.toString().getBytes("UTF-8"));
+							} catch (UnsupportedEncodingException e) {
+								//can't happen
+							}
+		    			}
+		    		}
 		    	}
+		    	
+		    	entry = new LDAPEntry(dn,atts);
+		    	
+		    } else {
+		    	LDAPSearchResults res = cfg.getMyVD().search(dn,0, "(objectClass=*)", attrs);
+			    
+			    res.hasMore();
+			    entry = res.next();
+		    }
+	    	
+	    	
+		    
+		    user = new User(entry); 
+		    
+		    if (existingClaims == null) {
+		    	user = this.mapper.mapUser(user, true);
+		    }
+		    
+		    
+		    
+		    for (String attrName : user.getAttribs().keySet()) {
+		    	Attribute attr = user.getAttribs().get(attrName);
+		    	if (attr != null) {
+			    	if (attr.getName().equalsIgnoreCase("sub")) {
+			    		claims.setSubject(attr.getValues().get(0));
+			    	} else if (attr.getValues().size() == 1) {
+			    		claims.setClaim(attrName,attr.getValues().get(0));
+			    	} else {
+			    		claims.setStringListClaim(attrName, attr.getValues());
+			    	}
+		    	}
+		    }
+	    } catch (LDAPException err) {
+	    	if (err.getResultCode() == 32) {
+	    		String sub = dn.substring(dn.indexOf('=')+1 , dn.indexOf(','));
+	    		claims.setSubject(sub);
+	    		claims.setClaim("client", true);
+	    		claims.setClaim("auth_chain", authChainName);
+	    	} else {
+	    		throw err;
 	    	}
 	    }
 	    
@@ -1612,6 +2114,23 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	    		claims.setClaim(key, extraAttribs.get(key));
 	    	}
 	    }
+	    
+	    if (actor != null) {
+	    	JSONObject actorToAdd = new JSONObject();
+	    	for (Object key : existingClaims.keySet()) {
+	    		if (! ignoredClaims.contains((String) key)) {
+	    			actorToAdd.put(key, actor.get(key));
+	    		}
+	    	}
+	    	
+	    	Map actorFromSubject = (Map) claims.getClaimValue("actor");
+	    	if (actorFromSubject != null) {
+	    		actorFromSubject.put("act", actorToAdd);
+	    	} else {
+	    		claims.setClaim("act", actorToAdd);
+	    	}
+	    }
+	    
 	    
 	    
 	    if (this.claimsUpdater != null) {
@@ -1705,5 +2224,13 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	}
 	
 	
+	
+}
+
+
+class TokenData {
+	String subjectUid;
+	String amr;
+	JSONObject root;
 	
 }

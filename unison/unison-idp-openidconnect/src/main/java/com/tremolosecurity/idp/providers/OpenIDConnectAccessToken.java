@@ -18,6 +18,7 @@ public class OpenIDConnectAccessToken {
 	String token_type;
 	String id_token;
 	String refresh_token;
+	transient String idTokenId;
 	
 	public OpenIDConnectAccessToken() {
 		
@@ -61,6 +62,14 @@ public class OpenIDConnectAccessToken {
 
 	public void setRefresh_token(String refresh_token) {
 		this.refresh_token = refresh_token;
+	}
+
+	public String getIdTokenId() {
+		return idTokenId;
+	}
+
+	public void setIdTokenId(String idTokenId) {
+		this.idTokenId = idTokenId;
 	}
 	
 	

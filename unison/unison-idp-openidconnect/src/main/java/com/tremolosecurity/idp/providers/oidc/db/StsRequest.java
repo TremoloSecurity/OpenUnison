@@ -21,6 +21,8 @@ public class StsRequest {
 	String audience;
 	String subjectToken;
 	String subjectTokenType;
+	String actorToken;
+	String actorTokenType;
 	
 	public StsRequest() {
 		
@@ -57,6 +59,28 @@ public class StsRequest {
 	public void setSubjectTokenType(String subjectTokenType) {
 		this.subjectTokenType = subjectTokenType;
 	}
+
+
+	public String getActorToken() {
+		return actorToken;
+	}
+
+
+	public void setActorToken(String actorToken) {
+		this.actorToken = actorToken;
+	}
+
+
+	public String getActorTokenType() {
+		return actorTokenType;
+	}
+
+
+	public void setActorTokenType(String actorTokenType) {
+		this.actorTokenType = actorTokenType;
+	}
+	
+	
 	
 	
 	
