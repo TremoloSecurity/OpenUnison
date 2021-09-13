@@ -92,7 +92,7 @@
 		<commons-beanutils.version>1.9.4</commons-beanutils.version>
 		<swagger-core.version>2.1.5</swagger-core.version>
 		<k8sapi.version>10.0.0</k8sapi.version>
-		<jgit.version>5.11.1.202105131744-r</jgit.version>
+		<jgit.version>5.13.0.202109080827-r</jgit.version>
 		<json-patch.version>1.13</json-patch.version>
 		<batik-svgbrowser.version>1.14</batik-svgbrowser.version>
 		<xmlgraphics-commons.version>2.6</xmlgraphics-commons.version>
