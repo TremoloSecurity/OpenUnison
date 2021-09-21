@@ -85,7 +85,7 @@
 	  	<okta.version>4.0.0</okta.version>
 	  	<azure-auth.version>1.10.0</azure-auth.version>
 	  	<cryptacular.version>1.2.4</cryptacular.version>
-	  	<santuario-xmlsec.version>2.2.2</santuario-xmlsec.version>
+	  	<santuario-xmlsec.version>2.2.3</santuario-xmlsec.version>
 		<netty-codec.version>4.1.65.Final</netty-codec.version>
 		<dom4j.version>2.1.3</dom4j.version>  
 		<gitlab.version>4.16.0</gitlab.version>
