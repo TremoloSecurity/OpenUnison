@@ -107,7 +107,7 @@
 		<nimbusds.version>9.7</nimbusds.version>
 		<pdfbox.version>2.0.23</pdfbox.version>
 		<ws.rs-api.version>2.1.1</ws.rs-api.version>
-		<qpid.version>1.0.0</qpid.version>
+		<qpid.version>1.2.0</qpid.version>
 		<commons-io.version>2.9.0</commons-io.version>
 	</properties>
 
