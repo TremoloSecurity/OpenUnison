@@ -39,15 +39,20 @@ public class MyVDOpenUnisonLDAPServer extends LdapServer {
 	
 	@Override
 	public SSLContext getSSLContext() throws NoSuchAlgorithmException, KeyManagementException {
-		SSLContext sslc = SSLContext.getInstance("TLS");
 		
-		X509ExtendedKeyManager keyMgr = (X509ExtendedKeyManager) keyManager;
-		KeyManager[] keyManagers = new KeyManager[1];
-		keyManagers[0] = new AliasX509KeyManager(keyAlias,keyMgr,ks);
-		
-		sslc.init(keyManagers, null, null);
-		
-		return sslc;
+		if (this.keyAlias != null) {
+			SSLContext sslc = SSLContext.getInstance("TLS");
+			
+			X509ExtendedKeyManager keyMgr = (X509ExtendedKeyManager) keyManager;
+			KeyManager[] keyManagers = new KeyManager[1];
+			keyManagers[0] = new AliasX509KeyManager(keyAlias,keyMgr,ks);
+			
+			sslc.init(keyManagers, null, null);
+			
+			return sslc;
+		} else {
+			return super.getSSLContext();
+		}
 	}
 	
 	public void setTlsParams(String keyAlias,KeyStore ks,X509ExtendedKeyManager keyManager) {
