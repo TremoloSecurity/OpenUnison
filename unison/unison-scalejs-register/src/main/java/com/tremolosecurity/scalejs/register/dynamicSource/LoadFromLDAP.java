@@ -66,11 +66,6 @@ public class LoadFromLDAP implements SourceList {
 		
 		dynSearch = attribute.getType().equalsIgnoreCase("text-list");
 		
-		
-		
-		if (config.get("searchField") != null) {
-			this.searchAttribute = config.get("searchField").getValues().get(0);
-		}
 	}
 
 	@Override
