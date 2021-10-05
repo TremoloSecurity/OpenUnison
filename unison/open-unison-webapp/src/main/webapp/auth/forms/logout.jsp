@@ -59,7 +59,7 @@ limitations under the License.
 			<h3>Logged Out of Unison</h3>	
 		</div>
 		<div class="jumbotron">
-			<img src="<%= authURL %>images/ts_logo.png" />
+			<img src="<%= authURL %>logos/ts_logo.png" />
 			<br />
 			<h2>You Are Now Logged Out of Unison</h2>
 <h3>Please Close this Window</h3>

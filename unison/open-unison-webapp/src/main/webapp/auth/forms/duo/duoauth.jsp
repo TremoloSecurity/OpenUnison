@@ -72,7 +72,7 @@ limitations under the License.
 			<h3>DUO Security Login</h3>	
 		</div>
 		<div class="jumbotron">
-			<img src="<%= authURL %>images/ts_logo.png" />
+			<img src="<%= authURL %>logos/ts_logo.png" />
 			<br />
 			<div class="alert alert-danger" role="alert">
 			<h2>Logging in with DUO Security</h2>

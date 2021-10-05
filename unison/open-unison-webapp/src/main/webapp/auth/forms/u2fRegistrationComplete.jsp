@@ -63,7 +63,7 @@ if (reqHolder != null) {
 			<h3>U2F Registration Complete</h3>	
 		</div>
 		<div class="jumbotron">
-			<img src="<%= auth %>images/ts_logo.png" />
+			<img src="<%= auth %>logos/ts_logo.png" />
 			<br />
 			<% if (((Boolean)request.getAttribute("register.result")).booleanValue()) { %>
 			<h4>You may now login with your U2F device</h4>

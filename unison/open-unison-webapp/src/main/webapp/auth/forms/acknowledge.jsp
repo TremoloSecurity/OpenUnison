@@ -63,7 +63,7 @@ if (reqHolder != null) {
 			<h3>Please Acknowledge the Below Notice</h3>	
 		</div>
 		<div class="jumbotron">
-			<img src="<%= auth %>images/ts_logo.png" />
+			<img src="<%= auth %>logos/ts_logo.png" />
 			<br />
 			
 			<div id="banner"><%= request.getAttribute("banner") %></div>

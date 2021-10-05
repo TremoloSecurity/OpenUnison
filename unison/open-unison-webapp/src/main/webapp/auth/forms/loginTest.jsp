@@ -63,7 +63,7 @@ limitations under the License.
 			<h3>Login Testing Page</h3>
 		</div>
 		<div class="jumbotron">
-			<img src="<%=authURL%>images/ts_logo.png" />
+			<img src="<%=authURL%>logos/ts_logo.png" />
 
 
 

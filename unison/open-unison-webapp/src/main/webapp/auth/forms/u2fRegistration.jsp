@@ -64,7 +64,7 @@ if (reqHolder != null) {
 			<h3>Register Your U2F Device</h3>	
 		</div>
 		<div class="jumbotron">
-			<img src="<%= auth %>images/ts_logo.png" />
+			<img src="<%= auth %>logos/ts_logo.png" />
 			<br />
 			
 			

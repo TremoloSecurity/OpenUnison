@@ -63,7 +63,7 @@ if (reqHolder != null) {
 			<h3>Login</h3>	
 		</div>
 		<div class="jumbotron">
-			<img src="<%= auth %>images/ts_logo.png" />
+			<img src="<%= auth %>logos/ts_logo.png" />
 			<br />
 			<form  role="form" action="<%= session.getAttribute("TREMOLO_AUTH_URI") %>" method="post">
 				<% for (String chainName : chainMap.keySet()) { %>

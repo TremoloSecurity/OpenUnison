@@ -60,7 +60,7 @@ limitations under the License.
 			<h3>Password Reset Sent</h3>	
 		</div>
 		<div class="jumbotron">
-			<img src="<%= authURL %>images/ts_logo.png" />
+			<img src="<%= authURL %>logos/ts_logo.png" />
 			<br />
 			<div class="alert alert-success" role="alert">
 			<h2>Password Reset Sent</h2>

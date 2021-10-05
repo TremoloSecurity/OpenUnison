@@ -25,7 +25,7 @@ limitations under the License.
 <body>
 <div id="error"></div>
 <center>
-<img src="/auth/forms/images/ts_logo.png" />
+<img src="/auth/forms/logos/ts_logo.png" />
 <h2>Error</h2>
 An error has occurred : <%= ((Exception) request.getAttribute("EXCEPTION")).toString() %>
 <br /><input type="button" value="Go Back" onClick="history.go(-1);" />

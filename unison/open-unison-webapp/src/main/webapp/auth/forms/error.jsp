@@ -62,7 +62,7 @@ limitations under the License.
 		
 
 		
-			<img src="<%= authURL %>images/ts_logo.png" />
+			<img src="<%= authURL %>logos/ts_logo.png" />
 			<br />
 			<div class="alert alert-danger" role="alert">
 			<h2>Error</h2>

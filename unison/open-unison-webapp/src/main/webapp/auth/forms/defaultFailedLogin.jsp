@@ -60,7 +60,7 @@ if (reqHolder != null) {
 			<h3>Invalid Login</h3>	
 		</div>
 		<div class="jumbotron">
-			<img src="<%= auth %>images/ts_logo.png" />
+			<img src="<%= auth %>logos/ts_logo.png" />
 			<br />
 			<div class="alert alert-danger" role="alert">
 			<h2>Not Authorized</h2>
