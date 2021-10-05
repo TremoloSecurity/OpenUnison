@@ -16,6 +16,8 @@
 package com.tremolosecurity.scalejs.register.dynamicSource;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -39,17 +41,36 @@ public class LoadFromLDAP implements SourceList {
 	int maxEntries;
 	String searchBase;
 	String objectClass;
+	String searchAttribute;
+	
+	boolean sort;
+	
+	boolean dynSearch;
 	
 	@Override
 	public void init(ScaleAttribute attribute, Map<String, Attribute> config) {
 		
 		nameField = config.get("nameField").getValues().get(0);
 		valueField = config.get("valueField").getValues().get(0);
+		this.searchAttribute = valueField;
 		maxEntries = Integer.parseInt(config.get("maxEntries").getValues().get(0));
 		searchBase = config.get("searchBase").getValues().get(0);
 		errorMessage = config.get("errorMessage").getValues().get(0);
 		objectClass = config.get("objectClass").getValues().get(0);
 		
+		this.sort = false;
+		
+		if (config.get("sort") != null) {
+			this.sort = config.get("sort").getValues().get(0).equalsIgnoreCase("true");
+		}
+		
+		dynSearch = attribute.getType().equalsIgnoreCase("text-list");
+		
+		
+		
+		if (config.get("searchField") != null) {
+			this.searchAttribute = config.get("searchField").getValues().get(0);
+		}
 	}
 
 	@Override
@@ -57,20 +78,39 @@ public class LoadFromLDAP implements SourceList {
 		if (request.getParameter("search") == null ) {
 			ArrayList<NVP> toReturn = new ArrayList<NVP>();
 			
-			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),present(this.valueField)).toString(), new ArrayList<String>());
+			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),present(this.searchAttribute)).toString(), new ArrayList<String>());
 			int num = 0;
 			while (res.hasMore()) {
-				LDAPEntry entry = res.next();
-				String name = entry.getAttribute(this.nameField).getStringValue();
-				String value = entry.getAttribute(this.valueField).getStringValue();
-				toReturn.add(new NVP(name,value));
+				if ((this.dynSearch && num < this.maxEntries) || ! this.dynSearch) {
+					LDAPEntry entry = res.next();
+					String name = entry.getAttribute(this.nameField).getStringValue();
+					String value = entry.getAttribute(this.valueField).getStringValue();
+					toReturn.add(new NVP(name,value));
+				} else {
+					res.next();
+				}
+				
+				
+				
+				num++;
+				
+				
+			}
+			
+			if (this.sort) {
+				Collections.sort(toReturn, new Comparator<NVP>() {
+
+				@Override
+				public int compare(NVP arg0, NVP arg1) {
+					return arg0.getName().compareTo(arg1.getName());
+				}});
 			}
 			
 			return toReturn;
 		} else {
 			ArrayList<NVP> toReturn = new ArrayList<NVP>();
 			
-			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),contains(this.valueField,request.getParameter("search").getValues().get(0))).toString(), new ArrayList<String>());
+			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),contains(this.searchAttribute,request.getParameter("search").getValues().get(0))).toString(), new ArrayList<String>());
 			int num = 0;
 			while (res.hasMore() && num < this.maxEntries) {
 				LDAPEntry entry = res.next();
@@ -82,8 +122,19 @@ public class LoadFromLDAP implements SourceList {
 			
 			while (res.hasMore()) res.next();
 			
+			if (this.sort) {
+				Collections.sort(toReturn, new Comparator<NVP>() {
+
+				@Override
+				public int compare(NVP arg0, NVP arg1) {
+					return arg0.getName().compareTo(arg1.getName());
+				}});
+			}
+			
 			return toReturn;
 		}
+		
+		
 	}
 
 	@Override
