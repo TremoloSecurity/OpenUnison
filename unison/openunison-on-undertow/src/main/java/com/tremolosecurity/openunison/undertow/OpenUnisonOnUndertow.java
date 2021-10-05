@@ -313,7 +313,7 @@ public class OpenUnisonOnUndertow {
                 //.addFilterUrlMapping("debug", "/*", DispatcherType.REQUEST)
                 
                 .addFilterUrlMapping("openunison", "/*", DispatcherType.REQUEST)
-                .setResourceManager(new FileResourceManager(pathToWebApp,1024,true))
+                .setResourceManager(new FileResourceManager(pathToWebApp,1024,true,true))
                 .addServlet(JspServletBuilder.createServlet("Default Jsp Servlet", "*.jsp"))
                 .addServlet(
                 		Servlets.servlet("identityProvider",com.tremolosecurity.idp.server.IDP.class)
