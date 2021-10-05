@@ -959,6 +959,9 @@ public class OpenIDConnectIdP implements IdentityProvider {
 					authData.setAuthLevel(0);
 					authData.setAuthChain("anonymous");
 					authData.getAttribs().put("uid", new Attribute("uid",clientID));
+					authData.getAttribs().put("sub", new Attribute("sub",clientID));
+					authData.getAttribs().put("client", new Attribute("client","true"));
+					authData.getAttribs().put("auth_chain", new Attribute("auth_chain","anonymous"));
 					authData.getAttribs().put("objectClass", new Attribute("objectClass",GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getUserObjectClass()));
 
 					((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).setAuthInfo(authData);
@@ -2033,50 +2036,68 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	    User user = null;
 	    
 	    ArrayList<String> attrs = new ArrayList<String>();
-	    try {
-		    if (existingClaims != null) {
-		    	LDAPAttributeSet atts = new LDAPAttributeSet();
-		    	
-		    	for (Object key : existingClaims.keySet()) {
-		    		if (! ignoredClaims.contains((String) key)) {
-		    			LDAPAttribute attr = new LDAPAttribute((String)key);
-		    			atts.add(attr);
-		    			Object o = existingClaims.get(key);
-		    			if (o instanceof JSONArray) {
-		    				JSONArray vals = (JSONArray) o;
-		    				for (Object x : vals) {
-		    					try {
-									attr.addValue(x.toString().getBytes("UTF-8"));
+	    
+	    	
+	    	LDAPSearchResults res = null;
+	    	boolean userFromLdap = false;
+	    	try {
+	    		res = cfg.getMyVD().search(dn,0, "(objectClass=*)", attrs);
+	    		if (res.hasMore()) {
+	    			userFromLdap = true;
+	    		}
+	    	} catch (LDAPException e) {
+	    		if (e.getResultCode() == 32) {
+	    			userFromLdap = false;
+	    		} else {
+	    			throw e;
+	    		}
+	    	}
+	    	
+	    	
+	    	if (userFromLdap) {
+	    		entry = res.next();
+	    	} else {
+			    if (existingClaims != null) {
+			    	LDAPAttributeSet atts = new LDAPAttributeSet();
+			    	
+			    	for (Object key : existingClaims.keySet()) {
+			    		if (! ignoredClaims.contains((String) key)) {
+			    			LDAPAttribute attr = new LDAPAttribute((String)key);
+			    			atts.add(attr);
+			    			Object o = existingClaims.get(key);
+			    			if (o instanceof JSONArray) {
+			    				JSONArray vals = (JSONArray) o;
+			    				for (Object x : vals) {
+			    					try {
+										attr.addValue(x.toString().getBytes("UTF-8"));
+									} catch (UnsupportedEncodingException e) {
+										//can't happen
+									}
+			    				}
+			    			} else {
+			    				try {
+									attr.addValue(o.toString().getBytes("UTF-8"));
 								} catch (UnsupportedEncodingException e) {
 									//can't happen
 								}
-		    				}
-		    			} else {
-		    				try {
-								attr.addValue(o.toString().getBytes("UTF-8"));
-							} catch (UnsupportedEncodingException e) {
-								//can't happen
-							}
-		    			}
-		    		}
-		    	}
-		    	
-		    	entry = new LDAPEntry(dn,atts);
-		    	
-		    } else {
-		    	LDAPSearchResults res = cfg.getMyVD().search(dn,0, "(objectClass=*)", attrs);
-			    
-			    res.hasMore();
-			    entry = res.next();
-		    }
+			    			}
+			    		}
+			    	}
+			    	
+			    	entry = new LDAPEntry(dn,atts);
+			    	
+			    } else {
+			    	throw new ProvisioningException("Could not lookup user or get from existing claims");
+			    }
+	    	}
 	    	
 	    	
 		    
 		    user = new User(entry); 
 		    
-		    if (existingClaims == null) {
+		    if (userFromLdap) {
 		    	user = this.mapper.mapUser(user, true);
-		    }
+		    } 
 		    
 		    
 		    
@@ -2092,16 +2113,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			    	}
 		    	}
 		    }
-	    } catch (LDAPException err) {
-	    	if (err.getResultCode() == 32) {
-	    		String sub = dn.substring(dn.indexOf('=')+1 , dn.indexOf(','));
-	    		claims.setSubject(sub);
-	    		claims.setClaim("client", true);
-	    		claims.setClaim("auth_chain", authChainName);
-	    	} else {
-	    		throw err;
-	    	}
-	    }
+	    
 	    
 	    String amr = this.authChainToAmr.get(authChainName);
 	    if (amr != null) {

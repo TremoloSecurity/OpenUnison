@@ -311,6 +311,8 @@ public class OAuth2K8sServiceAccount extends OAuth2Bearer {
 			
 		}
 		
+		authInfo.getAttribs().put("sub", new Attribute("sub",uid));
+		
 		authInfo.getAttribs().put("objectClass", new Attribute("objectClass",defaultObjectClass));
 	}
 

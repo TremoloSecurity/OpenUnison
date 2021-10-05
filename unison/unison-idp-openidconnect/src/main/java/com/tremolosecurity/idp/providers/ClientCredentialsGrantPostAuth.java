@@ -25,6 +25,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import com.google.gson.Gson;
 import com.tremolosecurity.config.util.UrlHolder;
@@ -40,6 +42,7 @@ import com.tremolosecurity.proxy.auth.PostAuthSuccess;
 import com.tremolosecurity.proxy.auth.RequestHolder;
 import com.tremolosecurity.proxy.util.NextSys;
 import com.tremolosecurity.proxy.util.ProxyConstants;
+import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 
 public class ClientCredentialsGrantPostAuth implements PostAuthSuccess {
@@ -77,9 +80,20 @@ public class ClientCredentialsGrantPostAuth implements PostAuthSuccess {
 			return;
 		} 
 		
+		JSONObject existingClaims = new JSONObject();
+		for (String attrName : authData.getAttribs().keySet()) {
+			Attribute attr = authData.getAttribs().get(attrName);
+			if (attr.getValues().size() == 1) {
+				existingClaims.put(attrName, attr.getValues().get(0));
+			} else {
+				JSONArray vals = new JSONArray();
+				vals.addAll(attr.getValues());
+				existingClaims.put(attrName, vals);
+			}
+		}
 		
 		OpenIDConnectAccessToken access = new OpenIDConnectAccessToken();
-		OidcSessionState oidcSession = idp.createUserSession(req, trust.getClientID(), holder, trust, authData.getUserDN(), GlobalEntries.getGlobalEntries().getConfigManager(), access,UUID.randomUUID().toString(),authData.getAuthChain());
+		OidcSessionState oidcSession = idp.createUserSession(req, trust.getClientID(), holder, trust, authData.getUserDN(), GlobalEntries.getGlobalEntries().getConfigManager(), access,UUID.randomUUID().toString(),authData.getAuthChain(),existingClaims,null);
 		
 		Gson gson = new Gson();
 		String json = gson.toJson(access);
