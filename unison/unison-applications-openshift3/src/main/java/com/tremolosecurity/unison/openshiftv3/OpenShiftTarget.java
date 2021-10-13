@@ -566,6 +566,34 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 	}
 	
+	public boolean isObjectExistsByPath(String token, HttpCon con,String uri) throws IOException, ClientProtocolException,ProvisioningException, ParseException {
+		
+		JSONParser parser = new JSONParser();
+		
+		
+
+		
+		
+		StringBuffer b = new StringBuffer();
+		
+		b.append(uri);
+		
+		
+		String json = this.callWS(token, con, b.toString());
+		
+
+		JSONObject root = (JSONObject) parser.parse(json);
+		if (root.containsKey("kind") && root.get("kind").equals("Status") && ((Long) root.get("code")) == 404) {
+			return false;
+		} else {
+			return true;
+		}
+			
+
+		
+		
+	}
+	
 	public String callWSDelete(String token, HttpCon con,String uri) throws IOException, ClientProtocolException {
 		StringBuffer b = new StringBuffer();
 		
@@ -606,6 +634,10 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	}
 	
 	public String callWSPatchJson(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
+		return this.callWSPatchJson(token, con, uri, json, "application/merge-patch+json");
+	}
+	
+	public String callWSPatchJson(String token, HttpCon con,String uri,String json,String contentType) throws IOException, ClientProtocolException {
 		StringBuffer b = new StringBuffer();
 		
 		b.append(this.getUrl()).append(uri);
@@ -617,7 +649,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			put.addHeader(new BasicHeader("Authorization","Bearer " + token));
 		}
 		
-		StringEntity str = new StringEntity(json,ContentType.create("application/merge-patch+json"));
+		StringEntity str = new StringEntity(json,ContentType.create(contentType));
 		put.setEntity(str);
 		
 		HttpResponse resp = con.getHttp().execute(put);

@@ -22,6 +22,7 @@ public class GitFile {
 	boolean delete;
 	boolean isNamespace;
 	boolean patch;
+	String patchType;
 	
 	public GitFile(String fileName,String dirName,String data) {
 		this.fileName = fileName;
@@ -87,6 +88,14 @@ public class GitFile {
 
 	public void setPatch(boolean patch) {
 		this.patch = patch;
+	}
+
+	public String getPatchType() {
+		return patchType;
+	}
+
+	public void setPatchType(String patchType) {
+		this.patchType = patchType;
 	}
 	
 	

@@ -75,8 +75,12 @@ public class PatchK8sObject implements CustomTask {
     String path;
     
     
+    
 
     transient WorkflowTask task;
+
+	private String patchType;
+	private String patchContentType;
 
     @Override
     public boolean doTask(User user, Map<String, Object> request) throws ProvisioningException {
@@ -129,6 +133,7 @@ public class PatchK8sObject implements CustomTask {
         		GitFile gitFile = new GitFile(fileName,dirName,false,false);
         		gitFile.setData(localTemplate);
         		gitFile.setPatch(true);
+        		gitFile.setPatchType(this.patchType);
         		
         		List<GitFile> gitFiles = (List<GitFile>) request.get(this.requestAttribute);
         		
@@ -145,7 +150,7 @@ public class PatchK8sObject implements CustomTask {
             } else {
             	if (this.isObjectExists(os,token, con, localURL,localTemplate)) {
 
-                    String respJSON = os.callWSPatchJson(token, con, localURL, localTemplate);
+                    String respJSON = os.callWSPatchJson(token, con, localURL, localTemplate,this.patchContentType);
 
                     if (logger.isDebugEnabled()) {
                         logger.debug("Response for creating project : '" + respJSON + "'");
@@ -200,6 +205,19 @@ public class PatchK8sObject implements CustomTask {
 	        	if (params.get("path") != null ) this.path = params.get("path").getValues().get(0);
         	}
         }
+        
+        if (params.get("patchType") != null) {
+        	this.patchType = params.get("patchType").getValues().get(0);
+        } else {
+        	this.patchType = "merge";
+        }
+        
+        switch (this.patchType) {
+        	case "strategic": this.patchContentType = "application/strategic-merge-patch+json"; break;
+        	case "merge" : this.patchContentType = "application/merge-patch+json"; break;
+        	case "json" : this.patchContentType = "application/json-patch+json"; break;
+        	default: throw new ProvisioningException("Unknown patch type, one of strategic, merge, or json is required");
+        }
 
 	}
 
@@ -212,8 +230,8 @@ public class PatchK8sObject implements CustomTask {
     private boolean isObjectExists(OpenShiftTarget os,String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException,ProvisioningException, ParseException {
 		
 		JSONParser parser = new JSONParser();
-		JSONObject root = (JSONObject) parser.parse(json);
-		JSONObject metadata = (JSONObject) root.get("metadata");
+		JSONObject root = null;
+		
 
 		
 

@@ -50,7 +50,9 @@ import org.yaml.snakeyaml.Yaml;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
+import com.github.fge.jsonpatch.Patch;
 import com.github.fge.jsonpatch.mergepatch.JsonMergePatch;
 import com.google.common.io.Files;
 import com.tremolosecurity.provisioning.tasks.dataobj.GitFile;
@@ -157,7 +159,16 @@ public class GitUtils {
 				ObjectMapper mapper = new ObjectMapper();
 				
 				JsonNode toBePatched = mapper.readValue(jsonObject.toJSONString(), JsonNode.class);
-				JsonMergePatch patch = mapper.readValue(file.getData(), JsonMergePatch.class);
+				
+				Patch patch = null;
+				if (file.getPatchType().equalsIgnoreCase("json")) {
+					patch = mapper.readValue(file.getData(), JsonPatch.class);
+				} else if (file.getPatchType().equalsIgnoreCase("merge")) {
+					patch = mapper.readValue(file.getData(), JsonMergePatch.class);
+				} else {
+					throw new IOException("Unsupported merge strategy " + file.getPatchType());
+				}
+				
 				
 				JsonNode patched = patch.apply(toBePatched);
 				
