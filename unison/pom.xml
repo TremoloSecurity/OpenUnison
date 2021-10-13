@@ -109,6 +109,7 @@
 		<ws.rs-api.version>2.1.1</ws.rs-api.version>
 		<qpid.version>1.0.0</qpid.version>
 		<commons-io.version>2.9.0</commons-io.version>
+		<graaljs.version>21.2.0</graaljs.version>
 	</properties>
 
 	<repositories>
