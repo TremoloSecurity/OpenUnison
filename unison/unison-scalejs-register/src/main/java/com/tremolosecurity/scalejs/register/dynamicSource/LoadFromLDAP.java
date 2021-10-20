@@ -53,6 +53,11 @@ public class LoadFromLDAP implements SourceList {
 		nameField = config.get("nameField").getValues().get(0);
 		valueField = config.get("valueField").getValues().get(0);
 		this.searchAttribute = valueField;
+		
+		if (config.get("searchField") != null) {
+			this.searchAttribute = config.get("searchField").getValues().get(0);
+		}
+		
 		maxEntries = Integer.parseInt(config.get("maxEntries").getValues().get(0));
 		searchBase = config.get("searchBase").getValues().get(0);
 		errorMessage = config.get("errorMessage").getValues().get(0);
