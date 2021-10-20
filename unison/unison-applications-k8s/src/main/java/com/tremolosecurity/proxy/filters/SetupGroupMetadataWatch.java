@@ -16,7 +16,9 @@
 package com.tremolosecurity.proxy.filters;
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.novell.ldap.util.DN;
@@ -31,7 +33,7 @@ import com.tremolosecurity.proxy.filter.HttpFilterResponse;
 
 public class SetupGroupMetadataWatch implements HttpFilter {
 
-	static Map<String,String> ext2k8s;
+	static Map<String,List<String>> ext2k8s;
 	static Map<String,String> k8s2ext;
 	
 	
@@ -75,7 +77,7 @@ public class SetupGroupMetadataWatch implements HttpFilter {
 		this.target = config.getAttribute("target").getValues().get(0);
 		this.namespace = config.getAttribute("namespace").getValues().get(0);
 		
-		ext2k8s = new HashMap<String,String>();
+		ext2k8s = new HashMap<String, List<String>>();
 		k8s2ext = new HashMap<String,String>();
 		
 		LoadGroupMetadataFromK8s lgm = new LoadGroupMetadataFromK8s();
@@ -83,7 +85,7 @@ public class SetupGroupMetadataWatch implements HttpFilter {
 		
 	}
 	
-	public static String getK8s(String ext) {
+	public static List<String> getK8s(String ext) {
 		return ext2k8s.get(ext.toLowerCase()); 
 	}
 	
@@ -102,7 +104,15 @@ public class SetupGroupMetadataWatch implements HttpFilter {
 			ext = dn.toString();
 		}
 		
-		ext2k8s.put(ext, k8s);
+		List<String> k8sFromExt = ext2k8s.get(ext);
+		if (k8sFromExt == null) {
+			k8sFromExt = new ArrayList<String>();
+			ext2k8s.put(ext, k8sFromExt);
+		}
+		
+		k8sFromExt.add(k8s);
+		
+		
 		k8s2ext.put(k8s, ext);
 	}
 	
@@ -116,13 +126,22 @@ public class SetupGroupMetadataWatch implements HttpFilter {
 		}
 		
 		String keyToDel = null;
+		String valToDel = null;
 		for (String key : ext2k8s.keySet()) {
-			if (ext2k8s.get(key).equalsIgnoreCase(k8s)) {
-				keyToDel = key;
+			for (String val : ext2k8s.get(key)) {
+				if (val.equalsIgnoreCase(k8s)) {
+					keyToDel = key;
+					valToDel = val;
+				}
 			}
+			
+			
 		}
 		
-		ext2k8s.remove(keyToDel);
+		ext2k8s.get(keyToDel).remove(valToDel);
+		if (ext2k8s.get(keyToDel).size() == 0) {
+			ext2k8s.remove(keyToDel);
+		}
 		
 		keyToDel = null;
 		
