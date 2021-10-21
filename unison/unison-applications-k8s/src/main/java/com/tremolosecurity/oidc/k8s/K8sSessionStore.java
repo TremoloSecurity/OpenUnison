@@ -18,9 +18,12 @@ import java.util.Map;
 
 import javax.servlet.ServletContext;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 import com.google.gson.Gson;
 import com.tremolosecurity.idp.providers.oidc.model.OidcSessionState;
@@ -62,6 +65,10 @@ public class K8sSessionStore implements OidcSessionStore {
 		createObject.put("metadata", metaData);
 		metaData.put("name", sessionIdName);
 		metaData.put("namespace",this.nameSpace);
+		
+		HashMap<String,Object> labels = new HashMap<String,Object>();
+		metaData.put("labels",labels);
+		labels.put("tremolo.io/user-dn", DigestUtils.sha1Hex(session.getUserDN()));
 		
 		HashMap<String,Object> spec = new HashMap<String,Object>();
 		createObject.put("spec", spec);
@@ -304,5 +311,63 @@ public class K8sSessionStore implements OidcSessionStore {
 		
 
 	}
+
+	@Override
+	public void deleteAllSessions(String sessionId) throws Exception {
+		String sessionIdName = new StringBuilder().append("x").append(sessionId).append("x").toString();
+		
+		OpenShiftTarget k8s = null;
+		try {
+			k8s = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(this.k8sTarget).getProvider();
+		} catch (ProvisioningException e1) {
+			logger.error("Could not retrieve kubernetes target",e1);
+			throw new ProvisioningException("Could not connect to kubernetes",e1);
+		}
+		
+		String url = new StringBuilder().append("/apis/openunison.tremolo.io/v1/namespaces/").append(this.nameSpace).append("/oidc-sessions/").append(sessionIdName).toString();
+		
+		try {
+			HttpCon con = k8s.createClient();
+			
+			
+			
+			try {
+				
+				String jsonResp = k8s.callWS(k8s.getAuthToken(), con, url);
+				JSONObject root = (JSONObject) new JSONParser().parse(jsonResp);
+				
+				if (root.containsKey("kind") && root.get("kind").equals("Status") && ((Long) root.get("code")) == 404) {
+					logger.warn(new StringBuilder().append("Session ID ").append(sessionId).append(" does not exist"));
+					return;
+				}
+				
+				JSONObject metadata = (JSONObject) root.get("metadata");
+				
+				JSONObject labels = (JSONObject) metadata.get("labels");
+				
+				String dnHash = (String) labels.get("tremolo.io/user-dn");
+				
+				url = new StringBuilder().append("/apis/openunison.tremolo.io/v1/namespaces/").append(this.nameSpace).append("/oidc-sessions?labelSelector=tremolo.io%2Fuser-dn%3D").append(dnHash).toString();
+				
+				
+				jsonResp = k8s.callWSDelete(k8s.getAuthToken(), con, url);
+				
+				if (logger.isDebugEnabled()) {
+					logger.debug("json response from deleting object : " + jsonResp);
+				}
+				
+			} finally {
+				con.getHttp().close();
+				con.getBcm().close();
+			}
+		} catch (Exception e) {
+			logger.error("Could not search k8s",e);
+			throw new Exception("Error searching kubernetes",e);
+			
+		}
+	
+
+	}
+		
 
 }

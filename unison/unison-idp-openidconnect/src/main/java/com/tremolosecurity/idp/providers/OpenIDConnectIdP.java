@@ -2234,6 +2234,11 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	public Map<String, String> getAmrToAuthChain() {
 		return amrToAuthChain;
 	}
+
+	public void removeAllSessions(OidcSessionState session) throws Exception {
+		this.sessionStore.deleteAllSessions(session.getSessionID());
+		
+	}
 	
 	
 	

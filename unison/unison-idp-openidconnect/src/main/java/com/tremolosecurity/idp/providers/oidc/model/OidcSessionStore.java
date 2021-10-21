@@ -31,6 +31,8 @@ public interface OidcSessionStore {
 	
 	public void deleteSession(String sessionId) throws Exception;
 	
+	public void deleteAllSessions(String sessionId) throws Exception;
+	
 	public OidcSessionState getSession(String sessionId) throws Exception;
 	
 	public void resetSession(OidcSessionState session) throws Exception;

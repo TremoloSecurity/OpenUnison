@@ -16,6 +16,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
+
 import com.tremolosecurity.idp.providers.OpenIDConnectIdP;
 import com.tremolosecurity.idp.providers.oidc.model.OIDCSession;
 import com.tremolosecurity.idp.providers.oidc.model.OidcSessionState;
@@ -23,6 +25,8 @@ import com.tremolosecurity.proxy.logout.LogoutHandler;
 
 public class ClearOidcSessionOnLogout implements LogoutHandler {
 
+	static Logger logger = Logger.getLogger(ClearOidcSessionOnLogout.class);
+	
 	OidcSessionState session;
 	OpenIDConnectIdP idp;
 	
@@ -34,8 +38,12 @@ public class ClearOidcSessionOnLogout implements LogoutHandler {
 	@Override
 	public void handleLogout(HttpServletRequest request, HttpServletResponse response) throws ServletException {
 		
-		idp.removeSession(session);
-
+		try {
+			idp.removeAllSessions(session);
+		} catch (Exception e) {
+			logger.warn(new StringBuilder().append("Could not delete session ").append(session.getSessionID()).toString(),e);
+		}
+		
 	}
 
 }

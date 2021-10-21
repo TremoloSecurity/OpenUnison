@@ -307,6 +307,16 @@ public class DbOidcSessionStore implements OidcSessionStore {
 			StandardServiceRegistryBuilder.destroy( registry );
 		}
 	}
+	
+	
+	
+
+	@Override
+	public void deleteAllSessions(String sessionId) throws Exception {
+		//for now, should add eventually
+		this.deleteSession(sessionId);
+		
+	}
 
 	@Override
 	public void shutdown() throws Exception {

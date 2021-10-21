@@ -45,6 +45,14 @@ public class NoneBackend implements OidcSessionStore {
 
 	}
 
+	
+	
+	@Override
+	public void deleteAllSessions(String sessionId) throws Exception {
+	
+		
+	}
+
 	@Override
 	public OidcSessionState getSession(String sessionId) throws Exception {
 		throw new Exception("Not Supported");
