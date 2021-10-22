@@ -1944,7 +1944,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				} catch (InstantiationException | IllegalAccessException e) {
 					throw new ProvisioningException("Could not create dynmaic job",e);
 				}
-				dynJobs.loadDynamicJobs(cfgMgr, this,cfgAttrs);
+				dynJobs.loadDynamicJobs(cfgMgr, this,cfgAttrs,jobKeys);
 			}
 			
 			
@@ -1969,9 +1969,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	public void deleteRemovedJobs(HashSet<String> jobKeys, String groupName)
 			throws SchedulerException {
 		//get job's trigger
-		
-		
 			 
+		
+		
 	     for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.jobGroupEquals(groupName))) {
 	 
 		  String jobName = jobKey.getName();

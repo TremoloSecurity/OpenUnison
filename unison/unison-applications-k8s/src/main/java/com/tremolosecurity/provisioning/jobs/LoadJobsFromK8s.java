@@ -54,6 +54,10 @@ public class LoadJobsFromK8s implements DynamicJobs, K8sWatchTarget {
 	private ProvisioningEngine provisioningEngine;
 	private ConfigManager cfgMgr;
 
+	HashSet<String> jobKeys;
+	
+	
+	
 	@Override
 	public void addObject(TremoloType cfg, JSONObject item) throws ProvisioningException {
 		
@@ -173,7 +177,7 @@ public class LoadJobsFromK8s implements DynamicJobs, K8sWatchTarget {
 		
 		
 		try {
-			this.cfgMgr.getProvisioningEngine().addNewJob(new HashSet<String>(), job);
+			this.cfgMgr.getProvisioningEngine().addNewJob(jobKeys, job);
 		} catch (ClassNotFoundException | SchedulerException | ProvisioningException e) {
 			throw new ProvisioningException("Could not add job '" + name + "'",e);
 		}
@@ -212,8 +216,7 @@ public class LoadJobsFromK8s implements DynamicJobs, K8sWatchTarget {
 	}
 
 	@Override
-	public void loadDynamicJobs(ConfigManager cfgMgr, ProvisioningEngine provisioningEngine,
-			Map<String, Attribute> init) throws ProvisioningException {
+	public void loadDynamicJobs(ConfigManager cfgMgr, ProvisioningEngine provisioningEngine,Map<String, Attribute> init,HashSet<String> jobKeys) throws ProvisioningException {
 		this.tremolo = cfgMgr.getCfg();
 		String k8sTarget = 	init.get("k8starget").getValues().get(0);
 		String namespace = init.get("namespace").getValues().get(0);
@@ -224,7 +227,7 @@ public class LoadJobsFromK8s implements DynamicJobs, K8sWatchTarget {
 		this.cfgMgr = cfgMgr;
 		
 		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,uri,this,cfgMgr,provisioningEngine);
-		
+		this.jobKeys = jobKeys;
 		this.k8sWatch.initalRun();
 
 	}

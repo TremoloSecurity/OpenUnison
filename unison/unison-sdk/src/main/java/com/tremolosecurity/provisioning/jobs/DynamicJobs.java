@@ -15,6 +15,7 @@
  *******************************************************************************/
 package com.tremolosecurity.provisioning.jobs;
 
+import java.util.HashSet;
 import java.util.Map;
 
 import com.tremolosecurity.config.util.ConfigManager;
@@ -25,6 +26,6 @@ import com.tremolosecurity.saml.Attribute;
 
 public interface DynamicJobs {
 	
-	public void loadDynamicJobs(ConfigManager cfgMgr,ProvisioningEngine provisioningEngine,Map<String,Attribute> configAttributes) throws ProvisioningException;
+	public void loadDynamicJobs(ConfigManager cfgMgr,ProvisioningEngine provisioningEngine,Map<String,Attribute> configAttributes,HashSet<String> jobKeys) throws ProvisioningException;
 
 }
