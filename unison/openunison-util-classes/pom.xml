@@ -150,6 +150,11 @@
 			<artifactId>guava</artifactId>
 			<version>${guava.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.santuario</groupId>
+			<artifactId>xmlsec</artifactId>
+			<version>${santuario-xmlsec.version}</version>
+		</dependency>
     </dependencies>
 
 </project>

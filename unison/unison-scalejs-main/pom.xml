@@ -74,5 +74,15 @@ limitations under the License.
 		  <version>${pdfbox.version}</version>
 		  
 		</dependency>
+		<dependency>
+			<groupId>org.apache.santuario</groupId>
+			<artifactId>xmlsec</artifactId>
+			<version>${santuario-xmlsec.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
+			<version>${commons-compress.version}</version>
+		</dependency>
   	</dependencies>
 </project>
