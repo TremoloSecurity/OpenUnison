@@ -177,42 +177,45 @@ public class AzUtils {
 		try {
 			
 			res = cfg.getMyVD().search(constraint, 0, "(objectClass=*)", attrs);
-			res.hasMore();
-			entry = res.next();
+			if (res.hasMore()) {
+				entry = res.next();
+			}
 		} catch (LDAPException e) {
 			throw new ProvisioningException("Could not find group",e);
 		}
 		
-		LDAPAttribute members = entry.getAttribute(cfg.getCfg().getGroupMemberAttribute());
-		String[] dns = members != null ? members.getStringValueArray() : new String[0];
-		
-		if (dns.length == 0) {
-			StringBuffer b = new StringBuffer();
-			b.append(constraint).append(" does not have any members");
-			logger.warn(b.toString());
-		}
-		
-		try {
+		if (entry != null) {
+			LDAPAttribute members = entry.getAttribute(cfg.getCfg().getGroupMemberAttribute());
+			String[] dns = members != null ? members.getStringValueArray() : new String[0];
 			
-			
-			for (String dn : dns) {
-				
-				Approvers approver = getApproverByDN(approval,emailTemplate,cfg,session,dn,sendNotification);
-				if (approver == null) {
-					continue;
-				}
-				
-				AllowedApprovers allowed = new AllowedApprovers();
-				allowed.setApprovals(approval);
-				allowed.setApprovers(approver);
-				session.save(allowed);
-				
-				found = true;
+			if (dns.length == 0) {
+				StringBuffer b = new StringBuffer();
+				b.append(constraint).append(" does not have any members");
+				logger.warn(b.toString());
 			}
 			
-			
-		} catch (Exception e) {
-			throw new ProvisioningException("Could not load approvers",e);
+			try {
+				
+				
+				for (String dn : dns) {
+					
+					Approvers approver = getApproverByDN(approval,emailTemplate,cfg,session,dn,sendNotification);
+					if (approver == null) {
+						continue;
+					}
+					
+					AllowedApprovers allowed = new AllowedApprovers();
+					allowed.setApprovals(approval);
+					allowed.setApprovers(approver);
+					session.save(allowed);
+					
+					found = true;
+				}
+				
+				
+			} catch (Exception e) {
+				throw new ProvisioningException("Could not load approvers",e);
+			}
 		}
 		
 		return found;
