@@ -111,11 +111,7 @@
 			<version>${openunison.version}</version>
 		</dependency>
 		
-		<dependency>
-			<groupId>com.tremolosecurity.unison</groupId>
-			<artifactId>unison-applications-okta</artifactId>
-			<version>${openunison.version}</version>
-		</dependency>
+		
 		
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>

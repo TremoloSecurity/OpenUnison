@@ -263,7 +263,16 @@ public class OktaTarget implements UserStoreProvider {
 	@Override
 	public void init(Map<String, Attribute> cfg, ConfigManager cfgMgr, String name) throws ProvisioningException {
 		this.cfgMgr = cfgMgr;
-		this.domain = "https://" + cfg.get("domain").getValues().get(0);
+		
+		String domainFromConfig = cfg.get("domain").getValues().get(0);
+		
+		if (domainFromConfig.startsWith("http")) {
+			this.domain = domainFromConfig;
+		} else {
+			this.domain = "https://" + domainFromConfig;
+		}
+		
+		
 		
 		this.token = cfg.get("token").getValues().get(0);
 		

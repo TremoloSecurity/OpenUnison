@@ -15,6 +15,12 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-scalejs-register</artifactId>
+			<version>${openunison.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 		<groupId>com.googlecode.json-simple</groupId>
 		<artifactId>json-simple</artifactId>
 		<version>${json-simple.version}</version>
