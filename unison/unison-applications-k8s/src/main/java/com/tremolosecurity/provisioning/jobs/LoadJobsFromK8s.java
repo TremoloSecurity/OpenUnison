@@ -29,6 +29,7 @@ import com.tremolosecurity.config.xml.CronScheduleType;
 import com.tremolosecurity.config.xml.JobType;
 import com.tremolosecurity.config.xml.OrgType;
 import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.config.xml.ReportType;
 import com.tremolosecurity.config.xml.TargetAttributeType;
 import com.tremolosecurity.config.xml.TargetConfigType;
@@ -90,7 +91,7 @@ public class LoadJobsFromK8s implements DynamicJobs, K8sWatchTarget {
 		JSONArray params = (JSONArray) spec.get("params");
 		for (Object o : params ) {
 			JSONObject param = (JSONObject) o;
-			ParamType pt = new ParamType();
+			ParamWithValueType pt = new ParamWithValueType();
 			
 			b.setLength(0);
 			OpenUnisonConfigLoader.integrateIncludes(b,(String) param.get("name")  );
@@ -120,7 +121,7 @@ public class LoadJobsFromK8s implements DynamicJobs, K8sWatchTarget {
 					String secretKey = (String) secretParam.get("secretKey");
 					
 					String secretValue = this.k8sWatch.getSecretValue(secretName, secretKey, token, nonwatchHttp);
-					ParamType pt = new ParamType();
+					ParamWithValueType pt = new ParamWithValueType();
 					pt.setName(paramName);
 					pt.setValue(secretValue);
 					job.getParam().add(pt);

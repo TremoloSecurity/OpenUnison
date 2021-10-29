@@ -134,6 +134,7 @@ import com.tremolosecurity.config.xml.JobType;
 import com.tremolosecurity.config.xml.MessageListenerType;
 import com.tremolosecurity.config.xml.OrgType;
 import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.config.xml.PortalUrlsType;
 import com.tremolosecurity.config.xml.SchedulingType;
 import com.tremolosecurity.config.xml.TargetType;
@@ -2018,8 +2019,13 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			    .append(jobType.getCronSchedule().getYear());
 			
 			Properties configProps = new Properties();
-			for (ParamType pt : jobType.getParam()) {
-				configProps.setProperty(pt.getName(), pt.getValue());
+			for (ParamWithValueType pt : jobType.getParam()) {
+				if (pt.getValue() != null && ! pt.getValue().isBlank()) {
+					configProps.setProperty(pt.getName(), pt.getValue());
+				} else {
+					configProps.setProperty(pt.getName(), pt.getValueAttribute());
+				}
+				
 			}
 			
 			Properties jobProps = new Properties();
@@ -2047,8 +2053,13 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			throws ClassNotFoundException, SchedulerException {
 		JobDetail jd;
 		JobBuilder jb = JobBuilder.newJob((Class<? extends Job>) Class.forName(jobType.getClassName()));
-		for (ParamType pt : jobType.getParam()) {
-			jb.usingJobData(pt.getName(), pt.getValue());
+		for (ParamWithValueType pt : jobType.getParam()) {
+			if (pt.getValue() != null && ! pt.getValue().isBlank()) {
+				jb.usingJobData(pt.getName(), pt.getValue());
+			} else {
+				jb.usingJobData(pt.getName(), pt.getValueAttribute());
+			}
+			
 		}
 		jb.withIdentity(jk);
 		

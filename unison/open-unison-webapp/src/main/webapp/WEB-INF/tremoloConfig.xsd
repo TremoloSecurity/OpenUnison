@@ -2169,7 +2169,7 @@
 		    
 			<element name="cronSchedule" type="tns:cronScheduleType"
 				minOccurs="0" maxOccurs="1"></element>
-			<element name="param" type="tns:paramType" minOccurs="0"
+			<element name="param" type="tns:paramWithValueType" minOccurs="0"
 				maxOccurs="unbounded" />
 		</sequence>
 		<attribute name="className" type="string">
