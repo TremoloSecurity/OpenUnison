@@ -42,15 +42,17 @@ public class JavaScriptFilter implements HttpFilter {
 			throws Exception {
 		if (this.initCompleted) {
 			Context context = Context.newBuilder("js").allowAllAccess(true).build();
-			context.getBindings("js").putMember("globals", globals);
-			
-			context.getBindings("js").putMember("globals", globals);
-			Value val = context.eval("js",this.javaScript);
-			
-			Value doFilter = context.getBindings("js").getMember("doFilter");
-			doFilter.executeVoid(request,response,chain);
-			
-			context.close();
+			try {
+				context.getBindings("js").putMember("globals", globals);
+				
+				context.getBindings("js").putMember("globals", globals);
+				Value val = context.eval("js",this.javaScript);
+				
+				Value doFilter = context.getBindings("js").getMember("doFilter");
+				doFilter.executeVoid(request,response,chain);
+			} finally {
+				context.close();
+			}
 			
 		} else {
 			throw new Exception("javascript not initialized");
@@ -77,11 +79,14 @@ public class JavaScriptFilter implements HttpFilter {
 		initCompleted = false;
 		
 		Context context = Context.newBuilder("js").allowAllAccess(true).build();
-		context.getBindings("js").putMember("globals", globals);
-		
-		
 		
 		try {
+			globals = new HashMap<String,Object>();
+			context.getBindings("js").putMember("globals", globals);
+		
+		
+		
+		
 			Attribute attr = config.getAttribute("javaScript");
 			if (attr == null) {
 				logger.error("javaScript not set");
@@ -96,7 +101,7 @@ public class JavaScriptFilter implements HttpFilter {
 			
 			Value init = context.getBindings("js").getMember("initFilter");
 			if (init == null || ! init.canExecute()) {
-				throw new ProvisioningException("init function must be defined with one paramter");
+				throw new ProvisioningException("initFilter function must be defined with one paramter");
 			}
 			
 			Value doFilter = context.getBindings("js").getMember("doFilter");
@@ -105,11 +110,13 @@ public class JavaScriptFilter implements HttpFilter {
 			}
 			
 			init.executeVoid(config);
-			context.close();
+			
 			initCompleted = true;
 		} catch (Throwable t) {
 			logger.error("Could not initialize javascript filter",t);
 			return;
+		} finally {
+			context.close();
 		}
 			
 
