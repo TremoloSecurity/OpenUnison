@@ -1,3 +1,41 @@
+## 1.0.24-2021110502
+
+**Tasks:**
+ - 1.0.24 build [\#556](https://github.com/TremoloSecurity/OpenUnison/issues/556)
+
+**enhancements:**
+ - HttpFilter - JavaScript [\#590](https://github.com/TremoloSecurity/OpenUnison/issues/590)
+ - ScaleJS Register - JavaScript custom validator [\#592](https://github.com/TremoloSecurity/OpenUnison/issues/592)
+ - ScaleJS Register - JavaScript dynamic list [\#591](https://github.com/TremoloSecurity/OpenUnison/issues/591)
+ - JavaScript Scheduled Tasks [\#589](https://github.com/TremoloSecurity/OpenUnison/issues/589)
+ - ScaleJS Register - Okta groups dynamic lookup [\#588](https://github.com/TremoloSecurity/OpenUnison/issues/588)
+ - Move custom tasks from k8s repo into main repo [\#587](https://github.com/TremoloSecurity/OpenUnison/issues/587)
+ - Support single logout for kubectl oulogin plugin [\#584](https://github.com/TremoloSecurity/OpenUnison/issues/584)
+ - scalejs register - make work better with mix between name and label [\#579](https://github.com/TremoloSecurity/OpenUnison/issues/579)
+ - Support group mapping mechanism in k8s [\#577](https://github.com/TremoloSecurity/OpenUnison/issues/577)
+ - Add javascript custom tasks for provisioning [\#77](https://github.com/TremoloSecurity/OpenUnison/issues/77)
+ - Better GitOps support for secrets [\#582](https://github.com/TremoloSecurity/OpenUnison/issues/582)
+ - Kubernetes patch - support json patch [\#581](https://github.com/TremoloSecurity/OpenUnison/issues/581)
+ - make myvd cert loading easier [\#578](https://github.com/TremoloSecurity/OpenUnison/issues/578)
+ - make changing logos easier [\#576](https://github.com/TremoloSecurity/OpenUnison/issues/576)
+ - Add oauth2 token exchange [\#570](https://github.com/TremoloSecurity/OpenUnison/issues/570)
+ - Create AMQ connection factory [\#568](https://github.com/TremoloSecurity/OpenUnison/issues/568)
+ - Oidc auth - support config by issuer [\#565](https://github.com/TremoloSecurity/OpenUnison/issues/565)
+ - Oidc Idp - Support URI different then name [\#564](https://github.com/TremoloSecurity/OpenUnison/issues/564)
+ - Rewrite Location response header regardless of case [\#560](https://github.com/TremoloSecurity/OpenUnison/issues/560)
+ - Pull github groups into groups attribute [\#559](https://github.com/TremoloSecurity/OpenUnison/issues/559)
+ - Create insert to map URI roots [\#557](https://github.com/TremoloSecurity/OpenUnison/issues/557)
+ - scalejs main - flag to detect if approvals and reports are enabled [\#555](https://github.com/TremoloSecurity/OpenUnison/issues/555)
+
+**bugs:**
+ - Exception when database group has no members [\#586](https://github.com/TremoloSecurity/OpenUnison/issues/586)
+ - dynamic jobs not loading on startup [\#585](https://github.com/TremoloSecurity/OpenUnison/issues/585)
+ - Java module overlap causing build issuers [\#567](https://github.com/TremoloSecurity/OpenUnison/issues/567)
+ - k8s dashboard not generating correct issuer [\#563](https://github.com/TremoloSecurity/OpenUnison/issues/563)
+ - GitLab provider - checking wrong attribute for user name [\#562](https://github.com/TremoloSecurity/OpenUnison/issues/562)
+ - Unicode characters in request reason causing workflow to fail to write [\#561](https://github.com/TremoloSecurity/OpenUnison/issues/561)
+ - Loading AuthMechs and Chains from K8s not updating configuration [\#558](https://github.com/TremoloSecurity/OpenUnison/issues/558)
+
 ## 1.0.23-2021053101
 
 **bugs:**
