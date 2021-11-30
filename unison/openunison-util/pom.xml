@@ -19,7 +19,7 @@ limitations under the License.
 	<parent>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison</artifactId>
-		<version>1.0.24</version>
+		<version>1.0.25</version>
 	</parent>
 	<artifactId>openunison-util</artifactId>
 	<name>openunison-util</name>
