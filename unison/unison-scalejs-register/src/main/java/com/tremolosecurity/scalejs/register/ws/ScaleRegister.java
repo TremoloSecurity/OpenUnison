@@ -399,10 +399,43 @@ public class ScaleRegister implements HttpFilter {
 			scaleConfig.setRcSecretKey(this.loadAttributeValue("rcSecret", "ReCaptcha Secret Key", config));
 		}
 		
+		
+		val = this.loadOptionalAttributeValue("submitButtonText", "submitButtonText", config);
+		if (val == null) {
+			val = "Submit Registration";
+		}
+		
+		scaleConfig.setSubmitButtonText(val);
+		
+		val = this.loadOptionalAttributeValue("submittedText", "submittedText", config);
+		if (val == null) {
+			val = "Thank you for registering, your request has been submitted and you will be notified once approved";
+		}
+		
+		scaleConfig.setSubmittedText(val);
+		
+		
+		val = this.loadOptionalAttributeValue("reasonIsList", "reasonIsList", config);
+		if (val == null) {
+			val = "false";
+		}
+		
+		scaleConfig.setReasonIsList(val.equalsIgnoreCase("true"));
+		
+		if (scaleConfig.isReasonIsList()) {
+			Attribute reasons = config.getAttribute("reasons");
+			if (reasons != null) {
+				scaleConfig.getReasons().addAll(reasons.getValues());
+			}
+		}
+		
 		val = this.loadOptionalAttributeValue("requireTermsAndConditions", "Require Terms and Conditions", config);
 		if (val == null) {
 			val = "false";
 		}
+		
+		
+		
 		scaleConfig.setRequireTermsAndConditions(val.equalsIgnoreCase("true"));
 		if (scaleConfig.isRequireTermsAndConditions()) {
 			scaleConfig.setTermsAndConditionsText(this.loadAttributeValue("termsAndConditionsText", "Terms and Conditions", config));

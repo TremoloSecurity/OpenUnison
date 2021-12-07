@@ -41,11 +41,19 @@ public class ScaleJSRegisterConfig {
 	transient String customSubmissionClassName;
 	transient boolean submitLoggedInUser;
 	
+	boolean reasonIsList;
+	List<String> reasons;
+	
+	
+	String submitButtonText;
+	String submittedText;
+	
 	public ScaleJSRegisterConfig() {
 		this.attributes = new HashMap<String,ScaleAttribute>();
 		this.frontPage = new ScaleFrontPage();
 		this.attributeNameList = new ArrayList<String>();
 		this.submitLoggedInUser = false;
+		this.reasons = new ArrayList<String>();
 	}
 
 	
@@ -224,6 +232,49 @@ public class ScaleJSRegisterConfig {
 	public void setHomeURL(String homeURL) {
 		this.homeURL = homeURL;
 	}
+
+
+
+	public String getSubmitButtonText() {
+		return submitButtonText;
+	}
+
+
+
+	public void setSubmitButtonText(String submitButtonText) {
+		this.submitButtonText = submitButtonText;
+	}
+
+
+
+	public String getSubmittedText() {
+		return submittedText;
+	}
+
+
+
+	public void setSubmittedText(String submittedText) {
+		this.submittedText = submittedText;
+	}
+
+
+
+	public boolean isReasonIsList() {
+		return reasonIsList;
+	}
+
+
+
+	public void setReasonIsList(boolean reasonIsList) {
+		this.reasonIsList = reasonIsList;
+	}
+
+
+
+	public List<String> getReasons() {
+		return reasons;
+	}
+	
 	
 	
 	
