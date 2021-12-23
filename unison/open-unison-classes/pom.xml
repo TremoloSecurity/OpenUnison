@@ -42,12 +42,6 @@
 		</dependency>
 
 
-
-		<dependency>
-			<groupId>com.tremolosecurity.unison</groupId>
-			<artifactId>unison-authentication-facebook</artifactId>
-			<version>${openunison.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-authentication-2fasms-twilio</artifactId>
