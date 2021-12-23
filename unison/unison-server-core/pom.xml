@@ -247,6 +247,12 @@
 		  <version>${nimbusds.version}</version>
 		</dependency>
 		
+		<dependency>
+		    <groupId>com.webauthn4j</groupId>
+		    <artifactId>webauthn4j-core</artifactId>
+		    <version>${webauthn4j.version}</version>
+		  </dependency>
+		
 <dependency>
   <groupId>com.microsoft.azure</groupId>
   <artifactId>msal4j</artifactId>

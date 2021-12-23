@@ -111,13 +111,14 @@
 		<commons-io.version>2.11.0</commons-io.version>
 		<graaljs.version>21.3.0</graaljs.version>
 		<commons-compress.version>1.21</commons-compress.version>
+		<webauthn4j.version>0.18.1.RELEASE</webauthn4j.version>
 	</properties>
 
 	<repositories>
 		<repository>
 			<id>tremolosecurity-releases</id>
 			<!-- <url>https://nexus.tremolo.io/repository/betas/</url> -->
-			<url>https://nexus.tremolo.io/repository/releases/</url>
+			<url>https://nexus.tremolo.io/repository/betas/</url>
 		</repository>
 	
                 <repository>
@@ -144,7 +145,7 @@
 			<!--  <id>nexus.tremolo.io</id>  -->
 			<id>nexus.tremolo.io</id>
 			<name>tremolo.io-releases</name>
-			<url>s3://tremolosecurity-maven/repository/releases/</url>  
+			<url>s3://tremolosecurity-maven/repository/betas/</url>  
 		</repository>
 
 	</distributionManagement>
