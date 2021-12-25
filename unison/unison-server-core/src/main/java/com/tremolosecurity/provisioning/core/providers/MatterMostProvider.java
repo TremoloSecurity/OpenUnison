@@ -241,7 +241,7 @@ public class MatterMostProvider implements UserStoreProvider {
 			
 			sb.setLength(0);
 			
-			sb.append("/api/v4/users/").append(mmUser.get("id").toString());
+			sb.append("/api/v4/users/").append(mmUser.get("id").toString()).append("/patch");
 			
 			String jsonFromMatterMost = this.callWSPut(con, sb.toString(),mmUser.toString());
 			
