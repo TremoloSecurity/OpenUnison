@@ -29,6 +29,12 @@ limitations under the License.
   		<artifactId>unison-server-core</artifactId>
   		<version>${openunison.version}</version>
   		<scope>provided</scope>
+  		<exclusions>
+  			<exclusion>
+  				<groupId>org.apache.logging.log4j</groupId>
+  				<artifactId>log4j-api</artifactId>
+  			</exclusion>
+  		</exclusions>
   	</dependency>
   			<dependency>
 			<!-- Provided by Tomcat, but needed for compilation -->
@@ -41,6 +47,12 @@ limitations under the License.
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
 			<version>${org.apache.poi.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.logging.log4j</groupId>
+					<artifactId>log4j-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
@@ -67,6 +79,7 @@ limitations under the License.
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-scalejs-common</artifactId>
 			<version>${openunison.version}</version>
+			
 		</dependency>
 		<dependency>
 		  <groupId>org.apache.pdfbox</groupId>
