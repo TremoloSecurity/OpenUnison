@@ -24,6 +24,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -61,6 +62,7 @@ import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.AuthMechanism;
 import com.tremolosecurity.proxy.auth.AuthMgrSys;
 import com.tremolosecurity.proxy.auth.AuthSys;
+import com.tremolosecurity.proxy.auth.IncludeChain;
 import com.tremolosecurity.proxy.auth.PostAuthSuccess;
 import com.tremolosecurity.proxy.auth.RequestHolder;
 import com.tremolosecurity.proxy.auth.util.AuthStep;
@@ -155,10 +157,19 @@ public class AuthManagerImpl implements AuthManager {
 			AuthChainType act, String finalURL, NextSys next)
 			throws IOException, ServletException {
 
+		
+		
+		
 		boolean shortCircut = false;
 		ConfigManager cfg = (ConfigManager) req
 				.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
 
+		// Generate an AuthChainType based on the existing chain+includes
+		if (act != cfg.getAuthFailChain()) {
+			act = this.buildACT(act, cfg);
+		}
+		
+		
 		if (act.getLevel() == 0 && (act != cfg.getAuthFailChain())) {
 			AuthController actl = (AuthController) session
 					.getAttribute(ProxyConstants.AUTH_CTL);
@@ -842,5 +853,39 @@ public class AuthManagerImpl implements AuthManager {
 		
 		
 		return redirURL;
+	}
+	
+	public static AuthChainType buildACT(AuthChainType origChain,ConfigManager cfg) {
+		AuthChainType newAct = new AuthChainType();
+		newAct.setCompliance(origChain.getCompliance());
+		newAct.setFinishOnRequiredSucess(origChain.isFinishOnRequiredSucess());
+		newAct.setLevel(origChain.getLevel());
+		newAct.setName(origChain.getName());
+		newAct.setRoot(origChain.getRoot());
+		newAct.getAuthMech().addAll(buildMechList(origChain.getAuthMech(),cfg));
+		
+		return newAct;
+	}
+	
+	private static List<AuthMechType> buildMechList(List<AuthMechType> origMechs,ConfigManager cfg) {
+		List<AuthMechType> newList = new ArrayList<AuthMechType>();
+		for (AuthMechType amt : origMechs) {
+			MechanismType mt = cfg.getAuthMechs().get(amt.getName());
+			
+			if (mt != null && mt.getClassName().trim().equalsIgnoreCase("com.tremolosecurity.proxy.auth.IncludeChain")) {
+				String chainName = amt.getParams().getParam().get(0).getValue();
+				AuthChainType toInclude = cfg.getAuthChains().get(chainName);
+				if (toInclude == null) {
+					logger.warn(new StringBuilder().append("Could not load chain '").append(chainName).append("', forcing to fail").toString());
+					toInclude = cfg.getAuthFailChain();
+				}
+				
+				newList.addAll(buildMechList(toInclude.getAuthMech(), cfg));
+			} else {
+				newList.add(amt);
+			}
+		}
+		
+		return newList;
 	}
 }

@@ -48,6 +48,7 @@ import com.tremolosecurity.proxy.ProxyResponse;
 import com.tremolosecurity.proxy.ProxyUtil;
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import com.tremolosecurity.proxy.auth.RequestHolder.HTTPMethod;
+import com.tremolosecurity.proxy.auth.sys.AuthManagerImpl;
 import com.tremolosecurity.proxy.auth.util.AuthStep;
 import com.tremolosecurity.proxy.results.CustomResult;
 import com.tremolosecurity.proxy.util.NextSys;
@@ -130,11 +131,15 @@ public class AuthMgrSys {
 		
 		AuthChainType act = actName != null ? cfgMgr.getAuthChains().get(actName) : null;
 		
+		
+		
 		AuthMechanism mech = cfgMgr.getAuthMech(uri);
 		if (mech == null || act == null) {
 			nextSys.nextSys(request, response);
 			return;
 		}
+		
+		act = AuthManagerImpl.buildACT(act, cfgMgr);
 		
 		int step = 0;
 		
