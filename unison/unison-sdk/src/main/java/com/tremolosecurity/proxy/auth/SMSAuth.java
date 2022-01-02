@@ -148,6 +148,7 @@ public abstract class SMSAuth implements AuthMechanism {
 			
 		}
 		
+		as.setExecuted(true);
 		as.setSuccess(authenticated);
 		
 		
@@ -158,7 +159,7 @@ public abstract class SMSAuth implements AuthMechanism {
 			reqHolder.setURL(redirectToURL);
 		}
 		
-		holder.getConfig().getAuthManager().nextAuth(request, response,session,authenticated);
+		holder.getConfig().getAuthManager().nextAuth(request, response,session,false);
 
 	}
 
