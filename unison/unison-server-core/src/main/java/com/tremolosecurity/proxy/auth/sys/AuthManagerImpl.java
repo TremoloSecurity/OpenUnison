@@ -47,6 +47,7 @@ import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.AuthMechType;
 import com.tremolosecurity.config.xml.MechanismType;
 import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.log.AccessLog;
 import com.tremolosecurity.log.AccessLog.AccessEvent;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
@@ -806,17 +807,25 @@ public class AuthManagerImpl implements AuthManager {
 	 */
 	@Override
 	public void loadAmtParams(HttpSession session, AuthMechType amt) {
-		Iterator<ParamType> it = amt.getParams().getParam().iterator();
+		
 		HashMap<String, Attribute> authParams = new HashMap<String, Attribute>();
-		while (it.hasNext()) {
-			ParamType param = it.next();
+		
+		for (ParamWithValueType param : amt.getParams().getParam()) {
 			Attribute attrib = authParams.get(param.getName());
 			if (attrib == null) {
 				attrib = new Attribute(param.getName());
 				authParams.put(param.getName(), attrib);
 			}
-			attrib.getValues().add(param.getValue());
+			
+			
+			if (param.getValue() != null && ! param.getValue().isBlank()) {
+				attrib.getValues().add(param.getValue());
+			} else {
+				attrib.getValues().add(param.getValueAttribute());
+			}
 		}
+		
+		
 
 		session.setAttribute(ProxyConstants.AUTH_MECH_PARAMS, authParams);
 		session.setAttribute(ProxyConstants.AUTH_MECH_NAME, amt.getName());
@@ -873,7 +882,19 @@ public class AuthManagerImpl implements AuthManager {
 			MechanismType mt = cfg.getAuthMechs().get(amt.getName());
 			
 			if (mt != null && mt.getClassName().trim().equalsIgnoreCase("com.tremolosecurity.proxy.auth.IncludeChain")) {
-				String chainName = amt.getParams().getParam().get(0).getValue();
+				
+				ParamWithValueType pt = amt.getParams().getParam().get(0);
+					
+				String chainName = "";
+				
+				if (pt.getValue() != null && ! pt.getValue().isBlank()) {
+					chainName = pt.getValue();
+				} else {
+					chainName = pt.getValueAttribute();
+				}
+					
+					
+				
 				AuthChainType toInclude = cfg.getAuthChains().get(chainName);
 				if (toInclude == null) {
 					logger.warn(new StringBuilder().append("Could not load chain '").append(chainName).append("', forcing to fail").toString());

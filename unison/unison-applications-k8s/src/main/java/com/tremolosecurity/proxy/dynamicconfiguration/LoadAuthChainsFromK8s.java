@@ -32,6 +32,7 @@ import com.tremolosecurity.config.xml.CustomAzRuleType;
 import com.tremolosecurity.config.xml.MechanismType;
 import com.tremolosecurity.config.xml.ParamListType;
 import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.config.xml.ResultGroupType;
 import com.tremolosecurity.config.xml.ResultType;
 import com.tremolosecurity.config.xml.TargetType;
@@ -110,14 +111,14 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 				Object val = jsonObj.get(paramName);
 				
 				if (val instanceof String) {
-					ParamType pt = new ParamType();
+					ParamWithValueType pt = new ParamWithValueType();
 					pt.setName(paramName);
 					pt.setValue((String) val);
 					amt.getParams().getParam().add(pt);
 				} else {
 					JSONArray vals = (JSONArray) val;
 					for (Object ov : vals) {
-						ParamType pt = new ParamType();
+						ParamWithValueType pt = new ParamWithValueType();
 						pt.setName(paramName);
 						pt.setValue((String) ov);
 						amt.getParams().getParam().add(pt);
@@ -139,7 +140,7 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 						String secretKey = (String) secretParam.get("secretKey");
 						
 						String secretValue = this.k8sWatch.getSecretValue(secretName, secretKey, token, nonwatchHttp);
-						ParamType pt = new ParamType();
+						ParamWithValueType pt = new ParamWithValueType();
 						pt.setName(paramName);
 						pt.setValue(secretValue);
 						

@@ -509,6 +509,9 @@ public abstract class PostProcess {
 				} else {
 					phcm.setDefaultMaxPerRoute(num.intValue());
 				}
+				
+				
+				
 				phcm.setDefaultSocketConfig(SocketConfig.custom().setSoKeepAlive(true).build());
 				http = HttpClients.custom().setConnectionManager(phcm).setDefaultRequestConfig(cfgMgr.getGlobalHttpClientConfig()).build();
 				
@@ -525,6 +528,9 @@ public abstract class PostProcess {
 						cfgMgr.getHttpClientSocketRegistry());
 
 				RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).setRedirectsEnabled(false)
+						.setConnectionRequestTimeout(10000)
+						.setSocketTimeout(10000)
+						.setConnectTimeout(10000)
 						.build();
 
 				http = HttpClients.custom()

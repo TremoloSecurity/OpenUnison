@@ -452,7 +452,7 @@
 				provide multiple values</documentation>
 		</annotation>
 		<sequence>
-			<element name="param" type="tns:paramType" maxOccurs="unbounded"
+			<element name="param" type="tns:paramWithValueType" maxOccurs="unbounded"
 				minOccurs="0"></element>
 		</sequence>
 	</complexType>

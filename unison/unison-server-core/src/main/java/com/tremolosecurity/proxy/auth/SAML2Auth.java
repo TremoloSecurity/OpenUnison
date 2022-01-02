@@ -132,6 +132,7 @@ import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.AuthMechType;
 import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import com.tremolosecurity.proxy.auth.saml2.Saml2SingleLogout;
 import com.tremolosecurity.proxy.auth.util.AuthStep;
@@ -1127,21 +1128,38 @@ public class SAML2Auth implements AuthMechanism {
 		for (String chainname : cfgMgr.getAuthChains().keySet()) {
 			AuthChainType act = cfgMgr.getAuthChains().get(chainname);
 			for (AuthMechType amt : act.getAuthMech()) {
-				for (ParamType pt : amt.getParams().getParam()) {
-					if (pt.getName().equalsIgnoreCase("entityID") && pt.getValue().equalsIgnoreCase(issuer)) {
+				for (ParamWithValueType pt : amt.getParams().getParam()) {
+					String value = "";
+					
+					if (pt.getValue() != null && ! pt.getValue().isBlank()) {
+						value = pt.getValue();
+					} else {
+						value = pt.getValueAttribute();
+					}
+					
+					if (pt.getName().equalsIgnoreCase("entityID") && value.equalsIgnoreCase(issuer)) {
 						//found the correct mechanism
 						found = true;
 						
 						
 						
 						
-						for (ParamType ptx : amt.getParams().getParam()) {
+						for (ParamWithValueType ptx : amt.getParams().getParam()) {
+							
+							String valuex = "";
+							
+							if (ptx.getValue() != null && ! ptx.getValue().isBlank()) {
+								valuex = pt.getValue();
+							} else {
+								valuex = ptx.getValueAttribute();
+							}
+							
 							if (ptx.getName().equalsIgnoreCase("sigAlg")) {
-								algType = ptx.getValue();
+								algType = valuex;
 							} else if (ptx.getName().equalsIgnoreCase("logoutURL")) {
-								logoutURL = ptx.getValue();
+								logoutURL = valuex;
 							} else if (ptx.getName().equalsIgnoreCase("idpSigKeyName")) {
-								sigKeys.add(ptx.getValue());
+								sigKeys.add(valuex);
 							}
 						}
 						
@@ -1264,8 +1282,17 @@ public class SAML2Auth implements AuthMechanism {
 		for (String chainname : cfgMgr.getAuthChains().keySet()) {
 			AuthChainType act = cfgMgr.getAuthChains().get(chainname);
 			for (AuthMechType amt : act.getAuthMech()) {
-				for (ParamType pt : amt.getParams().getParam()) {
-					if (pt.getName().equalsIgnoreCase("entityID") && pt.getValue().equalsIgnoreCase(issuer)) {
+				for (ParamWithValueType pt : amt.getParams().getParam()) {
+					
+					String value = "";
+					
+					if (pt.getValue() != null && ! pt.getValue().isBlank()) {
+						value = pt.getValue();
+					} else {
+						value = pt.getValueAttribute();
+					}
+					
+					if (pt.getName().equalsIgnoreCase("entityID") && value.equalsIgnoreCase(issuer)) {
 						//found the correct mechanism
 						found = true;
 						
@@ -1274,13 +1301,22 @@ public class SAML2Auth implements AuthMechanism {
 						
 						
 						
-						for (ParamType ptx : amt.getParams().getParam()) {
+						for (ParamWithValueType ptx : amt.getParams().getParam()) {
+							
+							String valuex = "";
+							
+							if (ptx.getValue() != null && ! ptx.getValue().isBlank()) {
+								valuex = pt.getValue();
+							} else {
+								valuex = ptx.getValueAttribute();
+							}
+							
 							if (ptx.getName().equalsIgnoreCase("sigAlg")) {
-								algType = ptx.getValue();
+								algType = valuex;
 							} else if (ptx.getName().equalsIgnoreCase("triggerLogoutURL")) {
-								logoutURL = ptx.getValue();
+								logoutURL = valuex;
 							} else if (ptx.getName().equalsIgnoreCase("idpSigKeyName")) {
-								sigKeys.add(ptx.getValue());
+								sigKeys.add(valuex);
 							} 
 						}
 						

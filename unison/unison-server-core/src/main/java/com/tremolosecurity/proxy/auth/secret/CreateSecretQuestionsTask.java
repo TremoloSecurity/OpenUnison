@@ -27,6 +27,7 @@ import java.util.Map;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.AuthMechType;
 import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.WorkflowTask;
@@ -65,17 +66,25 @@ public class CreateSecretQuestionsTask implements CustomTask {
 			if (act.getName().equalsIgnoreCase(chainName)) {
 				for (AuthMechType amt : act.getAuthMech()) {
 					if (amt.getName().equalsIgnoreCase(this.mechName)) {
-						for (ParamType pt : amt.getParams().getParam()) {
+						for (ParamWithValueType pt : amt.getParams().getParam()) {
+							String value = "";
+							
+							if (pt.getValue() != null && ! pt.getValue().isBlank()) {
+								value = pt.getValue();
+							} else {
+								value = pt.getValueAttribute();
+							}
+							
 							if (pt.getName().equalsIgnoreCase("alg")) {
-								this.alg = pt.getValue();
+								this.alg = value;
 							}
 							
 							if (pt.getName().equalsIgnoreCase("salt")) {
-								this.salt = pt.getValue();
+								this.salt = value;
 							}
 							
 							if (pt.getName().equalsIgnoreCase("questionAttr")) {
-								this.questionAttr = pt.getValue();
+								this.questionAttr = value;
 							}
 						}
 					}

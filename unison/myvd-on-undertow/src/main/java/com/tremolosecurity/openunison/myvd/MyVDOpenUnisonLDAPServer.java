@@ -23,11 +23,11 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.X509ExtendedKeyManager;
 
-import org.apache.directory.server.ldap.LdapServer;
+import org.apache.directory.server.ldap.LdapServerImpl;
 
 import com.tremolosecurity.config.ssl.AliasX509KeyManager;
 
-public class MyVDOpenUnisonLDAPServer extends LdapServer {
+public class MyVDOpenUnisonLDAPServer extends LdapServerImpl {
 	X509ExtendedKeyManager keyManager;
 	KeyStore ks;
 	String keyAlias;

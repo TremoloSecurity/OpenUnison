@@ -34,6 +34,7 @@ import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.AuthMechType;
 import com.tremolosecurity.config.xml.MechanismType;
 import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.results.CustomResult;
 import com.tremolosecurity.proxy.util.ProxyConstants;
@@ -77,13 +78,22 @@ public class PersistentCookieResult implements CustomResult {
 		
 		for (AuthMechType amt : chain.getAuthMech()) {
 			if (mechs.contains(amt.getName())) {
-				for (ParamType pt : amt.getParams().getParam()) {
+				for (ParamWithValueType pt : amt.getParams().getParam()) {
+					
+					String value = "";
+					
+					if (pt.getValue() != null && ! pt.getValue().isBlank()) {
+						value = pt.getValue();
+					} else {
+						value = pt.getValueAttribute();
+					}
+					
 					if (pt.getName().equalsIgnoreCase("millisToLive")) {
-						millisToLive = Integer.parseInt(pt.getValue());
+						millisToLive = Integer.parseInt(value);
 					} if (pt.getName().equalsIgnoreCase("useSSLSessionID") && pt.getValue().equalsIgnoreCase("true")) {
 						useSSLSession = true;
 					} else if (pt.getName().equalsIgnoreCase("keyAlias")) {
-						keyAlias = pt.getValue();
+						keyAlias = value;
 					}
 				}
 			}
