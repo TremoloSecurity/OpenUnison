@@ -199,7 +199,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 		
 		String defaultObjectClass = authParams.get("defaultObjectClass").getValues().get(0);
 		
-		boolean forceAuth = true;//authParams.get("forceAuthentication") != null ? authParams.get("forceAuthentication").getValues().get(0).equalsIgnoreCase("true") : false;
+		boolean forceAuth = authParams.get("forceAuthentication") != null ? authParams.get("forceAuthentication").getValues().get(0).equalsIgnoreCase("true") : true;
 		
 		UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
 		RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
