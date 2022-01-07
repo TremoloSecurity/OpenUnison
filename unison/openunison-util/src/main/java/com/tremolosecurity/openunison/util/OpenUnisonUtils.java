@@ -136,6 +136,7 @@ import com.tremolosecurity.config.xml.AuthMechParamType;
 import com.tremolosecurity.config.xml.AuthMechType;
 import com.tremolosecurity.config.xml.MechanismType;
 import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.config.xml.TrustType;
 import com.tremolosecurity.json.Token;
@@ -783,8 +784,8 @@ public class OpenUnisonUtils {
 		SPSSODescriptorImpl sp = (SPSSODescriptorImpl) spb.buildObject();
 		ed.getRoleDescriptors().add(sp);
 		
-		HashMap<String,ParamType> params = new HashMap<String,ParamType>();
-		for (ParamType pt : currentMechanism.getParams().getParam()) {
+		HashMap<String,ParamWithValueType> params = new HashMap<String,ParamWithValueType>();
+		for (ParamWithValueType pt : currentMechanism.getParams().getParam()) {
 			params.put(pt.getName(), pt);
 		}
 		
@@ -936,8 +937,8 @@ public class OpenUnisonUtils {
 			newMech = true;
 		}
 		
-		HashMap<String,ParamType> params = new HashMap<String,ParamType>();
-		for (ParamType pt : currentMechanism.getParams().getParam()) {
+		HashMap<String,ParamWithValueType> params = new HashMap<String,ParamWithValueType>();
+		for (ParamWithValueType pt : currentMechanism.getParams().getParam()) {
 			params.put(pt.getName(), pt);
 		}
 		
@@ -973,7 +974,7 @@ public class OpenUnisonUtils {
 
 	private static void setDefaults(KeyStore ks, EntityDescriptor ed,
 			IDPSSODescriptor idp, AuthMechType currentMechanism,
-			HashMap<String, ParamType> params) {
+			HashMap<String, ParamWithValueType> params) {
 		
 		if (params.get("assertionsSigned") == null || params.get("assertionsSigned").getValue().equalsIgnoreCase("false")) {
 			setProperty("responsesSigned","true",params,currentMechanism);
@@ -998,7 +999,7 @@ public class OpenUnisonUtils {
 
 	private static void importMetaData(KeyStore ks, EntityDescriptor ed,
 			IDPSSODescriptor idp, AuthMechType currentMechanism,
-			HashMap<String, ParamType> params) throws Base64DecodingException,
+			HashMap<String, ParamWithValueType> params) throws Base64DecodingException,
 			CertificateException, KeyStoreException {
 		setProperty("entityID",ed.getEntityID(),params,currentMechanism);
 		setProperty("entityID",ed.getEntityID(),params,currentMechanism);
@@ -1051,10 +1052,10 @@ public class OpenUnisonUtils {
 		}
 	}
 	
-	private static void setProperty(String name,String value,HashMap<String,ParamType> params,AuthMechType amt) {
-		ParamType pt = params.get(name);
+	private static void setProperty(String name,String value,HashMap<String,ParamWithValueType> params,AuthMechType amt) {
+		ParamWithValueType pt = params.get(name);
 		if (pt == null) {
-			pt = new ParamType();
+			pt = new ParamWithValueType();
 			pt.setName(name);
 			amt.getParams().getParam().add(pt);
 			params.put(name, pt);
