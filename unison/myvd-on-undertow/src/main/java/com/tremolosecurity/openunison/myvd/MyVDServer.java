@@ -370,7 +370,7 @@ public class MyVDServer {
         directoryService.setSchemaManager( schemaManager );
         
         if (dnFactory == null) {
-        	dnFactory = new DefaultDnFactory(schemaManager,new net.sf.ehcache.Cache(new CacheConfiguration("myvd-apacheds-dns",10000)));
+        	dnFactory = new DefaultDnFactory(schemaManager,10000);
         }
         
         // Init the LdifPartition with schema
