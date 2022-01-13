@@ -254,7 +254,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 				redirToSend.append("&max_age=0");
 			}
 			
-			if (! hd.isEmpty()) {
+			if (hd != null && ! hd.isEmpty()) {
 				redirToSend.append("&hd=").append(hd);
 			}
 			
