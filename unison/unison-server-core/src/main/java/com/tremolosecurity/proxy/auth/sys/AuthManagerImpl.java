@@ -872,7 +872,7 @@ public class AuthManagerImpl implements AuthManager {
 		newAct.setName(origChain.getName());
 		newAct.setRoot(origChain.getRoot());
 		newAct.getAuthMech().addAll(buildMechList(origChain.getAuthMech(),cfg));
-		
+		newAct.setFinishOnRequiredSucess(origChain.isFinishOnRequiredSucess());
 		return newAct;
 	}
 	

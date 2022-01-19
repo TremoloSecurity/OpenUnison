@@ -36,6 +36,7 @@ import com.tremolosecurity.config.xml.MechanismType;
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.proxy.auth.AuthController;
+import com.tremolosecurity.proxy.auth.sys.AuthManagerImpl;
 import com.tremolosecurity.proxy.results.CustomResult;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
@@ -70,6 +71,7 @@ public class PersistentCookieResult implements CustomResult {
 		
 		AuthChainType chain = mgr.getAuthChains().get(chainName);
 		
+		chain = AuthManagerImpl.buildACT(chain, mgr);
 		
 		int millisToLive = 0;
 		String keyAlias = "";
@@ -90,7 +92,7 @@ public class PersistentCookieResult implements CustomResult {
 					
 					if (pt.getName().equalsIgnoreCase("millisToLive")) {
 						millisToLive = Integer.parseInt(value);
-					} if (pt.getName().equalsIgnoreCase("useSSLSessionID") && pt.getValue().equalsIgnoreCase("true")) {
+					} if (pt.getName().equalsIgnoreCase("useSSLSessionID") && value.equalsIgnoreCase("true")) {
 						useSSLSession = true;
 					} else if (pt.getName().equalsIgnoreCase("keyAlias")) {
 						keyAlias = value;
