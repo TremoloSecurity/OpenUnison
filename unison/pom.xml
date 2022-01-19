@@ -65,7 +65,7 @@
 		<commons-pool2.version>2.11.1</commons-pool2.version>
 		<aws-java-sdk.version>1.12.131</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>1.0.8</amazon-sqs-java-messaging-lib.version>
-		<stringtemplate.version>4.0.2</stringtemplate.version>
+		<stringtemplate.version>4.3.1</stringtemplate.version>
 		<hibernate.version>5.6.2.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
 		<org.apache.poi.version>5.1.0</org.apache.poi.version>
