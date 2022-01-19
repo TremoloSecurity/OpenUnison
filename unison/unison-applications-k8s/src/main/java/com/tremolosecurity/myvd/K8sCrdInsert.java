@@ -178,6 +178,9 @@ public class K8sCrdInsert implements Insert {
         	}
         } else {
         	//only subtree left
+        	if (logger.isDebugEnabled()) {
+        		logger.debug("orirignal filter : '" + filter.getRoot().toString() + "'");
+        	}
         	String name = userFromFilter(filter.getRoot());
     		
     		loadUserFromK8sCrd(chain, base, scope, filter, attributes, typesOnly, results, constraints, k8s, name,new StringBuilder().append("uid=").append(name).append(",").append(this.baseDN.toString()).toString(),false);
@@ -189,6 +192,11 @@ public class K8sCrdInsert implements Insert {
 	private void loadUserFromK8sCrd(SearchInterceptorChain chain, DistinguishedName base, Int scope, Filter filter,
 			ArrayList<Attribute> attributes, Bool typesOnly, Results results, LDAPSearchConstraints constraints,
 			OpenShiftTarget k8s, String name,String entryDN,boolean exceptionOnNotFound) throws LDAPException {
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("Looking up user '" + name + "' in namespace '" + this.nameSpace + "'");
+		}
+		
 		String url = new StringBuilder().append("/apis/openunison.tremolo.io/v1/namespaces/").append(this.nameSpace).append("/users/").append(name).toString();
 		ArrayList<Entry> ret = new ArrayList<Entry>();
 		try {
@@ -203,6 +211,9 @@ public class K8sCrdInsert implements Insert {
 				
 				
 				if (k8sUser == null) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Can't find '" + name + "'");
+					}
 					if (exceptionOnNotFound) {
 						throw new LDAPException("user not found",LDAPException.NO_SUCH_OBJECT,LDAPException.resultCodeToString(LDAPException.NO_SUCH_OBJECT));
 					} 
