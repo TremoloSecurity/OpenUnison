@@ -43,7 +43,7 @@
 		<catalina.version>6.0.53</catalina.version>
 		<undertow-1x.version>1.0.0.Final</undertow-1x.version>
 		<myvd-server.version>1.0.12</myvd-server.version>
-		<jldap.version>1.0.0</jldap.version>
+		<jldap.version>1.0.1</jldap.version>
 		<httpclient.version>4.5.13</httpclient.version>
 		<httpcore.version>4.4.15</httpcore.version>
 		<httpmime.version>4.5.13</httpmime.version>
@@ -121,11 +121,11 @@
 			<url>https://nexus.tremolo.io/repository/betas/</url>
 		</repository>
 	
-                <repository>
-                        <id>tremolosecurity-dependencies</id>
-                        <!-- <url>https://nexus.tremolo.io/repository/betas/</url> -->
-                        <url>https://nexus.tremolo.io/repository/dependencies/</url>
-                </repository>
+		<repository>
+			<id>tremolosecurity-dependencies</id>
+			<!-- <url>https://nexus.tremolo.io/repository/betas/</url> -->
+			<url>https://nexus.tremolo.io/repository/dependencies/</url>
+		</repository>
 
 	
 		<!-- <repository>

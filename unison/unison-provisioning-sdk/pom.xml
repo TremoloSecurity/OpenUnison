@@ -36,7 +36,7 @@ limitations under the License.
 		<version>${openunison.version}</version>
 	</dependency>
 		<dependency>
-			<groupId>com.tremolosecurity.myvd</groupId>
+			<groupId>com.tremolosecurity</groupId>
 			<artifactId>jldap</artifactId>
 			<version>${jldap.version}</version>
 		</dependency>
