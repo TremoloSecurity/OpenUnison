@@ -1537,41 +1537,42 @@ public class ScaleMain implements HttpFilter {
 			scaleConfig.getUserAttributeList().add(attributeName);
 		}
 		
-		
-		attr = config.getAttribute("approvalAttributeNames");
-		if (attr == null) {
-			throw new Exception("Approval attribute names not found");
-		}
-		
-		for (String attributeName : attr.getValues()) {
-			ScaleAttribute scaleAttr = new ScaleAttribute();
-			scaleAttr.setName(attributeName);
-			scaleAttr.setDisplayName(this.loadAttributeValue("approvals." + attributeName, "Approvals attribute " + attributeName + " Display Name", config));
-			scaleConfig.getApprovalAttributes().put(attributeName, scaleAttr);
-		}
-		
-		val = this.loadOptionalAttributeValue("uiHelperClassName", "UI Helper Class Name", config);
-		if (val != null && ! val.isEmpty()) {
-			UiDecisions dec = (UiDecisions) Class.forName(val).newInstance();
-			attr  = config.getAttribute("uihelper.params");
-			HashMap<String,Attribute> decCfg = new HashMap<String,Attribute>();
-			if (attr != null) {
-				for (String v : attr.getValues()) {
-					String name = v.substring(0,v.indexOf('='));
-					String value = v.substring(v.indexOf('=') + 1);
-					Attribute param = decCfg.get(name);
-					if (param == null) {
-						param = new Attribute(name);
-						decCfg.put(name, param);
-					}
-					param.getValues().add(value);
-					
-				}
+		if (scaleConfig.isEnableApprovals()) {
+			attr = config.getAttribute("approvalAttributeNames");
+			if (attr == null) {
+				throw new Exception("Approval attribute names not found");
 			}
 			
-			dec.init(decCfg);
-			scaleConfig.setUiDecisions(dec);
+			for (String attributeName : attr.getValues()) {
+				ScaleAttribute scaleAttr = new ScaleAttribute();
+				scaleAttr.setName(attributeName);
+				scaleAttr.setDisplayName(this.loadAttributeValue("approvals." + attributeName, "Approvals attribute " + attributeName + " Display Name", config));
+				scaleConfig.getApprovalAttributes().put(attributeName, scaleAttr);
+			}
 			
+			val = this.loadOptionalAttributeValue("uiHelperClassName", "UI Helper Class Name", config);
+			if (val != null && ! val.isEmpty()) {
+				UiDecisions dec = (UiDecisions) Class.forName(val).newInstance();
+				attr  = config.getAttribute("uihelper.params");
+				HashMap<String,Attribute> decCfg = new HashMap<String,Attribute>();
+				if (attr != null) {
+					for (String v : attr.getValues()) {
+						String name = v.substring(0,v.indexOf('='));
+						String value = v.substring(v.indexOf('=') + 1);
+						Attribute param = decCfg.get(name);
+						if (param == null) {
+							param = new Attribute(name);
+							decCfg.put(name, param);
+						}
+						param.getValues().add(value);
+						
+					}
+				}
+				
+				dec.init(decCfg);
+				scaleConfig.setUiDecisions(dec);
+				
+			}
 		}
 		
 	}
