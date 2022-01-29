@@ -291,7 +291,13 @@ public class ScaleRegister implements HttpFilter {
 					wfcall.getRequestParams().put(Approval.IMMEDIATE_ACTION, "true");
 				} 
 				
+				if (scaleConfig.isUseCustomSubmission()) {
 					
+					
+					
+					cru.setWorkflowParameters(params,newUser,userData);
+				}	
+				
 				
 				
 				ExecuteWorkflow exec = new ExecuteWorkflow();

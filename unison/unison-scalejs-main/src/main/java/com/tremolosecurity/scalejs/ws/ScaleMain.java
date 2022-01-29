@@ -1573,6 +1573,20 @@ public class ScaleMain implements HttpFilter {
 				scaleConfig.setUiDecisions(dec);
 				
 			}
+			
+			val = this.loadOptionalAttributeValue("reasonIsList", "reasonIsList", config);
+			if (val == null) {
+				val = "false";
+			}
+			
+			scaleConfig.setReasonIsList(val.equalsIgnoreCase("true"));
+			
+			if (scaleConfig.isReasonIsList()) {
+				Attribute reasons = config.getAttribute("reasons");
+				if (reasons != null) {
+					scaleConfig.getReasons().addAll(reasons.getValues());
+				}
+			}
 		}
 		
 	}

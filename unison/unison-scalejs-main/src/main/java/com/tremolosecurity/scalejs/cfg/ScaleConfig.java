@@ -47,6 +47,9 @@ public class ScaleConfig {
 	
 	transient PreCheckAllowed canDelegate;
 	transient PreCheckAllowed canPreApprove;
+	
+	boolean reasonIsList;
+	List<String> reasons;
  	
 	public ScaleConfig(ScaleConfig from) {
 		this.displayNameAttribute = from.displayNameAttribute;
@@ -67,6 +70,9 @@ public class ScaleConfig {
 		this.canPreApprove = from.canPreApprove;
 		this.userAttributeList = from.userAttributeList;
 		this.enableApprovals = from.enableApprovals;
+		this.reasonIsList = from.reasonIsList;
+		this.reasons = new ArrayList<String>();
+		this.reasons.addAll(from.reasons);
 	}
 	
 	public ScaleConfig() {
@@ -74,6 +80,7 @@ public class ScaleConfig {
 		this.approvalAttributes = new HashMap<String,ScaleAttribute>();
 		this.frontPage = new ScaleFrontPage();
 		this.userAttributeList = new ArrayList<String>();
+		this.reasons = new ArrayList<String>();
 	}
 
 	
@@ -196,6 +203,18 @@ public class ScaleConfig {
 
 	public void setEnableApprovals(boolean enableApprovals) {
 		this.enableApprovals = enableApprovals;
+	}
+
+	public boolean isReasonIsList() {
+		return reasonIsList;
+	}
+
+	public void setReasonIsList(boolean reasonIsList) {
+		this.reasonIsList = reasonIsList;
+	}
+
+	public List<String> getReasons() {
+		return reasons;
 	}
 	
 	

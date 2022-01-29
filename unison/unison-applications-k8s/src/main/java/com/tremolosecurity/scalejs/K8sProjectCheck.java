@@ -17,6 +17,7 @@ package com.tremolosecurity.scalejs;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import com.tremolosecurity.git.GitUtils;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
@@ -130,6 +131,23 @@ public class K8sProjectCheck implements CreateRegisterUser {
 		} else {
 			return "";
 		}
+	}
+
+	@Override
+	public void setWorkflowParameters(Map<String, Object> wfParameters, NewUserRequest newUser, AuthInfo userData)
+			throws ProvisioningException {
+		String nameSpace = newUser.getAttributes().get("nameSpace");
+		wfParameters.put("namespace", nameSpace);
+		
+		
+		String targetName = newUser.getAttributes().get("cluster");
+		
+		if (targetName == null) {
+			targetName = this.targetName;
+		}
+		wfParameters.put("cluster", targetName);
+		
+		wfParameters.put("fully-qualified-namespace", new StringBuilder().append(targetName).append(".").append(nameSpace).toString());
 	}
 
 }

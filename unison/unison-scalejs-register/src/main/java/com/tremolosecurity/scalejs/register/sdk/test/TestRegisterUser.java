@@ -17,6 +17,7 @@ package com.tremolosecurity.scalejs.register.sdk.test;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -44,6 +45,13 @@ public class TestRegisterUser implements CreateRegisterUser {
 	public String createTremoloUser(NewUserRequest newUser, List<String> errors,AuthInfo userData) throws ProvisioningException {
 		errors.add("This doesn't do anything");
 		return null;
+	}
+
+	@Override
+	public void setWorkflowParameters(Map<String, Object> wfParameters, NewUserRequest newUser, AuthInfo userData)
+			throws ProvisioningException {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

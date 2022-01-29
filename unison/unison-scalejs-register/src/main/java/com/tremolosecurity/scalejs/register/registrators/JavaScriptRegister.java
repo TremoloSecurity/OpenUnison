@@ -70,6 +70,11 @@ public class JavaScriptRegister implements CreateRegisterUser {
 				throw new ProvisioningException("createTremoloUser function must be defined with three paramters");
 			}
 			
+			doFilter = context.getBindings("js").getMember("setWorkflowParameters");
+			if (doFilter == null || ! doFilter.canExecute()) {
+				throw new ProvisioningException("setWorkflowParameters function must be defined with three paramters");
+			}
+			
 			init.executeVoid(registerConfig);
 			
 			initCompleted = true;
@@ -106,6 +111,33 @@ public class JavaScriptRegister implements CreateRegisterUser {
 				} else {
 					return null;
 				}
+			} finally {
+				if (context != null) {
+					context.close();
+				}
+			}
+			
+		} else {
+			throw new ProvisioningException("javascript not initialized");
+		}
+		
+		
+	}
+
+	@Override
+	public void setWorkflowParameters(Map<String, Object> wfParameters, NewUserRequest newUser, AuthInfo userData)
+			throws ProvisioningException {
+		if (this.initCompleted) {
+			Context context = Context.newBuilder("js").allowAllAccess(true).build();
+			try {
+				context.getBindings("js").putMember("globals", globals);
+				
+				context.getBindings("js").putMember("globals", globals);
+				Value val = context.eval("js",this.javaScript);
+				
+				Value setWorkflowParameters = context.getBindings("js").getMember("setWorkflowParameters");
+				
+				setWorkflowParameters.executeVoid(wfParameters,newUser,userData);
 			} finally {
 				if (context != null) {
 					context.close();

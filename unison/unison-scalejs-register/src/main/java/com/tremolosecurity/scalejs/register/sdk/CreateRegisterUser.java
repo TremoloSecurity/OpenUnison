@@ -14,6 +14,7 @@ package com.tremolosecurity.scalejs.register.sdk;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.scalejs.register.cfg.ScaleJSRegisterConfig;
@@ -39,4 +40,15 @@ public interface CreateRegisterUser {
 	 * @throws ProvisioningException
 	 */
 	public String createTremoloUser(NewUserRequest newUser,List<String> errors, AuthInfo userData) throws ProvisioningException;
+	
+	
+	/**
+	 * Allows for workflow parameters to be set prior to creating the workflow
+	 * @param wfParameters
+	 * @param newUser
+	 * @param userData
+	 * @throws ProvisioningException
+	 */
+	public void setWorkflowParameters(Map<String,Object> wfParameters,NewUserRequest newUser,AuthInfo userData) throws ProvisioningException;
+	
 }
