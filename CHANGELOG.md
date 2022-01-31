@@ -1,3 +1,24 @@
+##  1.0.25-2022012901
+**Tasks:**
+ - 1.0.25 Build [\#595](https://github.com/TremoloSecurity/OpenUnison/issues/595)
+
+**enhancements:**
+ - scalejs register - add customization for parameters [\#613](https://github.com/TremoloSecurity/OpenUnison/issues/613)
+ - update apacheds listeners [\#610](https://github.com/TremoloSecurity/OpenUnison/issues/610)
+ - Create "include chain" auth chain [\#606](https://github.com/TremoloSecurity/OpenUnison/issues/606)
+ - add k8s utility classes [\#611](https://github.com/TremoloSecurity/OpenUnison/issues/611)
+ - oidc auth - make force-auth configurable [\#609](https://github.com/TremoloSecurity/OpenUnison/issues/609)
+ - Support custom auth with js [\#607](https://github.com/TremoloSecurity/OpenUnison/issues/607)
+ - one time password over email [\#608](https://github.com/TremoloSecurity/OpenUnison/issues/608)
+ - remove facebook [\#601](https://github.com/TremoloSecurity/OpenUnison/issues/601)
+ - Add webauthn, retire u2f [\#602](https://github.com/TremoloSecurity/OpenUnison/issues/602)
+ - remove sharepoint 2017 support [\#603](https://github.com/TremoloSecurity/OpenUnison/issues/603)
+ - ScaleJS Register - make easier to customize the ui [\#596](https://github.com/TremoloSecurity/OpenUnison/issues/596)
+
+**bugs:**
+ - scalejs main - startup exception [\#612](https://github.com/TremoloSecurity/OpenUnison/issues/612)
+ - mattermost update user failing [\#605](https://github.com/TremoloSecurity/OpenUnison/issues/605)
+
 ## 1.0.24-2021110502
 
 **Tasks:**
