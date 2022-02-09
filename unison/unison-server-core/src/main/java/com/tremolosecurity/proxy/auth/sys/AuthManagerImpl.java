@@ -821,7 +821,12 @@ public class AuthManagerImpl implements AuthManager {
 			if (param.getValue() != null && ! param.getValue().isBlank()) {
 				attrib.getValues().add(param.getValue());
 			} else {
-				attrib.getValues().add(param.getValueAttribute());
+				if (param.getValueAttribute() == null) {
+					attrib.getValues().add("");
+				} else {
+					attrib.getValues().add(param.getValueAttribute());
+				}
+				
 			}
 		}
 		
