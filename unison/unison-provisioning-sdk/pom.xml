@@ -18,7 +18,7 @@ limitations under the License.
   <parent>
     <groupId>com.tremolosecurity.unison</groupId>
     <artifactId>unison</artifactId>
-    <version>1.0.25</version>
+    <version>1.0.26</version>
   </parent>
   <artifactId>unison-provisioning-sdk</artifactId>
   <name>unison-provisioning-sdk</name>
