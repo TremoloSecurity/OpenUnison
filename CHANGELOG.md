@@ -1,3 +1,11 @@
+## 1.0.26-20220209
+
+**Tasks:**
+ - 1.0.26 build [\#615](https://github.com/TremoloSecurity/OpenUnison/issues/615)
+
+**bugs:**
+ - Empty auth chain parameters treated as null [\#614](https://github.com/TremoloSecurity/OpenUnison/issues/614)
+
 ##  1.0.25-2022012901
 **Tasks:**
  - 1.0.25 Build [\#595](https://github.com/TremoloSecurity/OpenUnison/issues/595)
