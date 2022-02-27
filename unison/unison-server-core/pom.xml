@@ -252,6 +252,18 @@
 		    <artifactId>webauthn4j-core</artifactId>
 		    <version>${webauthn4j.version}</version>
 		  </dependency>
+		  
+		  <dependency>
+		  	<groupId>io.netty</groupId>
+		  	<artifactId>netty-codec-http</artifactId>
+		  	<version>${netty-codec.version}</version>
+		  </dependency>
+		  
+		  <dependency>
+		  	<groupId>io.netty</groupId>
+		  	<artifactId>netty-handler</artifactId>
+		  	<version>${netty-codec.version}</version>
+		  </dependency>
 		
 <dependency>
   <groupId>com.microsoft.azure</groupId>
