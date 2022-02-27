@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.apache.logging.log4j.Logger;
 
@@ -81,7 +82,10 @@ public class MapIdentity implements Serializable {
 			} else if (mapper.getSourceType().equalsIgnoreCase("custom")) {
 				entry.type = MappingType.custom;
 				try {
-					entry.mapping = (CustomMapping) Class.forName(mapper.getSource()).newInstance();
+					
+					
+					String className = mapper.getSource();
+					createCustomMapping(entry, className);
 				} catch (Exception e) {
 					throw new ProvisioningException("Could not load custom mapping",e);
 				}
@@ -152,7 +156,8 @@ public class MapIdentity implements Serializable {
 			} else if (mapper.getSourceType().equalsIgnoreCase("custom")) {
 				entry.type = MappingType.custom;
 				try {
-					entry.mapping = (CustomMapping) Class.forName(mapper.getTargetAttributeSource()).newInstance();
+					String className = mapper.getTargetAttributeSource();
+					createCustomMapping(entry, className);
 				} catch (Exception e) {
 					throw new ProvisioningException("Could not load custom mapping",e);
 				}
@@ -204,7 +209,8 @@ public class MapIdentity implements Serializable {
 			} else if (mapper.getSourceType().equalsIgnoreCase("custom")) {
 				entry.type = MappingType.custom;
 				try {
-					entry.mapping = (CustomMapping) Class.forName(mapper.getTargetAttributeSource()).newInstance();
+					String className = mapper.getTargetAttributeSource();
+					createCustomMapping(entry, className);
 				} catch (Exception e) {
 					throw new ProvisioningException("Could not load custom mapping",e);
 				}
@@ -240,6 +246,23 @@ public class MapIdentity implements Serializable {
 		}
 		
 		this.strict = mappings.isStrict();
+	}
+	private void createCustomMapping(MappingEntry entry, String className)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		List<String> params = new ArrayList<String>();
+		int paramBreak = className.indexOf('|');
+		if (paramBreak > 0) {
+			String paramVals = className.substring(paramBreak + 1);
+			className = className.substring(0,paramBreak);
+			
+			StringTokenizer toker = new StringTokenizer(paramVals,",",false);
+			while (toker.hasMoreTokens()) {
+				params.add(toker.nextToken());
+			}
+		}
+		entry.mapping = (CustomMapping) Class.forName(className).newInstance();
+		String[] paramsarray = new String[params.size()];
+		entry.mapping.setParams(params.toArray(paramsarray));
 	}
 
 

@@ -22,4 +22,6 @@ import com.tremolosecurity.saml.Attribute;
 
 public interface CustomMapping {
 	public Attribute doMapping(User user,String name);
+	
+	public void setParams(String ...params);
 }

@@ -31,4 +31,10 @@ public class DefaultEmail implements CustomMapping {
 		return mail;
 	}
 
+	@Override
+	public void setParams(String... params) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

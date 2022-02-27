@@ -32,5 +32,10 @@ public class Upn2Uid implements CustomMapping {
 		Attribute uid = new Attribute(name,upn.getValues().get(0).replace('@', '.'));
 		return uid;
 	}
+	@Override
+	public void setParams(String... params) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }
