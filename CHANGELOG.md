@@ -1,3 +1,13 @@
+# 1.0.28-2022022801
+
+**Tasks:**
+ - 1.0.28 release [\#618](https://github.com/TremoloSecurity/OpenUnison/issues/618)
+
+**enhancements:**
+ - Support javascript mappings from k8s [\#620](https://github.com/TremoloSecurity/OpenUnison/issues/620)
+ - Support parameters for custom mappings [\#619](https://github.com/TremoloSecurity/OpenUnison/issues/619)
+
+
 ## 1.0.26-20220209
 
 **Tasks:**
