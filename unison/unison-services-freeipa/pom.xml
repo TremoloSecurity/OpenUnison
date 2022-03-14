@@ -17,14 +17,14 @@
 	<parent>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison</artifactId>
-		<version>1.0.28</version>
+		<version>1.0.29</version>
 
 	</parent>
 
 	<groupId>com.tremolosecurity.unison</groupId>
 	<artifactId>unison-services-freeipa</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0.28</version>
+	<version>1.0.29</version>
 	<name>unison-services-freeipa</name>
 	<url>http://maven.apache.org</url>
 
