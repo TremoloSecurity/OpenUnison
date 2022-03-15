@@ -46,8 +46,9 @@ public class LdapPool {
 	private int maxNum;
 	private long idleTimeout;
 	private ConfigManager cfgMgr;
+	private boolean useSRV;
 	
-	public LdapPool(ConfigManager cfgMgr,String host, int port, String bindDN, String password, boolean isSSL,int minNum,int maxNum,long idleTimeout) throws ProvisioningException {
+	public LdapPool(ConfigManager cfgMgr,String host, int port, String bindDN, String password, boolean isSSL,int minNum,int maxNum,long idleTimeout, boolean useSRV) throws ProvisioningException {
 		this.host = host;
 		this.port = port;
 		this.bindDN = bindDN;
@@ -57,14 +58,18 @@ public class LdapPool {
 		this.minNum = minNum;
 		this.maxNum = maxNum;
 		
+		this.useSRV = useSRV;
+		
 		this.cons = new ArrayList<LdapConnection>();
 		this.cfgMgr = cfgMgr;
 		
 		for (int i=0;i<minNum;i++) {
-			LdapConnection con = new LdapConnection(this.cfgMgr,this.host,this.port,this.bindDN,this.password,this.isSSL,this.idleTimeout);
+			LdapConnection con = new LdapConnection(this.cfgMgr,this.host,this.port,this.bindDN,this.password,this.isSSL,this.idleTimeout,this.useSRV);
 			con.connect();
 			this.cons.add(con);
 		}
+		
+		
 	}
 	
 	public LdapConnection getConnection() throws ProvisioningException {
@@ -85,7 +90,7 @@ public class LdapPool {
 		
 		
 			if (cons.size() < this.maxNum) {
-				LdapConnection con = new LdapConnection(this.cfgMgr,this.host,this.port,this.bindDN,this.password,this.isSSL,this.idleTimeout);
+				LdapConnection con = new LdapConnection(this.cfgMgr,this.host,this.port,this.bindDN,this.password,this.isSSL,this.idleTimeout,this.useSRV);
 				con.connect();
 				con.isInUse();
 				synchronized (this.cons) {

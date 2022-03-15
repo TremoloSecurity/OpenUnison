@@ -20,6 +20,11 @@ package com.tremolosecurity.provisioning.util.ldap.pool;
 import java.io.UnsupportedEncodingException;
 
 import org.apache.logging.log4j.Logger;
+import org.xbill.DNS.Lookup;
+import org.xbill.DNS.Record;
+import org.xbill.DNS.SRVRecord;
+import org.xbill.DNS.TextParseException;
+import org.xbill.DNS.Type;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPEntry;
@@ -41,12 +46,13 @@ public class LdapConnection {
 	private boolean isSSL;
 	private long lastUsed;
 	private long idelTime;
+	private boolean useSRV;
 	
 	
 	private LDAPConnection con;
 	private ConfigManager cfgMgr;
 	
-	public LdapConnection(ConfigManager cfgMgr,String host, int port, String bindDN, String password, boolean isSSL,long idleTime) {
+	public LdapConnection(ConfigManager cfgMgr,String host, int port, String bindDN, String password, boolean isSSL,long idleTime,boolean useSRV) {
 		this.host = host;
 		this.port = port;
 		this.bindDN = bindDN;
@@ -56,6 +62,7 @@ public class LdapConnection {
 		this.lastUsed = System.currentTimeMillis();
 		this.idelTime = idleTime;
 		this.cfgMgr = cfgMgr;
+		this.useSRV = useSRV;
 	}
 	
 	public void connect()  throws ProvisioningException {
@@ -101,7 +108,23 @@ public class LdapConnection {
 		
 		
 		try {
-			this.con.connect(host, port);
+			
+			String hostToUse = host;
+			if (useSRV) {
+				Record[] records;
+				try {
+					records = new Lookup(host, Type.SRV).run();
+				} catch (TextParseException e) {
+					throw new LDAPException(LDAPException.resultCodeToString(LDAPException.OPERATIONS_ERROR),LDAPException.OPERATIONS_ERROR,"Could not lookup srv",e);
+				}
+				if (records == null) {
+					throw new LDAPException("No SRV records",LDAPException.OPERATIONS_ERROR,"");
+				}
+				SRVRecord srv = (SRVRecord) records[0];
+				hostToUse = srv.getTarget().toString();
+			} 
+			
+			this.con.connect(hostToUse, port);
 			this.con.bind(3,bindDN,password.getBytes("UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			logger.error("Could not bind",e);

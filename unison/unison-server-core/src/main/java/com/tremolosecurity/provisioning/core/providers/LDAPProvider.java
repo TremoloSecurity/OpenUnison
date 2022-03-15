@@ -80,6 +80,8 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 	private String lcLDAPBase;
 	private String ldapBase;
 	private HashMap<String,String> unison2ldap;
+
+	private boolean useSRV;
 	
 	@Override
 	public LdapConnection getLocalConnection() throws ProvisioningException {
@@ -622,7 +624,15 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 				this.idleTimeout = Long.parseLong(timeout.getValues().get(0));
 			}
 			
-			this.ldapPool = new LdapPool(cfgMgr,host,port,this.userDN,this.passwd,this.isSSL,0,maxCons,this.idleTimeout);
+			
+			Attribute useSRVConfig = cfg.get("userSRV");
+			if (useSRVConfig != null) {
+				this.useSRV = useSRVConfig.getValues().get(0).equalsIgnoreCase("true");
+			} else {
+				this.useSRV = false;
+			}
+			
+			this.ldapPool = new LdapPool(cfgMgr,host,port,this.userDN,this.passwd,this.isSSL,0,maxCons,this.idleTimeout,this.useSRV);
 			
 			if (cfg.get("allowExternalUsers") != null) {
 				this.allowExternalUsers = cfg.get("allowExternalUsers").getValues().get(0).equalsIgnoreCase("true");

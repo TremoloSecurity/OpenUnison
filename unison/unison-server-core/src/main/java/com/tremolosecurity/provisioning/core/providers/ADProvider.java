@@ -93,6 +93,8 @@ public class ADProvider implements UserStoreProviderWithAddGroup {
 	
 	private long idleTimeout;
 	
+	private boolean useSRV;
+	
 	@Override
 	public void createUser(User user,Set<String> attributes,Map<String,Object> request) throws ProvisioningException {
 		String dn = this.getDN(user);
@@ -1012,7 +1014,14 @@ public class ADProvider implements UserStoreProviderWithAddGroup {
 			}
 			
 			
-			this.ldapPool = new LdapPool(cfgMgr,host,port,this.userDN,this.passwd,this.isSSL,0,maxCons,this.idleTimeout);
+			Attribute useSRVConfig = cfg.get("useSRV");
+			if (useSRVConfig != null) {
+				this.useSRV = useSRVConfig.getValues().get(0).equalsIgnoreCase("true");
+			} else {
+				this.useSRV = false;
+			}
+			
+			this.ldapPool = new LdapPool(cfgMgr,host,port,this.userDN,this.passwd,this.isSSL,0,maxCons,this.idleTimeout,this.useSRV);
 			
 			
 			
