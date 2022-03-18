@@ -134,6 +134,8 @@ import com.tremolosecurity.config.xml.AuthMechType;
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.proxy.TremoloHttpSession;
+import com.tremolosecurity.proxy.auth.saml2.MetaDataChecker;
+import com.tremolosecurity.proxy.auth.saml2.Saml2MetadataLookup;
 import com.tremolosecurity.proxy.auth.saml2.Saml2SingleLogout;
 import com.tremolosecurity.proxy.auth.util.AuthStep;
 import com.tremolosecurity.proxy.auth.util.AuthUtil;
@@ -181,6 +183,8 @@ public class SAML2Auth implements AuthMechanism {
 		
 	}
 	
+	private static HashMap<String,Saml2MetadataLookup> metadataLookups;
+	
 
 	
 	@Override
@@ -207,6 +211,12 @@ public class SAML2Auth implements AuthMechanism {
 			HashMap<String, Attribute> authParams = (HashMap<String, Attribute>) session
 					.getAttribute(ProxyConstants.AUTH_MECH_PARAMS);
 			
+			Saml2MetadataLookup metadata = null;
+			
+			
+			
+			metadata = findMetaData(authParams);
+			
 			Attribute jumpPage = authParams.get("jumpPage");
 			if (jumpPage != null && jumpPage.getValues().size() == 1 && ! jumpPage.getValues().get(0).isEmpty()) {
 				
@@ -224,22 +234,61 @@ public class SAML2Auth implements AuthMechanism {
 				String isJump = req.getParameter("isJump");
 				if (isJump != null && isJump.equalsIgnoreCase("true")) {
 					logger.debug("initializing SSO");
-					this.initializeSSO(req, resp, session,false,null);
+					this.initializeSSO(req, resp, session,false,null,metadata);
 				} else {
 					
 
-					this.initializeSSO(req, resp, session,true,jumpPage.getValues().get(0));
+					this.initializeSSO(req, resp, session,true,jumpPage.getValues().get(0),metadata);
 
 				}
 			} else {
-				this.initializeSSO(req, resp, session,false,null);
+				this.initializeSSO(req, resp, session,false,null,metadata);
 			}
 		}
 			
 	}
 
+	private Saml2MetadataLookup findMetaData(HashMap<String, Attribute> authParams) throws ServletException {
+		Attribute metadataUrl = authParams.get("metadataUrl");
+		if (metadataUrl != null) {
+			Attribute idpSigKey = authParams.get("idpSigKeyName");
+			String idpSigKeyName  = null;
+			if (idpSigKey != null) {
+				idpSigKeyName = idpSigKey.getValues().get(0);
+			}
+			
+			return findMetaData(metadataUrl.getValues().get(0),idpSigKeyName);
+		} else {
+			return null;
+		}
+	}
+
+	private Saml2MetadataLookup findMetaData(String metadataUrl, String idpSigKeyName)
+			throws ServletException {
+		Saml2MetadataLookup metadata = null;
+		
+		if (metadataUrl != null) {
+			synchronized(SAML2Auth.metadataLookups) {
+				metadata = SAML2Auth.metadataLookups.get(metadataUrl);
+				if (metadata == null) {
+					
+					
+					metadata = new Saml2MetadataLookup(metadataUrl,idpSigKeyName);
+					try {
+						metadata.pullMetaData();
+					} catch (Exception e) {
+						throw new ServletException("Could not load metadata for '" + metadataUrl + "'",e);
+					}
+					
+					SAML2Auth.metadataLookups.put(metadataUrl, metadata);
+				}
+			}
+		}
+		return metadata;
+	}
+
 	public void initializeSSO(HttpServletRequest req, HttpServletResponse resp,
-			HttpSession session,boolean isJump,String jumpPage) throws MalformedURLException, ServletException {
+			HttpSession session,boolean isJump,String jumpPage,Saml2MetadataLookup metadata) throws MalformedURLException, ServletException {
 		{
 			RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
 			
@@ -288,9 +337,14 @@ public class SAML2Auth implements AuthMechanism {
 				
 				
 			} else {
-				postAuthnReqTo = authParams.get("idpURL").getValues().get(0);// "http://idp.partner.domain.com:8080/opensso/SSOPOST/metaAlias/testSaml2Idp";
-				
+				if (metadata == null) {
+					postAuthnReqTo = authParams.get("idpURL").getValues().get(0);// "http://idp.partner.domain.com:8080/opensso/SSOPOST/metaAlias/testSaml2Idp";
 					redirAuthnReqTo = authParams.get("idpRedirURL").getValues().get(0);
+				} else {
+					postAuthnReqTo = metadata.getSsoPostURL();
+					redirAuthnReqTo = metadata.getSsoRedirectURL();
+				}
+				
 				
 				assertionConsumerServiceURL = ProxyTools.getInstance().getFqdnUrl(uri,req);// "http://sp.localdomain.com:8080/SampleSP/echo";
 				
@@ -530,6 +584,10 @@ public class SAML2Auth implements AuthMechanism {
 		
 		HashMap<String, Attribute> authParams = (HashMap<String, Attribute>) session
 				.getAttribute(ProxyConstants.AUTH_MECH_PARAMS);
+		
+		Saml2MetadataLookup metadata = null;
+		
+		metadata = findMetaData(authParams);
 
 		String defaultOC = authParams.get("defaultOC").getValues().get(0);
 		
@@ -661,6 +719,8 @@ public class SAML2Auth implements AuthMechanism {
 					}
 					
 					if (! foundSigned) {
+						
+						
 						throw new ServletException("could not validate response");
 					}
 					
@@ -784,8 +844,30 @@ public class SAML2Auth implements AuthMechanism {
 			
 			//logout management
 			Attribute logoutURLAttr = authParams.get("idpRedirLogoutURL");
-			if (logoutURLAttr != null && logoutURLAttr.getValues().size() > 0 && ! logoutURLAttr.getValues().get(0).isEmpty() && authParams.get("spSigKey") != null && authParams.get("spSigKey").getValues().size() > 0) {
-				String logoutURL = logoutURLAttr.getValues().get(0);
+			
+			
+			String logoutURL = null;
+			String entityID = null;
+			
+			if (metadata != null) {
+				logoutURL = metadata.getSloRedirectURL();
+				entityID = metadata.getEntityID();
+			} else {
+				if (logoutURLAttr != null && logoutURLAttr.getValues().size() > 0 && ! logoutURLAttr.getValues().get(0).isEmpty()) {
+					logoutURL = logoutURLAttr.getValues().get(0);
+				}
+				
+				if (authParams.get("entityID") != null) {
+					entityID = authParams.get("entityID").getValues().get(0);
+				}
+			}
+			
+			
+			
+			
+			
+			if (logoutURL != null && authParams.get("spSigKey") != null && authParams.get("spSigKey").getValues().size() > 0) {
+				
 				String sessionIndex = assertion.getAuthnStatements().get(0).getSessionIndex();
 				String nameID = assertion.getSubject().getNameID().getValue();
 				String nameIDFormat = assertion.getSubject().getNameID().getFormat();
@@ -793,7 +875,7 @@ public class SAML2Auth implements AuthMechanism {
 				
 				
 				
-				Saml2SingleLogout handler = new Saml2SingleLogout(logoutURL,sessionIndex,nameID,nameIDFormat,samlResponse.getDestination(),authParams.get("spSigKey").getValues().get(0),authParams.get("sigAlg").getValues().get(0),authParams.get("entityID").getValues().get(0));
+				Saml2SingleLogout handler = new Saml2SingleLogout(logoutURL,sessionIndex,nameID,nameIDFormat,samlResponse.getDestination(),authParams.get("spSigKey").getValues().get(0),authParams.get("sigAlg").getValues().get(0),entityID);
 				LogoutUtil.addLogoutHandler(req, handler);
 				
 			}
@@ -987,7 +1069,11 @@ public class SAML2Auth implements AuthMechanism {
 			
 		}
 		
-		
+		SAML2Auth.metadataLookups = new HashMap<String,Saml2MetadataLookup>();
+		MetaDataChecker mdChecker = new MetaDataChecker(SAML2Auth.metadataLookups);
+		Thread t = new Thread(mdChecker);
+		t.start();
+		this.cfgMgr.addThread(mdChecker);
 
 	}
 
@@ -1137,7 +1223,40 @@ public class SAML2Auth implements AuthMechanism {
 						value = pt.getValueAttribute();
 					}
 					
-					if (pt.getName().equalsIgnoreCase("entityID") && value.equalsIgnoreCase(issuer)) {
+					 if (pt.getName().equalsIgnoreCase("metadataurl")) {
+						
+								
+						String sigKeyName = null;
+						for (ParamWithValueType ptx : amt.getParams().getParam()) {
+							
+							String valuex = "";
+							
+							if (ptx.getValue() != null && ! ptx.getValue().isBlank()) {
+								valuex = pt.getValue();
+							} else {
+								valuex = ptx.getValueAttribute();
+							}
+							
+							if (ptx.getName().equalsIgnoreCase("sigAlg")) {
+								algType = valuex;
+							} else if (ptx.getName().equalsIgnoreCase("logoutURL")) {
+								logoutURL = valuex;
+							} else if (ptx.getName().equalsIgnoreCase("idpSigKeyName")) {
+								if (sigKeyName == null) {
+									sigKeyName = valuex;
+								}
+								sigKeys.add(valuex);
+							}
+						}
+						
+						Saml2MetadataLookup metadata = this.findMetaData(value, sigKeyName);
+						if (metadata.getEntityID().equalsIgnoreCase(issuer)) {
+							found = true;
+							
+						}
+						
+						break;
+					} else if (pt.getName().equalsIgnoreCase("entityID") && value.equalsIgnoreCase(issuer)) {
 						//found the correct mechanism
 						found = true;
 						
@@ -1292,7 +1411,40 @@ public class SAML2Auth implements AuthMechanism {
 						value = pt.getValueAttribute();
 					}
 					
-					if (pt.getName().equalsIgnoreCase("entityID") && value.equalsIgnoreCase(issuer)) {
+					if (pt.getName().equalsIgnoreCase("metadataurl")) {
+						
+								
+						String sigKeyName = null;
+						for (ParamWithValueType ptx : amt.getParams().getParam()) {
+							
+							String valuex = "";
+							
+							if (ptx.getValue() != null && ! ptx.getValue().isBlank()) {
+								valuex = pt.getValue();
+							} else {
+								valuex = ptx.getValueAttribute();
+							}
+							
+							if (ptx.getName().equalsIgnoreCase("sigAlg")) {
+								algType = valuex;
+							} else if (ptx.getName().equalsIgnoreCase("triggerLogoutURL")) {
+								logoutURL = valuex;
+							} else if (ptx.getName().equalsIgnoreCase("idpSigKeyName")) {
+								if (sigKeyName == null) {
+									sigKeyName = valuex;
+								}
+								sigKeys.add(valuex);
+							}
+						}
+						
+						Saml2MetadataLookup metadata = this.findMetaData(value, sigKeyName);
+						if (metadata.getEntityID().equalsIgnoreCase(issuer)) {
+							found = true;
+							
+						}
+						
+						break;
+					} else if (pt.getName().equalsIgnoreCase("entityID") && value.equalsIgnoreCase(issuer)) {
 						//found the correct mechanism
 						found = true;
 						

@@ -26,12 +26,12 @@
     <Root level="info">
       <AppenderRef ref="STDOUT"/>
     </Root>
-    <!-- <Logger name="org.apache.http"  level="debug">
+    <!--  <Logger name="org.apache.http"  level="debug">
   <AppenderRef ref="STDOUT" level="debug"/>
 </Logger>
 
 <Logger name="org.apache.http.wire"  level="error">
   <AppenderRef ref="STDOUT" level="error"/>
-</Logger> -->
+</Logger>  -->
   </Loggers>
 </Configuration>
