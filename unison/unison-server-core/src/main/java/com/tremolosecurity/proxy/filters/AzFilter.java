@@ -17,31 +17,41 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.filters;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.tremolosecurity.config.util.UrlHolder;
+import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.AzRuleType;
 import com.tremolosecurity.log.AccessLog;
 import com.tremolosecurity.log.AccessLog.AccessEvent;
+import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.AzSys;
+import com.tremolosecurity.proxy.az.AzRule;
 import com.tremolosecurity.proxy.filter.HttpFilter;
 import com.tremolosecurity.proxy.filter.HttpFilterChain;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;
 import com.tremolosecurity.proxy.filter.HttpFilterRequest;
 import com.tremolosecurity.proxy.filter.HttpFilterResponse;
 import com.tremolosecurity.proxy.util.ProxyConstants;
+import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 
 
 
 public class AzFilter implements HttpFilter {
 
 	AzSys az;
+	
+	List<AzRule> localRules;
 	
 	@Override
 	public void doFilter(HttpFilterRequest request,
@@ -52,8 +62,20 @@ public class AzFilter implements HttpFilter {
 		AuthInfo authData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
 		UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
 		
-		List<AzRuleType> rules = holder.getUrl().getAzRules().getRule();
-		boolean OK = az.checkRules(authData, holder.getConfig(), holder.getAzRules(),null);
+		List<AzRule> rules = null;
+		
+		if (this.localRules != null) {
+			rules = this.localRules;
+		} else {
+			rules = holder.getAzRules();
+		}
+		
+		ApplicationType at = new ApplicationType();
+		at.setAzTimeoutMillis(3000L);
+		
+		boolean OK = az.checkRules(authData, holder.getConfig(), rules, session, at, null);
+				
+				
 		
 		if (OK) {
 			String respGroup = az.getResponseSuccessGroup(holder);
@@ -100,6 +122,27 @@ public class AzFilter implements HttpFilter {
 	@Override
 	public void initFilter(HttpFilterConfig config) throws Exception {
 		this.az = new AzSys();
+		
+		Attribute rulesConfig = config.getAttribute("rules");
+		
+		if (rulesConfig != null) {
+			this.localRules = new ArrayList<AzRule>();
+			
+			for (String val : rulesConfig.getValues()) {
+				StringTokenizer toker = new StringTokenizer(val,";",false);
+				toker.hasMoreTokens();
+				String scope = toker.nextToken();
+				toker.hasMoreTokens();
+				String constraint = toker.nextToken();
+				
+				try {
+					AzRule rule = new AzRule(scope,constraint,null,GlobalEntries.getGlobalEntries().getConfigManager(),null);
+					this.localRules.add(rule);
+				} catch (ProvisioningException e) {
+					throw new ServletException("Could not create az rule",e);
+				}
+			}
+		}
 
 	}
 
