@@ -53,6 +53,9 @@ public class AzFilter implements HttpFilter {
 	
 	List<AzRule> localRules;
 	
+	String azSuccess;
+	String azFail;
+	
 	@Override
 	public void doFilter(HttpFilterRequest request,
 			HttpFilterResponse response, HttpFilterChain chain)
@@ -79,6 +82,11 @@ public class AzFilter implements HttpFilter {
 		
 		if (OK) {
 			String respGroup = az.getResponseSuccessGroup(holder);
+			
+			if (this.azSuccess != null) {
+				respGroup = this.azSuccess;
+			}
+			
 			AccessLog.log(AccessEvent.AzSuccess, holder.getApp(),  request.getServletRequest(), authData , respGroup != null ? respGroup : "NONE");
 			if (respGroup != null) {
 				az.processRequestResult(request.getServletRequest(), response.getServletResponse(), holder.getConfig().getResultGroup(respGroup),authData);
@@ -91,6 +99,11 @@ public class AzFilter implements HttpFilter {
 			}
 		} else {
 			String respGroup = az.getResponseFailGroup(holder);
+			
+			if (this.azFail != null) {
+				respGroup = this.azFail;
+			}
+			
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), request.getServletRequest(), authData , respGroup != null ? respGroup : "NONE");
 			
 			
@@ -142,6 +155,16 @@ public class AzFilter implements HttpFilter {
 					throw new ServletException("Could not create az rule",e);
 				}
 			}
+		}
+		
+		Attribute azSuccessCfg = config.getAttribute("azSuccess");
+		if (azSuccess != null) {
+			this.azSuccess = azSuccessCfg.getValues().get(0);
+		}
+		
+		Attribute azFailCfg = config.getAttribute("azFail");
+		if (azFailCfg != null) {
+			this.azFail = config.getAttribute("azFail").getValues().get(0);
 		}
 
 	}
