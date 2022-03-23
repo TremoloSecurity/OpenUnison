@@ -94,6 +94,7 @@ import com.tremolosecurity.config.xml.ConfigType;
 import com.tremolosecurity.config.xml.CustomAzRuleType;
 import com.tremolosecurity.config.xml.DynamicPortalUrlsType;
 import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.config.xml.MechanismType;
 import com.tremolosecurity.config.xml.ParamListType;
@@ -593,14 +594,19 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	private void createCustomAuthorizationRule(CustomAzRuleType azrule)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, AzException {
 		HashMap<String,Attribute> azCfg = new HashMap<String,Attribute>();
-		for (ParamType pt : azrule.getParams()) {
+		for (ParamWithValueType pt : azrule.getParams()) {
 			Attribute attr = azCfg.get(pt.getName());
 			if (attr == null) {
 				attr = new Attribute(pt.getName());
 				azCfg.put(pt.getName(), attr);
 			}
 			
-			attr.getValues().add(pt.getValue());
+			if (pt.getValue() != null) {
+				attr.getValues().add(pt.getValue());
+			} else {
+				attr.getValues().add(pt.getValueAttribute());
+			}
+			
 			
 		}
 		

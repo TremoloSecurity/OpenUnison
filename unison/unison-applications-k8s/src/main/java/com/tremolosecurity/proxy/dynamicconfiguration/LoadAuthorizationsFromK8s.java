@@ -25,6 +25,7 @@ import org.json.simple.parser.ParseException;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.CustomAzRuleType;
 import com.tremolosecurity.config.xml.ParamType;
+import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.config.xml.ResultGroupType;
 import com.tremolosecurity.config.xml.ResultType;
 import com.tremolosecurity.config.xml.TargetType;
@@ -66,13 +67,13 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 			Object v = params.get(keyName);
 			if (v instanceof String) {
 				String val = (String) v;
-				ParamType pt = new ParamType();
+				ParamWithValueType pt = new ParamWithValueType();
 				pt.setName(keyName);
 				pt.setValue(val);
 				cart.getParams().add(pt);
 			} else if (v instanceof JSONArray) {
 				for (Object ov : ((JSONArray) v)) {
-					ParamType pt = new ParamType();
+					ParamWithValueType pt = new ParamWithValueType();
 					pt.setName(keyName);
 					pt.setValue((String) ov);
 					cart.getParams().add(pt);
@@ -95,7 +96,7 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 						String secretKey = (String) secretParam.get("secretKey");
 						
 						String secretValue = this.k8sWatch.getSecretValue(secretName, secretKey, token, nonwatchHttp);
-						ParamType pt = new ParamType();
+						ParamWithValueType pt = new ParamWithValueType();
 						pt.setName(paramName);
 						pt.setValue(secretValue);
 						

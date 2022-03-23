@@ -2449,7 +2449,7 @@
 				requested resource</documentation>
 		</annotation>
 		<sequence>
-			<element name="params" type="tns:paramType" minOccurs="0"
+			<element name="params" type="tns:paramWithValueType" minOccurs="0"
 				maxOccurs="unbounded"></element>
 		</sequence>
 		<attribute name="name" type="string">
