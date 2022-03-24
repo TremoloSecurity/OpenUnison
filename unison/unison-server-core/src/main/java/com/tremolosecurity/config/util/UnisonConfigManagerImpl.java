@@ -601,7 +601,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 				azCfg.put(pt.getName(), attr);
 			}
 			
-			if (pt.getValue() != null) {
+			if (pt.getValue() != null && ! pt.getValue().isBlank()) {
 				attr.getValues().add(pt.getValue());
 			} else {
 				attr.getValues().add(pt.getValueAttribute());
