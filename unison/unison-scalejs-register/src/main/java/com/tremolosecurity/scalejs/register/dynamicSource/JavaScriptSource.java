@@ -135,9 +135,9 @@ public class JavaScriptSource implements SourceList {
 				
 				Value val = context.eval("js",this.javaScript);
 				
-				Value getSourceList = context.getBindings("js").getMember("validate");
+				Value validate = context.getBindings("js").getMember("validate");
 				
-				Value resp = getSourceList.execute(request);
+				Value resp = validate.execute(value,request);
 				if (resp != null) {
 					String respValue =  resp.asString();
 					return respValue;
