@@ -282,6 +282,9 @@ public class ScaleMain implements HttpFilter {
 		} else if (request.getMethod().equalsIgnoreCase("GET") && request.getRequestURI().contains("/main/reports/excel/")) {
 			
 			exportToExcel(request, response, gson);
+		} else if (request.getRequestURI().contains("/main/reports/excelx")) {
+			
+			exportToExcelPut(request, response, gson);
 		} else if (request.getMethod().equalsIgnoreCase("GET") && request.getRequestURI().contains("/main/reports/")) {
 			runReport(request, response, gson);
 		} else if (request.getMethod().equalsIgnoreCase("GET") && request.getRequestURI().endsWith("/main/urls")) {
@@ -426,6 +429,28 @@ public class ScaleMain implements HttpFilter {
 		
 		ReportResults res = (ReportResults) request.getSession().getAttribute(id);
 		
+		generateExcelReport(response, gson, res);
+	}
+	
+	private void exportToExcelPut(HttpFilterRequest request, HttpFilterResponse response, Gson gson) throws IOException {
+		
+		if (request.getServletRequest().getMethod().equalsIgnoreCase("GET")) {
+			//alert scalejs that this URL does exist
+			response.sendError(200);
+		} else if (request.getMethod().equalsIgnoreCase("PUT")) {
+		
+			// generate a spreadsheet from the requested report data. 
+			ReportResults res = gson.fromJson(new String((byte[]) request.getAttribute(ProxySys.MSG_BODY)), ReportResults.class);
+			
+			generateExcelReport(response, gson, res);
+		} else {
+			logger.error("Unsupported method for main/reports/excelx : " + request.getMethod());
+			response.sendError(500);
+		}
+	}
+
+
+	private void generateExcelReport(HttpFilterResponse response, Gson gson, ReportResults res) throws IOException {
 		if (res == null) {
 			response.setStatus(404);
 			ScaleError error = new ScaleError();
