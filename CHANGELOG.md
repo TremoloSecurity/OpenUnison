@@ -1,3 +1,19 @@
+# 1.0.29-2922032401
+
+**Tasks:**
+ - 1.0.29 release [\#625](https://github.com/TremoloSecurity/OpenUnison/issues/625)
+
+**bugs:**
+ - scalejs register js dynamic list - not passing parameters correctly [\#629](https://github.com/TremoloSecurity/OpenUnison/issues/629)
+ - webauthn - make attachment type optional [\#627](https://github.com/TremoloSecurity/OpenUnison/issues/627)
+ - scalejs main - export reports don't work without sticky sessions [\#626](https://github.com/TremoloSecurity/OpenUnison/issues/626)
+
+**enhancements:**
+ - custom authorization: support javascript [\#623](https://github.com/TremoloSecurity/OpenUnison/issues/623)
+ - kubernetes - check that session exists for user [\#624](https://github.com/TremoloSecurity/OpenUnison/issues/624)
+ - SAML2 Auth - dynamically load from metadata [\#622](https://github.com/TremoloSecurity/OpenUnison/issues/622)
+ - AD provisioning target: support SRV records [\#621](https://github.com/TremoloSecurity/OpenUnison/issues/621)
+
 # 1.0.28-2022022801
 
 **Tasks:**
