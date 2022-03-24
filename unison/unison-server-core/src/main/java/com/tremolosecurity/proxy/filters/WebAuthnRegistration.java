@@ -353,7 +353,11 @@ public class WebAuthnRegistration implements HttpFilter {
 		this.workflowName = config.getAttribute("workflowName").getValues().get(0);
 		this.challengeStoreAttribute = config.getAttribute("challengStoreAttribute").getValues().get(0);
 		
-		this.authenticatorAttachment = AuthenticatorAttachment.create(config.getAttribute("authenticationAttachment").getValues().get(0));
+		if (config.getAttribute("authenticationAttachment") != null) {
+			this.authenticatorAttachment = AuthenticatorAttachment.create(config.getAttribute("authenticationAttachment").getValues().get(0));
+		} else {
+			this.authenticatorAttachment = null;
+		}
 		this.userVerificationRequirement = UserVerificationRequirement.create(config.getAttribute("userVerificationRequirement").getValues().get(0));
 		this.requireResisentKey = config.getAttribute("requireResidentKey").getValues().get(0).equalsIgnoreCase("true");
 	}
