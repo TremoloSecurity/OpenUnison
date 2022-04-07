@@ -17,8 +17,11 @@ limitations under the License.
 package com.tremolosecurity.proxy.auth.saml2;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -78,36 +81,45 @@ public class Saml2MetadataLookup {
 	}
 	
 	public synchronized void pullMetaData() throws Exception {
-		// first thing is to retrieve the metadata
-		BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(GlobalEntries.getGlobalEntries().getConfigManager().getHttpClientSocketRegistry());
-		RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
-		CloseableHttpClient http = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(rc).build();
 		
 		String metadata;
 		
-		try {
-			HttpGet metadataOp = new HttpGet(this.metadataURL);
-			CloseableHttpResponse resp = http.execute(metadataOp);
-			metadata = EntityUtils.toString(resp.getEntity());
-			resp.close();
+		if (this.metadataURL.startsWith("http")) {
 		
-		} finally {
-			try {
-				if (http != null) {
-					http.close();
-				}
-			} catch (IOException e) {
-				
-			}
+			// first thing is to retrieve the metadata
+			BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(GlobalEntries.getGlobalEntries().getConfigManager().getHttpClientSocketRegistry());
+			RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
+			CloseableHttpClient http = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(rc).build();
+			
+			
 			
 			try {
-				if (bhcm != null) {
-					bhcm.close();
-				}
+				HttpGet metadataOp = new HttpGet(this.metadataURL);
+				CloseableHttpResponse resp = http.execute(metadataOp);
+				metadata = EntityUtils.toString(resp.getEntity());
+				resp.close();
+			
 			} finally {
+				try {
+					if (http != null) {
+						http.close();
+					}
+				} catch (IOException e) {
+					
+				}
+				
+				try {
+					if (bhcm != null) {
+						bhcm.close();
+					}
+				} finally {
+					
+				}
 				
 			}
-			
+		} else  {
+			//metadata = new String(Files.   (this.metadataURL).readAllBytes());
+			metadata = new String(Files.readAllBytes(new File(this.metadataURL).toPath()));
 		}
 		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
