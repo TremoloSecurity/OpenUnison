@@ -43,7 +43,10 @@ public class JMSSessionHolder {
 			
 		}
 		this.con = con;
-		this.session = con.getCon().createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
+		
+		
+		
+		this.session = con.getCon().createSession(false, con.getAckcnolwedgeMode());
 		this.queueName = queueName;
 		this.queue = session.createQueue(this.queueName);
 		
@@ -53,7 +56,7 @@ public class JMSSessionHolder {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Rebuilding JMSSessionHolder for '" + queueName + "'" );
 		}
-		this.session = con.getCon().createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
+		this.session = con.getCon().createSession(false, con.getAckcnolwedgeMode());
 		this.queue = session.createQueue(this.queueName);
 		
 		if (mp != null) {
@@ -66,6 +69,8 @@ public class JMSSessionHolder {
 			this.mc.setMessageListener(ml);
 		}
 	}
+	
+	
 	
 	public void setMessageListener(MessageListener ml) throws JMSException {
 		this.ml = ml;

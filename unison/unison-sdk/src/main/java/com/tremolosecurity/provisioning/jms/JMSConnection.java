@@ -38,6 +38,9 @@ import com.tremolosecurity.server.StopableThread;
 
 
 public class JMSConnection {
+	private static final String QPID_CON_FACTORY = "org.apache.qpid.jms.JmsConnectionFactory";
+
+
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(JMSConnection.class.getName());
 	
 	
@@ -46,13 +49,21 @@ public class JMSConnection {
 	List<JMSSessionHolder> sessions;
 	int count;
 	int max;
-	
+	int achknowledgementMode;
 
 	
 	public JMSConnection(ConnectionFactory cf,int max) throws JMSException {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Creating new connection " + cf);
 		}
+		
+		if (cf.getClass().getName().equalsIgnoreCase(JMSConnection.QPID_CON_FACTORY)) {
+			this.achknowledgementMode = javax.jms.Session.CLIENT_ACKNOWLEDGE;
+		} else {
+			this.achknowledgementMode = javax.jms.Session.AUTO_ACKNOWLEDGE;
+		}
+		
+		
 		this.cf = cf;
 		this.con = cf.createConnection();
 		this.con.start();
@@ -216,6 +227,10 @@ public class JMSConnection {
 			session.rebuild();
 		}
 		createKeepAlive();
+	}
+	
+	public int getAckcnolwedgeMode() {
+		return this.achknowledgementMode;
 	}
 	
 

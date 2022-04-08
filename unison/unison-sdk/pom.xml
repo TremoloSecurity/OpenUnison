@@ -233,6 +233,12 @@
 		    <version>${graaljs.version}</version>
 		</dependency>
 		
+		  <dependency>
+			<groupId>org.apache.qpid</groupId>
+			<artifactId>qpid-jms-client</artifactId>
+			<version>${qpid.version}</version>
+		</dependency>
+		
 	</dependencies>
 
 

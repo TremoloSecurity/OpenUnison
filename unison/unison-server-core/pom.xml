@@ -264,6 +264,8 @@
 		  	<artifactId>netty-handler</artifactId>
 		  	<version>${netty-codec.version}</version>
 		  </dependency>
+		  
+		
 		
 <dependency>
   <groupId>com.microsoft.azure</groupId>

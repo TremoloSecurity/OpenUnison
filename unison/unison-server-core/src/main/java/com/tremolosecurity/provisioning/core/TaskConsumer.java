@@ -29,6 +29,7 @@ import javax.jms.ObjectMessage;
 import javax.jms.TextMessage;
 
 import org.apache.logging.log4j.Logger;
+import org.apache.qpid.jms.message.JmsMessage;
 
 import com.cedarsoftware.util.io.JsonReader;
 import com.tremolosecurity.config.util.ConfigManager;
@@ -51,6 +52,8 @@ public class TaskConsumer implements MessageListener {
 
 	@Override
 	public void onMessage(Message msg) {
+		
+		
 		
 		try {
 			TextMessage bmsg = (TextMessage) msg;
@@ -101,17 +104,37 @@ public class TaskConsumer implements MessageListener {
 				}
 			}
 
+			// if this is from qpid, set the achnowledgement mode manually
+			if (msg instanceof JmsMessage) {
+				msg.setIntProperty("JMS_AMQP_ACK_TYPE", 1);
+			}
+			
 			msg.acknowledge();
+			
 		
 		} catch (Throwable t) {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			PrintWriter baout = new PrintWriter(baos);
-			t.printStackTrace(baout);
-			baout.flush();
-			baout.close();
-			StringBuffer b = new StringBuffer();
-			b.append("Could not execute task\n").append(new String(baos.toByteArray()));
-			throw new RuntimeException(b.toString(),t);
+			// if this is from qpid, set the achnowledgement mode manually
+			if (msg instanceof JmsMessage) {
+				logger.error("Error processing message",t);
+				try {
+					msg.setIntProperty("JMS_AMQP_ACK_TYPE", 2);
+					msg.acknowledge();
+					
+				} catch (JMSException e) {
+					logger.error("error setting message rejected property",e);
+				}
+			} else {
+			
+			
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				PrintWriter baout = new PrintWriter(baos);
+				t.printStackTrace(baout);
+				baout.flush();
+				baout.close();
+				StringBuffer b = new StringBuffer();
+				b.append("Could not execute task\n").append(new String(baos.toByteArray()));
+				throw new RuntimeException(b.toString(),t);
+			}
 		}
 		
 	}
