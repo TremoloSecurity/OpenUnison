@@ -60,7 +60,7 @@ public class ScalePassword implements HttpFilter {
 		
 		
 		if (request.getRequestURI().endsWith("/password/config")) {
-			response.setContentType("application/json");
+			response.setContentType("application/json; charset=UTF-8");
 			
 			
 			ScalePasswordUser ssru = new ScalePasswordUser();

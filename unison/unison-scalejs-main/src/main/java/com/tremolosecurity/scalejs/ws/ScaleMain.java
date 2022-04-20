@@ -160,13 +160,13 @@ public class ScaleMain implements HttpFilter {
 				local.setCanEditUser(this.scaleConfig.getUiDecisions().canEditUser(userData, request.getServletRequest()));
 				
 				ScaleJSUtils.addCacheHeaders(response);
-				response.setContentType("application/json");
+				response.setContentType("application/json; charset=UTF-8");
 				
 				response.getWriter().println(gson.toJson(local).trim());
 				
 			} else {
 				ScaleJSUtils.addCacheHeaders(response);
-				response.setContentType("application/json");
+				response.setContentType("application/json; charset=UTF-8");
 				response.getWriter().println(gson.toJson(scaleConfig).trim());
 			}
 		} else if (request.getMethod().equalsIgnoreCase("GET") && request.getRequestURI().endsWith("/main/user")) {
@@ -180,7 +180,7 @@ public class ScaleMain implements HttpFilter {
 			Organization org = new Organization();
 			copyOrg(org,ot,az,userData);
 			ScaleJSUtils.addCacheHeaders(response);
-			response.setContentType("application/json");
+			response.setContentType("application/json; charset=UTF-8");
 			response.getWriter().println(gson.toJson(org).trim());
 			
 		} else if (request.getMethod().equalsIgnoreCase("GET") && request.getRequestURI().contains("/main/workflows/org/")) {
@@ -214,7 +214,7 @@ public class ScaleMain implements HttpFilter {
 			} catch (Throwable t) {
 				logger.error("Could not check for preapproval status",t);
 				response.setStatus(500);
-				response.setContentType("application/json");
+				response.setContentType("application/json; charset=UTF-8");
 				ScaleJSUtils.addCacheHeaders(response);
 				ScaleError error = new ScaleError();
 				error.getErrors().add("Unable to check");
@@ -227,7 +227,7 @@ public class ScaleMain implements HttpFilter {
 		} else if (request.getMethod().equalsIgnoreCase("GET") && request.getRequestURI().endsWith("/main/approvals")) {
 			AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
 			String uid = userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0); 			
-			response.setContentType("application/json");
+			response.setContentType("application/json; charset=UTF-8");
 			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().println(gson.toJson(ServiceActions.listOpenApprovals(uid,this.scaleConfig.getDisplayNameAttribute(),GlobalEntries.getGlobalEntries().getConfigManager())).trim());			
 		} else if (request.getMethod().equalsIgnoreCase("GET") && request.getRequestURI().contains("/main/approvals/")) {
@@ -248,7 +248,7 @@ public class ScaleMain implements HttpFilter {
 			
 			if (! ok) {
 				response.setStatus(401);
-				response.setContentType("application/json");
+				response.setContentType("application/json; charset=UTF-8");
 				ScaleJSUtils.addCacheHeaders(response);
 				ScaleError error = new ScaleError();
 				error.getErrors().add("Unauthorized");
@@ -756,7 +756,7 @@ public class ScaleMain implements HttpFilter {
 				if (logger.isDebugEnabled()) {
 					logger.debug("JSON : " + json);
 				}
-				response.setContentType("application/json");
+				response.setContentType("application/json; charset=UTF-8");
 				ScaleJSUtils.addCacheHeaders(response);
 				response.getWriter().print(json);
 				response.getWriter().flush();
@@ -770,7 +770,7 @@ public class ScaleMain implements HttpFilter {
 				if (logger.isDebugEnabled()) {
 					logger.debug("JSON : " + json);
 				}
-				response.setContentType("application/json");
+				response.setContentType("application/json; charset=UTF-8");
 				ScaleJSUtils.addCacheHeaders(response);
 				response.getWriter().print(json);
 				response.getWriter().flush();
@@ -818,14 +818,14 @@ public class ScaleMain implements HttpFilter {
 		
 		if (! ok) {
 			response.setStatus(401);
-			response.setContentType("application/json");
+			response.setContentType("application/json; charset=UTF-8");
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Unauthorized");
 			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().print(gson.toJson(error).trim());
 			response.getWriter().flush();
 		} else {
-			response.setContentType("application/json");
+			response.setContentType("application/json; charset=UTF-8");
 			
 			
 			ApprovalDetails details = ServiceActions.loadApprovalDetails(uid, approvalID);
@@ -1013,7 +1013,7 @@ public class ScaleMain implements HttpFilter {
 			}
 		}
 		ScaleJSUtils.addCacheHeaders(response);
-		response.setContentType("application/json");
+		response.setContentType("application/json; charset=UTF-8");
 		response.getWriter().println(gson.toJson(results).trim());
 	}
 
@@ -1060,7 +1060,7 @@ public class ScaleMain implements HttpFilter {
 		
 		if (! allowedOrgs.contains(orgid)) {
 			response.setStatus(401);
-			response.setContentType("application/json");
+			response.setContentType("application/json; charset=UTF-8");
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Unauthorized");
 			ScaleJSUtils.addCacheHeaders(response);
@@ -1152,7 +1152,7 @@ public class ScaleMain implements HttpFilter {
 				
 			}
 			ScaleJSUtils.addCacheHeaders(response);
-			response.setContentType("application/json");
+			response.setContentType("application/json; charset=UTF-8");
 			response.getWriter().println(gson.toJson(workflows).trim());
 			response.getWriter().flush();
 		}
@@ -1170,7 +1170,7 @@ public class ScaleMain implements HttpFilter {
 		
 		if (! allowedOrgs.contains(orgid)) {
 			response.setStatus(401);
-			response.setContentType("application/json");
+			response.setContentType("application/json; charset=UTF-8");
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Unauthorized");
 			ScaleJSUtils.addCacheHeaders(response);
@@ -1198,7 +1198,7 @@ public class ScaleMain implements HttpFilter {
 				}
 			}
 			
-			response.setContentType("application/json");
+			response.setContentType("application/json; charset=UTF-8");
 			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().println(gson.toJson(reportsList).trim());
 			response.getWriter().flush();
@@ -1357,7 +1357,7 @@ public class ScaleMain implements HttpFilter {
 		
 		
 		
-		response.setContentType("application/json");
+		response.setContentType("application/json; charset=UTF-8");
 		
 		AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
 		

@@ -18,8 +18,10 @@ limitations under the License.
 package com.tremolosecurity.provisioning.core;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +30,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
+import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.saml.Attribute;
 
 public class User implements Serializable {
@@ -59,10 +62,21 @@ public class User implements Serializable {
 		for (Object o : entry.getAttributeSet()) {
 			LDAPAttribute attr = (LDAPAttribute) o;
 			String[] vals = attr.getStringValueArray();
+			
+			
+			LinkedList<ByteArray> rawVals = attr.getAllValues();
+			
 			Attribute attrib = new Attribute(attr.getBaseName());
-			for (String val : vals ) {
-				attrib.getValues().add(val);
+			
+			for (ByteArray val : rawVals) {
+				try {
+					attrib.getValues().add(new String(val.getValue(),"UTF-8"));
+				} catch (UnsupportedEncodingException e) {
+					//ignore
+				}
 			}
+			
+			
 			this.attribs.put(attrib.getName(),attrib);
 			
 		}

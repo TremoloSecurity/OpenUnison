@@ -50,7 +50,7 @@ public class ScaleToken implements HttpFilter {
 		request.getServletRequest().setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
 		
 		if (request.getRequestURI().endsWith("/token/config")) {
-			response.setContentType("application/json");
+			response.setContentType("application/json; charset=UTF-8");
 			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().println(gson.toJson(scaleConfig).trim());
 		} else if (request.getMethod().equalsIgnoreCase("GET") && request.getRequestURI().endsWith("/token/user")) {
@@ -65,7 +65,7 @@ public class ScaleToken implements HttpFilter {
 			
 			stu.setToken(this.tokenLoader.loadToken(userData, request.getSession()));
 			ScaleJSUtils.addCacheHeaders(response);
-			response.setContentType("application/json");
+			response.setContentType("application/json; charset=UTF-8");
 			response.getWriter().println(gson.toJson(stu).trim());
 		}
 

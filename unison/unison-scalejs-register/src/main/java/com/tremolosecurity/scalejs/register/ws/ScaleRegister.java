@@ -76,7 +76,7 @@ public class ScaleRegister implements HttpFilter {
 		Gson gson = new Gson();
 		request.getServletRequest().setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
 		if (request.getRequestURI().endsWith("/register/config")) {
-			response.setContentType("application/json");
+			response.setContentType("application/json; charset=UTF-8");
 			ScaleJSUtils.addCacheHeaders(response);
 			
 			ScaleJSRegisterConfig localCfg = gson.fromJson(gson.toJson(this.scaleConfig), ScaleJSRegisterConfig.class);
@@ -96,7 +96,7 @@ public class ScaleRegister implements HttpFilter {
 		} else if (request.getRequestURI().endsWith("/register/values")) {
 			String attributeName = request.getParameter("name").getValues().get(0);
 			List<NVP> values = this.scaleConfig.getAttributes().get(attributeName).getDynamicSource().getSourceList(request);
-			response.setContentType("application/json");
+			response.setContentType("application/json; charset=UTF-8");
 			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().println(gson.toJson(values).trim());
 			

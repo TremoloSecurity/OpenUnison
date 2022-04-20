@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.net.util.Base64;
+import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -649,7 +650,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			put.addHeader(new BasicHeader("Authorization","Bearer " + token));
 		}
 		
-		StringEntity str = new StringEntity(json,ContentType.create(contentType));
+		StringEntity str = new StringEntity(json,ContentType.create(contentType,Consts.UTF_8));
 		put.setEntity(str);
 		
 		HttpResponse resp = con.getHttp().execute(put);

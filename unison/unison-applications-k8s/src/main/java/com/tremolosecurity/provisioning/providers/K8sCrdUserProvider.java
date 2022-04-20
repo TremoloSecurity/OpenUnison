@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -273,9 +274,14 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 			}
 			
 			if (patch.size() > 0) {
-				HashMap<String,Object> spec = new HashMap<String,Object>();
-				spec.put("spec", patch);
-				String json = this.gsonNoUnderScore.toJson(spec);
+				
+				JSONObject root = new JSONObject();
+				JSONObject spec = new JSONObject();
+				root.put("spec", spec);
+				spec.putAll(patch);
+				
+				
+				String json = root.toString();
 				
 				try {
 					HttpCon con = k8s.createClient();

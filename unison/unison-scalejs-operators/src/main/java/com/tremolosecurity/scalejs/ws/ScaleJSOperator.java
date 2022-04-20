@@ -98,7 +98,7 @@ public class ScaleJSOperator implements HttpFilter {
 		try {
 			if (request.getRequestURI().endsWith("/ops/config")) {
 				ScaleJSUtils.addCacheHeaders(response);
-				response.setContentType("application/json");
+				response.setContentType("application/json; charset=UTF-8");
 				response.getWriter().println(gson.toJson(this.config).trim());
 			} else if (request.getRequestURI().endsWith("/ops/search")) {
 				runSearch(request, response, gson);
@@ -396,7 +396,7 @@ public class ScaleJSOperator implements HttpFilter {
 			userToSend.setCanEditUser(scaleMainConfig.isCanEditUser());
 		}
 		ScaleJSUtils.addCacheHeaders(response);
-		response.setContentType("application/json");
+		response.setContentType("application/json; charset=UTF-8");
 		response.getWriter().println(gson.toJson(userToSend).trim());
 	}
 
@@ -457,7 +457,7 @@ public class ScaleJSOperator implements HttpFilter {
 		}
 
 		ScaleJSUtils.addCacheHeaders(response);
-		response.setContentType("application/json");
+		response.setContentType("application/json; charset=UTF-8");
 		response.getWriter().println(gson.toJson(resList).trim());
 	}
 
