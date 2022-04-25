@@ -16,11 +16,14 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.auth.saml2;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -50,6 +53,8 @@ import org.opensaml.saml.saml2.metadata.SingleSignOnService;
 import org.opensaml.security.credential.UsageType;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
+
+import org.apache.commons.codec.binary.Hex;
 
 import com.tremolosecurity.server.GlobalEntries;
 
@@ -121,6 +126,11 @@ public class Saml2MetadataLookup {
 			//metadata = new String(Files.   (this.metadataURL).readAllBytes());
 			metadata = new String(Files.readAllBytes(new File(this.metadataURL).toPath()));
 		}
+		
+		// clear all excess whitespace
+		metadata = this.removeBom(metadata.strip());
+		
+		
 		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		
@@ -199,6 +209,59 @@ public class Saml2MetadataLookup {
 		
 		
 	}
+	
+	private  boolean isContainBOM(String metadata) throws IOException {
+
+	      
+	      boolean result = false;
+
+	      byte[] bom = new byte[3];
+	      try (InputStream is = new ByteArrayInputStream(metadata.getBytes())) {
+
+	          // read 3 bytes of a file.
+	          is.read(bom);
+
+	          // BOM encoded as ef bb bf
+	          String content = new String(Hex.encodeHex(bom));
+	          if ("efbbbf".equalsIgnoreCase(content)) {
+	              result = true;
+	          }
+
+	      }
+
+	      return result;
+	  }
+	
+	private String removeBom(String metadata) throws IOException {
+
+	      if (isContainBOM(metadata)) {
+
+	          byte[] bytes = metadata.getBytes();
+
+	          ByteBuffer bb = ByteBuffer.wrap(bytes);
+
+	          
+
+	          byte[] bom = new byte[3];
+	          // get the first 3 bytes
+	          bb.get(bom, 0, bom.length);
+
+	          // remaining
+	          byte[] contentAfterFirst3Bytes = new byte[bytes.length - 3];
+	          bb.get(contentAfterFirst3Bytes, 0, contentAfterFirst3Bytes.length);
+
+	          
+
+	          return new String(contentAfterFirst3Bytes);
+
+	      } else {
+	          return metadata;
+	      }
+
+	  }
+
+	
+
 
 	public String getMetadataURL() {
 		return metadataURL;
