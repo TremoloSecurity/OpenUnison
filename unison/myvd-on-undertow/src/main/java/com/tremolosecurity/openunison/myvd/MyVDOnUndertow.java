@@ -67,7 +67,7 @@ import com.tremolosecurity.openunison.OpenUnisonConfigManager;
 import com.tremolosecurity.openunison.undertow.OpenUnisonConfig;
 import com.tremolosecurity.server.GlobalEntries;
 
-import net.sf.ehcache.config.CacheConfiguration;
+
 import net.sourceforge.myvd.core.InsertChain;
 import net.sourceforge.myvd.router.Router;
 import net.sourceforge.myvd.server.ServerCore;

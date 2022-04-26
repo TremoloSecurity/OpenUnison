@@ -22,16 +22,7 @@
 			<artifactId>openunison-on-undertow</artifactId>
 			<version>${openunison.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.tremolosecurity.myvd</groupId>
-			<artifactId>apacheds-service</artifactId>
-			<version>2.0.0-M20</version>
-		</dependency>
-		<dependency>
-			<groupId>net.sf.ehcache</groupId>
-			<artifactId>ehcache</artifactId>
-			<version>2.10.9.2</version>
-		</dependency>
+		
 	</dependencies>
 
 </project>

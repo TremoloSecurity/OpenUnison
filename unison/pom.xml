@@ -21,17 +21,17 @@
 		<commons-collections.version>3.2.2</commons-collections.version>
 		<commons-cli.version>1.5.0</commons-cli.version>
 		<commons-codec.version>1.15</commons-codec.version>
-		<opensaml.version>4.1.1</opensaml.version>
+		<opensaml.version>4.2.0</opensaml.version>
 		<xerces.version>2.12.2</xerces.version>
 		<alfresco-client.version>5.0.a</alfresco-client.version>
 		<javax.xml.rpc-api.version>1.1.2</javax.xml.rpc-api.version>
-		<google-api-client.version>1.33.2</google-api-client.version>
+		<google-api-client.version>1.34.0</google-api-client.version>
 		<c3p0.version>0.9.5.5</c3p0.version>
 		<google-api-services-plus.version>v1-rev20190328-1.30.10</google-api-services-plus.version>
 		<google-api-services-oauth2.version>v2-rev20200213-1.32.1</google-api-services-oauth2.version>
-		<google-api-services-admin-directory.version>directory_v1-rev20220208-1.32.1</google-api-services-admin-directory.version>
+		<google-api-services-admin-directory.version>directory_v1-rev20220325-1.32.1</google-api-services-admin-directory.version>
 		<json-simple.version>1.1.1</json-simple.version>
-		<twilio-java-sdk.version>8.28.0</twilio-java-sdk.version>
+		<twilio-java-sdk.version>8.29.1</twilio-java-sdk.version>
 		<restfb.version>3.18.0</restfb.version>
 		<jbosssx-bare.version>4.1.6.Final</jbosssx-bare.version>
 		<jbosssx-client.version>4.1.6.Final</jbosssx-client.version>
@@ -63,30 +63,31 @@
 		<googleauth.version>1.5.0</googleauth.version>
 		<activemq.version>5.17.0</activemq.version>
 		<commons-pool2.version>2.11.1</commons-pool2.version>
-		<aws-java-sdk.version>1.12.184</aws-java-sdk.version>
+		<aws-java-sdk.version>1.12.206</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>1.0.8</amazon-sqs-java-messaging-lib.version>
-		<stringtemplate.version>4.3.1</stringtemplate.version>
-		<hibernate.version>5.6.7.Final</hibernate.version>
+		<stringtemplate.version>4.3.3</stringtemplate.version>
+		<hibernate.version>5.6.8.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
 		<org.apache.poi.version>5.2.2</org.apache.poi.version>
 		<jose4j.version>0.7.11</jose4j.version>
-		<mongodb-driver.version>3.12.10</mongodb-driver.version>
+		<mongodb-driver.version>3.12.11</mongodb-driver.version>
 		<xalan.version>2.7.2</xalan.version>
-		<jackson.version>2.13.2</jackson.version>
+		<jackson.version>2.13.2.2</jackson.version>
+		<jackson-core.version>2.13.2</jackson-core.version>
 		<slf4j.version>1.7.32</slf4j.version>
 		<guava.version>31.1-jre</guava.version>
-		<undertow.version>2.2.16.Final</undertow.version>
+		<undertow.version>2.2.17.Final</undertow.version>
 	  	<jastow.version>2.1.0.Final</jastow.version>
 	  	<jboss-jstl-api_1.2_spec.version>1.1.4.Final</jboss-jstl-api_1.2_spec.version>
 	  	<xmlsec.version>2.0.5</xmlsec.version>
 	  	<snakeyaml.version>1.30</snakeyaml.version>
 	  	<prometheus.version>0.15.0</prometheus.version>
 	  	<ibm-mq.version>9.2.5.0</ibm-mq.version>
-	  	<okta.version>8.1.0</okta.version>
-	  	<azure-auth.version>1.11.2</azure-auth.version>
-	  	<cryptacular.version>1.2.4</cryptacular.version>
+	  	<okta.version>8.2.0</okta.version>
+	  	<azure-auth.version>1.11.3</azure-auth.version>
+	  	<cryptacular.version>1.2.5</cryptacular.version>
 	  	<santuario-xmlsec.version>2.3.0</santuario-xmlsec.version>
-		<netty-codec.version>4.1.75.Final</netty-codec.version>
+		<netty-codec.version>4.1.76.Final</netty-codec.version>
 		<dom4j.version>2.1.3</dom4j.version>  
 		<gitlab.version>5.0.1</gitlab.version>
 		<commons-beanutils.version>1.9.4</commons-beanutils.version>
@@ -97,21 +98,21 @@
 		<batik-svgbrowser.version>1.14</batik-svgbrowser.version>
 		<xmlgraphics-commons.version>2.7</xmlgraphics-commons.version>
 		<json-smart.version>2.4.8</json-smart.version>
-		<xnio-api.version>3.8.6.Final</xnio-api.version>
-		<okta-authn.version>2.0.6</okta-authn.version>
+		<xnio-api.version>3.8.7.Final</xnio-api.version>
+		<okta-authn.version>2.0.7</okta-authn.version>
 		<jersey.version>2.35</jersey.version>
 		<woodstox.version>6.2.8</woodstox.version>
-		<spring.version>5.3.17</spring.version>
+		<spring.version>5.3.19</spring.version>
 		<activation.version>1.2.0</activation.version>
 		<velocity.version>2.3</velocity.version>
-		<nimbusds.version>9.31</nimbusds.version>
-		<pdfbox.version>2.0.25</pdfbox.version>
+		<nimbusds.version>9.34</nimbusds.version>
+		<pdfbox.version>2.0.26</pdfbox.version>
 		<ws.rs-api.version>2.1.1</ws.rs-api.version>
-		<qpid.version>1.5.0</qpid.version>
+		<qpid.version>1.6.0</qpid.version>
 		<commons-io.version>2.11.0</commons-io.version>
 		<graaljs.version>22.0.0.2</graaljs.version>
 		<commons-compress.version>1.21</commons-compress.version>
-		<webauthn4j.version>0.19.1.RELEASE</webauthn4j.version>
+		<webauthn4j.version>0.19.2.RELEASE</webauthn4j.version>
 	</properties>
 
 	<repositories>
