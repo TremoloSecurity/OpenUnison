@@ -110,7 +110,7 @@
 		<ws.rs-api.version>2.1.1</ws.rs-api.version>
 		<qpid.version>1.6.0</qpid.version>
 		<commons-io.version>2.11.0</commons-io.version>
-		<graaljs.version>22.0.0.2</graaljs.version>
+		<graaljs.version>22.1.0</graaljs.version>
 		<commons-compress.version>1.21</commons-compress.version>
 		<webauthn4j.version>0.19.2.RELEASE</webauthn4j.version>
 	</properties>
