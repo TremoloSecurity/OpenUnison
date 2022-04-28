@@ -63,7 +63,7 @@
 		<googleauth.version>1.5.0</googleauth.version>
 		<activemq.version>5.17.0</activemq.version>
 		<commons-pool2.version>2.11.1</commons-pool2.version>
-		<aws-java-sdk.version>1.12.206</aws-java-sdk.version>
+		<aws-java-sdk.version>1.12.208</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>1.0.8</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.3.3</stringtemplate.version>
 		<hibernate.version>5.6.8.Final</hibernate.version>
@@ -105,7 +105,7 @@
 		<spring.version>5.3.19</spring.version>
 		<activation.version>1.2.0</activation.version>
 		<velocity.version>2.3</velocity.version>
-		<nimbusds.version>9.34</nimbusds.version>
+		<nimbusds.version>9.35</nimbusds.version>
 		<pdfbox.version>2.0.26</pdfbox.version>
 		<ws.rs-api.version>2.1.1</ws.rs-api.version>
 		<qpid.version>1.6.0</qpid.version>

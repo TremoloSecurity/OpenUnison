@@ -1,3 +1,21 @@
+# 1.0.30-2022042801
+
+**Tasks:**
+ - 1.0.30 build [\#630](https://github.com/TremoloSecurity/OpenUnison/issues/630)
+
+**invalids:**
+ - k8s login - non alpha characters in username causes login failure [\#365](https://github.com/TremoloSecurity/OpenUnison/issues/365)
+
+**bugs:**
+ - Saml2 Metadata import - metadata from AzureAD failing to import [\#634](https://github.com/TremoloSecurity/OpenUnison/issues/634)
+ - UTF-8 Characters being mangled in groups in the k8s portal [\#633](https://github.com/TremoloSecurity/OpenUnison/issues/633)
+
+**enhancements:**
+ - Message Bus - Make acknowledgement mode configurable [\#569](https://github.com/TremoloSecurity/OpenUnison/issues/569)
+ - Saml2 util - gen idp metadata xml [\#632](https://github.com/TremoloSecurity/OpenUnison/issues/632)
+ - Saml2 Metadata, load from disk [\#631](https://github.com/TremoloSecurity/OpenUnison/issues/631)
+
+
 # 1.0.29-2922032401
 
 **Tasks:**
