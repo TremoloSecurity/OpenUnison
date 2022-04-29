@@ -16,6 +16,7 @@ limitations under the License.
 
 package com.tremolosecurity.customaz;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import org.apache.log4j.Logger;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.Workflow;
@@ -138,8 +140,18 @@ public class JavaScriptAz implements CustomAuthorization {
 				context.getBindings("js").putMember("globals", globals);
 				Value val = context.eval("js",this.javaScript);
 				
+				
+				/*TruffleString[] ts = new TruffleString[params.length];
+				
+				int i = 0;
+				for (String s : params) {
+					ts[i++] = new TruffleString(s);
+				}*/
+				
+				Object[] oparams = Arrays.copyOf(params, params.length, Object[].class);
+				
 				Value listPossibleApprovers = context.getBindings("js").getMember("listPossibleApprovers");
-				Value result = listPossibleApprovers.execute(params);
+				Value result = listPossibleApprovers.execute(oparams);
 				return result.as(List.class);
 			} finally {
 				context.close();
