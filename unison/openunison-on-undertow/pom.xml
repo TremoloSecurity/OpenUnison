@@ -19,7 +19,7 @@
 	<parent>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison</artifactId>
-		<version>1.0.30</version>
+		<version>1.0.31</version>
 	</parent>
 	<artifactId>openunison-on-undertow</artifactId>
 
