@@ -176,6 +176,7 @@ public class OpenUnisonUtils {
 		options.addOption("envFile", true, "Environment variables for parmaterized configs");
 		options.addOption("approvalId",true,"The approval id to act on");
 		options.addOption("exportFile",true,"Path to export the workflow to");
+		options.addOption("originalQueueNameAttribute",true,"Name of the message attribute that stores the original queue's name");
 		
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = parser.parse(options, args,true);
@@ -258,7 +259,10 @@ public class OpenUnisonUtils {
 		} else if (action.equalsIgnoreCase("clear-dlq")) {
 			logger.info("Getting the DLQ Name...");
 			String dlqName = loadOption(cmd,"dlqName",options);
-			QueUtils.emptyDLQ(ttRead, dlqName);
+			
+			String oririginalQueueName = loadOptional(cmd,"originalQueueNameAttribute",options);
+			
+			QueUtils.emptyDLQ(ttRead, dlqName,oririginalQueueName);
 		} else if (action.equalsIgnoreCase("upgradeFrom106")) {
 			logger.info("Upgrading OpenUnison's configuration from 1.0.6");
 			

@@ -31,6 +31,11 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.logging.log4j.Logger;
+import org.apache.qpid.jms.message.JmsMessage;
+import org.apache.qpid.jms.message.JmsTextMessage;
+import org.apache.qpid.jms.provider.amqp.message.AmqGetAnnotations;
+import org.apache.qpid.jms.provider.amqp.message.AmqpJmsMessageFacade;
+import org.apache.qpid.jms.provider.amqp.message.AmqpJmsTextMessageFacade;
 
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.config.xml.TremoloType;
@@ -41,7 +46,7 @@ public class QueUtils {
 
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(QueUtils.class.getName());
 	
-	public static void emptyDLQ(TremoloType config,String dlqName) throws Exception {
+	public static void emptyDLQ(TremoloType config,String dlqName, String originalQueueAttributeName) throws Exception {
 		
 		if (config.getProvisioning().getQueueConfig().isIsUseInternalQueue()) {
 			throw new Exception("This feature is not available for interal queues");
@@ -113,7 +118,30 @@ public class QueUtils {
 					}
 
 
-					String originalQueue = receivedMessage.getStringProperty("OriginalQueue");
+					String originalQueue = null;
+					
+					
+					
+					if (receivedMessage instanceof JmsMessage) {
+						
+						AmqGetAnnotations aga = new AmqGetAnnotations((AmqpJmsMessageFacade) ((JmsMessage) receivedMessage).getFacade());
+						originalQueue = aga.getMessageAnnotation(originalQueueAttributeName);
+						
+					}
+					
+					
+					
+					
+					if (originalQueue == null) {
+						if (originalQueueAttributeName != null) {
+							
+							originalQueue = receivedMessage.getStringProperty(originalQueueAttributeName);
+						} else {
+							originalQueue = receivedMessage.getStringProperty("OriginalQueue");
+						}
+					}
+					
+					
 					logger.info("Adding message " + receivedMessage.getJMSMessageID() + " to queue " + originalQueue);
 
 					TextMessage m = session.createTextMessage();
@@ -138,6 +166,11 @@ public class QueUtils {
 						MessageProducer lmp = session.createProducer(q);
 						qs.put(originalQueue, lmp);
 						lmp.send(m);
+					}
+					
+					// if this is from qpid, set the achnowledgement mode manually
+					if (receivedMessage instanceof JmsMessage) {
+						receivedMessage.setIntProperty("JMS_AMQP_ACK_TYPE", 1);
 					}
 
 					receivedMessage.acknowledge();
