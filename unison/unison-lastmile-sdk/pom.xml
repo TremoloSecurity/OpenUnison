@@ -42,6 +42,18 @@
 			<artifactId>unison-sdk-types</artifactId>
 			<version>${openunison.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>junit</artifactId>
+					<groupId>junit</groupId>
+				</exclusion>
+				
+			</exclusions>
+			<version>${log4j.version}</version>
+		</dependency>
 	</dependencies>
 
 

@@ -29,7 +29,8 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -38,7 +39,10 @@ import com.tremolosecurity.json.Request;
 import com.tremolosecurity.json.Token;
 import com.tremolosecurity.saml.Attribute;
 
-public class LastMile {
+public class LastMile {	
+	
+	static Logger logger = LogManager.getLogger(LastMile.class.getName());
+	
 	public Request getRequest() {
 		return request;
 	}
@@ -90,6 +94,26 @@ public class LastMile {
 		DateTime lnotBefore = new DateTime(this.request.getNotBefore());
 		DateTime lnotAfter = new DateTime(this.request.getNotAfter());
 		
+		if (logger.isDebugEnabled()) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Not Before : ").append(lnotBefore);
+			logger.debug(sb.toString());
+			sb.setLength(0);
+			
+			sb.append("Not After : ").append(lnotAfter);
+			logger.debug(sb.toString());
+			sb.setLength(0);
+			
+			sb.append("Is Before Now : ").append(lnotBefore.isBeforeNow());
+			logger.debug(sb.toString());
+			sb.setLength(0);
+			
+			sb.append("Is After Now : ").append(lnotAfter.isAfterNow());
+			logger.debug(sb.toString());
+			sb.setLength(0);
+			
+		}
+		
 		return lnotBefore.isBeforeNow() && lnotAfter.isAfterNow();
 	}
 	
@@ -103,6 +127,12 @@ public class LastMile {
 		//System.out.println("this.request.getUri():'" + this.request.getUri() + "'");
 		//System.out.println("this.altURI:'" + this.altURI + "'");
 		//System.out.println("isValid:'" + isValid() + "'");*/
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug(uri);
+			logger.debug(this.request.getUri());
+			logger.debug(this.altURI);
+		}
 		
 		return isValid() && (uri.equals(this.request.getUri()) || uri.equals(this.altURI));
 	}
@@ -160,6 +190,11 @@ public class LastMile {
 	    
 		byte[] encBytes = org.bouncycastle.util.encoders.Base64.decode(token.getEncryptedRequest());
 		String requestToken = new String(cipher.doFinal(encBytes));
+		
+		if (logger.isDebugEnabled()) {
+			StringBuilder sb = new StringBuilder();
+			logger.debug(sb.append("Request : ").append(requestToken).toString());
+		}
 		
 		////System.out.println(requestToken);
 		
