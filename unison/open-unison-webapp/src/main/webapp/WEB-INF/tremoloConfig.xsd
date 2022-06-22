@@ -50,6 +50,20 @@
 		</attribute>
 	</complexType>
 
+	<complexType name="proxyType">
+		<annotation>
+			<documentation>custom proxy configuration for this URL</documentation>
+			
+		</annotation>
+		<sequence>
+				<element name="connectionTimeoutMillis" type="int" default="0"></element>
+				<element name="requestTimeoutMillis" type="int" default="0"></element>
+				<element name="socketTimeoutMillis" type="int" default="0"></element>
+				
+				
+			</sequence>
+	</complexType>
+
 	<complexType name="urlType">
 		<annotation>
 			<documentation>Defines a URL that combines filters, policies,
@@ -72,6 +86,7 @@
 			<element name="azRules" type="tns:azRulesType" maxOccurs="1"
 				minOccurs="0">
 			</element>
+			<element name="proxyConfiguration" type="tns:proxyType" minOccurs="0" maxOccurs="1" />
 			<element name="idp" type="tns:idpType" maxOccurs="1"
 				minOccurs="0">
 			</element>
@@ -102,6 +117,7 @@
 				</documentation>
 			</annotation>
 		</attribute>
+		<attribute name="uuid" type="string" default="" />
 	</complexType>
 
 

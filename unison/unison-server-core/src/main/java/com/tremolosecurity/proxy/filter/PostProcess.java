@@ -48,6 +48,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.config.RequestConfig.Builder;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ClientConnectionManager;
@@ -59,6 +60,7 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -71,6 +73,8 @@ import org.apache.logging.log4j.Logger;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UnisonConfigManagerImpl;
 import com.tremolosecurity.config.util.UrlHolder;
+import com.tremolosecurity.config.xml.ProxyType;
+import com.tremolosecurity.proxy.ProxyConfig;
 import com.tremolosecurity.proxy.ProxySys;
 import com.tremolosecurity.proxy.SessionManager;
 import com.tremolosecurity.proxy.SessionManagerImpl;
@@ -495,8 +499,24 @@ public abstract class PostProcess {
 	public CloseableHttpClient getHttp(String finalURL,HttpServletRequest request,UrlHolder holder) {
 		ConfigManager cfgMgr = holder.getConfig();
 		HttpSession session = request.getSession();
-		PoolingHttpClientConnectionManager phcm = (PoolingHttpClientConnectionManager) session.getAttribute("TREMOLO_HTTP_POOL");
-		CloseableHttpClient http = (CloseableHttpClient) session.getAttribute("TREMOLO_HTTP_CLIENT");
+		PoolingHttpClientConnectionManager phcm = null;
+		CloseableHttpClient http = null;
+		
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("com.tremolosecurity.proxy.http.pool.").append(holder.getUrl().getUuid());
+		
+		phcm = (PoolingHttpClientConnectionManager) session.getAttribute(sb.toString());
+		
+		sb.setLength(0);
+		sb.append("com.tremolosecurity.proxy.http.client.").append(holder.getUrl().getUuid());
+		http = (CloseableHttpClient) session.getAttribute(sb.toString());
+		
+		if (http == null) {
+			phcm = (PoolingHttpClientConnectionManager) session.getAttribute("TREMOLO_HTTP_POOL");
+			http = (CloseableHttpClient) session.getAttribute("TREMOLO_HTTP_CLIENT");
+		}
+		
 		if (http == null) {
 			
 			if (holder.getApp().getCookieConfig() == null || holder.getApp().getCookieConfig().isCookiesEnabled() == null || holder.getApp().getCookieConfig().isCookiesEnabled()) {
@@ -512,8 +532,42 @@ public abstract class PostProcess {
 				
 				
 				
+				
 				phcm.setDefaultSocketConfig(SocketConfig.custom().setSoKeepAlive(true).build());
-				http = HttpClients.custom().setConnectionManager(phcm).setDefaultRequestConfig(cfgMgr.getGlobalHttpClientConfig()).build();
+				
+				
+				Builder rcb = RequestConfig.copy(cfgMgr.getGlobalHttpClientConfig());
+				ProxyType pc = holder.getUrl().getProxyConfiguration();
+				if (holder.getUrl().getProxyConfiguration() != null) {
+					rcb = rcb.setConnectionRequestTimeout(pc.getRequestTimeoutMillis())
+							 .setConnectTimeout(pc.getConnectionTimeoutMillis())
+							 .setSocketTimeout(pc.getSocketTimeoutMillis());
+				}
+				
+				
+				
+				
+				
+				RequestConfig requestConfig = rcb.setSocketTimeout(2000).build();
+				
+				
+				
+				HttpClientBuilder httpBuilder = HttpClients.custom().setConnectionManager(phcm).setDefaultRequestConfig(requestConfig);
+				
+				
+				
+				
+				http = httpBuilder.build();
+				
+				if (pc != null) {
+					sb.append("com.tremolosecurity.proxy.http.pool.").append(holder.getUrl().getUuid());
+					session.setAttribute(sb.toString(), phcm);
+					
+					sb.setLength(0);
+					sb.append("com.tremolosecurity.proxy.http.client.").append(holder.getUrl().getUuid());
+					session.setAttribute(sb.toString(), http);
+				}
+				
 				
 				session.setAttribute("TREMOLO_HTTP_POOL", phcm);
 				session.setAttribute("TREMOLO_HTTP_CLIENT", http);
@@ -527,11 +581,27 @@ public abstract class PostProcess {
 				BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(
 						cfgMgr.getHttpClientSocketRegistry());
 
-				RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).setRedirectsEnabled(false)
-						.setConnectionRequestTimeout(10000)
-						.setSocketTimeout(10000)
-						.setConnectTimeout(10000)
-						.build();
+				
+				Builder rcb = RequestConfig.copy(cfgMgr.getGlobalHttpClientConfig());
+				
+				rcb.setCookieSpec(CookieSpecs.STANDARD).setRedirectsEnabled(false);
+				
+				
+				ProxyType pc = holder.getUrl().getProxyConfiguration();
+				if (holder.getUrl().getProxyConfiguration() != null) {
+					rcb = rcb.setConnectionRequestTimeout(pc.getRequestTimeoutMillis())
+							 .setConnectTimeout(pc.getConnectionTimeoutMillis())
+							 .setSocketTimeout(pc.getSocketTimeoutMillis());
+				} else {
+					rcb = rcb.setConnectionRequestTimeout(10000)
+							 .setConnectTimeout(10000)
+							 .setSocketTimeout(10000);
+				}
+				
+				
+				
+				RequestConfig rc = rcb.build();
+				
 
 				http = HttpClients.custom()
 						                  .setConnectionManager(bhcm)
@@ -551,6 +621,8 @@ public abstract class PostProcess {
 			}
 			
 		}
+		
+		
 		
 		return http;
 	}

@@ -42,6 +42,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 
 import javax.crypto.SecretKey;
 import javax.net.ssl.KeyManager;
@@ -722,6 +723,8 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	private List<UrlHolder> addAppInternal(ApplicationType app) throws Exception {
 		List<UrlHolder> added = new ArrayList<UrlHolder>();
 		for (UrlType url : app.getUrls().getUrl()) {
+			// makes it easier to identify URL configurations
+			url.setUuid(UUID.randomUUID().toString());
 			for (String hostName : url.getHost()) {
 				synchronized (this.byHost) {
 					ArrayList<UrlHolder> hostUrls = this.byHost.get(hostName);
