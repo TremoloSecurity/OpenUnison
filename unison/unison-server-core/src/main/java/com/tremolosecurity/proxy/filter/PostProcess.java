@@ -501,21 +501,25 @@ public abstract class PostProcess {
 		HttpSession session = request.getSession();
 		PoolingHttpClientConnectionManager phcm = null;
 		CloseableHttpClient http = null;
-		
 		StringBuilder sb = new StringBuilder();
 		
-		sb.append("com.tremolosecurity.proxy.http.pool.").append(holder.getUrl().getUuid());
+		if (holder.getUrl().getProxyConfiguration() != null) {
+			sb.append("com.tremolosecurity.proxy.http.pool.").append(holder.getUrl().getUuid());
+			
+			phcm = (PoolingHttpClientConnectionManager) session.getAttribute(sb.toString());
+			
+			sb.setLength(0);
+			sb.append("com.tremolosecurity.proxy.http.client.").append(holder.getUrl().getUuid());
+			http = (CloseableHttpClient) session.getAttribute(sb.toString());
 		
-		phcm = (PoolingHttpClientConnectionManager) session.getAttribute(sb.toString());
-		
-		sb.setLength(0);
-		sb.append("com.tremolosecurity.proxy.http.client.").append(holder.getUrl().getUuid());
-		http = (CloseableHttpClient) session.getAttribute(sb.toString());
-		
-		if (http == null) {
+		} else {
 			phcm = (PoolingHttpClientConnectionManager) session.getAttribute("TREMOLO_HTTP_POOL");
 			http = (CloseableHttpClient) session.getAttribute("TREMOLO_HTTP_CLIENT");
 		}
+		
+		
+		
+		
 		
 		if (http == null) {
 			
@@ -548,7 +552,7 @@ public abstract class PostProcess {
 				
 				
 				
-				RequestConfig requestConfig = rcb.setSocketTimeout(2000).build();
+				RequestConfig requestConfig = rcb.build();
 				
 				
 				
@@ -566,12 +570,12 @@ public abstract class PostProcess {
 					sb.setLength(0);
 					sb.append("com.tremolosecurity.proxy.http.client.").append(holder.getUrl().getUuid());
 					session.setAttribute(sb.toString(), http);
+				} else {
+				
+				
+					session.setAttribute("TREMOLO_HTTP_POOL", phcm);
+					session.setAttribute("TREMOLO_HTTP_CLIENT", http);
 				}
-				
-				
-				session.setAttribute("TREMOLO_HTTP_POOL", phcm);
-				session.setAttribute("TREMOLO_HTTP_CLIENT", http);
-	
 	
 	
 				LogoutUtil.insertFirstLogoutHandler(request, new CloseHttpConnectionsOnLogout(http,phcm));
@@ -607,9 +611,18 @@ public abstract class PostProcess {
 						                  .setConnectionManager(bhcm)
 						                  .setDefaultRequestConfig(rc)
 						                  .build();
+				if (pc != null) {
+					sb.append("com.tremolosecurity.proxy.http.pool.").append(holder.getUrl().getUuid());
+					session.setAttribute(sb.toString(), phcm);
+					
+					sb.setLength(0);
+					sb.append("com.tremolosecurity.proxy.http.client.").append(holder.getUrl().getUuid());
+					session.setAttribute(sb.toString(), http);
+				} else {
+					session.setAttribute("TREMOLO_HTTP_CM", bhcm);
+					session.setAttribute("TREMOLO_HTTP_CLIENT", http);
+				}
 				
-				session.setAttribute("TREMOLO_HTTP_CM", bhcm);
-				session.setAttribute("TREMOLO_HTTP_CLIENT", http);
 				
 				// remove from the session pool
 				
