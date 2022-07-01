@@ -43,6 +43,7 @@ import com.tremolosecurity.config.xml.ParamListType;
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.config.xml.ProvisionMappingType;
+import com.tremolosecurity.config.xml.ProxyType;
 import com.tremolosecurity.config.xml.ResultGroupType;
 import com.tremolosecurity.config.xml.ResultRefType;
 import com.tremolosecurity.config.xml.ResultType;
@@ -193,6 +194,14 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 			url.setOverrideHost(getBoolValue(jsonUrl.get("overrideHost"),false));
 			url.setOverrideReferer(getBoolValue(jsonUrl.get("overrideReferer"), false));
 			
+			JSONObject proxyConfiguration = (JSONObject) jsonUrl.get("proxyConfiguration");
+			if (proxyConfiguration != null) {
+				ProxyType proxyCfg = new ProxyType();
+				proxyCfg.setConnectionTimeoutMillis(getIntValue(proxyConfiguration.get("connectionTimeoutMillis"),0).intValue());
+				proxyCfg.setRequestTimeoutMillis(getIntValue(proxyConfiguration.get("requestTimeoutMillis"),0).intValue());
+				proxyCfg.setSocketTimeoutMillis(getIntValue(proxyConfiguration.get("socketTimeoutMillis"),0).intValue());
+				url.setProxyConfiguration(proxyCfg);
+			}
 			
 			JSONObject jsonResults = (JSONObject) jsonUrl.get("results");
 			
@@ -427,13 +436,13 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 		this.tremolo = cfgMgr.getCfg();
 		String k8sTarget = 	init.get("k8starget").getValues().get(0);
 		String namespace = init.get("namespace").getValues().get(0);
-		String uri = "/apis/openunison.tremolo.io/v1/namespaces/" + namespace + "/applications";
+		
 		
 		
 		this.provisioningEngine = provisioningEngine;
 		this.cfgMgr = cfgMgr;
 		
-		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,uri,this,cfgMgr,provisioningEngine);
+		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,"applications","openunison.tremolo.io",this,cfgMgr,provisioningEngine);
 		
 		this.k8sWatch.initalRun();
 

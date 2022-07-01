@@ -63,9 +63,9 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,K8sWatchTarget {
 		
 		String k8sTarget = 	init.get("trusts.k8starget").getValues().get(0);
 		this.namespace = init.get("trusts.namespace").getValues().get(0);
-		String uri = "/apis/openunison.tremolo.io/v1/namespaces/" + this.namespace + "/trusts";
 		
-		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,uri,this,GlobalEntries.getGlobalEntries().getConfigManager(),GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine());	
+		
+		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,"trusts","openunison.tremolo.io",this,GlobalEntries.getGlobalEntries().getConfigManager(),GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine());	
 		this.k8sWatch.initalRun();
 		
 		

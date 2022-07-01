@@ -74,7 +74,7 @@ public class LoadQueueListenersFromK8s implements DynamicQueueListeners,K8sWatch
 		String namespace = init.get("namespace").getValues().get(0);
 		String uri = "/apis/openunison.tremolo.io/v1/namespaces/" + namespace + "/messagelisteners";
 		
-		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,uri,this,cfgMgr,provisioningEngine);	
+		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,"messagelisteners","openunison.tremolo.io",this,cfgMgr,provisioningEngine);	
 		this.k8sWatch.initalRun();
 		
 		

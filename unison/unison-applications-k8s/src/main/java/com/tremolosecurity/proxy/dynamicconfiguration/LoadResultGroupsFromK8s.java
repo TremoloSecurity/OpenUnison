@@ -77,13 +77,13 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 		this.tremolo = cfgMgr.getCfg();
 		String k8sTarget = 	init.get("k8starget").getValues().get(0);
 		String namespace = init.get("namespace").getValues().get(0);
-		String uri = "/apis/openunison.tremolo.io/v1/namespaces/" + namespace + "/resultgroups";
+		
 		
 		
 		this.provisioningEngine = provisioningEngine;
 		this.cfgMgr = cfgMgr;
 		
-		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,uri,this,cfgMgr,provisioningEngine);
+		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,"resultgroups","openunison.tremolo.io",this,cfgMgr,provisioningEngine);
 		
 		this.k8sWatch.initalRun();
 

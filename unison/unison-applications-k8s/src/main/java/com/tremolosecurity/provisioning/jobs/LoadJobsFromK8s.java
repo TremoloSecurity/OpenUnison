@@ -221,13 +221,13 @@ public class LoadJobsFromK8s implements DynamicJobs, K8sWatchTarget {
 		this.tremolo = cfgMgr.getCfg();
 		String k8sTarget = 	init.get("k8starget").getValues().get(0);
 		String namespace = init.get("namespace").getValues().get(0);
-		String uri = "/apis/openunison.tremolo.io/v1/namespaces/" + namespace + "/oujobs";
+		
 		
 		
 		this.provisioningEngine = provisioningEngine;
 		this.cfgMgr = cfgMgr;
 		
-		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,uri,this,cfgMgr,provisioningEngine);
+		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,"oujobs","openunison.tremolo.io",this,cfgMgr,provisioningEngine);
 		this.jobKeys = jobKeys;
 		this.k8sWatch.initalRun();
 

@@ -59,11 +59,18 @@ public class K8sWatcher implements StopableThread {
 	private ConfigManager cfgMgr;
 
 	private ProvisioningEngine provisioningEngine;
+
+	private String plural;
+
+	private String group;
 	
-	public K8sWatcher(String k8sTarget,String namespace, String uri,K8sWatchTarget watchTarget,ConfigManager cfgMgr, ProvisioningEngine provisioningEngine) {
+	public K8sWatcher(String k8sTarget,String namespace, String plural, String group,K8sWatchTarget watchTarget,ConfigManager cfgMgr, ProvisioningEngine provisioningEngine) {
 		this.k8sTarget = k8sTarget;
 		this.namespace = namespace;
-		this.uri = uri;
+		
+		this.plural = plural;
+		this.group = group;
+		
 		this.watchee = watchTarget;
 		this.cfgMgr = cfgMgr;
 		this.provisioningEngine = provisioningEngine;
@@ -90,6 +97,10 @@ public class K8sWatcher implements StopableThread {
 		try {
 			String token = k8s.getAuthToken(); 
 			String json = null;
+			
+			this.uri = this.findCrdUri(token, http, k8s);
+			
+			
 			try {
 				json = k8s.callWS(token, http, uri);
 			} catch (HttpResponseException e) {
@@ -160,6 +171,36 @@ public class K8sWatcher implements StopableThread {
 		GlobalEntries.getGlobalEntries().getConfigManager().addThread(this);
 		logger.info("Starting watch");
 		new Thread(this).start();
+	}
+	
+	private String findCrdUri(String token,HttpCon http,OpenShiftTarget k8s) throws ClientProtocolException, IOException, ParseException {
+		StringBuilder sb = new StringBuilder();
+		sb.append("/apis/apiextensions.k8s.io/v1/customresourcedefinitions/").append(plural).append('.').append(group);
+		String crdUrl = sb.toString();
+		
+		String crdJson = k8s.callWS(token, http, crdUrl);
+		JSONObject root = (JSONObject) new JSONParser().parse(crdJson);
+		
+		JSONObject spec = (JSONObject)  root.get("spec");
+		
+		JSONArray versions = (JSONArray) spec.get("versions");
+		
+		String apiVersion = "";
+		
+		for (Object v : versions) {
+			JSONObject version = (JSONObject) v;
+			boolean served = (Boolean) version.get("served");
+			boolean stored = (Boolean) version.get("storage");
+			
+			if (served && stored) {
+				apiVersion = (String) version.get("name");
+			}
+		}
+		
+		sb.setLength(0);
+		sb.append("/apis/").append(group).append("/").append(apiVersion).append("/namespaces/").append(namespace).append("/").append(plural);
+		return sb.toString();
+		
 	}
 	
 	

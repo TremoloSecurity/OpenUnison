@@ -69,12 +69,12 @@ public class LoadOrgsFromK8s implements DynamicOrgs,K8sWatchTarget {
 		
 		String k8sTarget = 	init.get("k8starget").getValues().get(0);
 		String namespace = init.get("namespace").getValues().get(0);
-		String uri = "/apis/openunison.tremolo.io/v1/namespaces/" + namespace + "/orgs";
+		
 		
 		
 		this.orphanes = new HashMap<String,OrgType>();
 		
-		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,uri,this,cfgMgr,provisioningEngine);
+		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,"orgs","openunison.tremolo.io",this,cfgMgr,provisioningEngine);
 		
 		this.k8sWatch.initalRun();
 		

@@ -68,13 +68,13 @@ public class LoadGroupMetadataFromK8s  implements  K8sWatchTarget {
 	
 	public void loadGroupMetadatas(ConfigManager cfgMgr, String k8sTarget, String namespace,SetupGroupMetadataWatch md) throws ProvisioningException {
 		this.tremolo = cfgMgr.getCfg();
-		String uri = "/apis/openunison.tremolo.io/v1/namespaces/" + namespace + "/groupmetadatas";
+		
 		
 		this.md = md;
 		
 		this.cfgMgr = cfgMgr;
 		
-		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,uri,this,cfgMgr,cfgMgr.getProvisioningEngine());
+		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,"groupmetadatas","openunison.tremolo.io",this,cfgMgr,cfgMgr.getProvisioningEngine());
 		
 		this.k8sWatch.initalRun();
 

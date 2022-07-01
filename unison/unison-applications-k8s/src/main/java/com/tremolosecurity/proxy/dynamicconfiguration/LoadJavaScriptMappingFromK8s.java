@@ -64,12 +64,12 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 		this.tremolo = cfgMgr.getCfg();
 		
 		
-		String uri = "/apis/openunison.tremolo.io/v1/namespaces/" + namespace + "/javascriptmappings";
+		
 		
 		
 		this.cfgMgr = cfgMgr;
 		
-		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,uri,this,cfgMgr,cfgMgr.getProvisioningEngine());
+		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,"javascriptmappings","openunison.tremolo.io",this,cfgMgr,cfgMgr.getProvisioningEngine());
 		
 		this.k8sWatch.initalRun();
 
