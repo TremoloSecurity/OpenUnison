@@ -125,6 +125,8 @@ public class BasicDB implements BasicDBInterface {
 
 	private JdbcPoolHolder jdbcPoolHolder;
 	
+	boolean readOnly;
+	
 	
 	/* (non-Javadoc)
 	 * @see com.tremolosecurity.provisioning.core.providers.BasicDB#createUser(com.tremolosecurity.provisioning.core.User, java.util.Set, java.util.Map)
@@ -133,6 +135,11 @@ public class BasicDB implements BasicDBInterface {
 	@Override
 	public void createUser(User user, Set<String> attributes,Map<String,Object> request)
 			throws ProvisioningException {
+		
+		if (readOnly) {
+			logger.warn("Readonly set, exiting from createUser");
+			return;
+		}
 
 		int userID = 0;
 		int approvalID = 0;
@@ -394,6 +401,12 @@ public class BasicDB implements BasicDBInterface {
 	@Override
 	public void syncUser(User user, boolean addOnly, Set<String> attributes,Map<String,Object> wfrequest)
 			throws ProvisioningException {
+		
+		if (readOnly) {
+			logger.warn("Readonly set, exiting from syncUser");
+			return;
+		}
+		
 		User foundUser = null;
 		
 		
@@ -708,6 +721,11 @@ public class BasicDB implements BasicDBInterface {
 	@Override
 	
 	public void deleteUser(User user,Map<String,Object> request) throws ProvisioningException {
+		if (readOnly) {
+			logger.warn("Readonly set, exiting from deleteUser");
+			return;
+		}
+		
 		Connection con = null;
 		
 		
@@ -1167,6 +1185,12 @@ public class BasicDB implements BasicDBInterface {
 			} 
         }
         
+        if (cfg.get("readOnly") != null && cfg.get("readOnly").getValues().get(0).equalsIgnoreCase("true")) {
+        	this.readOnly = true;
+        } else {
+        	this.readOnly = false;
+        }
+        
         
         
 		
@@ -1310,6 +1334,11 @@ public class BasicDB implements BasicDBInterface {
 	public void addGroup(String name, Map<String, String> additionalAttributes, User user, Map<String, Object> request)
 			throws ProvisioningException {
 		
+		if (readOnly) {
+			logger.warn("Readonly set, exiting from addGroup");
+			return;
+		}
+		
 		int approvalID = 0;
 		if (request.containsKey("APPROVAL_ID")) {
 			approvalID = (Integer) request.get("APPROVAL_ID");
@@ -1364,6 +1393,12 @@ public class BasicDB implements BasicDBInterface {
 
 	@Override
 	public void deleteGroup(String name, User user, Map<String, Object> request) throws ProvisioningException {
+		
+		if (readOnly) {
+			logger.warn("Readonly set, exiting from deleteGroup");
+			return;
+		}
+		
 		int approvalID = 0;
 		if (request.containsKey("APPROVAL_ID")) {
 			approvalID = (Integer) request.get("APPROVAL_ID");
