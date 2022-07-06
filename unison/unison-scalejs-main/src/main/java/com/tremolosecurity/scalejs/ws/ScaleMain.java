@@ -80,6 +80,7 @@ import com.tremolosecurity.config.xml.ReportsType;
 import com.tremolosecurity.config.xml.WorkflowType;
 import com.tremolosecurity.lastmile.LastMile;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
+import com.tremolosecurity.provisioning.core.ProvisioningParams;
 import com.tremolosecurity.provisioning.service.util.ApprovalDetails;
 import com.tremolosecurity.provisioning.service.util.ApprovalSummaries;
 import com.tremolosecurity.provisioning.service.util.ApprovalSummary;
@@ -965,35 +966,46 @@ public class ScaleMain implements HttpFilter {
 						if (preCheckResp.isCanDelegate()) {
 						
 							for (String subject : req.getSubjects()) {
-								//execute for each subject
-								wfCall = new WFCall();
-								wfCall.setName(req.getName());
-								wfCall.setReason(req.getReason());
-								wfCall.setUidAttributeName(this.scaleConfig.getUidAttributeName());
-								wfCall.setEncryptedParams(req.getEncryptedParams());	
-								
-							
-								wfCall.setRequestor(userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0));
-								tu = new TremoloUser();
-								wfCall.setUser(tu);
-								
-								LDAPSearchResults searchRes = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, equal(this.scaleConfig.getUidAttributeName(),subject).toString(), new ArrayList<String>());
-								
-								if (searchRes.hasMore()) {
-									LDAPEntry entry = searchRes.next();
-									if (entry == null ) {
-										errors.append("Error, user " + subject + " does not exist;");
+								boolean subjectFound = callWorkflowForSubject(req, userData, preCheckResp, errors, subject);
+								//errors.append("Error, user " + subject + " does not exist;");
+								if (! subjectFound) {
+									logger.warn(new StringBuilder().append("User '").append(subject).append("' not found trying to run workflow '").append(req.getName()).append("'").toString());
+									
+									if (this.scaleConfig.getJitUserWorkflow() != null && ! this.scaleConfig.getJitUserWorkflow().isEmpty()) {
+										WFCall wfJitCall;
+										TremoloUser jitTu;
+										//execute for each subject
+										wfJitCall = new WFCall();
+										wfJitCall.setName(this.scaleConfig.getJitUserWorkflow());
+										wfJitCall.setReason("ScaleJS Main Just-In-Time user creation");
+										wfJitCall.setUidAttributeName(this.scaleConfig.getUidAttributeName());
+											
+										
+
+										wfJitCall.setRequestor(userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0));
+										jitTu = new TremoloUser();
+										jitTu.setUid(subject);
+										jitTu.getAttributes().add(new Attribute(this.scaleConfig.getUidAttributeName(),subject));
+										
+										
+										wfJitCall.setUser(jitTu);
+										
+										wfJitCall.getRequestParams().put(ProvisioningParams.UNISON_EXEC_TYPE, ProvisioningParams.UNISON_EXEC_SYNC);
+										
+										com.tremolosecurity.provisioning.workflow.ExecuteWorkflow exec = new com.tremolosecurity.provisioning.workflow.ExecuteWorkflow();
+										exec.execute(wfJitCall, GlobalEntries.getGlobalEntries().getConfigManager());
+										
+										subjectFound = callWorkflowForSubject(req, userData, preCheckResp, errors, subject);
+										
+										if (! subjectFound) {
+											errors.append("Error, user " + subject + " does not exist;");
+										}
 										
 									} else {
-										startSubjectWorkflow(errors, req, wfCall, tu, subject, entry,preCheckResp);
-									}
-								} else {
-									
 										errors.append("Error, user " + subject + " does not exist;");
+									}
 									
 								}
-
-								while (searchRes.hasMore()) searchRes.next();
 							
 							}
 							
@@ -1015,6 +1027,43 @@ public class ScaleMain implements HttpFilter {
 		ScaleJSUtils.addCacheHeaders(response);
 		response.setContentType("application/json; charset=UTF-8");
 		response.getWriter().println(gson.toJson(results).trim());
+	}
+
+
+	private boolean callWorkflowForSubject(WorkflowRequest req, AuthInfo userData, PreCheckResponse preCheckResp,
+			StringBuffer errors, String subject) throws LDAPException {
+		WFCall wfCall;
+		TremoloUser tu;
+		//execute for each subject
+		wfCall = new WFCall();
+		wfCall.setName(req.getName());
+		wfCall.setReason(req.getReason());
+		wfCall.setUidAttributeName(this.scaleConfig.getUidAttributeName());
+		wfCall.setEncryptedParams(req.getEncryptedParams());	
+		
+
+		wfCall.setRequestor(userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0));
+		tu = new TremoloUser();
+		wfCall.setUser(tu);
+		
+		LDAPSearchResults searchRes = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, equal(this.scaleConfig.getUidAttributeName(),subject).toString(), new ArrayList<String>());
+		
+		if (searchRes.hasMore()) {
+			LDAPEntry entry = searchRes.next();
+			if (entry == null ) {
+				return false;
+				
+			} else {
+				startSubjectWorkflow(errors, req, wfCall, tu, subject, entry,preCheckResp);
+			}
+		} else {
+			
+				return false;
+			
+		}
+
+		while (searchRes.hasMore()) searchRes.next();
+		return true;
 	}
 
 
@@ -1490,6 +1539,11 @@ public class ScaleMain implements HttpFilter {
 		}
 		
 		scaleConfig.setCanPreApprove(PreCheckAllowed.valueOf(val.toUpperCase()));
+		
+		val = this.loadOptionalAttributeValue("jitWorkflow", "jitWorkflow", config);
+		if (val != null) {
+			scaleConfig.setJitUserWorkflow(val);
+		}
 		
 		
 		val = this.loadOptionalAttributeValue("enableApprovals", "enableApprovals", config);

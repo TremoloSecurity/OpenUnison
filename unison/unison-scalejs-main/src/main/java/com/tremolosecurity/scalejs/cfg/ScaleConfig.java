@@ -39,6 +39,9 @@ public class ScaleConfig {
 	transient UiDecisions uiDecisions;
 	int warnMinutesLeft;
 	
+	
+	String jitUserWorkflow;
+	
 	public enum PreCheckAllowed {
 		YES,
 		NO,
@@ -73,6 +76,7 @@ public class ScaleConfig {
 		this.reasonIsList = from.reasonIsList;
 		this.reasons = new ArrayList<String>();
 		this.reasons.addAll(from.reasons);
+		this.jitUserWorkflow = from.jitUserWorkflow;
 	}
 	
 	public ScaleConfig() {
@@ -215,6 +219,14 @@ public class ScaleConfig {
 
 	public List<String> getReasons() {
 		return reasons;
+	}
+
+	public String getJitUserWorkflow() {
+		return jitUserWorkflow;
+	}
+
+	public void setJitUserWorkflow(String jitUserWorkflow) {
+		this.jitUserWorkflow = jitUserWorkflow;
 	}
 	
 	
