@@ -386,6 +386,13 @@ public class ScaleRegister implements HttpFilter {
 		String val = this.loadOptionalAttributeValue("requireReason", "Require Reason", config);
 		scaleConfig.setRequireReason(val != null && val.equals("true"));
 		
+		val = this.loadOptionalAttributeValue("enableThirdColumn", "enableThirdColumn", config);
+		if (val == null) {
+			val = "false";
+		}
+		
+		scaleConfig.setEnableThirdColumn(val.equalsIgnoreCase("true"));
+		
 		val = this.loadOptionalAttributeValue("preSetPassword", "Pre-Set Password", config);
 		scaleConfig.setPreSetPassword(val != null && val.equals("true"));
 		
@@ -554,6 +561,7 @@ public class ScaleRegister implements HttpFilter {
 			
 			
 			
+			
 			scaleConfig.getAttributes().put(attributeName, scaleAttr);
 		}
 		
@@ -592,6 +600,8 @@ public class ScaleRegister implements HttpFilter {
 			this.cru = (CreateRegisterUser) Class.forName(scaleConfig.getCustomSubmissionClassName()).newInstance();
 			this.cru.init(this.scaleConfig);
 		}
+		
+		
 	}
 
 }

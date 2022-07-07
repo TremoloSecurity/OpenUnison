@@ -48,12 +48,15 @@ public class ScaleJSRegisterConfig {
 	String submitButtonText;
 	String submittedText;
 	
+	boolean enableThirdColumn;
+	
 	public ScaleJSRegisterConfig() {
 		this.attributes = new HashMap<String,ScaleAttribute>();
 		this.frontPage = new ScaleFrontPage();
 		this.attributeNameList = new ArrayList<String>();
 		this.submitLoggedInUser = false;
 		this.reasons = new ArrayList<String>();
+		this.enableThirdColumn = false;
 	}
 
 	
@@ -273,6 +276,18 @@ public class ScaleJSRegisterConfig {
 
 	public List<String> getReasons() {
 		return reasons;
+	}
+
+
+
+	public boolean isEnableThirdColumn() {
+		return enableThirdColumn;
+	}
+
+
+
+	public void setEnableThirdColumn(boolean enableThirdColumn) {
+		this.enableThirdColumn = enableThirdColumn;
 	}
 	
 	
