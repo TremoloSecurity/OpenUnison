@@ -67,5 +67,11 @@ limitations under the License.
 			<artifactId>jackson-dataformat-cbor</artifactId>
 			<version>${jackson-core.version}</version>
 		</dependency> 
+		
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-common</artifactId>
+			<version>${netty-common.version}</version>
+		</dependency>
   </dependencies>
 </project>
