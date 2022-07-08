@@ -42,7 +42,7 @@
 		<bcprov-ext-jdk15on.version>1.70</bcprov-ext-jdk15on.version>
 		<catalina.version>6.0.53</catalina.version>
 		<undertow-1x.version>1.0.0.Final</undertow-1x.version>
-		<myvd-server.version>1.0.15</myvd-server.version>
+		<myvd-server.version>1.0.16</myvd-server.version>
 		<jldap.version>1.0.2</jldap.version>
 		<httpclient.version>4.5.13</httpclient.version>
 		<httpcore.version>4.4.15</httpcore.version>
