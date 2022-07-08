@@ -183,17 +183,25 @@ public class K8sWatcher implements StopableThread {
 		
 		JSONObject spec = (JSONObject)  root.get("spec");
 		
-		JSONArray versions = (JSONArray) spec.get("versions");
-		
 		String apiVersion = "";
 		
-		for (Object v : versions) {
-			JSONObject version = (JSONObject) v;
-			boolean served = (Boolean) version.get("served");
-			boolean stored = (Boolean) version.get("storage");
+		if (spec == null) {
+			// haven't yet upgraded the operator, assume v1
+			apiVersion = "v1";
+		} else {
+		
+			JSONArray versions = (JSONArray) spec.get("versions");
 			
-			if (served && stored) {
-				apiVersion = (String) version.get("name");
+			
+			
+			for (Object v : versions) {
+				JSONObject version = (JSONObject) v;
+				boolean served = (Boolean) version.get("served");
+				boolean stored = (Boolean) version.get("storage");
+				
+				if (served && stored) {
+					apiVersion = (String) version.get("name");
+				}
 			}
 		}
 		
