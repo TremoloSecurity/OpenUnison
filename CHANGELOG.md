@@ -1,3 +1,16 @@
+# 1.0.31-2022070901
+
+**Tasks:**
+ - 1.0.31 Build [\#637](https://github.com/TremoloSecurity/OpenUnison/issues/637)
+
+**enhancements:**
+ - k8s watchers - make version aware [\#642](https://github.com/TremoloSecurity/OpenUnison/issues/642)
+ - ScaleJS Register - make dynamic lists configurable between type list and pick list [\#646](https://github.com/TremoloSecurity/OpenUnison/issues/646)
+ - ScaleJS register - make third column configurable [\#647](https://github.com/TremoloSecurity/OpenUnison/issues/647)
+ - ScaleJS - Support submitting workflows for users that don't already exist [\#645](https://github.com/TremoloSecurity/OpenUnison/issues/645)
+ - make db target "read only" flag [\#643](https://github.com/TremoloSecurity/OpenUnison/issues/643)
+
+
 # 1.0.30-2022042801
 
 **Tasks:**
