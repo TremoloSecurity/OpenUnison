@@ -64,8 +64,15 @@ public class LoadConfigMap implements CustomTask {
 	@Override
 	public boolean doTask(User user, Map<String, Object> request) throws ProvisioningException {
 		try {
-			logger.info("Loading " + this.target + "." + this.namespace + "." + this.configmap);
-			Map<String,String> cm = K8sUtils.loadConfigMap(target, namespace, configmap);
+			
+			String localTarget = this.task.renderTemplate(this.target, request);
+			String localNamespace = this.task.renderTemplate(this.namespace, request);
+			String localConfigMap = this.task.renderTemplate(this.configmap, request);
+			
+			if (logger.isDebugEnabled()) {
+				logger.info("Loading " + localTarget + "." + localNamespace + "." + localConfigMap);
+			}
+			Map<String,String> cm = K8sUtils.loadConfigMap(localTarget, localNamespace, localConfigMap);
 			
 			logger.info("map : " + cm.toString());
 			
