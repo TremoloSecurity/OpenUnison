@@ -59,6 +59,11 @@ public class CreateK8sObject implements CustomTask {
     String homeCluster;
 
 	private String requestAttribute;
+	
+	
+	String patchTemplate;
+	String patchType;
+	String patchContentType;
     
     
 
@@ -85,6 +90,25 @@ public class CreateK8sObject implements CustomTask {
         }
         
         this.yaml = params.get("srcType") != null && params.get("srcType").getValues().get(0).equalsIgnoreCase("yaml");
+        
+       if (params.get("patchTemplate") != null) {
+    	   this.patchTemplate = params.get("patchTemplate").getValues().get(0);
+       } else {
+    	   this.patchTemplate = null;
+       }
+        
+        if (params.get("patchType") != null) {
+        	this.patchType = params.get("patchType").getValues().get(0);
+        } else {
+        	this.patchType = "merge";
+        }
+        
+        switch (this.patchType) {
+        	case "strategic": this.patchContentType = "application/strategic-merge-patch+json"; break;
+        	case "merge" : this.patchContentType = "application/merge-patch+json"; break;
+        	case "json" : this.patchContentType = "application/json-patch+json"; break;
+        	default: throw new ProvisioningException("Unknown patch type, one of strategic, merge, or json is required");
+        }
         
         this.task = task;
 
@@ -128,6 +152,16 @@ public class CreateK8sObject implements CustomTask {
     		} else {
     			localTemplateJSON = localTemplate;
     		}
+            
+            JSONObject objectRoot = (JSONObject) new JSONParser().parse(localTemplateJSON);
+            
+            JSONObject metadata = (JSONObject) objectRoot.get("metadata");
+            
+            String objectName = null;
+            
+            if (metadata != null) {
+            	objectName = (String) metadata.get("name");
+            }
             
             if (logger.isDebugEnabled()) {
             	logger.debug("Write To Request  : '" + this.writeToRequestConfig + "'");
@@ -176,10 +210,12 @@ public class CreateK8sObject implements CustomTask {
             		
             		gitFiles.add(gitFile);
             		
+            	} else if (this.patchTemplate != null) {
+            		doPatch(objectName,request, task, this.patchTemplate, this.targetName, this.url, writeToRequestConfig, this.path, this.patchType, this.requestAttribute, this.kind, this.label, this.patchContentType);
             	}
             	
             } else {
-            	writeToAPIServer(localTemplateJSON, approvalID, localURL, con, os, token,localTarget);
+            	writeToAPIServer(localTemplateJSON, approvalID, localURL, con, os, token,localTarget,request,objectName);
             }
             
         } catch (Exception e) {
@@ -193,7 +229,7 @@ public class CreateK8sObject implements CustomTask {
     }
 
 	private void writeToAPIServer(String localTemplate, int approvalID, String localURL, HttpCon con,
-			OpenShiftTarget os, String token,String localTarget)
+			OpenShiftTarget os, String token,String localTarget,Map<String, Object> request, String objectName)
 			throws IOException, ClientProtocolException, ProvisioningException, ParseException {
 		
 		
@@ -218,6 +254,8 @@ public class CreateK8sObject implements CustomTask {
 		        } else {
 		            this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Add,  approvalID, this.task.getWorkflow(), label, projectName);
 		        }
+		    } else if (this.patchTemplate != null) {
+		    	doPatch(objectName,request, task, this.patchTemplate, this.targetName, this.url, writeToRequestConfig, this.path, this.patchType, this.requestAttribute, this.kind, this.label, this.patchContentType);
 		    }
 		} else {
 			String respJSON = os.callWSPut(token, con, localURL, localTemplate);
@@ -239,4 +277,10 @@ public class CreateK8sObject implements CustomTask {
 		    }
 		}
 	}
+	
+	private void doPatch(String objectName, Map<String, Object> request, WorkflowTask task, String template,String targetName,String url,String writeToRequestConfig,String path,String patchType,String requestAttribute,String expKind,String label,String patchContentType) throws ProvisioningException {
+		String localUrl = new StringBuilder().append(url).append("/").append(objectName).toString();
+		PatchK8sObject.doPatch(request, task, patchTemplate, this.targetName, localUrl, writeToRequestConfig, path, patchType, requestAttribute, kind, label, patchContentType);
+	}
+	
 }

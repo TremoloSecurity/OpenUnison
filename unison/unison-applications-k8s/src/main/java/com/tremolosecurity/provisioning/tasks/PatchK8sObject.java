@@ -84,7 +84,14 @@ public class PatchK8sObject implements CustomTask {
 
     @Override
     public boolean doTask(User user, Map<String, Object> request) throws ProvisioningException {
-        String localTemplate = task.renderTemplate(template, request);
+        doPatch(request,this.task,this.template,this.targetName,this.url,this.writeToRequestConfig,this.path,this.patchType,this.requestAttribute,this.kind,this.label,this.patchContentType);
+        return true;
+    }
+
+
+
+	public static void doPatch(Map<String, Object> request, WorkflowTask task, String template,String targetName,String url,String writeToRequestConfig,String path,String patchType,String requestAttribute,String expKind,String label,String patchContentType) throws ProvisioningException {
+		String localTemplate = task.renderTemplate(template, request);
         if (logger.isDebugEnabled()) {
             logger.debug("localTemplate : '" + localTemplate + "'");
         }
@@ -96,26 +103,26 @@ public class PatchK8sObject implements CustomTask {
 
         Workflow workflow = (Workflow) request.get("WORKFLOW");
 
-        String localURL = task.renderTemplate(this.url,request);
+        String localURL = task.renderTemplate(url,request);
 
 
         HttpCon con = null;
         
-        String localTarget = task.renderTemplate(this.targetName, request);
+        String localTarget = task.renderTemplate(targetName, request);
         OpenShiftTarget os = (OpenShiftTarget) task.getConfigManager().getProvisioningEngine().getTarget(localTarget).getProvider();
         try {
             String token = os.getAuthToken();
             con = os.createClient();
 
             boolean writeToRequest = false;
-            if (this.writeToRequestConfig != null) {
-            	writeToRequest = task.renderTemplate(this.writeToRequestConfig, request).equalsIgnoreCase("true");
+            if (writeToRequestConfig != null) {
+            	writeToRequest = task.renderTemplate(writeToRequestConfig, request).equalsIgnoreCase("true");
             }
             
             if (writeToRequest) {
             	logger.debug("Writing to secret");
     
-        		String localPath = task.renderTemplate(this.path, request);
+        		String localPath = task.renderTemplate(path, request);
         		String dirName;
         		String fileName;
         		int lastSlash = localPath.lastIndexOf('/');
@@ -133,13 +140,13 @@ public class PatchK8sObject implements CustomTask {
         		GitFile gitFile = new GitFile(fileName,dirName,false,false);
         		gitFile.setData(localTemplate);
         		gitFile.setPatch(true);
-        		gitFile.setPatchType(this.patchType);
+        		gitFile.setPatchType(patchType);
         		
-        		List<GitFile> gitFiles = (List<GitFile>) request.get(this.requestAttribute);
+        		List<GitFile> gitFiles = (List<GitFile>) request.get(requestAttribute);
         		
         		if (gitFiles == null) {
         			gitFiles = new ArrayList<GitFile>();
-        			request.put(this.requestAttribute, gitFiles);
+        			request.put(requestAttribute, gitFiles);
         			
         		}
         		
@@ -148,9 +155,9 @@ public class PatchK8sObject implements CustomTask {
             	
             	
             } else {
-            	if (this.isObjectExists(os,token, con, localURL,localTemplate)) {
+            	if (isObjectExists(os,token, con, localURL,localTemplate)) {
 
-                    String respJSON = os.callWSPatchJson(token, con, localURL, localTemplate,this.patchContentType);
+                    String respJSON = os.callWSPatchJson(token, con, localURL, localTemplate,patchContentType);
 
                     if (logger.isDebugEnabled()) {
                         logger.debug("Response for creating project : '" + respJSON + "'");
@@ -162,10 +169,10 @@ public class PatchK8sObject implements CustomTask {
                     String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
 
 
-                    if (! kind.equalsIgnoreCase(this.kind)) {
+                    if (! kind.equalsIgnoreCase(expKind)) {
                         throw new ProvisioningException("Could not create " + kind + " with json '" + localTemplate + "' - '" + respJSON + "'" );
                     } else {
-                        this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ActionType.Replace,  approvalID, this.task.getWorkflow(), label, projectName);
+                        task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ActionType.Replace,  approvalID, task.getWorkflow(), label, projectName);
                     }
                 } else {
                     throw new ProvisioningException("Object '" + localURL + "' does not exist");
@@ -175,14 +182,13 @@ public class PatchK8sObject implements CustomTask {
             
             
         } catch (Exception e) {
-            throw new ProvisioningException("Could not create " + kind,e);
+            throw new ProvisioningException("Could not patch " + expKind,e);
         } finally {
             if (con != null) {
                 con.getBcm().close();
             }
         }
-        return true;
-    }
+	}
     
     
 
@@ -227,7 +233,7 @@ public class PatchK8sObject implements CustomTask {
         
     }
     
-    private boolean isObjectExists(OpenShiftTarget os,String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException,ProvisioningException, ParseException {
+    private static boolean isObjectExists(OpenShiftTarget os,String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException,ProvisioningException, ParseException {
 		
 		JSONParser parser = new JSONParser();
 		JSONObject root = null;
