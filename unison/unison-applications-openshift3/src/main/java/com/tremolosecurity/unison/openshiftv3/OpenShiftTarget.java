@@ -86,6 +86,7 @@ import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.unison.openshiftv3.model.Item;
 import com.tremolosecurity.unison.openshiftv3.model.Response;
 import com.tremolosecurity.unison.openshiftv3.model.groups.GroupItem;
@@ -136,6 +137,10 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	String gitUrl;
 	
 	private boolean useDefaultCaPath;
+	
+	
+	boolean oidcTokenInitialized;
+	Map<String, Attribute> cfg;
 
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
@@ -502,11 +507,19 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 		String json = EntityUtils.toString(resp.getEntity());
 		
-		if (resp.getStatusLine().getStatusCode() < 200 || resp.getStatusLine().getStatusCode() > 299 ) {
+		
+		if (resp.getStatusLine().getStatusCode() >= 200 && resp.getStatusLine().getStatusCode() <= 299 ) {
+			return json;
+		} else if (resp.getStatusLine().getStatusCode() != 404) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Unexpected result calling '").append(get.getURI()).append("' - ").append(resp.getStatusLine().getStatusCode()).append(" / ").append(json);
+			throw new IOException(sb.toString());
+		} else  {
 			logger.warn("Unexpected result calling '" + get.getURI() + "' - " + resp.getStatusLine().getStatusCode() + " / " + json);
+			return json;
 		}
 		
-		return json;
+		
 	}
 
 	public boolean isObjectExists(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException,ProvisioningException, ParseException {
@@ -682,6 +695,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 
 	@Override
 	public void init(Map<String, Attribute> cfg, ConfigManager cfgMgr, String name) throws ProvisioningException {
+		this.cfg = cfg;
 		this.url = this.loadOption("url", cfg, false);
 		
 		
@@ -744,6 +758,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 				case NONE:
 					break;
 				case OIDC:
+					this.oidcTokenInitialized = false;
 					this.initRemoteOidc(cfg, cfgMgr, localTokenType);
 					break;
 					
@@ -822,6 +837,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			if (at.getName().equals(this.oidcIdp)) {
 				for (ParamType pt : at.getUrls().getUrl().get(0).getIdp().getParams()) {
 					if (pt.getName().equals("jwtSigningKey")) {
+						this.oidcTokenInitialized = true;
 						this.oidcCertName = pt.getValue();
 					}
 				}
@@ -973,6 +989,18 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	}
 
 	private String generateOidcToken() throws JoseException {
+		
+		if (! this.oidcTokenInitialized) {
+			logger.warn("OIDC tokens not initialized, initializing now");
+			try {
+				this.initRemoteOidc(this.cfg, GlobalEntries.getGlobalEntries().getConfigManager(), "OIDC");
+			} catch (ProvisioningException e) {
+				throw new JoseException("Could not initialize oidc",e);
+			}
+		}
+		
+		
+		
 		JwtClaims claims = new JwtClaims();
 		claims.setIssuer(this.oidcIssuer);
 		claims.setAudience(this.oidcAudience);
