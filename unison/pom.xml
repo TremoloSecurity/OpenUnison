@@ -114,6 +114,7 @@
 		<graaljs.version>22.1.0.1</graaljs.version>
 		<commons-compress.version>1.21</commons-compress.version>
 		<webauthn4j.version>0.20.1.RELEASE</webauthn4j.version>
+		<githubapi.version>1.307</githubapi.version>
 	</properties>
 
 	<repositories>

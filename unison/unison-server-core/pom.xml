@@ -265,6 +265,14 @@
 		  	<version>${netty-codec.version}</version>
 		  </dependency>
 		  
+		  <!-- https://mvnrepository.com/artifact/org.kohsuke/github-api -->
+		<dependency>
+		    <groupId>org.kohsuke</groupId>
+		    <artifactId>github-api</artifactId>
+		    <version>${githubapi.version}</version>
+		</dependency>
+
+		  
 		
 		
 <dependency>
