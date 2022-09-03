@@ -16,9 +16,14 @@
 
 package com.tremolosecurity.provisioning.customTasks.github;
 
+import java.io.IOException;
 import java.util.Map;
 
-import com.goterl.lazysodium.exceptions.SodiumException;
+import org.kohsuke.github.GHOrganization;
+import org.kohsuke.github.GHRepository;
+import org.kohsuke.github.GHTeam;
+import org.kohsuke.github.GHOrganization.RepositoryRole;
+
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.ProvisioningTarget;
 import com.tremolosecurity.provisioning.core.User;
@@ -26,29 +31,27 @@ import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.WorkflowTask;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.core.providers.GitHubProvider;
-import com.tremolosecurity.provisioning.customTasks.github.secrets.SecretManagement;
 import com.tremolosecurity.provisioning.util.CustomTask;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 
-public class CreateSecret implements CustomTask {
-	
-	String name;
-	String value;
-	String targetName;
-	String repoName;
+public class AddTeamToRepo implements CustomTask {
 	
 	transient WorkflowTask task;
+	
+	String teamName;
+	String targetName;
+	String repoName;
+	String permission;
+	
 
 	@Override
 	public void init(WorkflowTask task, Map<String, Attribute> params) throws ProvisioningException {
 		this.task = task;
-		
-		this.targetName = params.get("targetName").getValues().get(0);
+		this.teamName = params.get("teamName").getValues().get(0);
 		this.repoName = params.get("repoName").getValues().get(0);
-		this.name = params.get("name").getValues().get(0);
-		this.value = params.get("value").getValues().get(0);
-
+		this.permission = params.get("permission").getValues().get(0);
+		this.targetName = params.get("targetName").getValues().get(0);
 	}
 
 	@Override
@@ -59,6 +62,10 @@ public class CreateSecret implements CustomTask {
 
 	@Override
 	public boolean doTask(User user, Map<String, Object> request) throws ProvisioningException {
+		String ltargetname = task.renderTemplate(targetName, request);
+		String lrepoName = task.renderTemplate(repoName, request);
+		String lpermission = task.renderTemplate(permission, request);
+		String lteamname = task.renderTemplate(teamName, request);
 		
 		int approvalID = 0;
 		if (request.containsKey("APPROVAL_ID")) {
@@ -67,37 +74,54 @@ public class CreateSecret implements CustomTask {
 
 		Workflow workflow = (Workflow) request.get("WORKFLOW");
 		
-		String ltarget = task.renderTemplate(this.targetName, request);
-		String lrepoName = task.renderTemplate(this.repoName, request);
-		String lname = task.renderTemplate(name, request);
-		String lvalue = task.renderTemplate(value, request);
+
 		
-		ProvisioningTarget userProvider = task.getConfigManager().getProvisioningEngine().getTarget(ltarget);
+		ProvisioningTarget userProvider = task.getConfigManager().getProvisioningEngine().getTarget(ltargetname);
 		
 		if (userProvider == null) {
-			throw new ProvisioningException(String.format("Target %s does not exist", ltarget));
+			throw new ProvisioningException(String.format("Target %s does not exist", ltargetname));
 		}
 		
 		if (! (userProvider.getProvider() instanceof com.tremolosecurity.provisioning.core.providers.GitHubProvider)) {
-			throw new ProvisioningException(String.format("Target %s is not a GitHubProvider", ltarget));
+			throw new ProvisioningException(String.format("Target %s is not a GitHubProvider", ltargetname));
 		}
 		
 		GitHubProvider ghTarget = (GitHubProvider) userProvider.getProvider();
 		
-		SecretManagement secrets = new SecretManagement(ghTarget);
+		GHOrganization ghorg = ghTarget.getOrganization();
+		
+		GHTeam team;
+		try {
+			team = ghorg.getTeamByName(lteamname);
+			if (team == null) {
+				throw new ProvisioningException(String.format("Team %s does not exist", lteamname));
+			}
+		} catch (IOException e) {
+			throw new ProvisioningException(String.format("Could not load team %s", lteamname),e);
+		}
+		GHRepository repo ;
 		
 		try {
-			secrets.storeSecret(lrepoName, lname, lvalue);
+			repo = ghorg.getRepository(lrepoName);
 			
-			GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().logAction(targetName,
-					false, ActionType.Add, approvalID, workflow,
-					String.format("github-repo-%s.%s-secret",ghTarget.getOrgName(),lrepoName), lname);
-		} catch (ProvisioningException | SodiumException e) {
-			throw new ProvisioningException(String.format("Could not store secret %s in %s/%s",lname,ghTarget.getOrgName(),lrepoName),e);
+			if (repo == null) {
+				throw new ProvisioningException(String.format("Could not load repo %s", lrepoName));
+			}
+		} catch (IOException e) {
+			throw new ProvisioningException(String.format("Could not load repo %s", lrepoName),e);
 		}
 		
-		return true;
+		try {
+			team.add(repo, RepositoryRole.custom(lpermission));
+		} catch (IOException e) {
+			throw new ProvisioningException(String.format("Could not add permission %s to repo %s with team %s",lpermission,lrepoName,lteamname));
+		}
 		
+		GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().logAction(this.targetName,
+				false, ActionType.Add, approvalID, workflow,
+				"github-permission-" + ghTarget.getOrgName() + "." + lrepoName + "-team", lteamname + "/" + lpermission );
+		
+		return true;
 	}
 
 }
