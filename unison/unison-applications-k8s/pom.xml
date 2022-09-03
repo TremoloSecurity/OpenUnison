@@ -129,6 +129,12 @@
 		    <artifactId>json-patch</artifactId>
 		    <version>${json-patch.version}</version>
 		</dependency>
+		
+		<dependency>
+		    <groupId>com.jayway.jsonpath</groupId>
+		    <artifactId>json-path</artifactId>
+		    <version>${json-path.version}</version>
+		</dependency>
 
 
 	</dependencies>

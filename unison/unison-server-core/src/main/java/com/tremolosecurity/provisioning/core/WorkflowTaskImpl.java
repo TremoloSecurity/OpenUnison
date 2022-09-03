@@ -22,6 +22,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
@@ -155,7 +156,36 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 	}
 	
 	
-	
+	protected final boolean finishTasks(ArrayList<WorkflowTask> subs,int start,User user,Map<String,Object> request) throws ProvisioningException {
+		
+		if (request.get(ProvisioningParams.UNISON_EXEC_TYPE) != null && request.get(ProvisioningParams.UNISON_EXEC_TYPE).equals(ProvisioningParams.UNISON_EXEC_SYNC)) {
+			
+			for (int i=start;i<subs.size();i++) {
+				WorkflowTask wft = subs.get(i);
+				boolean doContinue = wft.doTask(user, request);
+				if (! doContinue) {
+					return false;
+				}
+			}
+			
+			return true;
+		} else {
+			
+			if (subs.isEmpty()) {
+				return true;
+			} else {
+			
+				WorkflowHolder holder = (WorkflowHolder) request.get(WorkflowHolder.WF_HOLDER_REQUEST);
+				TaskHolder th = new TaskHolder();
+				th.setPosition(start);
+				th.setParent(subs);
+				th.setCurrentUser(user);
+				holder.getWfStack().push(th);
+				((ProvisioningEngineImpl) this.cfgMgr.getProvisioningEngine()).enqueue(holder);
+				return false;
+			}
+		}
+	}
 	
 	protected final boolean runSubTasks(ArrayList<WorkflowTask> subs,User user,Map<String,Object> request) throws ProvisioningException {
 		
@@ -190,6 +220,51 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 	}
 	
 	
+	
+	@Override
+	public final boolean restartTasks() throws ProvisioningException {
+		return startNextTask(this.workflow.getTasks());
+	}
+	
+	protected boolean startNextTask(List<WorkflowTask> tasks) throws ProvisioningException {
+		int count = 0;
+		for (WorkflowTask task : tasks) {
+			if (task == this) {
+				//found the current task, restart from here
+				count++;
+				
+				
+				
+				if (count >= tasks.size()) {
+					// this is the last task on this list, we're done
+					return false;
+				} else {
+					return  this.finishTasks((ArrayList<WorkflowTask>) tasks, count, this.getWorkflow().getUser(), this.getWorkflow().getRequest());
+				}
+				
+				
+			} else {
+				if (task instanceof WorkflowChoiceTaskType) {
+					
+					if (task.getOnSuccess() != null) {
+						if (startNextTask(task.getOnSuccess())) {
+							return true;
+						}
+					}
+					
+					if (task.getOnFailure() != null) {
+						if (startNextTask(task.getOnFailure())) {
+							return true;
+						}
+					}
+				}
+			}
+			count++;
+		}
+		
+		// could not find the next task
+		return false;
+	}
 	
 	protected final boolean restartChildren(User user,Map<String,Object> request) throws ProvisioningException {
 		

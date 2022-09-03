@@ -783,8 +783,10 @@ public class WorkflowImpl implements  Workflow {
 	public String toString() {
 		StringBuffer b = new StringBuffer();
 		b.append(this.getName()).append("-----\n");
-		for (WorkflowTask task : this.tasks) {
-			this.printWF(b, "   ", task);
+		if (tasks != null) {
+			for (WorkflowTask task : this.tasks) {
+				this.printWF(b, "   ", task);
+			}
 		}
 		
 		return b.toString();

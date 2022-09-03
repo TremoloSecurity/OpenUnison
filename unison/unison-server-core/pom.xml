@@ -272,7 +272,17 @@
 		    <version>${githubapi.version}</version>
 		</dependency>
 
-		  
+		<dependency>
+		  <groupId>net.java.dev.jna</groupId>
+		  <artifactId>jna</artifactId>
+		  <version>5.12.1</version>
+		</dependency>
+		
+		<dependency>
+		  <groupId>com.goterl</groupId>
+		  <artifactId>lazysodium-java</artifactId>
+		  <version>5.1.1</version>
+		</dependency>
 		
 		
 <dependency>

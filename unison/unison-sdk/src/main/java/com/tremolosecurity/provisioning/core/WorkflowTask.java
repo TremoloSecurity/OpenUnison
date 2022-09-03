@@ -71,5 +71,7 @@ public interface WorkflowTask {
 
 	public abstract boolean canHaveChildren();
 
+	boolean restartTasks() throws ProvisioningException;
+
 
 }
