@@ -93,6 +93,10 @@ public class GitHubProvider implements UserStoreProviderWithAddGroup {
 	
 	String apiHost;
 	
+	public String getApiHost() {
+		return apiHost;
+	}
+
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
@@ -560,5 +564,31 @@ public class GitHubProvider implements UserStoreProviderWithAddGroup {
 		
 		
 	}
+	
+	public GHOrganization getOrganization() throws ProvisioningException {
+		try {
+			this.genToken();
+		} catch (JoseException | IOException | ProvisioningException | ParseException e) {
+			throw new ProvisioningException("Could not load GitHub token",e);
+		}
+		
+		try {
+			GitHub github = new GitHubBuilder().withOAuthToken(this.token).build();
+			
+			GHOrganization ghorg = github.getOrganization(this.orgName);
+			
+			return ghorg;
+			
+			
+		} catch (IOException e) {
+			throw new ProvisioningException("Could not add group",e);
+		}
+	}
+
+	public String getOrgName() {
+		return orgName;
+	}
+	
+	
 
 }
