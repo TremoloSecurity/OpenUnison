@@ -73,7 +73,7 @@
 		<mongodb-driver.version>3.12.11</mongodb-driver.version>
 		<xalan.version>2.7.2</xalan.version>
 		<jackson.version>2.13.3</jackson.version>
-		<jackson-core.version>2.13.3</jackson-core.version>
+		<jackson-core.version>2.13.4</jackson-core.version>
 		<slf4j.version>1.7.32</slf4j.version>
 		<guava.version>31.1-jre</guava.version>
 		<undertow.version>2.2.18.Final</undertow.version>
