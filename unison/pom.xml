@@ -73,14 +73,14 @@
 		<mongodb-driver.version>3.12.11</mongodb-driver.version>
 		<xalan.version>2.7.2</xalan.version>
 		<jackson.version>2.13.3</jackson.version>
-		<jackson-core.version>2.13.3</jackson-core.version>
+		<jackson-core.version>2.13.4</jackson-core.version>
 		<slf4j.version>1.7.32</slf4j.version>
 		<guava.version>31.1-jre</guava.version>
 		<undertow.version>2.2.18.Final</undertow.version>
 	  	<jastow.version>2.1.0.Final</jastow.version>
 	  	<jboss-jstl-api_1.2_spec.version>1.1.4.Final</jboss-jstl-api_1.2_spec.version>
 	  	<xmlsec.version>2.0.5</xmlsec.version>
-	  	<snakeyaml.version>1.30</snakeyaml.version>
+	  	<snakeyaml.version>1.31</snakeyaml.version>
 	  	<prometheus.version>0.16.0</prometheus.version>
 	  	<ibm-mq.version>9.3.0.0</ibm-mq.version>
 	  	<okta.version>8.2.1</okta.version>
