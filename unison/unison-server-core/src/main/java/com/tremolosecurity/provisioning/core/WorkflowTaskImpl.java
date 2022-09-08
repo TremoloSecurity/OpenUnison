@@ -244,20 +244,20 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 				
 				
 			} else {
-				if (task instanceof WorkflowChoiceTaskType) {
+				
 					
-					if (task.getOnSuccess() != null) {
-						if (startNextTask(task.getOnSuccess())) {
-							return true;
-						}
-					}
-					
-					if (task.getOnFailure() != null) {
-						if (startNextTask(task.getOnFailure())) {
-							return true;
-						}
+				if (task.getOnSuccess() != null) {
+					if (startNextTask(task.getOnSuccess())) {
+						return true;
 					}
 				}
+				
+				if (task.getOnFailure() != null) {
+					if (startNextTask(task.getOnFailure())) {
+						return true;
+					}
+				}
+				
 			}
 			count++;
 		}
