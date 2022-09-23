@@ -96,7 +96,7 @@
 		<k8sapi.version>10.0.0</k8sapi.version>
 		<jgit.version>6.2.0.202206071550-r</jgit.version>
 		<json-patch.version>1.13</json-patch.version>
-		<batik-svgbrowser.version>1.14</batik-svgbrowser.version>
+		<batik-svgbrowser.version>1.15</batik-svgbrowser.version>
 		<xmlgraphics-commons.version>2.7</xmlgraphics-commons.version>
 		<json-smart.version>2.4.8</json-smart.version>
 		<xnio-api.version>3.8.7.Final</xnio-api.version>
