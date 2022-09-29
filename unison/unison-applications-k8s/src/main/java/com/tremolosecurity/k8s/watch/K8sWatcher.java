@@ -18,6 +18,7 @@ package com.tremolosecurity.k8s.watch;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.SocketException;
 import java.util.HashSet;
 
 import org.apache.http.HttpResponse;
@@ -63,6 +64,9 @@ public class K8sWatcher implements StopableThread {
 	private String plural;
 
 	private String group;
+	
+	private String lastResourceId;
+	private long lastResourceIdNum;
 	
 	public K8sWatcher(String k8sTarget,String namespace, String plural, String group,K8sWatchTarget watchTarget,ConfigManager cfgMgr, ProvisioningEngine provisioningEngine) {
 		this.k8sTarget = k8sTarget;
@@ -148,6 +152,19 @@ public class K8sWatcher implements StopableThread {
 				} else {
 					this.resourceVersions.add(resourceVersion);
 					this.watchee.addObject(cfgMgr.getCfg(), jsonObj);
+					
+					
+					long localResourceId = Long.parseLong(resourceVersion);
+					
+					if (this.lastResourceIdNum < localResourceId) {
+						this.lastResourceIdNum = localResourceId;
+						this.lastResourceId = resourceVersion;
+					}
+					
+					
+					
+					 
+					
 				}
 				
 				
@@ -155,8 +172,8 @@ public class K8sWatcher implements StopableThread {
 				
 			}
 			
-		} catch (Exception e) {
-			throw new ProvisioningException("Could not get urls",e);
+		} catch (Throwable e) {
+			throw new ProvisioningException("Could not load CRDs",e);
 		} finally {
 			try {
 				http.getHttp().close();
@@ -268,13 +285,28 @@ public class K8sWatcher implements StopableThread {
 		}
 		
 		try {
-			String url = new StringBuilder().append(k8s.getUrl())
+			StringBuilder urlb = new StringBuilder().append(k8s.getUrl())
 					                        .append(this.uri)
-					                        .append("?watch=true&timeoutSecond=25").toString();
+					                        .append("?watch=true&timeoutSecond=25&allowWatchBookmarks=true");
+			
+			if (this.lastResourceId != null) {
+				urlb.append("&resourceVersion=")
+				   .append(this.lastResourceId).toString();
+			}
+			
+			String url = urlb.toString();
+					                        
+			
 			logger.info("watching " + url);
 			HttpGet get = new HttpGet(url);
 			get.setHeader("Authorization", new StringBuilder().append("Bearer ").append(k8s.getAuthToken()).toString());
 			HttpResponse resp = http.getHttp().execute(get);
+			
+			if (resp.getStatusLine().getStatusCode() == 504 || resp.getStatusLine().getStatusCode() == 410) {
+				logger.info("invalid resource error: " + resp.getStatusLine().getReasonPhrase());
+				this.lastResourceId = null;
+			}
+			
 			BufferedReader in = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
 			String line = null;
 			
@@ -302,10 +334,35 @@ public class K8sWatcher implements StopableThread {
 				
 				String resourceVersion = (String) metadata.get("resourceVersion");
 				
-				if (this.resourceVersions.contains(resourceVersion)) {
+				
+				if (action.equalsIgnoreCase("ERROR")) {
+					// there was an error
+					long errorCode = (Long) jsonObject.get("code");
+					
+					if (errorCode == 504 || errorCode == 410) {
+						String msg = (String) jsonObject.get("message");
+						int indexstart = msg.indexOf('(');
+						if (indexstart == -1) {
+							//i'm not really sure how to handle this
+							throw new Exception(String.format("Could not process watch %s",msg));
+						} else {
+							int indexend = msg.indexOf(')');
+							String newResourceId = msg.substring(indexstart+1,indexend);
+							this.resourceVersions.add(newResourceId);
+							this.lastResourceId = newResourceId;
+						}
+					}
+					
+				} else if (this.resourceVersions.contains(resourceVersion)) {
 					logger.info("Resource " + resourceVersion + " already processed, skipping");
+				} else if (action.equalsIgnoreCase("BOOKMARK")) {
+					this.resourceVersions.add(resourceVersion);
+					this.lastResourceId = resourceVersion;
 				} else {
 					this.resourceVersions.add(resourceVersion);
+					
+					
+					
 					if (action.equalsIgnoreCase("ADDED")) {
 						
 						this.watchee.addObject(this.cfgMgr.getCfg(),jsonObject);
@@ -317,20 +374,21 @@ public class K8sWatcher implements StopableThread {
 						//deleted
 						this.watchee.deleteObject(this.cfgMgr.getCfg(),jsonObject);
 					}
+					
+					this.lastResourceId = resourceVersion;
 				}
 			}
 			
 			nonwatchHttp.getHttp().close();
 			nonwatchHttp.getBcm().close();
 			
-		} catch (Exception e) {
-			logger.error("Could not run watch, waiting 10 seconds",e);
+		} catch (SocketException se) {
+			logger.warn("Connection to api server reset, restarting");
 			
-			try {
-				Thread.sleep(10000);
-			} catch (InterruptedException e1) {
-				//do nothing
-			}
+			return;
+		} catch (Throwable e) {
+			logger.warn("Could not run watch, restarting",e);
+			
 			
 			return;
 		} finally {
