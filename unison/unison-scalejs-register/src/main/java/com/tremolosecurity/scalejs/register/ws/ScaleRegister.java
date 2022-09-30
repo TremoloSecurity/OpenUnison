@@ -305,15 +305,17 @@ public class ScaleRegister implements HttpFilter {
 				
 				
 				ExecuteWorkflow exec = new ExecuteWorkflow();
-				
+				int wfid = -1;
 				try {
-					exec.execute(wfcall, GlobalEntries.getGlobalEntries().getConfigManager());
+					wfid = exec.execute(wfcall, GlobalEntries.getGlobalEntries().getConfigManager());
+					
 				} catch(Exception e) {
 					throw new ProvisioningException("Could not complete registration",e);
 				}
 				
 				SubmitResponse res = new SubmitResponse();
 				res.setAddNewUsers(userData.getAuthLevel() != 0);
+				res.setWorkflowId(wfid);
 				ScaleJSUtils.addCacheHeaders(response);
 				response.getWriter().print(gson.toJson(res));
 				response.getWriter().flush();

@@ -231,6 +231,8 @@ public class WorkflowImpl implements  Workflow {
 				
 				session.getTransaction().commit();
 				
+				request.put("WORKFLOW_ID", workflow.getId());
+				
 				
 				
 			}

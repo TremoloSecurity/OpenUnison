@@ -14,6 +14,15 @@ package com.tremolosecurity.scalejs.register.data;
 
 public class SubmitResponse {
 	boolean addNewUsers;
+	int workflowId;
+
+	public int getWorkflowId() {
+		return workflowId;
+	}
+
+	public void setWorkflowId(int workflowId) {
+		this.workflowId = workflowId;
+	}
 
 	public boolean isAddNewUsers() {
 		return addNewUsers;

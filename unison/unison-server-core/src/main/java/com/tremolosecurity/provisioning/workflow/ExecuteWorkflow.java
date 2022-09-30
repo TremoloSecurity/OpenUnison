@@ -23,6 +23,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -43,7 +44,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class ExecuteWorkflow {
 
-	public void execute(WFCall wfcall, ConfigManager cfgMgr)
+	public int execute(WFCall wfcall, ConfigManager cfgMgr)
 			throws Exception {
 		Workflow wf = cfgMgr.getProvisioningEngine().getWorkFlow(wfcall.getName());
 		
@@ -73,7 +74,13 @@ public class ExecuteWorkflow {
 		}
 		
 		
-		wf.executeWorkflow(wfcall);
+		Map<String,Object> req = wf.executeWorkflow(wfcall);
+		
+		if (req.containsKey("WORKFLOW_ID")) {
+			return (Integer) req.get("WORKFLOW_ID");
+		} else {
+			return -1;
+		}
 
 		
 
