@@ -73,6 +73,10 @@ public class ScaleRegister implements HttpFilter {
 	@Override
 	public void doFilter(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain)
 			throws Exception {
+		
+		response.setContentType("application/json; charset=UTF-8");
+		ScaleJSUtils.addCacheHeaders(response);
+		
 		Gson gson = new Gson();
 		request.getServletRequest().setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
 		if (request.getRequestURI().endsWith("/register/config")) {
