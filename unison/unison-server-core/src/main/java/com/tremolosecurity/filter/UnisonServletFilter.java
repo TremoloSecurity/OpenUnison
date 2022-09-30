@@ -300,12 +300,21 @@ static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonServl
 			}
 		
 		} catch (Exception e) {
-			req.setAttribute("TREMOLO_ERROR_REQUEST_URL", req.getRequestURL().toString());
-			req.setAttribute("TREMOLO_ERROR_EXCEPTION", e);
-			logger.error("Could not process request",e);
-			StringBuffer b = new StringBuffer();
-			b.append(cfg.getAuthFormsPath()).append("error.jsp");
-			req.getRequestDispatcher(b.toString()).forward(pr, resp);
+			
+			if (req.getContentType().startsWith("application/json")) {
+				logger.error("Could not process api request",e);
+				resp.setStatus(500);
+				resp.setContentType("application/json; charset=UTF-8");
+				resp.getWriter().print("{\"error\":\"generic error, see logs\"}");
+				
+			} else {
+				req.setAttribute("TREMOLO_ERROR_REQUEST_URL", req.getRequestURL().toString());
+				req.setAttribute("TREMOLO_ERROR_EXCEPTION", e);
+				logger.error("Could not process request",e);
+				StringBuffer b = new StringBuffer();
+				b.append(cfg.getAuthFormsPath()).append("error.jsp");
+				req.getRequestDispatcher(b.toString()).forward(pr, resp);
+			}
 		}
 		
 

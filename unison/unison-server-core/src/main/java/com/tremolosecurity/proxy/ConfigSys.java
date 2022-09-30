@@ -367,22 +367,31 @@ public class ConfigSys  {
 			
 			AccessLog.log(AccessEvent.Error, appType, (HttpServletRequest) req, userAuth , "NONE");
 			
-			req.setAttribute("TREMOLO_ERROR_REQUEST_URL", req.getRequestURL().toString());
-			req.setAttribute("TREMOLO_ERROR_EXCEPTION", e);
-			logger.error("Could not process request",e);
 			
-			String redirectLocation = cfg.getErrorPages().get(500);
-
-			if (redirectLocation != null) {
-				resp.sendRedirect(redirectLocation);
-			} else {
-				StringBuffer b = new StringBuffer();
-				b.append(cfg.getAuthFormsPath()).append("error.jsp");
+			if (req.getContentType().startsWith("application/json")) {
+				
 				resp.setStatus(500);
-				req.getRequestDispatcher(b.toString()).forward(req, resp);
-			}
-
+				resp.setContentType("application/json; charset=UTF-8");
+				resp.getWriter().print("{\"error\":\"generic error, see logs\"}");
+				
+			} else {
 			
+				req.setAttribute("TREMOLO_ERROR_REQUEST_URL", req.getRequestURL().toString());
+				req.setAttribute("TREMOLO_ERROR_EXCEPTION", e);
+				logger.error("Could not process request",e);
+				
+				String redirectLocation = cfg.getErrorPages().get(500);
+	
+				if (redirectLocation != null) {
+					resp.sendRedirect(redirectLocation);
+				} else {
+					StringBuffer b = new StringBuffer();
+					b.append(cfg.getAuthFormsPath()).append("error.jsp");
+					resp.setStatus(500);
+					req.getRequestDispatcher(b.toString()).forward(req, resp);
+				}
+
+			}
 			
 		}
 	}
