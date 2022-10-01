@@ -247,7 +247,7 @@ public class AuthMgrSys {
 			
 			
 			
-			if (resGroup == null) {
+			if (resGroup == null || resGroup.isBlank()) {
 				((HttpServletResponse) response).sendError(401);
 				
 			} else {

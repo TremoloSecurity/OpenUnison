@@ -154,7 +154,7 @@ public class AzSys {
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData , respGroup != null ? respGroup : "NONE");
 			
 			
-			if (respGroup != null) {
+			if (respGroup != null && ! respGroup.isBlank()) {
 				try {
 					proccessResponseResult(request, response, holder.getConfig().getResultGroup(respGroup), true,authData, holder.getApp().getCookieConfig());
 				} catch (InstantiationException | IllegalAccessException
@@ -162,7 +162,7 @@ public class AzSys {
 					throw new ServletException("Could not instantiate custom result",e);
 				}
 			} else {
-				((HttpServletResponse) response).sendError(401);
+				((HttpServletResponse) response).sendError(403);
 			}
 		}
 	}

@@ -321,7 +321,7 @@ public class ScaleRegister implements HttpFilter {
 				response.getWriter().flush();
 				
 			} else {
-				response.setStatus(500);
+				response.setStatus(400);
 				ScaleJSUtils.addCacheHeaders(response);
 				response.getWriter().print(gson.toJson(errors).trim());
 				response.getWriter().flush();
