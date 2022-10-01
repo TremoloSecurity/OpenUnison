@@ -411,9 +411,22 @@ public class GitHubProvider implements UserStoreProviderWithAddGroup {
 	public void init(Map<String, Attribute> cfg, ConfigManager cfgMgr, String name) throws ProvisioningException {
 		this.name = name;
 		String b64Key = cfg.get("githubAppKey").getValues().get(0);
+		
+		String decoded = b64Key;
+		
+		try {
+			decoded = new String(Base64.getDecoder().decode(b64Key));
+		} catch (IllegalArgumentException e) {
+			//do nothing
+		}
 
-		PEMParser pemParser = new PEMParser(
-				new InputStreamReader(new ByteArrayInputStream(Base64.getDecoder().decode(b64Key))));
+		PEMParser pemParser;
+		try {
+			pemParser = new PEMParser(
+					new InputStreamReader(new ByteArrayInputStream(decoded.getBytes("UTF-8"))));
+		} catch (UnsupportedEncodingException e) {
+			throw new ProvisioningException("Could not parse private key",e);
+		}
 		JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
 		try {
 
