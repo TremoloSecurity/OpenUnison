@@ -1858,31 +1858,31 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			
 			trust.setSignedUserInfo(attrs.get("signedUserInfo") != null && attrs.get("signedUserInfo").getValues().get(0).equalsIgnoreCase("true"));
 			
-			
+			Attribute clientAzRuleCfg = attrs.get("clientAzRules");
+			if (clientAzRuleCfg != null) {
+				for (String ruleCfg : clientAzRuleCfg.getValues()) {
+					
+					StringTokenizer toker = new StringTokenizer(ruleCfg,";",false);
+					toker.hasMoreTokens();
+					String scope = toker.nextToken();
+					toker.hasMoreTokens();
+					String constraint = toker.nextToken();
+					
+					try {
+						AzRule rule = new AzRule(scope,constraint,null,GlobalEntries.getGlobalEntries().getConfigManager(),null);
+						trust.getClientAzRules().add(rule);
+					} catch (ProvisioningException e) {
+						throw new ServletException("Could not create az rule",e);
+					}
+				}
+			}
 			
 			
 			
 			
 			trust.setSts(attrs.get("isSts") != null && attrs.get("isSts").getValues().get(0).equalsIgnoreCase("true"));
 			if (trust.isSts()) {
-				Attribute clientAzRuleCfg = attrs.get("clientAzRules");
-				if (clientAzRuleCfg != null) {
-					for (String ruleCfg : clientAzRuleCfg.getValues()) {
-						
-						StringTokenizer toker = new StringTokenizer(ruleCfg,";",false);
-						toker.hasMoreTokens();
-						String scope = toker.nextToken();
-						toker.hasMoreTokens();
-						String constraint = toker.nextToken();
-						
-						try {
-							AzRule rule = new AzRule(scope,constraint,null,GlobalEntries.getGlobalEntries().getConfigManager(),null);
-							trust.getClientAzRules().add(rule);
-						} catch (ProvisioningException e) {
-							throw new ServletException("Could not create az rule",e);
-						}
-					}
-				}
+				
 				
 				Attribute allowedAudiences = attrs.get("authorizedAudiences");
 				if (allowedAudiences != null) {
