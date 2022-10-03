@@ -72,7 +72,7 @@
 		<jose4j.version>0.7.12</jose4j.version>
 		<mongodb-driver.version>3.12.11</mongodb-driver.version>
 		<xalan.version>2.7.2</xalan.version>
-		<jackson.version>2.13.3</jackson.version>
+		<jackson.version>2.13.4</jackson.version>
 		<jackson-core.version>2.13.3</jackson-core.version>
 		<slf4j.version>1.7.32</slf4j.version>
 		<guava.version>31.1-jre</guava.version>
@@ -113,7 +113,7 @@
 		<commons-io.version>2.11.0</commons-io.version>
 		<graaljs.version>22.1.0.1</graaljs.version>
 		<commons-compress.version>1.21</commons-compress.version>
-		<webauthn4j.version>0.20.1.RELEASE</webauthn4j.version>
+		<webauthn4j.version>0.20.4.RELEASE</webauthn4j.version>
 	</properties>
 
 	<repositories>
