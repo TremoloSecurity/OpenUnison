@@ -230,10 +230,16 @@ public class ScaleRegister implements HttpFilter {
 				}
 				
 				if (this.scaleConfig.getAttributes().get(attributeName).getDynamicSource() != null ) {
-					String error = this.scaleConfig.getAttributes().get(attributeName).getDynamicSource().validate(value, request);
-					if (error != null) {
-						errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " - " + error);
+					if (logger.isDebugEnabled()) logger.debug("checking input for " + attributeName + "='" + value + "'");
+					if (value != null && value.length() > 0) {
+						if (logger.isDebugEnabled()) logger.debug("checking value");
+						String error = this.scaleConfig.getAttributes().get(attributeName).getDynamicSource().validate(value, request);
+						if (error != null) {
+							errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " - " + error);
+						}
 					}
+					
+					
 				}
 			}
 			
