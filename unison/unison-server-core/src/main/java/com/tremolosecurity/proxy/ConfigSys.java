@@ -368,7 +368,7 @@ public class ConfigSys  {
 			AccessLog.log(AccessEvent.Error, appType, (HttpServletRequest) req, userAuth , "NONE");
 			
 			
-			if (req.getContentType().startsWith("application/json")) {
+			if (req.getContentType() != null && req.getContentType().startsWith("application/json")) {
 				
 				resp.setStatus(500);
 				resp.setContentType("application/json; charset=UTF-8");

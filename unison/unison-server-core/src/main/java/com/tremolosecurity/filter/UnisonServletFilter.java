@@ -301,7 +301,7 @@ static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonServl
 		
 		} catch (Exception e) {
 			
-			if (req.getContentType().startsWith("application/json")) {
+			if (req.getContentType() != null && req.getContentType().startsWith("application/json")) {
 				logger.error("Could not process api request",e);
 				resp.setStatus(500);
 				resp.setContentType("application/json; charset=UTF-8");
