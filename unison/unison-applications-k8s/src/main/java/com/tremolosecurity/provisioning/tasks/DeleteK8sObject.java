@@ -141,38 +141,44 @@ public class DeleteK8sObject implements CustomTask {
             	
             	
             } else {
+            	
+            	if (! os.isObjectExistsByPath(token, con, localURL)) {
+            		logger.warn(String.format("URI %s does not exist in cluster %s", localURL,localTarget));
+            	} else {
+            		String respJSON = os.callWSDelete(token, con, localURL);
+    	            
+    	            if (logger.isDebugEnabled()) {
+    			        logger.debug("Response for deleting object : '" + respJSON + "'");
+    			    }
+    	
+    	
+    			    
+    			    JSONParser parser = new JSONParser();
+    			    JSONObject resp = (JSONObject) parser.parse(respJSON);
+    			    String kind = (String) resp.get("kind");
+    			    String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
+    			    
+    			    
+    			    if (logger.isDebugEnabled()) {
+    			    	logger.debug("kind : '" + kind + "' / '" + this.kind + "'");
+    			    }
+    			    
+    			    if (kind.equalsIgnoreCase(this.kind)) {
+    			    	this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Delete,  approvalID, this.task.getWorkflow(), label, projectName);
+    			    } else if (resp.get("status") != null) {
+    			    	String status = (String) resp.get("status");
+    			    	logger.info("status : '" + status + "'");
+    			    	if (status != null && status.equalsIgnoreCase("success"))  {
+    			    		this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Delete,  approvalID, this.task.getWorkflow(), label, projectName);
+    				    } else {
+    				    	throw new ProvisioningException("Could not delete " + kind + " with url '" + localURL + "' - '" + respJSON + "'" );
+    				    }
+    			    } else {
+    			    	throw new ProvisioningException("Could not delete " + kind + " with url '" + localURL + "' - '" + respJSON + "'" );
+    			    }
+            	}
             
-	            String respJSON = os.callWSDelete(token, con, localURL);
 	            
-	            if (logger.isDebugEnabled()) {
-			        logger.debug("Response for deleting object : '" + respJSON + "'");
-			    }
-	
-	
-			    
-			    JSONParser parser = new JSONParser();
-			    JSONObject resp = (JSONObject) parser.parse(respJSON);
-			    String kind = (String) resp.get("kind");
-			    String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
-			    
-			    
-			    if (logger.isDebugEnabled()) {
-			    	logger.debug("kind : '" + kind + "' / '" + this.kind + "'");
-			    }
-			    
-			    if (kind.equalsIgnoreCase(this.kind)) {
-			    	this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Delete,  approvalID, this.task.getWorkflow(), label, projectName);
-			    } else if (resp.get("status") != null) {
-			    	String status = (String) resp.get("status");
-			    	logger.info("status : '" + status + "'");
-			    	if (status != null && status.equalsIgnoreCase("success"))  {
-			    		this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Delete,  approvalID, this.task.getWorkflow(), label, projectName);
-				    } else {
-				    	throw new ProvisioningException("Could not delete " + kind + " with url '" + localURL + "' - '" + respJSON + "'" );
-				    }
-			    } else {
-			    	throw new ProvisioningException("Could not delete " + kind + " with url '" + localURL + "' - '" + respJSON + "'" );
-			    }
             }
 		    
 		    
