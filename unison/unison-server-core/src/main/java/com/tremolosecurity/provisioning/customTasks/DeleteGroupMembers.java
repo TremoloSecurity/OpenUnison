@@ -65,56 +65,64 @@ public class DeleteGroupMembers implements CustomTask {
             LDAPSearchResults rs = task.getConfigManager().getMyVD().search(localGroupToDelete, 0, "(objectClass=*)",
                     new ArrayList<String>());
 
-            rs.hasMore();
-            LDAPEntry group = rs.next();
-            while (rs.hasMore()) rs.next();
-
-            if (group.getAttribute(memberAttr) != null) {
-            	members = group.getAttribute(memberAttr).getStringValueArray();
+            if (!rs.hasMore()) {
+            	logger.warn(String.format("Could not find group %s, skipping", localGroupToDelete));
             } else {
-            	members = new String[] {};
-            }
+            	
             
-            if (group.getAttribute(localGroupNameAttribute) != null) {
-            	groupName = group.getAttribute(localGroupNameAttribute).getStringValue();
-            } else {
-            	throw new ProvisioningException("Group '" + localGroupToDelete + "' has no '" + localGroupNameAttribute + "' attribute");
+	            LDAPEntry group = rs.next();
+	            while (rs.hasMore()) rs.next();
+	
+	            
+	            
+	            if (group.getAttribute(memberAttr) != null) {
+	            	members = group.getAttribute(memberAttr).getStringValueArray();
+	            } else {
+	            	members = new String[] {};
+	            }
+	            
+	            if (group.getAttribute(localGroupNameAttribute) != null) {
+	            	groupName = group.getAttribute(localGroupNameAttribute).getStringValue();
+	            } else {
+	            	throw new ProvisioningException("Group '" + localGroupToDelete + "' has no '" + localGroupNameAttribute + "' attribute");
+	            }
             }
             
         } catch (LDAPException e) {
             throw new ProvisioningException("Could not load from group",e);
         }
         
-
-        for (String member : members) {
-            try {
-                LDAPSearchResults rs = task.getConfigManager().getMyVD().search(member, 0, "(objectClass=*)",
-                        new ArrayList<String>());
-
-                rs.hasMore();
-                LDAPEntry ldapMember = rs.next();
-
-                TremoloUser userToUpdate = new TremoloUser();
-                userToUpdate.setUid(ldapMember.getAttribute(this.uidAttribute).getStringValue());
-                userToUpdate.getAttributes().add(new Attribute(this.uidAttribute,userToUpdate.getUid()));
-                
-
-                Workflow wf = task.getConfigManager().getProvisioningEngine().getWorkFlow(localWorkflowName);
-                
-                
-                WFCall call = new WFCall();
-                call.setReason("removing from to be deleted group " + localGroupToDelete);
-                call.setUidAttributeName(this.uidAttribute);
-                call.setUser(userToUpdate);
-                call.setRequestor(this.requestor);
-                call.getRequestParams().put(ProvisioningParams.UNISON_EXEC_TYPE, ProvisioningParams.UNISON_EXEC_SYNC);
-                call.getRequestParams().put("openunison_grouptoremove", groupName);
-                wf.executeWorkflow(call);
-
-
-            } catch (LDAPException e) {
-                logger.warn("Could not remove user '" + member + "'",e);
-            }
+        if (members != null) {
+	        for (String member : members) {
+	            try {
+	                LDAPSearchResults rs = task.getConfigManager().getMyVD().search(member, 0, "(objectClass=*)",
+	                        new ArrayList<String>());
+	
+	                rs.hasMore();
+	                LDAPEntry ldapMember = rs.next();
+	
+	                TremoloUser userToUpdate = new TremoloUser();
+	                userToUpdate.setUid(ldapMember.getAttribute(this.uidAttribute).getStringValue());
+	                userToUpdate.getAttributes().add(new Attribute(this.uidAttribute,userToUpdate.getUid()));
+	                
+	
+	                Workflow wf = task.getConfigManager().getProvisioningEngine().getWorkFlow(localWorkflowName);
+	                
+	                
+	                WFCall call = new WFCall();
+	                call.setReason("removing from to be deleted group " + localGroupToDelete);
+	                call.setUidAttributeName(this.uidAttribute);
+	                call.setUser(userToUpdate);
+	                call.setRequestor(this.requestor);
+	                call.getRequestParams().put(ProvisioningParams.UNISON_EXEC_TYPE, ProvisioningParams.UNISON_EXEC_SYNC);
+	                call.getRequestParams().put("openunison_grouptoremove", groupName);
+	                wf.executeWorkflow(call);
+	
+	
+	            } catch (LDAPException e) {
+	                logger.warn("Could not remove user '" + member + "'",e);
+	            }
+	        }
         }
 
         return true;
