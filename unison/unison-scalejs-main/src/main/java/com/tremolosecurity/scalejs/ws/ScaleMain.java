@@ -829,7 +829,7 @@ public class ScaleMain implements HttpFilter {
 			response.setContentType("application/json; charset=UTF-8");
 			
 			
-			ApprovalDetails details = ServiceActions.loadApprovalDetails(uid, approvalID);
+			ApprovalDetails details = ServiceActions.loadApprovalDetails(uid, approvalID,this.scaleConfig.getApprovalRequestAttributes().keySet());
 			
 			String filter = equal(this.scaleConfig.getUidAttributeName(),details.getUserObj().getUserID()).toString();
 			ArrayList<String> attrs = new ArrayList<String>();
@@ -880,7 +880,24 @@ public class ScaleMain implements HttpFilter {
 				
 			}
 			
+			
+			
 			while (res.hasMore()) res.next();
+			
+			
+			logger.info("Setting request attributes " + this.scaleConfig.getApprovalRequestAttributes());
+			HashMap<String,String> requestAttributes = new HashMap<String,String>();
+			for (String requestAttributeName : this.scaleConfig.getApprovalRequestAttributes().keySet()) {
+				logger.info("Request attributes : " + requestAttributeName);
+				requestAttributes.put(this.scaleConfig.getApprovalRequestAttributes().get(requestAttributeName).getDisplayName(), details.getRequestAttributes().get(requestAttributeName));
+				
+				
+			}
+			
+			details.setRequestAttributes(requestAttributes);
+			
+			
+			
 			
 			ScaleJSUtils.addCacheHeaders(response);		
 			response.getWriter().println(gson.toJson(details).trim());
@@ -1627,6 +1644,17 @@ public class ScaleMain implements HttpFilter {
 				scaleAttr.setName(attributeName);
 				scaleAttr.setDisplayName(this.loadAttributeValue("approvals." + attributeName, "Approvals attribute " + attributeName + " Display Name", config));
 				scaleConfig.getApprovalAttributes().put(attributeName, scaleAttr);
+			}
+			
+			attr = config.getAttribute("approvalRequestAttributeNames");
+			if (attr != null) {
+				for (String attributeName : attr.getValues()) {
+					ScaleAttribute scaleRequestAttr = new ScaleAttribute();
+					scaleRequestAttr.setName(attributeName);
+					scaleRequestAttr.setDisplayName(this.loadAttributeValue("approvals." + attributeName, "Approvals Request attribute " + attributeName + " Display Name", config));
+					this.scaleConfig.getApprovalRequestAttributes().put(attributeName, scaleRequestAttr); 
+					
+				}
 			}
 			
 			val = this.loadOptionalAttributeValue("uiHelperClassName", "UI Helper Class Name", config);

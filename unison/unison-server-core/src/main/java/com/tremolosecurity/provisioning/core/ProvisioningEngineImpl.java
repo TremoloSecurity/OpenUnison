@@ -2157,7 +2157,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	@Override
 	public void removeMessageListener(String name) {
 		JMSSessionHolder session = this.listenerSessions.get(name);
+		
 		if (session != null) {
+			session.getJMSConnection().removeSession(name);
 			try {
 				session.getSession().close();
 			} catch (Throwable t) {

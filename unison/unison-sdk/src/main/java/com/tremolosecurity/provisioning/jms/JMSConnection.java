@@ -159,7 +159,9 @@ public class JMSConnection {
 				} catch (Throwable t) {
 					logger.warn("Could not send keep alive for " + sessionHolder.getQueueName() + ", recreating",t);
 					try {
-						rebuild();
+						if (keepRunning) {
+							rebuild();
+						}
 					} catch (JMSException e) {
 						logger.error("Could not recreate connection",e);
 					}
@@ -243,6 +245,14 @@ public class JMSConnection {
 			return session;
 		} else { 
 			return null;
+		}
+	}
+	
+	public synchronized void removeSession(String queueName)  {
+		for (int i=0;i<this.sessions.size();i++) {
+			if (sessions.get(i).getQueueName().equalsIgnoreCase(queueName)) {
+				sessions.remove(i);
+			}
 		}
 	}
 	

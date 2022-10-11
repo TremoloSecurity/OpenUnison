@@ -35,6 +35,7 @@ public class ScaleConfig {
 	transient List<String> userAttributeList;
 	Map<String,ScaleAttribute> attributes;
 	transient Map<String,ScaleAttribute> approvalAttributes;
+	transient Map<String,ScaleAttribute> approvalRequestAttributes;
 	String roleAttribute;
 	transient UiDecisions uiDecisions;
 	int warnMinutesLeft;
@@ -66,6 +67,10 @@ public class ScaleConfig {
 		this.attributes.putAll(from.attributes);
 		this.approvalAttributes = new HashMap<String,ScaleAttribute>();
 		this.approvalAttributes.putAll(from.approvalAttributes);
+		
+		this.approvalRequestAttributes = new HashMap<String,ScaleAttribute>();
+		this.approvalRequestAttributes.putAll(from.approvalRequestAttributes);
+		
 		this.roleAttribute = from.roleAttribute;
 		this.uiDecisions = from.uiDecisions;
 		this.warnMinutesLeft = from.warnMinutesLeft;
@@ -77,11 +82,13 @@ public class ScaleConfig {
 		this.reasons = new ArrayList<String>();
 		this.reasons.addAll(from.reasons);
 		this.jitUserWorkflow = from.jitUserWorkflow;
+		
 	}
 	
 	public ScaleConfig() {
 		this.attributes = new HashMap<String,ScaleAttribute>();
 		this.approvalAttributes = new HashMap<String,ScaleAttribute>();
+		this.approvalRequestAttributes = new HashMap<String,ScaleAttribute>();
 		this.frontPage = new ScaleFrontPage();
 		this.userAttributeList = new ArrayList<String>();
 		this.reasons = new ArrayList<String>();
@@ -227,6 +234,10 @@ public class ScaleConfig {
 
 	public void setJitUserWorkflow(String jitUserWorkflow) {
 		this.jitUserWorkflow = jitUserWorkflow;
+	}
+
+	public Map<String, ScaleAttribute> getApprovalRequestAttributes() {
+		return approvalRequestAttributes;
 	}
 	
 	

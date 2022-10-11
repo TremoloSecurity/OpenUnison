@@ -21,6 +21,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -169,6 +171,10 @@ public class ServiceActions {
 	}
 	
 	public static ApprovalDetails loadApprovalDetails(String approver,int approvalID) throws ProvisioningException {
+		return loadApprovalDetails(approver,approvalID,new ArrayList<String>());
+	}
+	
+	public static ApprovalDetails loadApprovalDetails(String approver,int approvalID,Collection<String> requestAttributes) throws ProvisioningException {
 		Session session = null;
 		Gson gson = new Gson();
 		try {
@@ -218,6 +224,21 @@ public class ServiceActions {
 			Workflow wf = (Workflow) JsonReader.jsonToJava(json);
 			
 			sum.setUserObj(wf.getUser());
+			sum.setRequestAttributes(new HashMap<String,String>());
+			
+			for (String requestAttribute : requestAttributes) {
+				Object o = wf.getRequest().get(requestAttribute);
+				String val = "";
+				if (o != null) {
+					val = o.toString();
+				}
+				
+				if (! val.isBlank()) {
+					sum.getRequestAttributes().put(requestAttribute, val);
+				}
+			}
+			
+			
 			
 			String wfName = approval.getWorkflow().getName();
 			sum.setWfName(wfName);

@@ -18,12 +18,14 @@ limitations under the License.
 package com.tremolosecurity.provisioning.service.util;
 
 import java.util.List;
+import java.util.Map;
 
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.saml.Attribute;
 
 public class ApprovalDetails extends ApprovalSummary {
 	User userObj;
+	Map<String,String> requestAttributes;
 	
 
 	public ApprovalDetails() {
@@ -37,6 +39,16 @@ public class ApprovalDetails extends ApprovalSummary {
 	public void setUserObj(User user) {
 		this.userObj = user;
 	}
+
+	public Map<String, String> getRequestAttributes() {
+		return requestAttributes;
+	}
+
+	public void setRequestAttributes(Map<String, String> requestAttributes) {
+		this.requestAttributes = requestAttributes;
+	}
+
+	
 	
 	
 	
