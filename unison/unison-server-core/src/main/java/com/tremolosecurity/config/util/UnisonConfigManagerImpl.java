@@ -715,7 +715,9 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		this.apps.remove(name);
 		
 		if (! appToDel.isIsApp()) {
-			IDP.getIdp().removeIdP(name);
+			if (IDP.getIdp() != null) {
+				IDP.getIdp().removeIdP(name);
+			}
 		}
 	}
 	

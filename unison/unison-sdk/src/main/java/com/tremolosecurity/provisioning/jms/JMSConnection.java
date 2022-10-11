@@ -249,11 +249,17 @@ public class JMSConnection {
 	}
 	
 	public synchronized void removeSession(String queueName)  {
-		for (int i=0;i<this.sessions.size();i++) {
-			if (sessions.get(i).getQueueName().equalsIgnoreCase(queueName)) {
-				sessions.remove(i);
+		List<JMSSessionHolder> sessionToRemove = new ArrayList<JMSSessionHolder>();
+		
+		for (JMSSessionHolder session : this.sessions) {
+			if (session.getQueueName().equals(queueName)) {
+				sessionToRemove.add(session);
 			}
 		}
+		
+		this.sessions.removeAll(sessionToRemove);
+		
+		
 	}
 	
 	
