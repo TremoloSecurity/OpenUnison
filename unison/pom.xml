@@ -113,7 +113,7 @@
 		<commons-io.version>2.11.0</commons-io.version>
 		<graaljs.version>22.2.0.1</graaljs.version>
 		<commons-compress.version>1.21</commons-compress.version>
-		<webauthn4j.version>0.20.4.RELEASE</webauthn4j.version>
+		<webauthn4j.version>0.20.6.RELEASE</webauthn4j.version>
 		<githubapi.version>1.313</githubapi.version>
 		<json-path.version>2.7.0</json-path.version>
 	</properties>
