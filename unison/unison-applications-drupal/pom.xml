@@ -12,7 +12,7 @@
 	<parent>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison</artifactId>
-		<version>1.0.32</version>
+		<version>1.0.33</version>
 	</parent>
 	<artifactId>unison-applications-drupal</artifactId>
 	<name>unison-applications-drupal</name>
