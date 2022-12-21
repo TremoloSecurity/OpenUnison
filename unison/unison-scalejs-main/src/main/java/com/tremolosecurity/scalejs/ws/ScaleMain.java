@@ -918,7 +918,7 @@ public class ScaleMain implements HttpFilter {
 		HashMap<String,String> results = new HashMap<String,String>();
 		
 		for (WorkflowRequest req : reqs) {
-			if (req.getReason() == null || req.getReason().isEmpty()) {
+			if (this.scaleConfig.isRequireReasons() && ( req.getReason() == null || req.getReason().isEmpty() ) ) {
 				results.put(req.getUuid(), "Reason is required");
 			} else {
 				
@@ -1541,7 +1541,12 @@ public class ScaleMain implements HttpFilter {
 		scaleConfig.setLogoutURL(this.loadAttributeValue("logoutURL", "Logout URL", config));
 		scaleConfig.setWarnMinutesLeft(Integer.parseInt(this.loadAttributeValue("warnMinutesLeft", "Warn when number of minutes left in the user's session", config)));
 		
+		String requireReason = this.loadOptionalAttributeValue("requireReason", "requireReason", config);
+		if (requireReason == null) {
+			requireReason = "true";
+		}
 		
+		scaleConfig.setRequireReasons(requireReason.equalsIgnoreCase("true"));
 		
 		String val = this.loadOptionalAttributeValue("canDelegate", "canDelegate", config);
 		if (val == null) {

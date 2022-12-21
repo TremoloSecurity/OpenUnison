@@ -55,6 +55,7 @@ import com.tremolosecurity.config.xml.CustomAzRuleType;
 import com.tremolosecurity.config.xml.MechanismType;
 import com.tremolosecurity.config.xml.ResultGroupType;
 import com.tremolosecurity.config.xml.TremoloType;
+import com.tremolosecurity.openunison.notifications.NotificationsManager;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.proxy.HttpUpgradeRequestManager;
@@ -400,6 +401,8 @@ public interface ConfigManager {
 	void initializeUrls(List<UrlHolder> holders) throws Exception;
 
 	void deleteApp(String name);
+
+	NotificationsManager getNotificationsMananager();
 	
 
 }

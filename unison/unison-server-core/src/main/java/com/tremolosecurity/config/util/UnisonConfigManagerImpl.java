@@ -93,16 +93,21 @@ import com.tremolosecurity.config.xml.AuthMechType;
 import com.tremolosecurity.config.xml.AuthMechTypes;
 import com.tremolosecurity.config.xml.ConfigType;
 import com.tremolosecurity.config.xml.CustomAzRuleType;
+import com.tremolosecurity.config.xml.DynamicNotificationsType;
 import com.tremolosecurity.config.xml.DynamicPortalUrlsType;
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.config.xml.MechanismType;
+import com.tremolosecurity.config.xml.NotificationType;
 import com.tremolosecurity.config.xml.ParamListType;
 import com.tremolosecurity.config.xml.ResultGroupType;
 import com.tremolosecurity.config.xml.UrlType;
 import com.tremolosecurity.config.xml.ApplicationsType.ErrorPage;
 import com.tremolosecurity.idp.server.IDP;
+import com.tremolosecurity.notifications.NotificationManagerImpl;
+import com.tremolosecurity.openunison.notifications.DynamicNotifiers;
+import com.tremolosecurity.openunison.notifications.NotificationsManager;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningEngineImpl;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
@@ -204,6 +209,8 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	private AuthChainType authFailChain;
 	
 	private Map<String,List<UrlHolder>> appUrls;
+
+	private NotificationManagerImpl notificationManager;
 
 	
 	@Override
@@ -584,11 +591,142 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 			throw new ProvisioningException("Could not initialize dynamic targets",e);
 		}
 		
+		this.notificationManager = new NotificationManagerImpl();
+		
+		if (this.cfg.getNotifications() != null) {
+			
+			for (NotificationType nt : this.cfg.getNotifications().getNotification()) {
+				HashMap<String,Attribute> params = new HashMap<String,Attribute>();
+				for (ParamType pt : nt.getParams()) {
+					Attribute attr = params.get(pt.getName());
+					if (attr == null) {
+						attr = new Attribute(pt.getName());
+						params.put(pt.getName(), attr);
+					}
+					
+					attr.getValues().add(pt.getValue());
+				}
+				
+				this.notificationManager.addNotificationSystem(nt.getName(), nt.getClassName(), params);
+			}
+		}
+		
+		if (this.cfg.getProvisioning() != null && this.cfg.getProvisioning().getApprovalDB() != null) {
+			Map<String,ParamType> params = new HashMap<String,ParamType>();
+			
+			ParamType pt = new ParamType();
+			pt.setName("from");
+			pt.setValue(this.cfg.getProvisioning().getApprovalDB().getSmtpFrom());
+			params.put("from", pt);
+			
+			pt = new ParamType();
+			pt.setName("host");
+			pt.setValue(this.cfg.getProvisioning().getApprovalDB().getSmtpHost());
+			params.put("host", pt);
+			
+			if (this.cfg.getProvisioning().getApprovalDB().getSmtpLocalhost() != null) {
+				pt = new ParamType();
+				pt.setName("localHost");
+				pt.setValue(this.cfg.getProvisioning().getApprovalDB().getSmtpLocalhost());
+				params.put("localHost", pt);
+			}
+			
+			if (this.cfg.getProvisioning().getApprovalDB().getSmtpPassword() != null) {
+				pt = new ParamType();
+				pt.setName("password");
+				pt.setValue(this.cfg.getProvisioning().getApprovalDB().getSmtpPassword());
+				params.put("password", pt);
+			}
+			
+			if (this.cfg.getProvisioning().getApprovalDB().getSmtpSOCKSProxyHost() != null) {
+				pt = new ParamType();
+				pt.setName("SOCKSProxyHost");
+				pt.setValue(this.cfg.getProvisioning().getApprovalDB().getSmtpSOCKSProxyHost());
+				params.put("SOCKSProxyHost", pt);
+			}
+			
+			pt = new ParamType();
+			pt.setName("subject");
+			pt.setValue(this.cfg.getProvisioning().getApprovalDB().getSmtpSubject());
+			params.put("subject", pt);
+			
+			if (this.cfg.getProvisioning().getApprovalDB().getSmtpUser() != null) {
+				pt = new ParamType();
+				pt.setName("user");
+				pt.setValue(this.cfg.getProvisioning().getApprovalDB().getSmtpUser());
+				params.put("user", pt);
+			}
+			
+			pt = new ParamType();
+			pt.setName("port");
+			pt.setValue(Integer.toString(this.cfg.getProvisioning().getApprovalDB().getSmtpPort()));
+			params.put("port", pt);
+			
+			pt = new ParamType();
+			pt.setName("SOCKSProxyPort");
+			pt.setValue(Integer.toString(this.cfg.getProvisioning().getApprovalDB().getSmtpSOCKSProxyPort()));
+			params.put("SOCKSProxyPort", pt);
+			
+			
+			pt = new ParamType();
+			pt.setName("tls");
+			pt.setValue(Boolean.toString(this.cfg.getProvisioning().getApprovalDB().isSmtpTLS()));
+			params.put("tls", pt);
+			
+			pt = new ParamType();
+			pt.setName("useSOCKSProxy");
+			pt.setValue(Boolean.toString(this.cfg.getProvisioning().getApprovalDB().isSmtpUseSOCKSProxy()));
+			params.put("useSOCKSProxy", pt);
+			
+			this.notificationManager.addNotificationSystem("default-smtp", "com.tremolosecurity.notifications.StmpNotifications", ptToAttr(params));
+			
+			
+			
+		}
+		
+		try {
+			
+			if (this.getCfg().getNotifications() != null && this.getCfg().getNotifications().getDynamicNotifications() != null && this.getCfg().getNotifications().getDynamicNotifications().isEnabled() ) {
+				DynamicNotificationsType dynamicApps = this.getCfg().getNotifications().getDynamicNotifications();
+				String className = dynamicApps.getClassName();
+				HashMap<String,Attribute> cfgAttrs = new HashMap<String,Attribute>();
+				for (ParamType pt : dynamicApps.getParams()) {
+					Attribute attr = cfgAttrs.get(pt.getName());
+					if (attr == null) {
+						attr = new Attribute(pt.getName());
+						cfgAttrs.put(pt.getName(), attr);
+					}
+					
+					attr.getValues().add(pt.getValue());
+				}
+			
+				DynamicNotifiers dynApps = (DynamicNotifiers) Class.forName(className).newInstance();
+				dynApps.loadDynamicNotifiers(this, provEnvgine, cfgAttrs);
+			}
+			
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+			throw new ProvisioningException("Could not initialize dynamic targets",e);
+		}
+		
 		
 		this.postInitialize();
 		
 		
 		
+	}
+	
+	private Map<String,Attribute> ptToAttr(Map<String,ParamType> params) {
+		HashMap<String,Attribute> attrs = new HashMap<String,Attribute>();
+		for (String key : params.keySet()) {
+			attrs.put(key, new Attribute(key,params.get(key).getValue()));
+		}
+		
+		return attrs;
+	}
+	
+	@Override
+	public NotificationsManager getNotificationsMananager() {
+		return this.notificationManager;
 	}
 
 

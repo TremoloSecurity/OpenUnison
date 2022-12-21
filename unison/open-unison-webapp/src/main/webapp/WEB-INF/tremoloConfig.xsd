@@ -273,6 +273,7 @@
 			<element name="provisioning" type="tns:provisioningType"
 				maxOccurs="1" minOccurs="0">
 			</element>
+			<element name="notifications" type="tns:notificationsType" minOccurs="0" maxOccurs="1"></element>
 		</sequence>
 		<attribute name="ldapRoot" type="string" use="optional"
 			default="o=Tremolo">
@@ -1791,6 +1792,13 @@
 					</documentation>
 				</annotation>
 			</element>
+			<element name="notifier" type="string" minOccurs="0" maxOccurs="1" default="default-smtp">
+				<annotation>
+					<documentation>
+						Sets the notifier used by the provisioning system
+					</documentation>
+				</annotation>
+			</element>
 		</sequence>
 	</complexType>
 
@@ -2523,6 +2531,41 @@
 		</attribute>
 	</complexType>
 
+	<complexType name="notificationType">
+		<annotation>
+			<documentation>Defines a notification system used by OpenUnison</documentation>
+		</annotation>
+		<sequence>
+			<element name="params" type="tns:paramType" maxOccurs="unbounded" minOccurs="0"/>
+		</sequence>
+		<attribute name="name" type="string">
+			<annotation><documentation>The name of the notification system</documentation></annotation>
+		</attribute>
+		<attribute name="className" type="string">
+			<annotation><documentation>Class that defines the notification system</documentation></annotation>
+		</attribute>
+	</complexType>
+	
+	
+	<complexType name="dynamicNotificationsType">
+		<sequence>
+			<element name="params" type="tns:paramType"
+				maxOccurs="unbounded" minOccurs="0">
+			</element>
+		</sequence>
+		<attribute name="enabled" type="boolean" default="false"></attribute>
+		<attribute name="className" type="string"></attribute>
+	</complexType>
+	
+	<complexType name="notificationsType">
+		<annotation>
+			<documentation></documentation>
+		</annotation>
+		<sequence>
+		   	<element name="dynamicNotifications" type="tns:dynamicNotificationsType" minOccurs="0" maxOccurs="1"></element>
+			<element name="notification" type="tns:notificationType" minOccurs="0" maxOccurs="unbounded"></element>
+		</sequence>
+	</complexType>
 	
 	<complexType name="authLockoutType">
 		<annotation>

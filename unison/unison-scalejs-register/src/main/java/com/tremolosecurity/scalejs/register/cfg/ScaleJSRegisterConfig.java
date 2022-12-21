@@ -48,6 +48,8 @@ public class ScaleJSRegisterConfig {
 	String submitButtonText;
 	String submittedText;
 	
+	
+	
 	boolean enableThirdColumn;
 	
 	public ScaleJSRegisterConfig() {

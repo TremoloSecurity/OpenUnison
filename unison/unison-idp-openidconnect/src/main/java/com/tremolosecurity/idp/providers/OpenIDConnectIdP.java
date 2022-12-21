@@ -1149,6 +1149,10 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			return;
 		}
 		
+		// TODO refresh token grace period
+		// check if the token has a newer session
+		// if it has a newer session, retrieve and return it
+		
 		JsonWebSignature jws = new JsonWebSignature();
 		jws.setCompactSerialization(this.decryptToken(this.trusts.get(session.getClientID()).getCodeLastmileKeyName(), gson, session.getEncryptedIdToken()));
 		jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.jwtSigningKeyName).getPublicKey());

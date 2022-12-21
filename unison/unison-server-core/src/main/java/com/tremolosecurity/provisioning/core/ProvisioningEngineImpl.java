@@ -145,6 +145,7 @@ import com.tremolosecurity.config.xml.WorkflowTaskType;
 import com.tremolosecurity.config.xml.WorkflowType;
 import com.tremolosecurity.json.Token;
 import com.tremolosecurity.openunison.OpenUnisonConstants;
+import com.tremolosecurity.openunison.notifications.NotificationSystem;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.jms.JMSConnectionFactory;
 import com.tremolosecurity.provisioning.jms.JMSSessionHolder;
@@ -1486,6 +1487,11 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		}
 		
 		SmtpMessage msg = new SmtpMessage();
+		
+		if (this.cfgMgr.getCfg().getProvisioning() != null && this.cfgMgr.getCfg().getProvisioning().getApprovalDB() != null) {
+			msg.setNotifier(this.cfgMgr.getCfg().getProvisioning().getApprovalDB().getNotifier());
+		}
+		
 		msg.to = email;
 		msg.from = this.smtpFrom;
 		msg.subject = subject;
@@ -2283,85 +2289,17 @@ class SendMessageThread implements MessageListener {
 	}
 	
 	private void sendEmail(SmtpMessage msg) throws MessagingException {
-		Properties props = new Properties();
-		boolean doAuth = false;
-		props.setProperty("mail.smtp.host", prov.getSmtpHost());
-		props.setProperty("mail.smtp.port", Integer.toString(prov.getSmtpPort()));
-		if (prov.getSmtpUser() != null && ! prov.getSmtpUser().isEmpty()) {
-			logger.debug("SMTP user found '" + prov.getSmtpUser() + "', enabling authentication");
-			props.setProperty("mail.smtp.user", prov.getSmtpUser());
-			props.setProperty("mail.smtp.auth", "true");
-			doAuth = true;
+		NotificationSystem notifier = GlobalEntries.getGlobalEntries().getConfigManager().getNotificationsMananager().getNotificationSystem(msg.getNotifier());
+		if (notifier == null) {
+			throw new MessagingException(String.format("Notifier %s does not exist", msg.getNotifier()));
 		} else {
-			logger.debug("No SMTP user, disabling authentication");
-			doAuth = false;
-			props.setProperty("mail.smtp.auth", "false");
-		}
-		props.setProperty("mail.transport.protocol", "smtp");
-		props.setProperty("mail.smtp.starttls.enable", Boolean.toString(prov.isSmtpTLS()));
-		if (logger.isDebugEnabled()) {
-			props.setProperty("mail.debug", "true");
-			props.setProperty("mail.socket.debug", "true");
+			try {
+				notifier.sendMessage(msg);
+			} catch (Exception e) {
+				throw new MessagingException(String.format("Could not send message to %s using notifier %s", msg.getTo(),msg.getNotifier()),e);
+			}
 		}
 		
-		if (prov.getLocalhost() != null && ! prov.getLocalhost().isEmpty()) {
-			props.setProperty("mail.smtp.localhost", prov.getLocalhost());
-		}
-		
-		if (prov.isUseSOCKSProxy()) {
-			
-			
-			props.setProperty("mail.smtp.socks.host", prov.getSocksProxyHost());
-			
-			props.setProperty("mail.smtp.socks.port", Integer.toString(prov.getSocksProxyPort()));
-			props.setProperty("mail.smtps.socks.host", prov.getSocksProxyHost());
-			
-			props.setProperty("mail.smtps.socks.port", Integer.toString(prov.getSocksProxyPort()));
-		}
-		
-		
-		
-		
-		//Session session = Session.getInstance(props, new SmtpAuthenticator(this.smtpUser,this.smtpPassword));
-		
-		Session session = null;
-		if (doAuth) {
-		logger.debug("Creating authenticated session");
-		session = Session.getInstance(props, 
-                new Authenticator(){
-            protected PasswordAuthentication getPasswordAuthentication() {
-               return new PasswordAuthentication(prov.getSmtpUser(), prov.getSmtpPassword());
-			}});
-		} else {
-			logger.debug("Creating unauthenticated session");
-		 session = Session.getInstance(props);
-		}
-		if (logger.isDebugEnabled()) {
-			session.setDebugOut(System.out);
-			session.setDebug(true);
-		}
-		//Transport tr = session.getTransport("smtp");
-		//tr.connect();
-		
-		//tr.connect(this.smtpHost,this.smtpPort, this.smtpUser, this.smtpPassword);
-
-		Message msgToSend = new MimeMessage(session);
-		msgToSend.setFrom(new InternetAddress(msg.from));
-		msgToSend.addRecipient( Message.RecipientType.TO, new InternetAddress(msg.to));
-		msgToSend.setSubject(msg.subject);
-		
-		
-		if (msg.contentType != null) {
-			msgToSend.setContent(msg.msg, msg.contentType);
-		} else {
-			msgToSend.setText(msg.msg);
-		}
-
-		msgToSend.saveChanges();
-		Transport.send(msgToSend);
-		
-		//tr.sendMessage(msg, msg.getAllRecipients());
-		//tr.close();
 	}
 
 

@@ -27,10 +27,11 @@ public class SmtpMessage  {
 	String to;
 	String from;
 	String msg;
-	public String contentType;
+	String contentType;
+	String notifier;
 	
 	public SmtpMessage() {
-		
+		this.notifier = "default-smtp";
 	}
 
 	public String getSubject() {
@@ -64,6 +65,25 @@ public class SmtpMessage  {
 	public void setMsg(String msg) {
 		this.msg = msg;
 	}
+
+	public String getContentType() {
+		return contentType;
+	}
+
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+
+	public String getNotifier() {
+		return notifier;
+	}
+
+	public void setNotifier(String notifier) {
+		this.notifier = notifier;
+	}
+	
+	
+	
 	
 	
 	

@@ -40,6 +40,8 @@ public class ScaleConfig {
 	transient UiDecisions uiDecisions;
 	int warnMinutesLeft;
 	
+	boolean requireReasons;
+	
 	
 	String jitUserWorkflow;
 	
@@ -82,7 +84,7 @@ public class ScaleConfig {
 		this.reasons = new ArrayList<String>();
 		this.reasons.addAll(from.reasons);
 		this.jitUserWorkflow = from.jitUserWorkflow;
-		
+		this.requireReasons = from.requireReasons;
 	}
 	
 	public ScaleConfig() {
@@ -92,6 +94,7 @@ public class ScaleConfig {
 		this.frontPage = new ScaleFrontPage();
 		this.userAttributeList = new ArrayList<String>();
 		this.reasons = new ArrayList<String>();
+		this.requireReasons = true;
 	}
 
 	
@@ -238,6 +241,14 @@ public class ScaleConfig {
 
 	public Map<String, ScaleAttribute> getApprovalRequestAttributes() {
 		return approvalRequestAttributes;
+	}
+
+	public boolean isRequireReasons() {
+		return requireReasons;
+	}
+
+	public void setRequireReasons(boolean requireReasons) {
+		this.requireReasons = requireReasons;
 	}
 	
 	

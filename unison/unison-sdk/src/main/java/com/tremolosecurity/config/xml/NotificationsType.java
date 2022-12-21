@@ -31,19 +31,17 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * List of message listeners
- * 
- * <p>Java class for messageListenersType complex type.
+ * <p>Java class for notificationsType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="messageListenersType"&gt;
+ * &lt;complexType name="notificationsType"&gt;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
  *       &lt;sequence&gt;
- *         &lt;element name="dynamicListeners" type="{http://www.tremolosecurity.com/tremoloConfig}dynamicPortalUrlsType" minOccurs="0"/&gt;
- *         &lt;element name="listener" type="{http://www.tremolosecurity.com/tremoloConfig}messageListenerType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="dynamicNotifications" type="{http://www.tremolosecurity.com/tremoloConfig}dynamicNotificationsType" minOccurs="0"/&gt;
+ *         &lt;element name="notification" type="{http://www.tremolosecurity.com/tremoloConfig}notificationType" maxOccurs="unbounded" minOccurs="0"/&gt;
  *       &lt;/sequence&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
@@ -53,66 +51,66 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "messageListenersType", propOrder = {
-    "dynamicListeners",
-    "listener"
+@XmlType(name = "notificationsType", propOrder = {
+    "dynamicNotifications",
+    "notification"
 })
-public class MessageListenersType {
+public class NotificationsType {
 
-    protected DynamicPortalUrlsType dynamicListeners;
-    protected List<MessageListenerType> listener;
+    protected DynamicNotificationsType dynamicNotifications;
+    protected List<NotificationType> notification;
 
     /**
-     * Gets the value of the dynamicListeners property.
+     * Gets the value of the dynamicNotifications property.
      * 
      * @return
      *     possible object is
-     *     {@link DynamicPortalUrlsType }
+     *     {@link DynamicNotificationsType }
      *     
      */
-    public DynamicPortalUrlsType getDynamicListeners() {
-        return dynamicListeners;
+    public DynamicNotificationsType getDynamicNotifications() {
+        return dynamicNotifications;
     }
 
     /**
-     * Sets the value of the dynamicListeners property.
+     * Sets the value of the dynamicNotifications property.
      * 
      * @param value
      *     allowed object is
-     *     {@link DynamicPortalUrlsType }
+     *     {@link DynamicNotificationsType }
      *     
      */
-    public void setDynamicListeners(DynamicPortalUrlsType value) {
-        this.dynamicListeners = value;
+    public void setDynamicNotifications(DynamicNotificationsType value) {
+        this.dynamicNotifications = value;
     }
 
     /**
-     * Gets the value of the listener property.
+     * Gets the value of the notification property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the listener property.
+     * This is why there is not a <CODE>set</CODE> method for the notification property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getListener().add(newItem);
+     *    getNotification().add(newItem);
      * </pre>
      * 
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link MessageListenerType }
+     * {@link NotificationType }
      * 
      * 
      */
-    public List<MessageListenerType> getListener() {
-        if (listener == null) {
-            listener = new ArrayList<MessageListenerType>();
+    public List<NotificationType> getNotification() {
+        if (notification == null) {
+            notification = new ArrayList<NotificationType>();
         }
-        return this.listener;
+        return this.notification;
     }
 
 }

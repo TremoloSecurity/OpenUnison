@@ -844,6 +844,7 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 		b.setLength(0);
 		b.append("Bearer ").append(this.oauth2Token);
 		put.addHeader(new BasicHeader("Authorization",b.toString()));
+		put.addHeader("Accept","application/json");
 		
 		StringEntity str = new StringEntity(json,ContentType.create("application/json"));
 		put.setEntity(str);

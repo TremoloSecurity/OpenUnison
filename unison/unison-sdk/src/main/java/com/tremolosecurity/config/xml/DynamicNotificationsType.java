@@ -27,23 +27,24 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * List of target configuration options
- * 
- * <p>Java class for targetConfigType complex type.
+ * <p>Java class for dynamicNotificationsType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="targetConfigType"&gt;
+ * &lt;complexType name="dynamicNotificationsType"&gt;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
  *       &lt;sequence&gt;
- *         &lt;element name="param" type="{http://www.tremolosecurity.com/tremoloConfig}paramType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="params" type="{http://www.tremolosecurity.com/tremoloConfig}paramType" maxOccurs="unbounded" minOccurs="0"/&gt;
  *       &lt;/sequence&gt;
+ *       &lt;attribute name="enabled" type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" /&gt;
+ *       &lt;attribute name="className" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
@@ -52,26 +53,30 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "targetConfigType", propOrder = {
-    "param"
+@XmlType(name = "dynamicNotificationsType", propOrder = {
+    "params"
 })
-public class TargetConfigType {
+public class DynamicNotificationsType {
 
-    protected List<ParamType> param;
+    protected List<ParamType> params;
+    @XmlAttribute(name = "enabled")
+    protected Boolean enabled;
+    @XmlAttribute(name = "className")
+    protected String className;
 
     /**
-     * Gets the value of the param property.
+     * Gets the value of the params property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the param property.
+     * This is why there is not a <CODE>set</CODE> method for the params property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getParam().add(newItem);
+     *    getParams().add(newItem);
      * </pre>
      * 
      * 
@@ -81,11 +86,63 @@ public class TargetConfigType {
      * 
      * 
      */
-    public List<ParamType> getParam() {
-        if (param == null) {
-            param = new ArrayList<ParamType>();
+    public List<ParamType> getParams() {
+        if (params == null) {
+            params = new ArrayList<ParamType>();
         }
-        return this.param;
+        return this.params;
+    }
+
+    /**
+     * Gets the value of the enabled property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link Boolean }
+     *     
+     */
+    public boolean isEnabled() {
+        if (enabled == null) {
+            return false;
+        } else {
+            return enabled;
+        }
+    }
+
+    /**
+     * Sets the value of the enabled property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link Boolean }
+     *     
+     */
+    public void setEnabled(Boolean value) {
+        this.enabled = value;
+    }
+
+    /**
+     * Gets the value of the className property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getClassName() {
+        return className;
+    }
+
+    /**
+     * Sets the value of the className property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setClassName(String value) {
+        this.className = value;
     }
 
 }
