@@ -40,6 +40,7 @@ public class ScaleConfig {
 	transient UiDecisions uiDecisions;
 	int warnMinutesLeft;
 	
+	
 	boolean requireReasons;
 	
 	
