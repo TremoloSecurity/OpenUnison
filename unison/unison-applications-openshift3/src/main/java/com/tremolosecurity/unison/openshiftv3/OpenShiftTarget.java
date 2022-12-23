@@ -595,6 +595,9 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 		String json = this.callWS(token, con, b.toString());
 		
+		if (json.startsWith("404")) {
+			return false;
+		}
 
 		JSONObject root = (JSONObject) parser.parse(json);
 		if (root.containsKey("kind") && root.get("kind").equals("Status") && ((Long) root.get("code")) == 404) {

@@ -12,6 +12,9 @@
  *******************************************************************************/
 package com.tremolosecurity.idp.providers.oidc.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.joda.time.DateTime;
 
 public class OidcSessionState {
@@ -22,6 +25,12 @@ public class OidcSessionState {
 	String clientID;
 	String userDN;
 	String refreshToken;
+	
+	List<ExpiredRefreshToken> expiredTokens;
+	
+	public OidcSessionState() {
+		this.expiredTokens = new ArrayList<ExpiredRefreshToken>();
+	}
 	
 	public String getSessionID() {
 		return sessionID;
@@ -66,6 +75,12 @@ public class OidcSessionState {
 	public void setRefreshToken(String refreshToken) {
 		this.refreshToken = refreshToken;
 	}
+
+	public List<ExpiredRefreshToken> getExpiredTokens() {
+		return expiredTokens;
+	}
+	
+	
 	
 	
 	

@@ -95,6 +95,7 @@ import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.idp.providers.oidc.db.DbOidcSessionStore;
 import com.tremolosecurity.idp.providers.oidc.db.StsRequest;
+import com.tremolosecurity.idp.providers.oidc.model.ExpiredRefreshToken;
 import com.tremolosecurity.idp.providers.oidc.model.OIDCSession;
 import com.tremolosecurity.idp.providers.oidc.model.OidcSessionState;
 import com.tremolosecurity.idp.providers.oidc.model.OpenIDConnectConfig;
@@ -109,6 +110,7 @@ import com.tremolosecurity.idp.server.IdentityProvider;
 import com.tremolosecurity.json.Token;
 import com.tremolosecurity.log.AccessLog;
 import com.tremolosecurity.log.AccessLog.AccessEvent;
+import com.tremolosecurity.openunison.OpenUnisonConstants;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
@@ -170,6 +172,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	
 	private Map<String,String> authChainToAmr;
 	private Map<String,String> amrToAuthChain;
+	
+	int refreshTokenGracePeriodMillis;
 	
 	private static HashSet<String> ignoredClaims;
 	
@@ -1095,6 +1099,34 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		AccessLog.log(AccessEvent.AuSuccess, holder.getApp(), (HttpServletRequest) request, remUser ,  "NONE");
 		AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, remUser ,  "NONE");
 	}
+	
+	
+	private void logExpiredRefreshToken(HttpServletRequest request,AuthInfo user,String msg) {
+		String strevent = "ExpiredRefreshTokenUsed";
+		String struser = "cn=none";
+		
+		if (user != null) {
+			struser = user.getUserDN();
+		}
+		
+		
+		
+		
+		
+		
+		StringBuffer logLine = new StringBuffer();
+		logLine.append('[').append(strevent).append("] - ");
+		
+		
+		logLine.append(request.getRequestURL()).append(" - ");
+		logLine.append(struser).append(" - ");
+		logLine.append(msg);
+		logLine.append(" [").append(request.getRemoteAddr()).append("] - [").append(request.getSession().getAttribute(OpenUnisonConstants.TREMOLO_SESSION_ID)).append("]");
+		
+		logger.info(logLine.toString());
+		
+		
+	}
 
 	private void refreshToken(HttpServletResponse response, String clientID, String clientSecret, String refreshToken, UrlHolder holder, HttpServletRequest request, AuthInfo authData)
 			throws Exception, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
@@ -1124,11 +1156,57 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		}
 		
 		if (! session.getRefreshToken().equals(refreshToken)) {
-			logger.warn("Session does not exist from refresh_token");
-			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
-			response.sendError(401);
-			return;
-		}
+			
+			if (this.refreshTokenGracePeriodMillis > 0) {
+				for (ExpiredRefreshToken expired : session.getExpiredTokens()) {
+					if (expired.isStillInGracePeriod(this.refreshTokenGracePeriodMillis) && expired.getToken().equals(refreshToken)) {
+						// found an expired refresh token that is still in the grace period
+						// return the existing session state, unchanged
+						
+						OpenIDConnectAccessToken access = new OpenIDConnectAccessToken();
+						
+						access.setAccess_token(this.decryptToken(this.trusts.get(session.getClientID()).getCodeLastmileKeyName(), gson, session.getEncryptedAccessToken()));
+						
+						
+						
+						
+						access.setExpires_in((int) (session.getExpires().getMillis() - DateTime.now().getMillis()) / 1000);
+						access.setId_token(this.decryptToken(this.trusts.get(session.getClientID()).getCodeLastmileKeyName(), gson, session.getEncryptedIdToken()));
+						access.setToken_type("Bearer");
+						access.setRefresh_token(session.getRefreshToken());
+						
+						json = gson.toJson(access);
+						
+						response.setContentType("text/json");
+						response.getOutputStream().write(json.getBytes());
+						response.getOutputStream().flush();
+						
+						AuthInfo remUser = new AuthInfo();
+						remUser.setUserDN(session.getUserDN());
+						
+						
+						AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, remUser ,  "NONE");
+						this.logExpiredRefreshToken(request, remUser, "Expired token used within grace period");
+						return;
+					}
+				}
+				
+				// none of the expired refresh tokens are still valid
+				logger.warn("Session does not exist from refresh_token");
+				AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
+				response.sendError(401);
+				return;
+				
+				
+			} else {
+				logger.warn("Session does not exist from refresh_token");
+				AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
+				response.sendError(401);
+				return;
+			}
+			
+			
+		} 
 
 		OpenIDConnectTrust trust = this.trusts.get(session.getClientID());
 
@@ -1149,9 +1227,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			return;
 		}
 		
-		// TODO refresh token grace period
-		// check if the token has a newer session
-		// if it has a newer session, retrieve and return it
+		session.getExpiredTokens().add(new ExpiredRefreshToken(session.getRefreshToken(),DateTime.now()));
 		
 		JsonWebSignature jws = new JsonWebSignature();
 		jws.setCompactSerialization(this.decryptToken(this.trusts.get(session.getClientID()).getCodeLastmileKeyName(), gson, session.getEncryptedIdToken()));
@@ -1734,6 +1810,12 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			HashMap<String, HashMap<String, Attribute>> trustCfg,MapIdentity mapper) {
 		final String localIdPName = idpName;
 		this.idpName = idpName;
+		
+		if (init.containsKey("refreshTokenGraceMillis")) {
+			this.refreshTokenGracePeriodMillis = Integer.parseInt(init.get("refreshTokenGraceMillis").getValues().get(0));
+		} else {
+			this.refreshTokenGracePeriodMillis = 0;
+		}
 		
 		this.authURI = GlobalEntries.getGlobalEntries().getConfigManager().getApp(this.idpName).getUrls().getUrl().get(0).getUri();
 		
