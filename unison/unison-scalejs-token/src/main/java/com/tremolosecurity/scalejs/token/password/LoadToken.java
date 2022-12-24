@@ -20,6 +20,7 @@ import java.util.HashMap;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.logging.log4j.Logger;
@@ -62,7 +63,7 @@ public class LoadToken implements TokenLoader {
 	}
 
 	@Override
-	public Object loadToken(AuthInfo user, HttpSession session) throws Exception {
+	public Object loadToken(AuthInfo user, HttpSession session,HttpServletRequest request) throws Exception {
 		HashMap<String,String> token = new HashMap<String,String>();
 		
 		Attribute attr = user.getAttribs().get(this.attributeName);

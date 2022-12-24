@@ -15,8 +15,10 @@
  *******************************************************************************/
 package com.tremolosecurity.scalejs.token.sdk;
 
+import java.net.http.HttpRequest;
 import java.util.HashMap;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import com.tremolosecurity.proxy.auth.AuthInfo;
@@ -38,9 +40,10 @@ public interface TokenLoader {
 	 * Return an object to be serialized to JSON and sent to the client
 	 * @param user The logged in user
 	 * @param session The user's session
+	 * @param request The user's request
 	 * @return Object to serialize
 	 * @throws Exception
 	 */
-	public Object loadToken(AuthInfo user,HttpSession session) throws Exception;
+	public Object loadToken(AuthInfo user,HttpSession session,HttpServletRequest request) throws Exception;
 	
 }

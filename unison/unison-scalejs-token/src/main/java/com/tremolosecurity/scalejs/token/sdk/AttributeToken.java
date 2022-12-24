@@ -23,6 +23,7 @@ import javax.servlet.http.HttpSession;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;
 import com.tremolosecurity.saml.Attribute;
+import javax.servlet.http.HttpServletRequest;;
 
 
 public class AttributeToken implements TokenLoader {
@@ -37,7 +38,7 @@ public class AttributeToken implements TokenLoader {
 	}
 
 	@Override
-	public Object loadToken(AuthInfo user, HttpSession session) throws Exception {
+	public Object loadToken(AuthInfo user, HttpSession session,HttpServletRequest request) throws Exception {
 		HashMap<String,String> attrs = new HashMap<String,String>();
 		
 		for (String attrName : this.attributes) {

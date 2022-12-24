@@ -30,7 +30,10 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.logging.log4j.Logger;
 import org.stringtemplate.v4.ST;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+
+import java.net.http.HttpRequest;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
@@ -46,6 +49,8 @@ public class KubectlTokenLoader implements TokenLoader {
     private String kubectlUsage;
     private String kubectlWinUsage;
     private String oulogin;
+    
+    
 
     @Override
     public void init(HttpFilterConfig config, ScaleTokenConfig scaleTokenConfig) throws Exception {
@@ -68,6 +73,8 @@ public class KubectlTokenLoader implements TokenLoader {
         } else {
         	this.kubectlWinUsage = null;
         }
+        
+
 
         
     }
@@ -93,10 +100,18 @@ public class KubectlTokenLoader implements TokenLoader {
 
 
     @Override
-    public Object loadToken(AuthInfo user, HttpSession session) throws Exception {
-        OpenIDConnectToken token = (OpenIDConnectToken) session.getAttribute(GenerateOIDCTokens.UNISON_SESSION_OIDC_ID_TOKEN);
+    public Object loadToken(AuthInfo user, HttpSession session,HttpServletRequest request) throws Exception {
+        OpenIDConnectToken origToken = (OpenIDConnectToken) session.getAttribute(GenerateOIDCTokens.UNISON_SESSION_OIDC_ID_TOKEN);
         
-        token.replaceState();
+        
+        
+        OpenIDConnectToken token;
+        
+        
+        token = new OpenIDConnectToken(origToken.getIdpName(),origToken.getTrustName(),request.getRequestURL().toString());
+        token.generateToken(request);
+        	
+        
         
         
         

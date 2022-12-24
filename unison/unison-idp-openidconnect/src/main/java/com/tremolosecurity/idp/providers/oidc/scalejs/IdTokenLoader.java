@@ -35,6 +35,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 
 public class IdTokenLoader implements TokenLoader {
     static Logger logger = org.apache.logging.log4j.LogManager.getLogger(IdTokenLoader.class);
@@ -71,7 +72,7 @@ public class IdTokenLoader implements TokenLoader {
 
 
     @Override
-    public Object loadToken(AuthInfo user, HttpSession session) throws Exception {
+    public Object loadToken(AuthInfo user, HttpSession session,HttpServletRequest request) throws Exception {
         OpenIDConnectToken token = (OpenIDConnectToken) session.getAttribute(GenerateOIDCTokens.UNISON_SESSION_OIDC_ID_TOKEN);
         
         token.replaceState();

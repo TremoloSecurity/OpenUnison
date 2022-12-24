@@ -63,7 +63,7 @@ public class ScaleToken implements HttpFilter {
 				stu.setDisplayName("Unknown");
 			}
 			
-			stu.setToken(this.tokenLoader.loadToken(userData, request.getSession()));
+			stu.setToken(this.tokenLoader.loadToken(userData, request.getSession(),request.getServletRequest()));
 			ScaleJSUtils.addCacheHeaders(response);
 			response.setContentType("application/json; charset=UTF-8");
 			response.getWriter().println(gson.toJson(stu).trim());
