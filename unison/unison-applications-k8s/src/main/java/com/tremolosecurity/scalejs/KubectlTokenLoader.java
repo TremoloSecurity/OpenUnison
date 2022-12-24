@@ -45,6 +45,7 @@ public class KubectlTokenLoader implements TokenLoader {
     String unisonCaCertName;
     private String kubectlUsage;
     private String kubectlWinUsage;
+    private String oulogin;
 
     @Override
     public void init(HttpFilterConfig config, ScaleTokenConfig scaleTokenConfig) throws Exception {
@@ -55,6 +56,12 @@ public class KubectlTokenLoader implements TokenLoader {
         this.kubectlUsage = config.getAttribute("kubectlUsage").getValues().get(0);
         this.k8sCaCertName = config.getAttribute("k8sCaCertName").getValues().get(0);
         this.unisonCaCertName = config.getAttribute("unisonCaCertName").getValues().get(0);
+        
+        if (config.getAttribute("oulogin") != null) {
+        	this.oulogin = config.getAttribute("oulogin").getValues().get(0);
+        } else {
+        	this.oulogin = null;
+        }
         
         if (config.getAttribute("kubectlWinUsage") != null) {
         	this.kubectlWinUsage = config.getAttribute("kubectlWinUsage").getValues().get(0);
@@ -165,6 +172,10 @@ public class KubectlTokenLoader implements TokenLoader {
             
             tokens.put("id_token", token.getEncodedIdJSON());
             tokens.put("refresh_token", token.getRefreshToken());
+            
+            if (this.oulogin != null) {
+            	tokens.put("ou login plugin", this.oulogin);
+            }
             
 
             return tokens;
