@@ -1371,6 +1371,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		Attribute codeVerifierAttr = null;
 		Attribute codeVerifierS256 = null;
 		
+		Attribute clientidFromReq = null;
+		
 		for (Attribute attr : lmreq.getAttributes()) {
 			if (attr.getName().equalsIgnoreCase("dn")) {
 				dn = attr;
@@ -1384,7 +1386,16 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				codeVerifierAttr = attr;
 			} else if (attr.getName().equalsIgnoreCase("codeChallengeS256")) {
 				codeVerifierS256 = attr;
+			} else if (attr.getName().equalsIgnoreCase("client_id")) {
+				clientidFromReq = attr;
 			}
+		}
+		
+		if (clientidFromReq == null || ! clientidFromReq.getValues().get(0).equals(clientID) ) {
+			response.sendError(401);
+			logger.warn(String.format("Attempt to post to %s from %s", clientID,clientidFromReq.getValues().get(0) ));
+			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
+			return;
 		}
 		
 		if (codeVerifierAttr != null) {
@@ -1838,6 +1849,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			lmreq.getAttributes().add(new Attribute("codeChallenge",transaction.getCodeChallenge()));
 			lmreq.getAttributes().add(new Attribute("codeChallengeS256",transaction.isChallengeS256() ? "true" : "false"));			
 		}
+		
+		lmreq.getAttributes().add(new Attribute("client_id",transaction.getClientID()));
 		
 		SecretKey key = cfgMgr.getSecretKey(trust.getCodeLastmileKeyName());
 		
