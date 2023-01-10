@@ -19,6 +19,7 @@ public class OidcIdpUrls {
 	String idpUrl;
 	String tokenUrl;
 	String userInfoUrl;
+	boolean usePkce;
 	
 	public String getIdpUrl() {
 		return idpUrl;
@@ -38,6 +39,14 @@ public class OidcIdpUrls {
 	public void setUserInfoUrl(String userInfoUrl) {
 		this.userInfoUrl = userInfoUrl;
 	}
+	public boolean isUsePkce() {
+		return usePkce;
+	}
+	public void setUsePkce(boolean usePkce) {
+		this.usePkce = usePkce;
+	}
+	
+	
 	
 	
 }

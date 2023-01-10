@@ -22,6 +22,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,8 +50,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
-import org.jose4j.json.internal.json_simple.JSONArray;
-import org.jose4j.json.internal.json_simple.JSONObject;
+import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -83,11 +85,19 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 	public static final String OIDC_IDP = "com.tremolosecurity.openunison.oidc.idp";
 
 	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(OpenIDConnectAuthMech.class.getName());
+	SecureRandom secureRandom;
 	
 	Map<String,OidcIdpUrls> idpUrls;
+	String unreservedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
+	char[] unreservedCharsSrc;
+	int numReservedChars;
 	
 	public void init(ServletContext ctx, HashMap<String, Attribute> init) {
 		this.idpUrls = new HashMap<String,OidcIdpUrls>();
+		this.secureRandom = new SecureRandom();
+		
+		this.unreservedCharsSrc = unreservedChars.toCharArray();
+		this.numReservedChars = this.unreservedCharsSrc.length;
 
 	}
 
@@ -107,6 +117,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 		
 		String idpURL;
 		String loadTokenURL;
+		boolean idpUsePkce = false;
 		
 		if (authParams.get("issuer" ) != null) {
 			StringBuffer b = new StringBuffer();
@@ -151,9 +162,23 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 						idp.setTokenUrl((String) root.get("token_endpoint"));
 						idp.setUserInfoUrl((String) root.get("userinfo_endpoint"));
 						
+						JSONArray codeSupported = (JSONArray) root.get("code_challenge_methods_supported");
+						if (codeSupported != null) {
+							 for (Object o : codeSupported) {
+								 String val = (String) o;
+								 if (val.equals("S256")) {
+									 idp.setUsePkce(true);
+								 }
+							 }
+						}
+						
 					} else {
 						idp.setIdpUrl(authParams.get("idpURL").getValues().get(0));
 						idp.setTokenUrl(loadTokenURL = authParams.get("loadTokenURL").getValues().get(0));
+						Attribute usePkce = authParams.get("usePkce");
+						if (usePkce != null) {
+							idp.setUsePkce(usePkce.getValues().get(0).equalsIgnoreCase("true"));
+						}
 					}
 				} catch (ParseException e) {
 					throw new ServletException("Could not parse discovery document",e);
@@ -172,7 +197,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			
 			idpURL = idp.getIdpUrl();
 			loadTokenURL = idp.getTokenUrl();
-			
+			idpUsePkce = idp.isUsePkce();
 			
 			
 			
@@ -181,6 +206,10 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 		} else {
 			idpURL = authParams.get("idpURL").getValues().get(0);
 			loadTokenURL = authParams.get("loadTokenURL").getValues().get(0);
+			Attribute usePkce = authParams.get("usePkce");
+			if (usePkce != null) {
+				idpUsePkce = usePkce.getValues().get(0).equalsIgnoreCase("true");
+			}
 		}
 		
 		
@@ -239,8 +268,14 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 		if (request.getParameter("state") == null) {
 			//initialize openidconnect
 			
-			String state = new BigInteger(130, new SecureRandom()).toString(32);
+			String state = new BigInteger(130, this.secureRandom).toString(32);
 			request.getSession().setAttribute("UNISON_OPENIDCONNECT_STATE", state);
+			
+			String codeVerifier = null;
+			if (idpUsePkce) {
+				codeVerifier = this.generateCodeChallenge();
+				request.getSession().setAttribute("UNISON_OPENIDCONNECT_CODE_VERIFIER", codeVerifier);
+			}
 			
 			StringBuffer redirToSend = new StringBuffer();
 			redirToSend.append(idpURL)
@@ -249,6 +284,19 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 						.append("&scope=").append(URLEncoder.encode(scope,"UTF-8"))
 						.append("&redirect_uri=").append(URLEncoder.encode(b.toString(),"UTF-8"))
 						.append("&state=").append(URLEncoder.encode("security_token=","UTF-8")).append(URLEncoder.encode(state, "UTF-8"));
+			
+			if (codeVerifier != null) {
+				MessageDigest digest;
+				try {
+					digest = MessageDigest.getInstance("SHA-256");
+				} catch (NoSuchAlgorithmException e) {
+					throw new IOException("Could not generate code verifier",e);
+				}
+				byte[] encodedhash = digest.digest(codeVerifier.getBytes(StandardCharsets.UTF_8));
+				String s256CodeVerifier = new String(Base64.encodeBase64URLSafe(encodedhash));
+				redirToSend.append("&code_challenge=").append(s256CodeVerifier)
+				           .append("&code_challenge_method=S256");
+			}
 			
 			if (forceAuth) {
 				redirToSend.append("&max_age=0");
@@ -270,18 +318,30 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			if (! stateFromSession.equalsIgnoreCase(stateFromURL)) {
 				throw new ServletException("Invalid State");
 			}
+			
+			String codeVerifier = (String) request.getSession().getAttribute("UNISON_OPENIDCONNECT_CODE_VERIFIER");
+			if (codeVerifier == null) {
+				if (idpUsePkce) {
+					throw new ServletException("No PKCE code verifier in session");
+				}
+			} 
 		
 			HttpUriRequest post = null;
 			
 			try {
-				post = RequestBuilder.post()
+				RequestBuilder rb = RequestBuilder.post()
 				        .setUri(new java.net.URI(loadTokenURL))
 				        .addParameter("code", request.getParameter("code"))
 				        .addParameter("client_id", clientid)
 				        .addParameter("client_secret", secret)
 				        .addParameter("redirect_uri", b.toString())
-				        .addParameter("grant_type", "authorization_code")
-				        .build();
+				        .addParameter("grant_type", "authorization_code");
+				if (codeVerifier != null) {
+					rb.addParameter("code_verifier",codeVerifier);
+				}
+				
+				post = rb.build();
+				        
 			} catch (URISyntaxException e) {
 				throw new ServletException("Could not create post request");
 			}
@@ -296,6 +356,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 				logger.error("Could not retrieve token : " + httpResp.getStatusLine().getStatusCode() + " / " + httpResp.getStatusLine().getReasonPhrase());				
 				as.setSuccess(false);
 				holder.getConfig().getAuthManager().nextAuth(request, response,session,false);
+				return;
 			}
 			
 			BufferedReader in = new BufferedReader(new InputStreamReader(httpResp.getEntity().getContent()));
@@ -575,6 +636,16 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			throws IOException, ServletException {
 		this.doGet(request, response, as);
 
+	}
+	
+	
+	private String generateCodeChallenge() {
+		StringBuilder challenge = new StringBuilder();
+		for (int i=0;i<128;i++) {
+			challenge.append(this.unreservedCharsSrc[this.secureRandom.nextInt(this.numReservedChars) ] );
+		}
+		
+		return challenge.toString();
 	}
 
 }
