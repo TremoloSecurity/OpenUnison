@@ -22,9 +22,11 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
@@ -251,10 +253,18 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			String state = request.getParameter("state");
 			String nonce = request.getParameter("nonce");
 			
+			String codeChallenge = request.getParameter("code_challenge");
+			String codeChallengeType = request.getParameter("code_challenge_method");
+			
+			
+			
 			OpenIDConnectTransaction transaction = new OpenIDConnectTransaction();
 			transaction.setClientID(clientID);
 			transaction.setResponseCode(responseCode);
 			transaction.setNonce(nonce);
+			transaction.setCodeChallenge(codeChallenge);
+			transaction.setChallengeS256(codeChallengeType != null && codeChallengeType.equalsIgnoreCase("S256"));
+			
 			
 			StringTokenizer toker = new StringTokenizer(scope," ",false);
 			while (toker.hasMoreTokens()) {
@@ -481,7 +491,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			String redirectURI = request.getParameter("redirect_uri");
 			String grantType = request.getParameter("grant_type");
 			String refreshToken = request.getParameter("refresh_token");
-
+			String codeVerifier = request.getParameter("code_verifier");
 			
 			
 			if (clientID == null) {
@@ -697,7 +707,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				
 			}
 			else {
-				completeUserLogin(request, response, code, clientID, clientSecret, holder, ac.getAuthInfo());
+				completeUserLogin(request, response, code, clientID, clientSecret, holder, ac.getAuthInfo(),codeVerifier);
 			}
 			
 			
@@ -1311,7 +1321,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	}
 
 	private void completeUserLogin(HttpServletRequest request, HttpServletResponse response, String code,
-			String clientID, String clientSecret, UrlHolder holder, AuthInfo authData)
+			String clientID, String clientSecret, UrlHolder holder, AuthInfo authData, String codeVerifier)
 			throws ServletException, IOException, MalformedURLException {
 		String lastMileToken = null;
 		
@@ -1358,6 +1368,9 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		Attribute nonce = null;
 		Attribute authChainName = null;
 		
+		Attribute codeVerifierAttr = null;
+		Attribute codeVerifierS256 = null;
+		
 		for (Attribute attr : lmreq.getAttributes()) {
 			if (attr.getName().equalsIgnoreCase("dn")) {
 				dn = attr;
@@ -1367,6 +1380,47 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				nonce = attr;
 			} else if (attr.getName().equalsIgnoreCase("authChainName")) {
 				authChainName = attr;
+			} else if (attr.getName().equalsIgnoreCase("codeChallenge")) {
+				codeVerifierAttr = attr;
+			} else if (attr.getName().equalsIgnoreCase("codeChallengeS256")) {
+				codeVerifierS256 = attr;
+			}
+		}
+		
+		if (codeVerifierAttr != null) {
+			// need to run a code verifier
+			if (codeVerifier == null) {
+				response.sendError(400);
+				logger.warn("No code_verifier parameter in the token request");
+				AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
+				return;
+			}
+			
+			if (codeVerifierS256 != null && codeVerifierS256.getValues().get(0).equals("false")) {
+				// plain, ew
+				if (! codeVerifierAttr.getValues().get(0).equals(codeVerifier)) {
+					response.sendError(400);
+					logger.warn("code_verifier parameter does not match from transaction, plain");
+					AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
+					return;
+				}
+			} else {
+				MessageDigest digest;
+				try {
+					digest = MessageDigest.getInstance("SHA-256");
+				} catch (NoSuchAlgorithmException e) {
+					throw new IOException("Could not generate code verifier",e);
+				}
+				byte[] encodedhash = digest.digest(codeVerifier.getBytes(StandardCharsets.UTF_8));
+				String s256CodeVerifier = new String(org.apache.commons.codec.binary.Base64.encodeBase64URLSafe(encodedhash));
+				
+				if (! s256CodeVerifier.equals(codeVerifierAttr.getValues().get(0)) ) {
+					response.sendError(400);
+					logger.warn("code_verifier parameter does not match from transaction, S256");
+					AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
+					return;
+				}
+					 
 			}
 		}
 		
@@ -1779,6 +1833,12 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			lmreq.getAttributes().add(new Attribute("nonce",transaction.getNonce()));
 		}
 		lmreq.getAttributes().add(new Attribute("authChainName",authInfo.getAuthChain()));
+		
+		if (transaction.getCodeChallenge() != null) {
+			lmreq.getAttributes().add(new Attribute("codeChallenge",transaction.getCodeChallenge()));
+			lmreq.getAttributes().add(new Attribute("codeChallengeS256",transaction.isChallengeS256() ? "true" : "false"));			
+		}
+		
 		SecretKey key = cfgMgr.getSecretKey(trust.getCodeLastmileKeyName());
 		
 		String codeToken = lmreq.generateLastMileToken(key);

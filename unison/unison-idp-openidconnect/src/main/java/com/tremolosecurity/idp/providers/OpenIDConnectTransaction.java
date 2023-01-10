@@ -22,6 +22,8 @@ public class OpenIDConnectTransaction {
 	String redirectURI;
 	String state;
 	String nonce;
+	String codeChallenge;
+	boolean challengeS256;
 	
 	
 	public OpenIDConnectTransaction() {
@@ -63,6 +65,22 @@ public class OpenIDConnectTransaction {
 
 	public void setNonce(String nonce) {
 		this.nonce = nonce;
+	}
+
+	public String getCodeChallenge() {
+		return codeChallenge;
+	}
+
+	public void setCodeChallenge(String codeChallenge) {
+		this.codeChallenge = codeChallenge;
+	}
+
+	public boolean isChallengeS256() {
+		return challengeS256;
+	}
+
+	public void setChallengeS256(boolean challengeS256) {
+		this.challengeS256 = challengeS256;
 	}
 	
 	
