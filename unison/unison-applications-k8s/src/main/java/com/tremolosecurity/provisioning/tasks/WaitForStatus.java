@@ -70,10 +70,12 @@ public class WaitForStatus implements CustomTask {
 		this.label = params.get("label").getValues().get(0);
 		this.namespace = params.get("namespace").getValues().get(0);
 		
-		for (String condition : params.get("conditions").getValues()) {
-			String jsonPath = condition.substring(0,condition.lastIndexOf('='));
-			String value = condition.substring(condition.lastIndexOf('=') + 1);
-			this.conditions.put(jsonPath, value);
+		if (params.get("conditions") != null) {
+			for (String condition : params.get("conditions").getValues()) {
+				String jsonPath = condition.substring(0,condition.lastIndexOf('='));
+				String value = condition.substring(condition.lastIndexOf('=') + 1);
+				this.conditions.put(jsonPath, value);
+			}
 		}
 		
 		

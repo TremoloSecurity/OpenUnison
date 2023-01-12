@@ -269,18 +269,20 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 	protected final boolean restartChildren(User user,Map<String,Object> request) throws ProvisioningException {
 		
 		if (! this.isDone || (this.isDone && this.wasSuccess)) {
-			for (WorkflowTask wft : this.onSuccess) {
-				if (wft.isOnHold()) {
-					boolean doContinue = wft.doTask(user,request);
-					if (! doContinue) {
-						return false;
-					}
-				} else {
-					if (wft.canHaveChildren() ) {
-						
-						
-						if (! wft.restartChildren()) {
+			if (this.onSuccess != null) {
+				for (WorkflowTask wft : this.onSuccess) {
+					if (wft.isOnHold()) {
+						boolean doContinue = wft.doTask(user,request);
+						if (! doContinue) {
 							return false;
+						}
+					} else {
+						if (wft.canHaveChildren() ) {
+							
+							
+							if (! wft.restartChildren()) {
+								return false;
+							}
 						}
 					}
 				}
@@ -288,16 +290,18 @@ public abstract class WorkflowTaskImpl implements Serializable, WorkflowTask {
 		}
 		
 		if (! this.isDone || (this.isDone && ! this.wasSuccess)) {
-			for (WorkflowTask wft : this.onFailure) {
-				if (wft.isOnHold()) {
-					boolean doContinue = wft.doTask(user,request);
-					if (! doContinue) {
-						return false;
-					}
-				} else {
-					if (wft.canHaveChildren()) {
-						if (! wft.restartChildren()) {
+			if (this.onFailure != null) {
+				for (WorkflowTask wft : this.onFailure) {
+					if (wft.isOnHold()) {
+						boolean doContinue = wft.doTask(user,request);
+						if (! doContinue) {
 							return false;
+						}
+					} else {
+						if (wft.canHaveChildren()) {
+							if (! wft.restartChildren()) {
+								return false;
+							}
 						}
 					}
 				}

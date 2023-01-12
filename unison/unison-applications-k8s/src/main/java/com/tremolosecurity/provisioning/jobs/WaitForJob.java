@@ -118,7 +118,7 @@ public class WaitForJob extends UnisonJob {
 						checkCon = checkK8s.createClient();
 						String checkToken = checkK8s.getAuthToken();
 						
-						String checkJson = checkK8s.callWS(token, con, wfs.getUri());
+						String checkJson = checkK8s.callWS(checkToken, con, wfs.getUri());
 						
 						JSONObject respObj = (JSONObject) new JSONParser().parse(checkJson);
 						if (respObj.get("kind").equals("Status")) {
@@ -169,8 +169,7 @@ public class WaitForJob extends UnisonJob {
 								}
 								
 								Workflow wf = (Workflow) JsonReader.jsonToJava(new String(Base64.getDecoder().decode(wfs.getBase64Workflow())));
-								wf.reInit(configManager);
-								wf.restart();
+								
 								
 								
 								
@@ -182,9 +181,12 @@ public class WaitForJob extends UnisonJob {
 						        }
 
 
-						        String resp = checkK8s.callWSDelete(token, con, String.format("/apis/openunison.tremolo.io/v1/namespaces/%s/waitforstates/%s", namespace, waitForName));
+						        String resp = os.callWSDelete(token, con, String.format("/apis/openunison.tremolo.io/v1/namespaces/%s/waitforstates/%s", namespace, waitForName));
 						        
 						        configManager.getProvisioningEngine().logAction(target,true, ProvisioningUtil.ActionType.Delete,  approvalID, wf, "kubernetes-waitforstate", waitForName);
+						        
+						        wf.reInit(configManager);
+								wf.restart();
 							}
 						}
 					} finally {
