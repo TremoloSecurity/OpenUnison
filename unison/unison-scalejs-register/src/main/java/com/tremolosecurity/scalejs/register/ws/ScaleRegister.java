@@ -14,13 +14,17 @@ package com.tremolosecurity.scalejs.register.ws;
 
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -34,6 +38,7 @@ import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
+import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
@@ -106,232 +111,18 @@ public class ScaleRegister implements HttpFilter {
 			
 			
 		} else if (request.getRequestURI().endsWith("/register/submit")) {
-			ScaleError errors = new ScaleError();
-			String json = new String( (byte[]) request.getAttribute(ProxySys.MSG_BODY));
-			NewUserRequest newUser = gson.fromJson(json, NewUserRequest.class);
-			
-			if (scaleConfig.isRequireReCaptcha()) {
-				if (newUser.getReCaptchaCode() == null || newUser.getReCaptchaCode().isEmpty()) {
-					errors.getErrors().add("Please verify you are not a robot");
-				} else {
-					BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(GlobalEntries.getGlobalEntries().getConfigManager().getHttpClientSocketRegistry());
-					RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
-					CloseableHttpClient http = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(rc).build();
-					HttpPost httppost = new HttpPost("https://www.google.com/recaptcha/api/siteverify");
-					
-					List<NameValuePair> formparams = new ArrayList<NameValuePair>();
-					formparams.add(new BasicNameValuePair("secret", scaleConfig.getRcSecretKey()));
-					formparams.add(new BasicNameValuePair("response", newUser.getReCaptchaCode()));
-					UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, "UTF-8");
-
-					
-					httppost.setEntity(entity);
-					
-					CloseableHttpResponse resp = http.execute(httppost);
-					
-					
-					
-					ReCaptchaResponse res = gson.fromJson(EntityUtils.toString(resp.getEntity()), ReCaptchaResponse.class);
-					
-					if (! res.isSuccess()) {
-						errors.getErrors().add("Human validation failed");
-					}
-					
-					http.close();
-					bhcm.close();
-					
-				}
-			}
-			
-			if (scaleConfig.isRequireTermsAndConditions() && ! newUser.isCheckedTermsAndConditions()) {
-				errors.getErrors().add("You must accept the terms and conditions to register");
-			}
-			
-			
-			if (this.scaleConfig.isRequireReason() && (newUser.getReason() == null || newUser.getReason().isEmpty())) {
-				errors.getErrors().add("Reason is required");
-			}
-			
-			if (this.scaleConfig.isPreSetPassword() ) {
-				if (newUser.getPassword() == null || newUser.getPassword().isEmpty()) {
-					errors.getErrors().add("Password is required");
-				} else if (! newUser.getPassword().equals(newUser.getPassword2())) {
-					errors.getErrors().add("Passwords must match");
-				}
-			}
-			
-			for (String attributeName : this.scaleConfig.getAttributes().keySet()) {
-				String value = newUser.getAttributes().get(attributeName);
-				
-				if (this.scaleConfig.getAttributes().get(attributeName) == null) {
-					errors.getErrors().add("Invalid attribute : '" + attributeName + "'");
-					
-				}
-				
-				if (this.scaleConfig.getAttributes().get(attributeName).isReadOnly()) {
-					errors.getErrors().add("Attribute is read only : '" + this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + "'");
-					
-				} 
-				
-				if (this.scaleConfig.getAttributes().get(attributeName).isRequired() && (value == null || value.length() == 0)) {
-					errors.getErrors().add("Attribute is required : '" + this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + "'");
-					
-				} 
-				
-				if (this.scaleConfig.getAttributes().get(attributeName).getMinChars() > 0 && this.scaleConfig.getAttributes().get(attributeName).getMinChars() > value.length()) {
-					errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " must have at least " + this.scaleConfig.getAttributes().get(attributeName).getMinChars() + " characters");
-					
-				} 
-				
-				if (this.scaleConfig.getAttributes().get(attributeName).getMaxChars() > 0 && this.scaleConfig.getAttributes().get(attributeName).getMaxChars() < value.length()) {
-					errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " must have at most " + this.scaleConfig.getAttributes().get(attributeName).getMaxChars() + " characters");
-					
-				} 
-				
-				if (this.scaleConfig.getAttributes().get(attributeName).getType().equalsIgnoreCase("list")) {
-					if (this.scaleConfig.getAttributes().get(attributeName).getDynamicSource() == null ) {
-						boolean found = false;		
-						for (NVP nvp : this.scaleConfig.getAttributes().get(attributeName).getValues()) {
-							if (nvp.getValue().equalsIgnoreCase(value)) {
-								found = true;
-							}
-						}
-						
-						if (! found) {
-							errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " has an invalid value");
-						}
-					}
-				}
-				
-				if (this.scaleConfig.getAttributes().get(attributeName).getPattern() != null) {
-					boolean ok = true;
-					try {
-						Matcher m = this.scaleConfig.getAttributes().get(attributeName).getPattern().matcher(value);
-						if (m == null || ! m.matches()) {
-							ok = false;
-						}
-					} catch (Exception e) {
-						ok = false;
-					}
-					
-					if (!ok) {
-						errors.getErrors().add("Attribute value not valid : '" + this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + "' - " + this.scaleConfig.getAttributes().get(attributeName).getRegExFailedMsg());
-					}
-				}
-				
-				if (this.scaleConfig.getAttributes().get(attributeName).isUnique()) {
-					String filter = equal(attributeName,value).toString();
-					
-					LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, filter, new ArrayList<String>());
-					if (res.hasMore()) {
-						errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " is not available");
-					}
-					while (res.hasMore()) res.next();
-				}
-				
-				if (this.scaleConfig.getAttributes().get(attributeName).getDynamicSource() != null ) {
-					if (logger.isDebugEnabled()) logger.debug("checking input for " + attributeName + "='" + value + "'");
-					if (value != null && value.length() > 0) {
-						if (logger.isDebugEnabled()) logger.debug("checking value");
-						String error = this.scaleConfig.getAttributes().get(attributeName).getDynamicSource().validate(value, request);
-						if (error != null) {
-							errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " - " + error);
-						}
-					}
-					
-					
-				}
-			}
-			
-			
-			WFCall wfcall = null;
-			String wfName = this.scaleConfig.getWorkflowName();
-			if (errors.getErrors().isEmpty()) {
-				if (scaleConfig.isUseCustomSubmission()) {
-					
-					AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
-					
-					wfName = cru.createTremoloUser(newUser, errors.getErrors(),userData);
-				}
-			}
-			
-			
-			
-			
-			if (errors.getErrors().isEmpty()) {
-				TremoloUser user = new TremoloUser();
-				
-				AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
-				
-				if (this.scaleConfig.isSubmitLoggedInUser()) {
-					user.setUid(userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0));
-					user.getAttributes().add(new Attribute(this.scaleConfig.getUidAttributeName(),userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0)));
-				} else {
-					user.setUid(newUser.getAttributes().get(this.scaleConfig.getUidAttributeName()));
-				}
-				
-				
-				
-				for (String attrName : newUser.getAttributes().keySet()) {
-					user.getAttributes().add(new Attribute(attrName,newUser.getAttributes().get(attrName)));	
-				}
-				
-				if (this.scaleConfig.isPreSetPassword()) {
-					user.setUserPassword(newUser.getPassword());
-					
-				}
-				
-				wfcall = new WFCall();
-				wfcall.setUidAttributeName(this.scaleConfig.getUidAttributeName());
-				wfcall.setReason(newUser.getReason());
-				wfcall.setName(wfName);
-				wfcall.setUser(user);
-				
-				HashMap<String,Object> params = new HashMap<String,Object>();
-				wfcall.setRequestParams(params);
-				
-				
-				
-				
-					
-				if (userData.getAuthLevel() != 0 && ! this.scaleConfig.isSubmitLoggedInUser()) {
-					wfcall.setRequestor(userData.getAttribs().get(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getApprovalDB().getUserIdAttribute()).getValues().get(0));
-					wfcall.getRequestParams().put(Approval.SEND_NOTIFICATION, "false");
-					wfcall.getRequestParams().put(Approval.REASON, newUser.getReason());
-					wfcall.getRequestParams().put(Approval.IMMEDIATE_ACTION, "true");
-				} 
-				
-				if (scaleConfig.isUseCustomSubmission()) {
-					
-					
-					
-					cru.setWorkflowParameters(params,newUser,userData);
-				}	
-				
-				
-				
-				ExecuteWorkflow exec = new ExecuteWorkflow();
-				int wfid = -1;
-				try {
-					wfid = exec.execute(wfcall, GlobalEntries.getGlobalEntries().getConfigManager());
-					
-				} catch(Exception e) {
-					throw new ProvisioningException("Could not complete registration",e);
-				}
-				
-				SubmitResponse res = new SubmitResponse();
-				res.setAddNewUsers(userData.getAuthLevel() != 0);
-				res.setWorkflowId(wfid);
+			try {
+				submitWorkflow(request, response, gson);
+			} catch (Throwable t) {
+				logger.error("Could not submit workflow",t);
+				response.setStatus(500);
 				ScaleJSUtils.addCacheHeaders(response);
-				response.getWriter().print(gson.toJson(res));
-				response.getWriter().flush();
-				
-			} else {
-				response.setStatus(400);
-				ScaleJSUtils.addCacheHeaders(response);
-				response.getWriter().print(gson.toJson(errors).trim());
+				ScaleError error = new ScaleError();
+				error.getErrors().add("Error processing request, see logs");
+				response.getWriter().print(gson.toJson(error).trim());
 				response.getWriter().flush();
 			}
+			
 			
 			
 		} else {
@@ -343,6 +134,237 @@ public class ScaleRegister implements HttpFilter {
 			response.getWriter().flush();
 		}
 		
+	}
+
+	private void submitWorkflow(HttpFilterRequest request, HttpFilterResponse response, Gson gson)
+			throws UnsupportedEncodingException, IOException, ClientProtocolException, LDAPException, Exception,
+			ProvisioningException {
+		ScaleError errors = new ScaleError();
+		String json = new String( (byte[]) request.getAttribute(ProxySys.MSG_BODY));
+		NewUserRequest newUser = gson.fromJson(json, NewUserRequest.class);
+		
+		if (scaleConfig.isRequireReCaptcha()) {
+			if (newUser.getReCaptchaCode() == null || newUser.getReCaptchaCode().isEmpty()) {
+				errors.getErrors().add("Please verify you are not a robot");
+			} else {
+				BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(GlobalEntries.getGlobalEntries().getConfigManager().getHttpClientSocketRegistry());
+				RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
+				CloseableHttpClient http = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(rc).build();
+				HttpPost httppost = new HttpPost("https://www.google.com/recaptcha/api/siteverify");
+				
+				List<NameValuePair> formparams = new ArrayList<NameValuePair>();
+				formparams.add(new BasicNameValuePair("secret", scaleConfig.getRcSecretKey()));
+				formparams.add(new BasicNameValuePair("response", newUser.getReCaptchaCode()));
+				UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, "UTF-8");
+
+				
+				httppost.setEntity(entity);
+				
+				CloseableHttpResponse resp = http.execute(httppost);
+				
+				
+				
+				ReCaptchaResponse res = gson.fromJson(EntityUtils.toString(resp.getEntity()), ReCaptchaResponse.class);
+				
+				if (! res.isSuccess()) {
+					errors.getErrors().add("Human validation failed");
+				}
+				
+				http.close();
+				bhcm.close();
+				
+			}
+		}
+		
+		if (scaleConfig.isRequireTermsAndConditions() && ! newUser.isCheckedTermsAndConditions()) {
+			errors.getErrors().add("You must accept the terms and conditions to register");
+		}
+		
+		
+		if (this.scaleConfig.isRequireReason() && (newUser.getReason() == null || newUser.getReason().isEmpty())) {
+			errors.getErrors().add("Reason is required");
+		}
+		
+		if (this.scaleConfig.isPreSetPassword() ) {
+			if (newUser.getPassword() == null || newUser.getPassword().isEmpty()) {
+				errors.getErrors().add("Password is required");
+			} else if (! newUser.getPassword().equals(newUser.getPassword2())) {
+				errors.getErrors().add("Passwords must match");
+			}
+		}
+		
+		for (String attributeName : this.scaleConfig.getAttributes().keySet()) {
+			String value = newUser.getAttributes().get(attributeName);
+			
+			if (this.scaleConfig.getAttributes().get(attributeName) == null) {
+				errors.getErrors().add("Invalid attribute : '" + attributeName + "'");
+				
+			}
+			
+			if (this.scaleConfig.getAttributes().get(attributeName).isReadOnly()) {
+				errors.getErrors().add("Attribute is read only : '" + this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + "'");
+				
+			} 
+			
+			if (this.scaleConfig.getAttributes().get(attributeName).isRequired() && (value == null || value.length() == 0)) {
+				errors.getErrors().add("Attribute is required : '" + this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + "'");
+				
+			} 
+			
+			if (this.scaleConfig.getAttributes().get(attributeName).getMinChars() > 0 && this.scaleConfig.getAttributes().get(attributeName).getMinChars() > value.length()) {
+				errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " must have at least " + this.scaleConfig.getAttributes().get(attributeName).getMinChars() + " characters");
+				
+			} 
+			
+			if (this.scaleConfig.getAttributes().get(attributeName).getMaxChars() > 0 && this.scaleConfig.getAttributes().get(attributeName).getMaxChars() < value.length()) {
+				errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " must have at most " + this.scaleConfig.getAttributes().get(attributeName).getMaxChars() + " characters");
+				
+			} 
+			
+			if (this.scaleConfig.getAttributes().get(attributeName).getType().equalsIgnoreCase("list")) {
+				if (this.scaleConfig.getAttributes().get(attributeName).getDynamicSource() == null ) {
+					boolean found = false;		
+					for (NVP nvp : this.scaleConfig.getAttributes().get(attributeName).getValues()) {
+						if (nvp.getValue().equalsIgnoreCase(value)) {
+							found = true;
+						}
+					}
+					
+					if (! found) {
+						errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " has an invalid value");
+					}
+				}
+			}
+			
+			if (this.scaleConfig.getAttributes().get(attributeName).getPattern() != null) {
+				boolean ok = true;
+				try {
+					Matcher m = this.scaleConfig.getAttributes().get(attributeName).getPattern().matcher(value);
+					if (m == null || ! m.matches()) {
+						ok = false;
+					}
+				} catch (Exception e) {
+					ok = false;
+				}
+				
+				if (!ok) {
+					errors.getErrors().add("Attribute value not valid : '" + this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + "' - " + this.scaleConfig.getAttributes().get(attributeName).getRegExFailedMsg());
+				}
+			}
+			
+			if (this.scaleConfig.getAttributes().get(attributeName).isUnique()) {
+				String filter = equal(attributeName,value).toString();
+				
+				LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, filter, new ArrayList<String>());
+				if (res.hasMore()) {
+					errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " is not available");
+				}
+				while (res.hasMore()) res.next();
+			}
+			
+			if (this.scaleConfig.getAttributes().get(attributeName).getDynamicSource() != null ) {
+				if (logger.isDebugEnabled()) logger.debug("checking input for " + attributeName + "='" + value + "'");
+				if (value != null && value.length() > 0) {
+					if (logger.isDebugEnabled()) logger.debug("checking value");
+					String error = this.scaleConfig.getAttributes().get(attributeName).getDynamicSource().validate(value, request);
+					if (error != null) {
+						errors.getErrors().add(this.scaleConfig.getAttributes().get(attributeName).getDisplayName() + " - " + error);
+					}
+				}
+				
+				
+			}
+		}
+		
+		
+		WFCall wfcall = null;
+		String wfName = this.scaleConfig.getWorkflowName();
+		if (errors.getErrors().isEmpty()) {
+			if (scaleConfig.isUseCustomSubmission()) {
+				
+				AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+				
+				wfName = cru.createTremoloUser(newUser, errors.getErrors(),userData);
+			}
+		}
+		
+		
+		
+		
+		if (errors.getErrors().isEmpty()) {
+			TremoloUser user = new TremoloUser();
+			
+			AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+			
+			if (this.scaleConfig.isSubmitLoggedInUser()) {
+				user.setUid(userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0));
+				user.getAttributes().add(new Attribute(this.scaleConfig.getUidAttributeName(),userData.getAttribs().get(this.scaleConfig.getUidAttributeName()).getValues().get(0)));
+			} else {
+				user.setUid(newUser.getAttributes().get(this.scaleConfig.getUidAttributeName()));
+			}
+			
+			
+			
+			for (String attrName : newUser.getAttributes().keySet()) {
+				user.getAttributes().add(new Attribute(attrName,newUser.getAttributes().get(attrName)));	
+			}
+			
+			if (this.scaleConfig.isPreSetPassword()) {
+				user.setUserPassword(newUser.getPassword());
+				
+			}
+			
+			wfcall = new WFCall();
+			wfcall.setUidAttributeName(this.scaleConfig.getUidAttributeName());
+			wfcall.setReason(newUser.getReason());
+			wfcall.setName(wfName);
+			wfcall.setUser(user);
+			
+			HashMap<String,Object> params = new HashMap<String,Object>();
+			wfcall.setRequestParams(params);
+			
+			
+			
+			
+				
+			if (userData.getAuthLevel() != 0 && ! this.scaleConfig.isSubmitLoggedInUser()) {
+				wfcall.setRequestor(userData.getAttribs().get(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getApprovalDB().getUserIdAttribute()).getValues().get(0));
+				wfcall.getRequestParams().put(Approval.SEND_NOTIFICATION, "false");
+				wfcall.getRequestParams().put(Approval.REASON, newUser.getReason());
+				wfcall.getRequestParams().put(Approval.IMMEDIATE_ACTION, "true");
+			} 
+			
+			if (scaleConfig.isUseCustomSubmission()) {
+				
+				
+				
+				cru.setWorkflowParameters(params,newUser,userData);
+			}	
+			
+			
+			
+			ExecuteWorkflow exec = new ExecuteWorkflow();
+			int wfid = -1;
+			try {
+				wfid = exec.execute(wfcall, GlobalEntries.getGlobalEntries().getConfigManager());
+				
+			} catch(Exception e) {
+				throw new ProvisioningException("Could not complete registration",e);
+			}
+			
+			SubmitResponse res = new SubmitResponse();
+			res.setAddNewUsers(userData.getAuthLevel() != 0);
+			res.setWorkflowId(wfid);
+			ScaleJSUtils.addCacheHeaders(response);
+			response.getWriter().print(gson.toJson(res));
+			response.getWriter().flush();
+			
+		} else {
+			response.setStatus(400);
+			ScaleJSUtils.addCacheHeaders(response);
+			response.getWriter().print(gson.toJson(errors).trim());
+			response.getWriter().flush();
+		}
 	}
 
 	@Override
