@@ -106,7 +106,9 @@ public class LoadGroupMetadataFromK8s  implements  K8sWatchTarget {
 				String k8s = (String) spec.get("groupName");
 				String ext = (String) spec.get("externalName");
 				
-				this.md.addMapping(k8s, ext);
+				if (ext != null && ! ext.isBlank() ) {
+					this.md.addMapping(k8s, ext);
+				}
 				
 			} catch (Exception e) {
 				logger.warn("Could not initialize group mapping " + name,e);
@@ -149,7 +151,7 @@ public class LoadGroupMetadataFromK8s  implements  K8sWatchTarget {
 				String ext = (String) spec.get("externalName");
 				
 				
-				
+				this.md.deleteMapping(k8s, ext);
 				this.md.addMapping(k8s, ext);
 				
 			} catch (Exception e) {

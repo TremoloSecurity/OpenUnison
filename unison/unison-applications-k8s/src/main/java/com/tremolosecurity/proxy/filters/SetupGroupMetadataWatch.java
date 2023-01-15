@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 import com.novell.ldap.util.DN;
 import com.tremolosecurity.proxy.dynamicconfiguration.LoadGroupMetadataFromK8s;
 import com.tremolosecurity.proxy.filter.HttpFilter;
@@ -32,6 +34,8 @@ import com.tremolosecurity.proxy.filter.HttpFilterResponse;
 
 
 public class SetupGroupMetadataWatch implements HttpFilter {
+	
+	static Logger logger = Logger.getLogger(SetupGroupMetadataWatch.class);
 
 	static Map<String,List<String>> ext2k8s;
 	static Map<String,String> k8s2ext;
@@ -77,8 +81,14 @@ public class SetupGroupMetadataWatch implements HttpFilter {
 		this.target = config.getAttribute("target").getValues().get(0);
 		this.namespace = config.getAttribute("namespace").getValues().get(0);
 		
-		ext2k8s = new HashMap<String, List<String>>();
-		k8s2ext = new HashMap<String,String>();
+		
+		if (ext2k8s == null) {
+			ext2k8s = new HashMap<String, List<String>>();
+		}
+		
+		if (k8s2ext == null) {
+			k8s2ext = new HashMap<String,String>();
+		}
 		
 		LoadGroupMetadataFromK8s lgm = new LoadGroupMetadataFromK8s();
 		lgm.loadGroupMetadatas(config.getConfigManager(),target,namespace,this);
@@ -95,63 +105,82 @@ public class SetupGroupMetadataWatch implements HttpFilter {
 	
 	
 	public synchronized void addMapping(String k8s,String ext) {
+		synchronized (ext2k8s) {
+		synchronized (k8s2ext) {	
 		
-		ext = ext.toLowerCase();
-		k8s = k8s.toLowerCase();
-		
-		if (extIsDN) {
-			DN dn = new DN(ext);
-			ext = dn.toString();
+			ext = ext.toLowerCase();
+			k8s = k8s.toLowerCase();
+			
+			if (extIsDN) {
+				DN dn = new DN(ext);
+				ext = dn.toString();
+			}
+			
+			List<String> k8sFromExt = ext2k8s.get(ext);
+			if (k8sFromExt == null) {
+				k8sFromExt = new ArrayList<String>();
+				ext2k8s.put(ext, k8sFromExt);
+			}
+			
+			k8sFromExt.add(k8s);
+			
+			
+			k8s2ext.put(k8s, ext);
 		}
-		
-		List<String> k8sFromExt = ext2k8s.get(ext);
-		if (k8sFromExt == null) {
-			k8sFromExt = new ArrayList<String>();
-			ext2k8s.put(ext, k8sFromExt);
 		}
-		
-		k8sFromExt.add(k8s);
-		
-		
-		k8s2ext.put(k8s, ext);
 	}
 	
+	
 	public synchronized void deleteMapping(String k8s,String ext) {
-		ext = ext.toLowerCase();
-		k8s = k8s.toLowerCase();
-		
-		if (extIsDN) {
-			DN dn = new DN(ext);
-			ext = dn.toString();
-		}
-		
-		String keyToDel = null;
-		String valToDel = null;
-		for (String key : ext2k8s.keySet()) {
-			for (String val : ext2k8s.get(key)) {
-				if (val.equalsIgnoreCase(k8s)) {
+		synchronized (ext2k8s) {
+		synchronized (k8s2ext) {
+			ext = ext.toLowerCase();
+			k8s = k8s.toLowerCase();
+			
+			if (extIsDN) {
+				DN dn = new DN(ext);
+				ext = dn.toString();
+			}
+			
+			String keyToDel = null;
+			String valToDel = null;
+			for (String key : ext2k8s.keySet()) {
+				if (ext2k8s.get(key) != null) {
+					for (String val : ext2k8s.get(key)) {
+						if (val.equalsIgnoreCase(k8s)) {
+							keyToDel = key;
+							valToDel = val;
+							break;
+						}
+					}
+				}
+				
+				
+			}
+			
+			
+			
+			if (ext2k8s.get(keyToDel) != null) {
+				ext2k8s.get(keyToDel).remove(valToDel);
+				if (ext2k8s.get(keyToDel).size() == 0) {
+					ext2k8s.remove(keyToDel);
+					logger.info("deleting " + keyToDel);
+				}
+			}
+			
+			keyToDel = null;
+			
+			for (String key : k8s2ext.keySet()) {
+				if (k8s2ext.get(key) != null && k8s2ext.get(key).equalsIgnoreCase(ext)) {
 					keyToDel = key;
-					valToDel = val;
+					break;
 				}
 			}
 			
 			
+			k8s2ext.remove(keyToDel);
 		}
-		
-		ext2k8s.get(keyToDel).remove(valToDel);
-		if (ext2k8s.get(keyToDel).size() == 0) {
-			ext2k8s.remove(keyToDel);
 		}
-		
-		keyToDel = null;
-		
-		for (String key : k8s2ext.keySet()) {
-			if (k8s2ext.get(key).equalsIgnoreCase(ext)) {
-				keyToDel = key;
-			}
-		}
-		
-		k8s2ext.remove(keyToDel);
 	}
 	
 	
