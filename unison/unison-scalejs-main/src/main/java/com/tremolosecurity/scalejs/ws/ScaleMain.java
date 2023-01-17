@@ -1479,7 +1479,7 @@ public class ScaleMain implements HttpFilter {
 		
 		while (res.hasMore()) {
 			LDAPEntry entry = res.next();
-			while (res.hasMore()) res.next();
+			
 			
 			LDAPAttribute la = entry.getAttribute("cn");
 			if (la != null) {
