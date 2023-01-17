@@ -294,6 +294,7 @@ public class TokenPostAuth implements PostAuthSuccess {
 			
 			if (res.hasMore()) {
 				LDAPEntry entry = res.next();
+				while (res.hasMore()) res.next();
 				
 				AuthChainType actForSubject = GlobalEntries.getGlobalEntries().getConfigManager().getAuthChains().get(subjectAuthMethod);
 				if (actForSubject == null) {

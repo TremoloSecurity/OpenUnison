@@ -180,6 +180,7 @@ public class AzUtils {
 			if (res.hasMore()) {
 				entry = res.next();
 			}
+			while (res.hasMore()) res.next();
 		} catch (LDAPException e) {
 			throw new ProvisioningException("Could not find group",e);
 		}
@@ -239,6 +240,7 @@ public class AzUtils {
 					return null;
 				}
 				entry = res.next();
+				while (res.hasMore()) res.next();
 			} catch (LDAPException e) {
 				if (e.getResultCode() == 32) {
 					if (logger.isDebugEnabled()) {

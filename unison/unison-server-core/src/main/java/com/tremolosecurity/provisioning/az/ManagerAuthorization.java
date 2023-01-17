@@ -173,6 +173,7 @@ public class ManagerAuthorization implements CustomAuthorization {
 					return null;
 				} else {
 					LDAPEntry entry = res.next();
+					while (res.hasMore()) res.next();
 					User manager = new  User(entry);
 					manager.setUserID(manager.getAttribs().get(this.configManager.getCfg().getProvisioning().getApprovalDB().getUserIdAttribute()).getValues().get(0));
 					manager.getAttribs().put(DISTINGUISHED_NAME, new Attribute(DISTINGUISHED_NAME,entry.getDN()));
@@ -193,6 +194,7 @@ public class ManagerAuthorization implements CustomAuthorization {
 					return null;
 				} else {
 					LDAPEntry entry = res.next();
+					while (res.hasMore()) res.next();
 					User manager = new  User(entry);
 					manager.setUserID(manager.getAttribs().get(this.configManager.getCfg().getProvisioning().getApprovalDB().getUserIdAttribute()).getValues().get(0));
 					manager.getAttribs().put(DISTINGUISHED_NAME, new Attribute(DISTINGUISHED_NAME,entry.getDN()));

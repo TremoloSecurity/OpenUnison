@@ -557,6 +557,7 @@ public class AuthManagerImpl implements AuthManager {
 				
 				if (res.hasMore()) {
 					LDAPEntry userObj = res.next();
+					while (res.hasMore()) res.next();
 					String uid = userObj.getAttribute(act.getCompliance().getUidAttributeName()).getStringValue();
 					
 					LDAPAttribute numFails = userObj.getAttribute(act.getCompliance().getNumFailedAttribute());

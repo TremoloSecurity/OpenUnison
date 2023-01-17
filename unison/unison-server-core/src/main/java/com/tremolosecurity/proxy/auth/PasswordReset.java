@@ -375,7 +375,7 @@ public class PasswordReset implements AuthMechanism {
 				if (res.hasMore()) {
 					
 					LDAPEntry entry = res.next();
-					
+					while (res.hasMore()) res.next();
 					
 					Iterator<LDAPAttribute> it = entry.getAttributeSet().iterator();
 					

@@ -127,6 +127,7 @@ public class ScaleJSOperator implements HttpFilter {
 					throw new Exception("Could not locate user '" + dn + "'");
 				}
 				LDAPEntry entry = res.next();
+				while (res.hasMore()) res.next();
 				
 				AuthInfo userData = new AuthInfo();
 				userData.setUserDN(entry.getDN());
@@ -293,6 +294,7 @@ public class ScaleJSOperator implements HttpFilter {
 			throw new Exception("Could not locate user '" + dn + "'");
 		}
 		LDAPEntry entry = res.next();
+		while (res.hasMore()) res.next();
 		
 		AuthInfo userData = new AuthInfo();
 		userData.setUserDN(entry.getDN());

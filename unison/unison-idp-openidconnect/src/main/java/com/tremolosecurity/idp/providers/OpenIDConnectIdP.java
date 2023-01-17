@@ -841,7 +841,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			
 			if (res.hasMore()) {
 				LDAPEntry entry = res.next();
-				
+				while (res.hasMore()) res.next();
 				
 				
 				AuthInfo authInfo = new AuthInfo(entry.getDN(),null,actForSubject != null ? actForSubject.getName() : null,actForSubject != null ? actForSubject.getLevel() : 0);
@@ -2203,6 +2203,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	    		res = cfg.getMyVD().search(dn,0, "(objectClass=*)", attrs);
 	    		if (res.hasMore()) {
 	    			userFromLdap = true;
+	    			
 	    		}
 	    	} catch (LDAPException e) {
 	    		if (e.getResultCode() == 32) {
@@ -2215,6 +2216,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	    	
 	    	if (userFromLdap) {
 	    		entry = res.next();
+	    		while (res.hasMore()) res.next();
 	    	} else {
 			    if (existingClaims != null) {
 			    	LDAPAttributeSet atts = new LDAPAttributeSet();

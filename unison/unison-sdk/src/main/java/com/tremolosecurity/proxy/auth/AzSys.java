@@ -255,6 +255,8 @@ public class AzSys {
 						LDAPSearchResults rs = cfgMgr.getMyVD().search(localConstraint, 0, "(objectClass=*)", attribs);
 						rs.hasMore();
 						LDAPEntry entry = rs.next();
+						while (rs.hasMore()) rs.next();
+						
 						String[] urls = entry.getAttribute("memberURL").getStringValueArray();
 						for (int i=0;i<urls.length;i++) {
 							String url = urls[i];
@@ -357,6 +359,7 @@ public class AzSys {
 				OK = true;
 				res.next();
 			}
+			while (res.hasMore()) res.next();
 			
 			
 		} catch (LDAPException e) {

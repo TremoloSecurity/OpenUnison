@@ -99,7 +99,8 @@ public class LoadGroups implements CustomTask {
 
 			if (res.hasMore()) {
 				LDAPEntry entry = res.next();
-
+				while (res.hasMore()) res.next();
+				
 				String dn = entry.getDN();
 				while (res.hasMore())
 					res.next();

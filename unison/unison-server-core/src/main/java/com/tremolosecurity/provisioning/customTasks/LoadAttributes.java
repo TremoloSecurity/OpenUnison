@@ -90,6 +90,7 @@ public class LoadAttributes implements CustomTask {
 			LDAPSearchResults res = this.cfg.getMyVD().search(this.base, 2, equal(this.nameAttr,user.getUserID()).toString(), params);
 			if (res.hasMore()) {
 				LDAPEntry entry = res.next();
+				while (res.hasMore()) res.next();
 				LDAPAttributeSet attrs = entry.getAttributeSet();
 				for (Object obj : attrs) {
 					LDAPAttribute attr = (LDAPAttribute) obj;

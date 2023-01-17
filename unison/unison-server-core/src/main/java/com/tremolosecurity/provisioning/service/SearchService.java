@@ -110,7 +110,10 @@ public class SearchService extends HttpServlet {
 				throw ex;
 			}
 			
+			
 			LDAPEntry entry = res.next();
+			while (res.hasMore()) res.next();
+			
 			TremoloUser user = new TremoloUser();
 			
 			user.setDn(entry.getDN());

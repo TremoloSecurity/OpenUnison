@@ -74,12 +74,14 @@ public class Group2Attribute implements HttpFilter {
 			LDAPSearchResults res = cfgMgr.getMyVD().search(groupDN, 0,  equal(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),authInfo.getUserDN()).toString(), attribs);
 			if (res.hasMore()) {
 				res.next();
+				while (res.hasMore()) res.next();
 				isMember = true;
 				logger.debug("User is member");
 			} else {
 				isMember = false;
 				logger.debug("User is NOT member");
 			}
+			
 			
 			if (isMember) {
 				Attribute attr = authInfo.getAttribs().get(this.attributeName);

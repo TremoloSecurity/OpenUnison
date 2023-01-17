@@ -73,6 +73,7 @@ public class ListPortalURLs extends HttpServlet {
 				throw new ProvisioningException("Could not locate user '" + userID + "'");
 			}
 			LDAPEntry entry = res.next();
+			while (res.hasMore()) res.next();
 			
 			AuthInfo auinfo = new AuthInfo();
 			auinfo.setUserDN(entry.getDN());

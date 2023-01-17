@@ -495,7 +495,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			
 			if (res.hasMore()) {
 				LDAPEntry entry = res.next();
-				
+				while (res.hasMore()) res.next();
 				
 				Iterator<LDAPAttribute> it = entry.getAttributeSet().iterator();
 				AuthInfo authInfo = new AuthInfo(entry.getDN(),(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),act.getName(),act.getLevel());

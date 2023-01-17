@@ -323,6 +323,7 @@ public class SAML2Auth implements AuthMechanism {
 					}
 					
 					LDAPEntry entry = res.next();
+					while (res.hasMore()) res.next();
 					postAuthnReqTo = entry.getAttribute("idpURL").getStringValue();
 					
 					redirAuthnReqTo = entry.getAttribute("idpRedirURL").getStringValue();
@@ -681,6 +682,7 @@ public class SAML2Auth implements AuthMechanism {
 					}
 					
 					LDAPEntry entry = res.next();
+					while (res.hasMore()) res.next();
 					java.security.cert.CertificateFactory cf= java.security.cert.CertificateFactory.getInstance("X.509");
 					sigCerts.add((java.security.cert.X509Certificate) cf.generateCertificate(new ByteArrayInputStream(Base64.decodeBase64(entry.getAttribute("idpSig").getStringValue()))));
 					
@@ -952,7 +954,8 @@ public class SAML2Auth implements AuthMechanism {
 			String ldapAttrib, Assertion assertion, LDAPSearchResults res)
 			throws LDAPException {
 		LDAPEntry entry = res.next();
-
+		while (res.hasMore()) res.next();
+		
 		Iterator<LDAPAttribute> it = entry.getAttributeSet().iterator();
 		AuthInfo authInfo = new AuthInfo(entry.getDN(),
 				(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),

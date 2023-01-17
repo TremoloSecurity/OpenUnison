@@ -1109,6 +1109,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			}
 			
 			LDAPEntry approver = res.next();
+			while (res.hasMore()) res.next();
 			
 			AuthInfo auinfo = new AuthInfo();
 			auinfo.setUserDN(approver.getDN());

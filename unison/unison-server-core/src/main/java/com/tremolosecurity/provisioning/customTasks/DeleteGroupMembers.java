@@ -100,7 +100,8 @@ public class DeleteGroupMembers implements CustomTask {
 	
 	                rs.hasMore();
 	                LDAPEntry ldapMember = rs.next();
-	
+	                while (rs.hasMore()) rs.next();
+	                
 	                TremoloUser userToUpdate = new TremoloUser();
 	                userToUpdate.setUid(ldapMember.getAttribute(this.uidAttribute).getStringValue());
 	                userToUpdate.getAttributes().add(new Attribute(this.uidAttribute,userToUpdate.getUid()));

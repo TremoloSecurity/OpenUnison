@@ -55,6 +55,7 @@ public class MyVDFilter implements HttpFilter {
 		LDAPSearchResults res = con.search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, equal("uid",uid).toString(), attribs);
 		res.hasMore();
 		LDAPEntry entry = res.next();
+		while (res.hasMore()) res.next();
 		
 		String dn = entry.getDN();
 		

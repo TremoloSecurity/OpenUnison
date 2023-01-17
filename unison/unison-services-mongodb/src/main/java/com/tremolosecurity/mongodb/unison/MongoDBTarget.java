@@ -533,6 +533,7 @@ public class MongoDBTarget implements UserStoreProvider {
 					return null;
 				} else {
 					LDAPEntry ldap = res.next();
+					while (res.hasMore()) res.next();
 					LDAPAttribute attr = ldap.getAttribute(this.groupUserIdAttribute);
 					if (attr == null) {
 						return null;

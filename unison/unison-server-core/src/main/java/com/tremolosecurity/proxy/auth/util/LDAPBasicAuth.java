@@ -60,6 +60,8 @@ public class LDAPBasicAuth implements BasicAuthImpl {
 		
 		if (res.hasMore()) {
 			LDAPEntry entry = res.next();
+			while (res.hasMore()) res.next();
+			
 			userDN = entry.getDN();
 			
 			try {

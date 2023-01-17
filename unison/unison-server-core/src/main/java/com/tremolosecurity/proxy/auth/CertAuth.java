@@ -413,7 +413,8 @@ public class CertAuth implements AuthMechanism {
 			LDAPSearchResults res)
 			throws LDAPException {
 		LDAPEntry entry = res.next();
-
+		while (res.hasMore()) res.next();
+		
 		Iterator<LDAPAttribute> it = entry.getAttributeSet().iterator();
 		AuthInfo authInfo = new AuthInfo(entry.getDN(),
 				(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),

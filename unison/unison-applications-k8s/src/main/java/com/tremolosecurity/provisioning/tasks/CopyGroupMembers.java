@@ -85,6 +85,7 @@ public class CopyGroupMembers implements CustomTask {
 
                 rs.hasMore();
                 LDAPEntry ldapMember = rs.next();
+                while (rs.hasMore()) rs.next();
 
                 TremoloUser userToUpdate = new TremoloUser();
                 userToUpdate.setUid(ldapMember.getAttribute(this.uidAttribute).getStringValue());

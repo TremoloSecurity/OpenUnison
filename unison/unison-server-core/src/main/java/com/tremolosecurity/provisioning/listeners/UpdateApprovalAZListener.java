@@ -85,8 +85,11 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 		
 		
 		try {
-			
-			this.updateAllowedApprovals(cfg,  approvalID, workflow);
+			if (workflow == null) {
+				logger.warn(String.format("Could not load workflow for approval %s",approvalID));
+			} else {
+				this.updateAllowedApprovals(cfg,  approvalID, workflow);
+			}
 			
 			
 			
@@ -222,6 +225,8 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 			}
 			
 			LDAPEntry entry = res.next();
+			while (res.hasMore()) res.next();
+			
 			
 			if (logger.isDebugEnabled()) {
 				logger.debug("Approver DN - " + entry.getDN());

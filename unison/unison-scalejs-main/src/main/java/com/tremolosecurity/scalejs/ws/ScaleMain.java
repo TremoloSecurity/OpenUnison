@@ -845,6 +845,8 @@ public class ScaleMain implements HttpFilter {
 			
 			if (res.hasMore()) {
 				LDAPEntry entry = res.next();
+				while (res.hasMore()) res.next();
+				
 				details.getUserObj().getAttribs().clear();
 				
 				for (String attrName : this.scaleConfig.getApprovalAttributes().keySet()) {
@@ -1067,6 +1069,7 @@ public class ScaleMain implements HttpFilter {
 		
 		if (searchRes.hasMore()) {
 			LDAPEntry entry = searchRes.next();
+			while (searchRes.hasMore()) searchRes.next();
 			if (entry == null ) {
 				return false;
 				
@@ -1476,6 +1479,8 @@ public class ScaleMain implements HttpFilter {
 		
 		while (res.hasMore()) {
 			LDAPEntry entry = res.next();
+			while (res.hasMore()) res.next();
+			
 			LDAPAttribute la = entry.getAttribute("cn");
 			if (la != null) {
 				userToSend.getGroups().add(la.getStringValue());

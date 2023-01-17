@@ -100,6 +100,7 @@ public class ServiceActions {
 				LDAPSearchResults res = cfgMgr.getMyVD().search(cfgMgr.getCfg().getLdapRoot(), 2, filter, attributes);
 				if (res.hasMore()) {
 					LDAPEntry entry = res.next();
+					while (res.hasMore()) res.next();
 					LDAPAttribute attr = entry.getAttribute(displayNameAttribute);
 					if (attr != null) {
 						sum.setDisplayName(attr.getStringValue());

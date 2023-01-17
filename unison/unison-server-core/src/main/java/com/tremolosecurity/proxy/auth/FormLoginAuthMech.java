@@ -166,6 +166,8 @@ public class FormLoginAuthMech implements AuthMechanism {
 			
 			if (res.hasMore()) {
 				LDAPEntry entry = res.next();
+				while (res.hasMore()) res.next();
+				
 				userDN = entry.getDN();
 				myvd.bind(entry.getDN(), req.getParameter("pwd"));
 				
