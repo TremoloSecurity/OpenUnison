@@ -852,11 +852,14 @@ public class BasicDB implements BasicDBInterface {
 			}
 		}
 		
-		if (this.userTable != null) {
-			select.append("SELECT ").append(selAttrs).append(" FROM ").append(this.userTable).append(" WHERE ");
-			this.getFieldName(this.userName,select).append("=?");
-		} else {
+		
+		if (this.userSQL != null && ! this.userSQL.isBlank()) {
 			select.append(this.userSQL.replaceAll("\\%S", selAttrs.toString()).replaceAll("\\%L", "?"));
+		} else {
+			if (this.userTable != null) {
+				select.append("SELECT ").append(selAttrs).append(" FROM ").append(this.userTable).append(" WHERE ");
+				this.getFieldName(this.userName,select).append("=?");
+			} 
 		}
 		
 		
