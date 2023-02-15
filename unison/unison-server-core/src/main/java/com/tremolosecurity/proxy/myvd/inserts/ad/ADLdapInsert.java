@@ -17,6 +17,7 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.myvd.inserts.ad;
 
+import net.sourceforge.myvd.inserts.ldap.LDAPInterceptorExperimental;
 import net.sourceforge.myvd.inserts.ldap.LDAPInterceptor;
 
 public class ADLdapInsert extends LDAPInterceptor {
