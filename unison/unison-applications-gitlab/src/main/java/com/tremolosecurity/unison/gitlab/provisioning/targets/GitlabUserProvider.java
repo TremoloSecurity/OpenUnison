@@ -363,6 +363,7 @@ public class GitlabUserProvider implements UserStoreProviderWithAddGroup {
 		
 		HashMap<String,Integer> groupmap = (HashMap<String, Integer>) request.get(GitlabUserProvider.GITLAB_GROUP_ENTITLEMENTS);
 		if (groupmap == null) {
+			logger.debug("No group map");
 			groupmap = new HashMap<String, Integer>();
 		}
 		
@@ -374,10 +375,18 @@ public class GitlabUserProvider implements UserStoreProviderWithAddGroup {
 						logger.warn("Group " + inGroup + " does not exist");
 					} else {
 						int accessLevel = AccessLevel.DEVELOPER.ordinal();
+						if (logger.isDebugEnabled()) {
+							logger.debug(String.format("Group map : %s",groupmap.toString()));
+						}
 						if (groupmap.containsKey(inGroup)) {
+							if (logger.isDebugEnabled()) {
+								logger.debug(String.format("Groupmap contains key %s", inGroup));
+							}
 							accessLevel = groupmap.get(inGroup);
 						}
-						
+						if (logger.isDebugEnabled()) {
+							logger.debug(String.format("Adding %s to group id %s with access level %s",toSave.getId(),groupObj.getId(),accessLevel));
+						}
 						this.groupApi.addMember(groupObj.getId(), toSave.getId(), accessLevel);
 						this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add,  approvalID, workflow, "group", inGroup);
 					}

@@ -200,7 +200,9 @@ public class CreateProject implements CustomTask {
 			request.put("gitPrivateKey", pem);
 			request.put("newProjectJSON", newProject.toString());
 			
+			String keyName = String.format("%s-key-created", localName);
 			
+			user.getAttribs().put(keyName, new Attribute(keyName,"true"));
 			
 			if (createWebHook) {
 				String webhookToken = new GenPasswd(50).getPassword();
