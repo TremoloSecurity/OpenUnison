@@ -52,8 +52,8 @@
 		<quartz.version>2.3.2</quartz.version>
 		<quartz-jobs.version>2.3.2</quartz-jobs.version>
 		<json-io.version>4.14.0</json-io.version>
-		<log4j.version>2.19.0</log4j.version>
-		<joda-time.version>2.11.2</joda-time.version>
+		<log4j.version>2.20.0</log4j.version>
+		<joda-time.version>2.12.2</joda-time.version>
 		<javax.mail-api.version>1.6.2</javax.mail-api.version>
 		<sun.mail-api.version>1.6.2</sun.mail-api.version>
 		<bcpkix-jdk15on.version>1.70</bcpkix-jdk15on.version>
@@ -63,14 +63,14 @@
 		<googleauth.version>1.5.0</googleauth.version>
 		<activemq.version>5.17.3</activemq.version>
 		<commons-pool2.version>2.11.1</commons-pool2.version>
-		<aws-java-sdk.version>1.12.407</aws-java-sdk.version>
+		<aws-java-sdk.version>1.12.412</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>1.1.3</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.3.4</stringtemplate.version>
 		<hibernate.version>5.6.15.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
 		<org.apache.poi.version>5.2.3</org.apache.poi.version>
 		<jose4j.version>0.9.3</jose4j.version>
-		<mongodb-driver.version>3.12.11</mongodb-driver.version>
+		<mongodb-driver.version>3.12.12</mongodb-driver.version>
 		<xalan.version>2.7.2</xalan.version>
 		<jackson.version>2.14.2</jackson.version>
 		<jackson-core.version>2.14.2</jackson-core.version>
@@ -82,7 +82,7 @@
 	  	<xmlsec.version>2.0.6</xmlsec.version>
 	  	<snakeyaml.version>1.33</snakeyaml.version>
 	  	<prometheus.version>0.16.0</prometheus.version>
-	  	<ibm-mq.version>9.3.1.0</ibm-mq.version>
+	  	<ibm-mq.version>9.3.2.0</ibm-mq.version>
 	  	<okta.version>8.2.3</okta.version>
 	  	<azure-auth.version>1.13.4</azure-auth.version>
 	  	<cryptacular.version>1.2.5</cryptacular.version>
@@ -100,14 +100,14 @@
 		<xmlgraphics-commons.version>2.8</xmlgraphics-commons.version>
 		<json-smart.version>2.4.8</json-smart.version>
 		<xnio-api.version>3.8.8.Final</xnio-api.version>
-		<okta-authn.version>2.0.8</okta-authn.version>
+		<okta-authn.version>2.0.10</okta-authn.version>
 		<okta-http.version>8.2.3</okta-http.version>
 		<jersey.version>2.38</jersey.version>
 		<woodstox.version>6.5.0</woodstox.version>
 		<spring.version>5.3.25</spring.version>
 		<activation.version>1.2.0</activation.version>
 		<velocity.version>2.3</velocity.version>
-		<nimbusds.version>10.6</nimbusds.version>
+		<nimbusds.version>10.7</nimbusds.version>
 		<pdfbox.version>2.0.27</pdfbox.version>
 		<ws.rs-api.version>2.1.1</ws.rs-api.version>
 		<qpid.version>1.8.0</qpid.version>

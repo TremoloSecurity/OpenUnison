@@ -1,3 +1,44 @@
+# 1.0.33-2023022201
+
+**enhancements:**
+ - GitLab - add creation to request object [\#745](https://github.com/TremoloSecurity/OpenUnison/issues/745)
+ - GitLab Provider - add variable [\#744](https://github.com/TremoloSecurity/OpenUnison/issues/744)
+ - BasicDB Target - Enable userSQL even if userTable is set [\#743](https://github.com/TremoloSecurity/OpenUnison/issues/743)
+ - Create javascript utilities [\#732](https://github.com/TremoloSecurity/OpenUnison/issues/732)
+ - OIDC IDP - Add PKCE support [\#729](https://github.com/TremoloSecurity/OpenUnison/issues/729)
+ - OIDC Auth - Add PKCE support [\#728](https://github.com/TremoloSecurity/OpenUnison/issues/728)
+ - kubectl tokens - screen generates a brand new session [\#724](https://github.com/TremoloSecurity/OpenUnison/issues/724)
+ - openunison-k8s - add oulogin plugin to token screen [\#721](https://github.com/TremoloSecurity/OpenUnison/issues/721)
+ - oidc idp: support refresh token grace period [\#719](https://github.com/TremoloSecurity/OpenUnison/issues/719)
+ - ScaleJS: make request reasons optional [\#714](https://github.com/TremoloSecurity/OpenUnison/issues/714)
+ - create pluggable notification systems [\#715](https://github.com/TremoloSecurity/OpenUnison/issues/715)
+
+**Tasks:**
+ - 1.0.33 build [\#717](https://github.com/TremoloSecurity/OpenUnison/issues/717)
+
+**bugs:**
+ - GroupMetadata - Not syncing properly [\#735](https://github.com/TremoloSecurity/OpenUnison/issues/735)
+ - ScaleJS Register - Better error reporting [\#734](https://github.com/TremoloSecurity/OpenUnison/issues/734)
+ - workflow: WairForTask not working across clusters [\#733](https://github.com/TremoloSecurity/OpenUnison/issues/733)
+ - OIDC - Tie code token to client [\#730](https://github.com/TremoloSecurity/OpenUnison/issues/730)
+
+# 1.0.32-2022101701
+
+**bugs:**
+ - ScaleJS - Ensure all services return Content-Type  [\#656](https://github.com/TremoloSecurity/OpenUnison/issues/656)
+ - DynamicJobs - Removing Job doesn't always remove job [\#703](https://github.com/TremoloSecurity/OpenUnison/issues/703)
+ - ScaleJS register, lists that are not required should only validate when there's a value [\#701](https://github.com/TremoloSecurity/OpenUnison/issues/701)
+ - ScaleJS make sure errors return as json, not HTML [\#657](https://github.com/TremoloSecurity/OpenUnison/issues/657)
+ - ListclusterApproverGroups - not listing namespaces correctly [\#700](https://github.com/TremoloSecurity/OpenUnison/issues/700)
+ - DeleteK8sObject - failing if object doesn't exist [\#699](https://github.com/TremoloSecurity/OpenUnison/issues/699)
+ - DeleteGroupMembers task - if group doesn't exist, null pointer exception [\#698](https://github.com/TremoloSecurity/OpenUnison/issues/698)
+ - k8swatcher - connection timeout issues [\#683](https://github.com/TremoloSecurity/OpenUnison/issues/683)
+ - Kubernetes - LoadConfigMap doesn't take parameters [\#654](https://github.com/TremoloSecurity/OpenUnison/issues/654)
+ - openshift target with oidc auth doesn't initialize if idp isn't already initialized [\#650](https://github.com/TremoloSecurity/OpenUnison/issues/650)
+
+**Tasks:**
+ - 1.0.32 release [\#655](https://github.com/TremoloSecurity/OpenUnison/issues/655)
+
 # 1.0.31-2022070901
 
 **Tasks:**
