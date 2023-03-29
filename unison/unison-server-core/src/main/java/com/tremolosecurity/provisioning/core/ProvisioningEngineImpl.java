@@ -1205,6 +1205,10 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				
 			}
 			
+			session.getTransaction().commit();
+			
+			
+			
 			
 			
 			Approvals approvals = session.load(Approvals.class, id);
@@ -1260,6 +1264,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			DateTime now = new DateTime();
 			
 			
+			session.beginTransaction();
+			
 			approvals.setWorkflowObj(null);
 			approvals.setApprovedTs(new Timestamp(now.getMillis()));
 			approvals.setApprovers(approverObj);
@@ -1274,9 +1280,10 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			approval.markComplete(approved);
 			
+			boolean restartWorkflow = false;
+			
 			if (approved) {
-				wf.reInit(cfgMgr);
-				wf.restart();
+				restartWorkflow = true;
 			} else {
 				
 				if (wf.getUserNum() != wf.getRequesterNum()) {
@@ -1298,12 +1305,15 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 					this.sendNotification(wf.getUser().getAttribs().get(approval.getMailAttr()).getValues().get(0),  approval.getFailureEmailMsg(),approval.getFailureEmailSubject(), wf.getUser());
 				}
 				
-				wf.reInit(cfgMgr);
-				wf.restart();
+				restartWorkflow = true;
 				
 			}
 			
 			session.getTransaction().commit();
+			if (restartWorkflow) {
+				wf.reInit(cfgMgr);
+				wf.restart();
+			}
 			
 		} catch (LDAPException e) {
 			throw new ProvisioningException("Could not load approver",e);
@@ -1333,7 +1343,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		} finally {
 			if (session != null) {
 				
-				
+				if (session.getTransaction() != null && session.getTransaction().isActive()) {
+					session.getTransaction().rollback();
+				}
 				
 				session.close();
 			}

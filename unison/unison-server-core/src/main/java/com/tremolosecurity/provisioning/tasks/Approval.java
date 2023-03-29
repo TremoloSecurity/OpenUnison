@@ -331,7 +331,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 		} else {
 			Session session = this.getConfigManager().getProvisioningEngine().getHibernateSessionFactory().openSession();
 			try {
-				session.beginTransaction();
+				
 				DateTime now = new DateTime();
 				
 				Approvals approval = new Approvals();
@@ -339,13 +339,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				approval.setWorkflow(this.getWorkflow().getFromDB(session));
 				approval.setCreateTs(new Timestamp(now.getMillis()));
 				
-				session.save(approval);
 				
-				
-				this.id = approval.getId();
-				
-				//request.put("APPROVAL_ID", Integer.toString(this.id));
-				request.put("APPROVAL_ID", this.id);
 				
 				if (request.get(Approval.APPROVAL_RESULT) != null) {
 					request.remove(Approval.APPROVAL_RESULT);
@@ -354,6 +348,48 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				this.setOnHold(true);
 				
 				
+				
+				
+				
+				
+				
+				
+				
+				
+				boolean sendNotification = true;
+				if (request.containsKey(Approval.SEND_NOTIFICATION) && request.get(Approval.SEND_NOTIFICATION).equals("false")) {
+					sendNotification = false;
+				}
+				
+				String localTemplate = this.renderTemplate(this.emailTemplate, request);
+				
+				List<Object> objToSave = new ArrayList<Object>();
+				
+				
+				for (Approver approver : this.approvers) {
+					String[] localParams = null;
+					localParams = renderCustomParameters(request, approver, localParams);
+
+					String constraintRendered = this.renderTemplate(approver.constraint, request);
+					switch (approver.type) {
+						case StaticGroup : AzUtils.loadStaticGroupApprovers(approval,localTemplate,this.getConfigManager(),session,constraintRendered,sendNotification,objToSave); break;
+						case Filter : AzUtils.loadFilterApprovers(approval,localTemplate,this.getConfigManager(),session,constraintRendered,sendNotification,objToSave); break;
+						case DN : AzUtils.loadDNApprovers(approval,localTemplate,this.getConfigManager(),session,constraintRendered,sendNotification,objToSave);break;
+						case Custom : AzUtils.loadCustomApprovers(approval,localTemplate,this.getConfigManager(),session,constraintRendered,sendNotification,approver.customAz,localParams,objToSave);break;
+					}
+				}
+				
+				session.beginTransaction();
+				approval.setWorkflowObj(null);
+				session.save(approval);
+				
+				for (Object o : objToSave) {
+					session.save(o);
+				}
+				
+				
+				
+				this.id = approval.getId();
 				
 				Gson gson = new Gson();
 				String json = "";
@@ -376,31 +412,10 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				//String base64 = new String(org.bouncycastle.util.encoders.Base64.encode(baos.toByteArray()));
 				
 				approval.setWorkflowObj(gson.toJson(token));
-				
 				session.save(approval);
 				
-				
-				boolean sendNotification = true;
-				if (request.containsKey(Approval.SEND_NOTIFICATION) && request.get(Approval.SEND_NOTIFICATION).equals("false")) {
-					sendNotification = false;
-				}
-				
-				String localTemplate = this.renderTemplate(this.emailTemplate, request);
-				
-				
-				
-				for (Approver approver : this.approvers) {
-					String[] localParams = null;
-					localParams = renderCustomParameters(request, approver, localParams);
-
-					String constraintRendered = this.renderTemplate(approver.constraint, request);
-					switch (approver.type) {
-						case StaticGroup : AzUtils.loadStaticGroupApprovers(approval,localTemplate,this.getConfigManager(),session,id,constraintRendered,sendNotification); break;
-						case Filter : AzUtils.loadFilterApprovers(approval,localTemplate,this.getConfigManager(),session,id,constraintRendered,sendNotification); break;
-						case DN : AzUtils.loadDNApprovers(approval,localTemplate,this.getConfigManager(),session,id,constraintRendered,sendNotification);break;
-						case Custom : AzUtils.loadCustomApprovers(approval,localTemplate,this.getConfigManager(),session,id,constraintRendered,sendNotification,approver.customAz,localParams);break;
-					}
-				}
+				//request.put("APPROVAL_ID", Integer.toString(this.id));
+				request.put("APPROVAL_ID", this.id);
 				
 				session.getTransaction().commit();
 				
@@ -502,7 +517,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 		return b.toString();
 	}
 	
-	public boolean updateAllowedApprovals(Session session,ConfigManager cfg, Map<String, Object> request) throws ProvisioningException, SQLException {
+	public boolean updateAllowedApprovals(Session session,ConfigManager cfg, Map<String, Object> request,List<Object> objToSave) throws ProvisioningException, SQLException {
 		boolean updateObj = false;
 		boolean localFail = false;
 		
@@ -581,9 +596,11 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 							Escalation escalation = new Escalation();
 							escalation.setApprovals(approvalObj);
 							escalation.setWhenTs(new Timestamp(new DateTime().getMillis()));
-							
-							session.save(escalation);
-							
+							//if (! session.isJoinedToTransaction()) {
+							//	session.beginTransaction();
+							//}
+							//session.save(escalation);
+							objToSave.add(escalation);
 							
 							break;
 						case stopEscalating : 
@@ -607,9 +624,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 		boolean foundApprovers = false;
 		
 		Approvals approval = session.load(Approvals.class, this.id);
-		if (! session.isJoinedToTransaction()) {
-			session.beginTransaction();
-		}
+		
 		for (Approver approver : this.approvers) {
 			String constraintRendered = this.renderTemplate(approver.constraint, request);
 			
@@ -617,10 +632,10 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 			localParams = renderCustomParameters(request, approver, localParams);
 			
 			switch (approver.type) {
-				case StaticGroup : foundApprovers |= AzUtils.loadStaticGroupApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false); break;
-				case Filter : foundApprovers |= AzUtils.loadFilterApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false); break;
-				case DN : foundApprovers |= AzUtils.loadDNApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false);break;
-				case Custom : foundApprovers |= AzUtils.loadCustomApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false,approver.customAz,localParams);break;
+				case StaticGroup : foundApprovers |= AzUtils.loadStaticGroupApprovers(approval,this.emailTemplate,cfg,session,constraintRendered,false,objToSave); break;
+				case Filter : foundApprovers |= AzUtils.loadFilterApprovers(approval,this.emailTemplate,cfg,session,constraintRendered,false,objToSave); break;
+				case DN : foundApprovers |= AzUtils.loadDNApprovers(approval,this.emailTemplate,cfg,session,constraintRendered,false,objToSave);break;
+				case Custom : foundApprovers |= AzUtils.loadCustomApprovers(approval,this.emailTemplate,cfg,session,constraintRendered,false,approver.customAz,localParams,objToSave);break;
 			}
 		}
 		
@@ -658,10 +673,10 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				localParams = renderCustomParameters(request, approver, localParams);
 
 				switch (approver.type) {
-					case StaticGroup : AzUtils.loadStaticGroupApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false); break;
-					case Filter : AzUtils.loadFilterApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false); break;
-					case DN : AzUtils.loadDNApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false);break;
-					case Custom : AzUtils.loadCustomApprovers(approval,this.emailTemplate,cfg,session,id,constraintRendered,false,approver.customAz,localParams);break;
+					case StaticGroup : AzUtils.loadStaticGroupApprovers(approval,this.emailTemplate,cfg,session,constraintRendered,false,objToSave); break;
+					case Filter : AzUtils.loadFilterApprovers(approval,this.emailTemplate,cfg,session,constraintRendered,false,objToSave); break;
+					case DN : AzUtils.loadDNApprovers(approval,this.emailTemplate,cfg,session,constraintRendered,false,objToSave);break;
+					case Custom : AzUtils.loadCustomApprovers(approval,this.emailTemplate,cfg,session,constraintRendered,false,approver.customAz,localParams,objToSave);break;
 				}
 			}
 			

@@ -59,7 +59,7 @@ public class AzUtils {
 
 	
 
-	public static boolean loadDNApprovers(Approvals approval,String emailTemplate,ConfigManager cfg,Session session, int id2, String constraint,boolean sendNotification) throws ProvisioningException {
+	public static boolean loadDNApprovers(Approvals approval,String emailTemplate,ConfigManager cfg,Session session,  String constraint,boolean sendNotification,List<Object> objToSave) throws ProvisioningException {
 		ArrayList<String> attrs = new ArrayList<String>();
 		attrs.add(cfg.getProvisioningEngine().getUserIDAttribute());
 		LDAPSearchResults res = null;
@@ -84,7 +84,7 @@ public class AzUtils {
 				entry = res.next();
 				
 				
-				Approvers approver = getApproverByDN(approval,emailTemplate,cfg,session, entry.getDN(),sendNotification);
+				Approvers approver = getApproverByDN(approval,emailTemplate,cfg,session, entry.getDN(),sendNotification,objToSave);
 				if (approver == null) {
 					continue;
 				}
@@ -95,7 +95,8 @@ public class AzUtils {
 				
 				allowedApprover.setApprovals(approval);
 				allowedApprover.setApprovers(approver);
-				session.save(allowedApprover);
+				//session.save(allowedApprover);
+				objToSave.add(allowedApprover);
 			}
 			
 		} catch (Exception e) {
@@ -106,7 +107,7 @@ public class AzUtils {
 		
 	}
 
-	public static boolean loadFilterApprovers(Approvals approval,String emailTemplate,ConfigManager cfg,Session session, int id, String constraint,boolean sendNotification) throws ProvisioningException {
+	public static boolean loadFilterApprovers(Approvals approval,String emailTemplate,ConfigManager cfg,Session session,  String constraint,boolean sendNotification,List<Object> objToSave) throws ProvisioningException {
 		ArrayList<String> attrs = new ArrayList<String>();
 		//attrs.add(cfg.getProvisioningEngine().getUserIDAttribute());
 		LDAPSearchResults res = null;
@@ -143,7 +144,7 @@ public class AzUtils {
 				}
 				String uid = attr.getStringValue();
 				
-				Approvers approver = getApprover(approval,emailTemplate,cfg,session,uid,entry);
+				Approvers approver = getApprover(approval,emailTemplate,cfg,session,uid,entry,objToSave);
 				if (approver == null) {
 					continue;
 				}
@@ -153,7 +154,8 @@ public class AzUtils {
 				AllowedApprovers allowed = new AllowedApprovers();
 				allowed.setApprovals(approval);
 				allowed.setApprovers(approver);
-				session.save(allowed);
+				//session.save(allowed);
+				objToSave.add(allowed);
 			}
 			
 		} catch (Exception e) {
@@ -166,7 +168,7 @@ public class AzUtils {
 		
 	}
 
-	public static boolean loadStaticGroupApprovers(Approvals approval,String emailTemplate,ConfigManager cfg,Session session, int id, String constraint,boolean sendNotification) throws ProvisioningException {
+	public static boolean loadStaticGroupApprovers(Approvals approval,String emailTemplate,ConfigManager cfg,Session session,  String constraint,boolean sendNotification,List<Object> objToSave) throws ProvisioningException {
 		ArrayList<String> attrs = new ArrayList<String>();
 		attrs.add(cfg.getCfg().getGroupMemberAttribute());
 		LDAPSearchResults res = null;
@@ -200,7 +202,7 @@ public class AzUtils {
 				
 				for (String dn : dns) {
 					
-					Approvers approver = getApproverByDN(approval,emailTemplate,cfg,session,dn,sendNotification);
+					Approvers approver = getApproverByDN(approval,emailTemplate,cfg,session,dn,sendNotification,objToSave);
 					if (approver == null) {
 						continue;
 					}
@@ -208,7 +210,8 @@ public class AzUtils {
 					AllowedApprovers allowed = new AllowedApprovers();
 					allowed.setApprovals(approval);
 					allowed.setApprovers(approver);
-					session.save(allowed);
+					//session.save(allowed);
+					objToSave.add(allowed);
 					
 					found = true;
 				}
@@ -223,7 +226,7 @@ public class AzUtils {
 		
 	}
 
-	public static Approvers getApproverByDN(Approvals approval,String emailTemplate,ConfigManager cfg,Session session, String dn,boolean sendNotification) throws ProvisioningException {
+	public static Approvers getApproverByDN(Approvals approval,String emailTemplate,ConfigManager cfg,Session session, String dn,boolean sendNotification,List<Object> objToSave) throws ProvisioningException {
 		
 		
 		try {
@@ -279,7 +282,7 @@ public class AzUtils {
 				}
 			}
 			
-			return getApprover(approval,emailTemplate,cfg,session, userID,entry);
+			return getApprover(approval,emailTemplate,cfg,session, userID,entry,objToSave);
 			
 			
 		} catch (LDAPReferralException le) {
@@ -303,7 +306,7 @@ public class AzUtils {
 		}
 	}
 
-	public static Approvers getApprover(Approvals approval,String emailTemplate,ConfigManager cfg,Session session, String userID,LDAPEntry approver)
+	public static Approvers getApprover(Approvals approval,String emailTemplate,ConfigManager cfg,Session session, String userID,LDAPEntry approver,List<Object> objToSave)
 			throws SQLException {
 		
 		
@@ -320,19 +323,20 @@ public class AzUtils {
 		}
 		
 		
-		int approverID;
+		
 		
 		if (approvers.size() == 0) {
 			
 			approverObj = new Approvers();
 			approverObj.setUserKey(userID);
-			session.save(approverObj);
+			//session.save(approverObj);
+			objToSave.add(approverObj);
 			
 			
-			approverID = approverObj.getId();
+			
 		} else {
 			approverObj = approvers.get(0);
-			approverID = approverObj.getId();
+			
 		}
 		
 		
@@ -355,7 +359,8 @@ public class AzUtils {
 					if (approverAttr != null) {
 						if (! approverAttr.getStringValue().equals(appAttr.getValue())) {
 							appAttr.setValue(approverAttr.getStringValue());
-							session.save(appAttr);
+							//session.save(appAttr);
+							objToSave.add(appAttr);
 						}
 					}
 					
@@ -370,7 +375,8 @@ public class AzUtils {
 					attr.setValue(approverAttr.getStringValue());
 					attr.setApprovers(approverObj);
 					approverObj.getApproverAttributeses().add(attr);
-					session.save(attr);
+					//session.save(attr);
+					objToSave.add(attr);
 				} 
 				
 				changed = true;
@@ -384,8 +390,8 @@ public class AzUtils {
 	}
 
 	public static boolean loadCustomApprovers(Approvals approval, String emailTemplate,
-			ConfigManager cfg, Session session, int userID,
-			String constraint, boolean sendNotification,CustomAuthorization caz,String customParams[]) throws ProvisioningException {
+			ConfigManager cfg, Session session, 
+			String constraint, boolean sendNotification,CustomAuthorization caz,String customParams[],List<Object> objToSave) throws ProvisioningException {
 		boolean found = false;
 		try {
 			caz.loadConfigManager(cfg);
@@ -395,7 +401,7 @@ public class AzUtils {
 			List<String> approvalDNs = caz.listPossibleApprovers(customParams);
 			for (String approverDN : approvalDNs) {
 				
-				Approvers approver = getApproverByDN(approval,emailTemplate,cfg,session,approverDN,sendNotification);
+				Approvers approver = getApproverByDN(approval,emailTemplate,cfg,session,approverDN,sendNotification,objToSave);
 				if (approver == null) {
 					continue;
 				}
@@ -403,7 +409,8 @@ public class AzUtils {
 				AllowedApprovers allowed = new AllowedApprovers();
 				allowed.setApprovals(approval);
 				allowed.setApprovers(approver);
-				session.save(allowed);
+				//session.save(allowed);
+				objToSave.add(allowed);
 				
 				found = true;
 			}

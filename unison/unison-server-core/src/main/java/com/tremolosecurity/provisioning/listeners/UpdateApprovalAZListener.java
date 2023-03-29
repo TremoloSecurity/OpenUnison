@@ -146,15 +146,20 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 			currentApprovers.add(approver.getApprovers().getId());
 		}
 		
-		session.beginTransaction();
 		
-		for (AllowedApprovers approver : approvalObj.getAllowedApproverses()) {
+		// i don't think i need this
+		/*for (AllowedApprovers approver : approvalObj.getAllowedApproverses()) {
 			session.delete(approver);
-		}
+		}*/
+		
+		List<AllowedApprovers> todel = new ArrayList<AllowedApprovers>();
+		todel.addAll(approvalObj.getAllowedApproverses());
 		
 		approvalObj.getAllowedApproverses().clear();
 		
-		approval.updateAllowedApprovals(session,cfg,wf.getRequest());
+		List<Object> objToSave = new ArrayList<Object>();
+		
+		approval.updateAllowedApprovals(session,cfg,wf.getRequest(),objToSave);
 		
 		//need to write the approval back to the db
 		json = JsonWriter.objectToJson(wf);
@@ -175,7 +180,22 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 		
 		
 		approvalObj.setWorkflowObj(gson.toJson(token));
+		if (! session.isJoinedToTransaction()) {
+			session.beginTransaction();
+		}
+		
+		
+		for (AllowedApprovers approver : todel) {
+			session.delete(approver);
+		}
+		
 		session.save(approvalObj);
+		
+		for (Object o : objToSave) {
+			session.save(o);
+		}
+		
+		
 		
 		session.getTransaction().commit();
 		
