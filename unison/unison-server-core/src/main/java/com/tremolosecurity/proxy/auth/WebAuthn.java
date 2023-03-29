@@ -355,7 +355,12 @@ public class WebAuthn implements AuthMechanism {
 			AuthChainType act = holder.getConfig().getAuthChains().get(reqHolder.getAuthChainName());
 			AuthMechType amt = act.getAuthMech().get(as.getId());
 			
-			response.sendRedirect(holder.getConfig().getAuthMechs().get(amt.getName()).getUri());
+			holder.getConfig().getContextPath();
+			
+			StringBuilder redirecturi = new StringBuilder();
+			redirecturi.append(holder.getConfig().getContextPath()).append(holder.getConfig().getAuthMechs().get(amt.getName()).getUri());
+			
+			response.sendRedirect(redirecturi.toString());
 			return;
 			
 		}
