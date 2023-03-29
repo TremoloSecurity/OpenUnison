@@ -235,16 +235,18 @@
 			<version>${jackson-core.version}</version>
 		</dependency> 
 		
-		<dependency>
-			<groupId>net.minidev</groupId>
-			<artifactId>json-smart</artifactId>
-			<version>${json-smart.version}</version>
-		</dependency>
+		
 		
 		<dependency>
 		  <groupId>com.nimbusds</groupId>
 		  <artifactId>oauth2-oidc-sdk</artifactId>
 		  <version>${nimbusds.version}</version>
+		  <exclusions>
+			  <exclusion>
+				  <groupId>net.minidev</groupId>
+				  <artifactId>json-smart</artifactId>
+			  </exclusion>
+		  </exclusions>
 		</dependency>
 		
 		<dependency>
@@ -284,12 +286,24 @@
 		  <version>${lazysodium.version}</version>
 		</dependency>
 		
+		<dependency>
+		  <groupId>com.fasterxml.woodstox</groupId>
+		  <artifactId>woodstox-core</artifactId>
+		  <version>${woodstox.version}</version>
+		</dependency>
+		
+
 		
 <dependency>
   <groupId>com.microsoft.azure</groupId>
   <artifactId>msal4j</artifactId>
   <version>${azure-auth.version}</version>
 </dependency>
+		<dependency>
+			<groupId>net.minidev</groupId>
+			<artifactId>json-smart</artifactId>
+			<version>${json-smart.version}</version>
+		</dependency>
 	</dependencies>
 	<build>
 

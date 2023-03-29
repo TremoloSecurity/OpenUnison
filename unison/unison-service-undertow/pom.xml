@@ -57,6 +57,12 @@
 			<groupId>org.jboss.spec.javax.servlet.jstl</groupId>
 			<artifactId>jboss-jstl-api_1.2_spec</artifactId>
 			<version>${jboss-jstl-api_1.2_spec.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>xalan</artifactId>
+					<groupId>xalan</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		
 		<dependency>
