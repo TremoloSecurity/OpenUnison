@@ -29,9 +29,9 @@
 		<c3p0.version>0.9.5.5</c3p0.version>
 		<google-api-services-plus.version>v1-rev20190328-1.30.10</google-api-services-plus.version>
 		<google-api-services-oauth2.version>v2-rev20200213-2.0.0</google-api-services-oauth2.version>
-		<google-api-services-admin-directory.version>directory_v1-rev20230124-2.0.0</google-api-services-admin-directory.version>
+		<google-api-services-admin-directory.version>directory_v1-rev20230316-2.0.0</google-api-services-admin-directory.version>
 		<json-simple.version>1.1.1</json-simple.version>
-		<twilio-java-sdk.version>9.2.3</twilio-java-sdk.version>
+		<twilio-java-sdk.version>9.3.0</twilio-java-sdk.version>
 		<restfb.version>3.18.0</restfb.version>
 		<jbosssx-bare.version>4.1.6.Final</jbosssx-bare.version>
 		<jbosssx-client.version>4.1.6.Final</jbosssx-client.version>
@@ -53,7 +53,7 @@
 		<quartz-jobs.version>2.3.2</quartz-jobs.version>
 		<json-io.version>4.14.0</json-io.version>
 		<log4j.version>2.20.0</log4j.version>
-		<joda-time.version>2.12.2</joda-time.version>
+		<joda-time.version>2.12.4</joda-time.version>
 		<javax.mail-api.version>1.6.2</javax.mail-api.version>
 		<sun.mail-api.version>1.6.2</sun.mail-api.version>
 		<bcpkix-jdk15on.version>1.70</bcpkix-jdk15on.version>
@@ -61,9 +61,9 @@
 		<reflections.version>0.10.2</reflections.version>
 		<apache-log4j-extras.version>1.2.17</apache-log4j-extras.version>
 		<googleauth.version>1.5.0</googleauth.version>
-		<activemq.version>5.17.3</activemq.version>
+		<activemq.version>5.18.0</activemq.version>
 		<commons-pool2.version>2.11.1</commons-pool2.version>
-		<aws-java-sdk.version>1.12.412</aws-java-sdk.version>
+		<aws-java-sdk.version>1.12.437</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>1.1.3</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.3.4</stringtemplate.version>
 		<hibernate.version>5.6.15.Final</hibernate.version>
@@ -74,37 +74,37 @@
 		<xalan.version>2.7.2</xalan.version>
 		<jackson.version>2.14.2</jackson.version>
 		<jackson-core.version>2.14.2</jackson-core.version>
-		<slf4j.version>2.0.6</slf4j.version>
+		<slf4j.version>2.0.7</slf4j.version>
 		<guava.version>31.1-jre</guava.version>
 		<undertow.version>2.2.23.Final</undertow.version>
 	  	<jastow.version>2.1.0.Final</jastow.version>
 	  	<jboss-jstl-api_1.2_spec.version>1.1.4.Final</jboss-jstl-api_1.2_spec.version>
 	  	<xmlsec.version>2.0.6</xmlsec.version>
-	  	<snakeyaml.version>1.33</snakeyaml.version>
+	  	<snakeyaml.version>2.0</snakeyaml.version>
 	  	<prometheus.version>0.16.0</prometheus.version>
 	  	<ibm-mq.version>9.3.2.0</ibm-mq.version>
 	  	<okta.version>8.2.3</okta.version>
-	  	<azure-auth.version>1.13.4</azure-auth.version>
+	  	<azure-auth.version>1.13.7</azure-auth.version>
 	  	<cryptacular.version>1.2.5</cryptacular.version>
 	  	<santuario-xmlsec.version>3.0.1</santuario-xmlsec.version>
-		<netty-codec.version>4.1.89.Final</netty-codec.version>
-		<netty-common.version>4.1.89.Final</netty-common.version>
+		<netty-codec.version>4.1.90.Final</netty-codec.version>
+		<netty-common.version>4.1.90.Final</netty-common.version>
 		<dom4j.version>2.1.4</dom4j.version>  
 		<gitlab.version>5.0.1</gitlab.version>
 		<commons-beanutils.version>1.9.4</commons-beanutils.version>
 		<swagger-core.version>2.1.5</swagger-core.version>
 		<k8sapi.version>10.0.0</k8sapi.version>
-		<jgit.version>6.4.0.202211300538-r</jgit.version>
+		<jgit.version>6.5.0.202303070854-r</jgit.version>
 		<json-patch.version>1.13</json-patch.version>
 		<batik-svgbrowser.version>1.16</batik-svgbrowser.version>
 		<xmlgraphics-commons.version>2.8</xmlgraphics-commons.version>
-		<json-smart.version>2.4.8</json-smart.version>
+		<json-smart.version>2.4.10</json-smart.version>
 		<xnio-api.version>3.8.8.Final</xnio-api.version>
 		<okta-authn.version>2.0.10</okta-authn.version>
 		<okta-http.version>8.2.3</okta-http.version>
-		<jersey.version>2.38</jersey.version>
+		<jersey.version>2.39</jersey.version>
 		<woodstox.version>6.5.0</woodstox.version>
-		<spring.version>5.3.25</spring.version>
+		<spring.version>5.3.26</spring.version>
 		<activation.version>1.2.0</activation.version>
 		<velocity.version>2.3</velocity.version>
 		<nimbusds.version>10.7</nimbusds.version>
@@ -113,10 +113,10 @@
 		<qpid.version>1.8.0</qpid.version>
 		<commons-io.version>2.11.0</commons-io.version>
 		<graaljs.version>22.3.1</graaljs.version>
-		<commons-compress.version>1.22</commons-compress.version>
-		<webauthn4j.version>0.20.8.RELEASE</webauthn4j.version>
-		<githubapi.version>1.313</githubapi.version>
-		<json-path.version>2.7.0</json-path.version>
+		<commons-compress.version>1.23.0</commons-compress.version>
+		<webauthn4j.version>0.21.0.RELEASE</webauthn4j.version>
+		<githubapi.version>1.314</githubapi.version>
+		<json-path.version>2.8.0</json-path.version>
 		<lazysodium.version>5.1.4</lazysodium.version>
 		<jna.version>5.13.0</jna.version>
 	</properties>
