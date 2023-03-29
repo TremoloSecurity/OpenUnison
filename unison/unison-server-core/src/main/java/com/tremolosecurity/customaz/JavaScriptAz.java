@@ -37,7 +37,8 @@ import com.tremolosecurity.saml.Attribute;
 public class JavaScriptAz implements CustomAuthorization {
 	static Logger logger = Logger.getLogger(JavaScriptAz.class);
 	
-	HashMap<String,Object> globals;
+	transient HashMap<String,Object> globals;
+	HashMap<String,Object> globalsToStore;
 	String javaScript;
 	boolean initCompleted;
 
@@ -50,6 +51,8 @@ public class JavaScriptAz implements CustomAuthorization {
 			globals = new HashMap<String,Object>();
 			context.getBindings("js").putMember("globals", globals);
 		
+			globalsToStore = new HashMap<String,Object>();
+			context.getBindings("js").putMember("globalsToStore", globalsToStore);
 		
 		
 		
@@ -98,12 +101,18 @@ public class JavaScriptAz implements CustomAuthorization {
 
 	@Override
 	public void loadConfigManager(ConfigManager cfg) throws AzException {
+		if (globals == null) {
+			this.globals = new HashMap<String,Object>();
+		}
 		globals.put("az.configmanager", cfg);
 
 	}
 
 	@Override
 	public void setWorkflow(Workflow wf) throws AzException {
+		if (globals == null) {
+			this.globals = new HashMap<String,Object>();
+		}
 		globals.put("az.workflow", wf);
 
 	}
