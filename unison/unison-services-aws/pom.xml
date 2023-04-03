@@ -32,7 +32,7 @@ limitations under the License.
   		<dependency>
 	  		<groupId>com.tremolosecurity.unison</groupId>
 	  		<artifactId>unison-sdk</artifactId>
-	  		<version>${openunison.version}</version>
+	  		<version>1.0.34</version>
   		</dependency>
   		<dependency>
 	  		<groupId>io.netty</groupId>
@@ -73,5 +73,11 @@ limitations under the License.
 			<artifactId>netty-common</artifactId>
 			<version>${netty-common.version}</version>
 		</dependency>
-  </dependencies>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-scalejs-token</artifactId>
+			<version>1.0.34</version>
+		</dependency>
+
+    </dependencies>
 </project>

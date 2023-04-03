@@ -19,12 +19,12 @@
 		<version>${openunison.version}</version>
     <scope>provided</scope>  
 	</dependency>
-  	<dependency>
+  	<!--  <dependency>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison-services-aws</artifactId>
 		<version>${openunison.version}</version>
     <scope>provided</scope>  
-	</dependency>
+	</dependency> -->
   		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
