@@ -1,4 +1,4 @@
-# 1.0.34-2023040201
+# 1.0.34-2023040301
 
 **enhancements:**
  - Integrate AWS Token provider [\#754](https://github.com/TremoloSecurity/OpenUnison/issues/754)

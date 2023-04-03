@@ -118,7 +118,7 @@ public class WebAuthnRegistration implements HttpFilter {
 		request.getServletRequest().setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
 		
 		if (request.getMethod().equalsIgnoreCase("GET")) {
-			if (request.getRequestURI().endsWith("/credentialCreateOptions")) {
+			if (request.getRequestURI().toLowerCase().endsWith("/credentialcreateoptions")) {
 				ObjectConverter oc = new  ObjectConverter();
 				String rpId = getRpId(request.getServletRequest());
 				AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
