@@ -1,3 +1,17 @@
+# 1.0.34-2023040201
+
+**enhancements:**
+ - Integrate AWS Token provider [\#754](https://github.com/TremoloSecurity/OpenUnison/issues/754)
+
+**Tasks:**
+ - 1.0.34 build [\#751](https://github.com/TremoloSecurity/OpenUnison/issues/751)
+
+**bugs:**
+ - js custom authorization persisting the globals object to the db [\#753](https://github.com/TremoloSecurity/OpenUnison/issues/753)
+ - Approvals "long transaction" needs optimizing [\#752](https://github.com/TremoloSecurity/OpenUnison/issues/752)
+ - WebAuthn - alternative root not supported [\#750](https://github.com/TremoloSecurity/OpenUnison/issues/750)
+
+
 # 1.0.33-2023022201
 
 **enhancements:**
