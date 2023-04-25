@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison</artifactId>
-		<version>1.0.34</version>
+		<version>1.0.35</version>
 	</parent>
 	<artifactId>unison-server-core</artifactId>
 	<name>unison-server-core</name>

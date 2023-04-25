@@ -1,10 +1,10 @@
-# 1.0.34-2023040301
+# 1.0.35-2023040301
 
 **enhancements:**
  - Integrate AWS Token provider [\#754](https://github.com/TremoloSecurity/OpenUnison/issues/754)
 
 **Tasks:**
- - 1.0.34 build [\#751](https://github.com/TremoloSecurity/OpenUnison/issues/751)
+ - 1.0.35 build [\#751](https://github.com/TremoloSecurity/OpenUnison/issues/751)
 
 **bugs:**
  - js custom authorization persisting the globals object to the db [\#753](https://github.com/TremoloSecurity/OpenUnison/issues/753)
