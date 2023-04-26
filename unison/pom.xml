@@ -61,7 +61,7 @@
 		<reflections.version>0.10.2</reflections.version>
 		<apache-log4j-extras.version>1.2.17</apache-log4j-extras.version>
 		<googleauth.version>1.5.0</googleauth.version>
-		<activemq.version>5.18.0</activemq.version>
+		<activemq.version>5.17.1</activemq.version>
 		<commons-pool2.version>2.11.1</commons-pool2.version>
 		<aws-java-sdk.version>1.12.437</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>1.1.3</amazon-sqs-java-messaging-lib.version>
@@ -209,7 +209,6 @@
 		<module>myvd-on-undertow</module>
 		<module>openunison-util-classes</module>
 		<module>unison-service-undertow</module>
-		<module>myvirtualdirectory-server</module>
 		<module>unison-applications-prometheus</module>
 		<module>ibm-mq-connection-factory</module>
 		<module>unison-scalejs-operators</module>
