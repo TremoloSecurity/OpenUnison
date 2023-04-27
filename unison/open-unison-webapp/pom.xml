@@ -53,6 +53,12 @@
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>open-unison-classes</artifactId>
 			<version>${openunison.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.geronimo.specs</groupId>
+					<artifactId>geronimo-jms_1.1_spec</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>commons-collections</groupId>
