@@ -1,4 +1,17 @@
-# 1.0.35-2023040301
+# 1.0.35-2023050801
+
+**bugs:**
+ - downgrade activemq [\#758](https://github.com/TremoloSecurity/OpenUnison/issues/758)
+ - referrals being sent on searches from LDAP groups  [\#757](https://github.com/TremoloSecurity/OpenUnison/issues/757)
+
+**enhancements:**
+ - make myvd cert loading easier [\#578](https://github.com/TremoloSecurity/OpenUnison/issues/578)
+
+**Tasks:**
+ - 1.0.35 build [\#756](https://github.com/TremoloSecurity/OpenUnison/issues/756)
+
+
+# 1.0.34-2023040301
 
 **enhancements:**
  - Integrate AWS Token provider [\#754](https://github.com/TremoloSecurity/OpenUnison/issues/754)
