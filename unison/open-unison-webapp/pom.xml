@@ -13,7 +13,7 @@
 	<parent>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison</artifactId>
-		<version>1.0.34</version>
+		<version>1.0.35</version>
 	</parent>
 	<artifactId>open-unison-webapp</artifactId>
 	<packaging>war</packaging>
@@ -53,6 +53,13 @@
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>open-unison-classes</artifactId>
 			<version>${openunison.version}</version>
+			<!-- remove jms 1.1 libraries -->
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.geronimo.specs</groupId>
+					<artifactId>geronimo-jms_1.1_spec</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>commons-collections</groupId>

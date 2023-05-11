@@ -257,7 +257,7 @@ public class ADProvider implements UserStoreProviderWithAddGroup {
 				
 				
 			}
-		} catch (LDAPException e) {
+		}  catch (LDAPException e) {
 			StringBuffer b = new StringBuffer();
 			b.append("Could not provision groups for user ").append(user.getUserID());
 			throw new ProvisioningException(b.toString(),e);
@@ -286,7 +286,7 @@ public class ADProvider implements UserStoreProviderWithAddGroup {
 			}
 		
 			
-		} catch (LDAPException e) {
+		}  catch (LDAPException e) {
 			StringBuffer b = new StringBuffer();
 			b.append("Could not sync user ").append(user.getUserID());
 			throw new ProvisioningException(b.toString(),e);
@@ -519,7 +519,9 @@ public class ADProvider implements UserStoreProviderWithAddGroup {
 			while (res.hasMore()) {
 				try {
 					res.next();
-				} catch (LDAPException e) {
+				}   catch (LDAPReferralException e) {
+					//do nothing
+				}  catch (LDAPException e) {
 					//do nothing
 				}
 			}
@@ -706,7 +708,7 @@ public class ADProvider implements UserStoreProviderWithAddGroup {
 				con.returnCon();
 			}
 			
-		} catch (LDAPException e) {
+		}   catch (LDAPException e) {
 			StringBuffer b = new StringBuffer();
 			b.append("Could not delete user ").append(user.getUserID());
 			throw new ProvisioningException(b.toString(),e);
