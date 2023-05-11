@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019 Tremolo Security, Inc.
+* Copyright 2019 Tremolo Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -72,7 +73,7 @@ public class OAuth2JWT extends OAuth2Bearer {
 	
 	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(OAuth2JWT.class.getName());
 
-	static HashMap<String,PublicKey> keyCache = new HashMap<String,PublicKey>();
+	static HashMap<String,List<PublicKey>> keyCache = new HashMap<String,List<PublicKey>>();
 	
 	public HttpCon createClient() throws Exception {
 		ArrayList<Header> defheaders = new ArrayList<Header>();
@@ -116,11 +117,11 @@ public class OAuth2JWT extends OAuth2Bearer {
 		
 		boolean useWellKnown = fromWellKnown.equalsIgnoreCase("true");
 		
-		PublicKey pk = null;
+		List<PublicKey> pks = null;
 		
 		if (useWellKnown) {
-			pk = keyCache.get(issuer);
-			if (pk == null) {
+			pks = keyCache.get(issuer);
+			if (pks == null) {
 				StringBuilder sb = new StringBuilder();
 				sb.append(issuer);
 				if (! issuer.endsWith("/")) {
@@ -148,14 +149,14 @@ public class OAuth2JWT extends OAuth2Bearer {
 					
 					
 					JsonWebKey jwk = null;
+					pks = new ArrayList<PublicKey>();
 					JsonWebKeySet jks = new JsonWebKeySet(json);
 					if (jks.getJsonWebKeys().size() == 0) {
 						jwk = jks.getJsonWebKeys().get(0);
 					} else {
 						for (JsonWebKey j : jks.getJsonWebKeys()) {
 							if (j.getUse().equalsIgnoreCase("sig")) {
-								jwk = j;
-								break;
+								pks.add((PublicKey)j.getKey());
 							}
 						}
 					}
@@ -164,9 +165,9 @@ public class OAuth2JWT extends OAuth2Bearer {
 						throw new ServletException("No key found");
 					}
 					
-					pk = (PublicKey) jwk.getKey();
 					
-					keyCache.put(issuer, pk);
+					
+					keyCache.put(issuer, pks);
 					
 					
 					
@@ -184,7 +185,9 @@ public class OAuth2JWT extends OAuth2Bearer {
 			
 		} else {
 			String validationKey = authParams.get("validationKey").getValues().get(0);
-			pk = cfg.getCertificate(validationKey).getPublicKey();
+			pks = new ArrayList<PublicKey>();
+			
+			pks.add( cfg.getCertificate(validationKey).getPublicKey());
 		}
 		
 		
@@ -203,9 +206,19 @@ public class OAuth2JWT extends OAuth2Bearer {
 		
 		JsonWebSignature jws = new JsonWebSignature();
 		try {
+			boolean sigVerified = false;
 			jws.setCompactSerialization(lmToken);
-			jws.setKey(pk);
-			if (! jws.verifySignature()) {
+			
+			for (PublicKey pk : pks) {
+				jws.setKey(pk);
+				if (jws.verifySignature()) {
+					sigVerified = true;
+					break;
+				}
+			}
+				
+			
+			if (! sigVerified) {
 				as.setExecuted(true);
 				as.setSuccess(false);
 				
