@@ -7,7 +7,7 @@
   <parent>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison</artifactId>
-		<version>1.0.35</version>
+		<version>1.0.36</version>
 	</parent>
   <artifactId>ibm-mq-connection-factory</artifactId>
   
