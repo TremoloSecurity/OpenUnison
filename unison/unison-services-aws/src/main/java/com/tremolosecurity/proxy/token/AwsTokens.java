@@ -16,9 +16,12 @@
 package com.tremolosecurity.proxy.token;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+
+import org.apache.log4j.Logger;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -42,6 +45,8 @@ import com.tremolosecurity.server.GlobalEntries;
  * AwsTokens
  */
 public class AwsTokens implements TokenLoader {
+	
+	static Logger logger = Logger.getLogger(TokenLoader.class.getName());
 
     String sigKeyName;
     String encKeyName;
@@ -118,7 +123,9 @@ public class AwsTokens implements TokenLoader {
                                     );
         
         //add attributes
-        assertion.getAttribs().add(new Attribute("https://aws.amazon.com/SAML/Attributes/RoleSessionName",uid.getValues().get(0).replace(":", "_")));
+        String sessionName = UUID.randomUUID().toString();
+        logger.info(String.format("Session %s for user %s", sessionName,uid));
+        assertion.getAttribs().add(new Attribute("https://aws.amazon.com/SAML/Attributes/RoleSessionName",sessionName));
         assertion.getAttribs().add(new Attribute("https://aws.amazon.com/SAML/Attributes/Role",new StringBuilder().append(this.roleName).append(",").append(this.idpName).toString()));
 
         String samlResp = assertion.generateSaml2Response();
