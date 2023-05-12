@@ -148,20 +148,17 @@ public class OAuth2JWT extends OAuth2Bearer {
 					resp.close();
 					
 					
-					JsonWebKey jwk = null;
+					
 					pks = new ArrayList<PublicKey>();
 					JsonWebKeySet jks = new JsonWebKeySet(json);
-					if (jks.getJsonWebKeys().size() == 0) {
-						jwk = jks.getJsonWebKeys().get(0);
-					} else {
-						for (JsonWebKey j : jks.getJsonWebKeys()) {
-							if (j.getUse().equalsIgnoreCase("sig")) {
-								pks.add((PublicKey)j.getKey());
-							}
+					for (JsonWebKey j : jks.getJsonWebKeys()) {
+						if (j.getUse().equalsIgnoreCase("sig")) {
+							pks.add((PublicKey)j.getKey());
 						}
 					}
 					
-					if (jwk == null) {
+					
+					if (pks.size() == 0) {
 						throw new ServletException("No key found");
 					}
 					
