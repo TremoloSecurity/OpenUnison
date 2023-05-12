@@ -1,3 +1,16 @@
+# 1.0.26-2023051201
+
+**bugs:**
+ - NullPointerException if authChainName is incorrect [\#759](https://github.com/TremoloSecurity/OpenUnison/issues/759)
+ - AWS Token - long username (over 64 characters) breaks  token exchanges [\#761](https://github.com/TremoloSecurity/OpenUnison/issues/761)
+ - OAuth2JWT mechanism only validating a single signature key [\#760](https://github.com/TremoloSecurity/OpenUnison/issues/760)
+ - downgrade activemq [\#758](https://github.com/TremoloSecurity/OpenUnison/issues/758)
+
+**Tasks:**
+ - 1.0.36 build [\#762](https://github.com/TremoloSecurity/OpenUnison/issues/762)
+ - 1.0.35 build [\#756](https://github.com/TremoloSecurity/OpenUnison/issues/756)
+
+
 # 1.0.35-2023050801
 
 **bugs:**
