@@ -350,6 +350,10 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			
 			AuthChainType act = holder.getConfig().getAuthChains().get(authChain);
 			
+			if (act == null) {
+				throw new ServletException(String.format("AuthenticationChain '%s' not found", authChain));
+			}
+			
 			session.setAttribute(OpenIDConnectIdP.TRANSACTION_DATA, transaction);
 			
 			if (authData == null || ! authData.isAuthComplete() && ! (authData.getAuthLevel() < act.getLevel()) ) {
