@@ -87,7 +87,7 @@
 	  	<azure-auth.version>1.13.7</azure-auth.version>
 	  	<cryptacular.version>1.2.5</cryptacular.version>
 	  	<santuario-xmlsec.version>3.0.1</santuario-xmlsec.version>
-		<netty-codec.version>4.1.90.Final</netty-codec.version>
+		<netty-codec.version>4.1.94.Final</netty-codec.version>
 		<netty-common.version>4.1.90.Final</netty-common.version>
 		<dom4j.version>2.1.4</dom4j.version>  
 		<gitlab.version>5.0.1</gitlab.version>
