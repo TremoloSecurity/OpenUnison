@@ -107,6 +107,7 @@ public class WebAuthnRegistration implements HttpFilter {
 	String workflowName;
 	String challengeStoreAttribute;
 	
+	String credentialIdAttribute;
 	
 	boolean requireResisentKey;
 	AuthenticatorAttachment authenticatorAttachment;
@@ -317,7 +318,11 @@ public class WebAuthnRegistration implements HttpFilter {
 		
 		webAuthnUserData.getAuthenticators().add(authenticator);
 		
-		WebAuthnUtils.storeWebAuthnUserData(webAuthnUserData, encryptionKeyName, userData, workflowName, uidAttributeName, challengeStoreAttribute);
+		if (this.credentialIdAttribute != null) {
+			WebAuthnUtils.storeWebAuthnUserData(webAuthnUserData, encryptionKeyName, userData, workflowName, uidAttributeName, challengeStoreAttribute,this.credentialIdAttribute,authenticator);
+		} else {
+			WebAuthnUtils.storeWebAuthnUserData(webAuthnUserData, encryptionKeyName, userData, workflowName, uidAttributeName, challengeStoreAttribute);
+		}
 	} 
 	
 	
@@ -360,6 +365,13 @@ public class WebAuthnRegistration implements HttpFilter {
 		}
 		this.userVerificationRequirement = UserVerificationRequirement.create(config.getAttribute("userVerificationRequirement").getValues().get(0));
 		this.requireResisentKey = config.getAttribute("requireResidentKey").getValues().get(0).equalsIgnoreCase("true");
+		
+		if (config.getAttribute("credentialIdAttributeName") != null) {
+			this.credentialIdAttribute = config.getAttribute("credentialIdAttributeName").getValues().get(0);
+			
+		} else {
+			this.credentialIdAttribute = null;
+		}
 	}
 
 }

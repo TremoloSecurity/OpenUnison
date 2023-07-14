@@ -70,6 +70,9 @@ if (reqHolder != null) {
 			
 			
 <br />
+
+
+
 <div id="msg" class="h4">Please insert your webauthn key to complete authentication</div>
 <button class="btn btn-lg btn-danger btn-block" type="button" name="login" id="login" onclick="javascript:doAuthentication();">Login</button>
 <div>

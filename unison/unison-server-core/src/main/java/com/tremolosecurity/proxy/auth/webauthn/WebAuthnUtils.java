@@ -51,6 +51,11 @@ public class WebAuthnUtils {
 	
 	
 	public static void storeWebAuthnUserData(WebAuthnUserData webAuthnUserData,String encryptionKeyName,AuthInfo userData,String workflowName,String uidAttributeName,String challengeStoreAttribute) throws Exception {
+		storeWebAuthnUserData(webAuthnUserData,encryptionKeyName,userData,workflowName,uidAttributeName,challengeStoreAttribute,null,null);
+		
+	}
+	
+	public static void storeWebAuthnUserData(WebAuthnUserData webAuthnUserData,String encryptionKeyName,AuthInfo userData,String workflowName,String uidAttributeName,String challengeStoreAttribute,String credentialIdAttribute,OpenUnisonAuthenticator newAuthentictor) throws Exception {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ObjectOutputStream oos = new ObjectOutputStream(baos);
 		oos.writeObject(webAuthnUserData);
@@ -94,6 +99,15 @@ public class WebAuthnUtils {
 		tu.setUid(userData.getAttribs().get(uidAttributeName).getValues().get(0));
 		tu.getAttributes().add(new Attribute(uidAttributeName,userData.getAttribs().get(uidAttributeName).getValues().get(0)));
 		tu.getAttributes().add(new Attribute(challengeStoreAttribute,b64));
+		
+		if (credentialIdAttribute != null && newAuthentictor != null) {
+			String b64url = java.util.Base64.getUrlEncoder().encodeToString(newAuthentictor.getAttestedCredentialData().getCredentialId());
+			while (b64url.charAt(b64url.length() - 1) == '=') {
+				b64url = b64url.substring(0,b64url.length() - 1);
+			}
+			tu.getAttributes().add(new Attribute(credentialIdAttribute,b64url));
+		}
+		
 		wc.setUser(tu);
 		Map<String,Object> req = new HashMap<String,Object>();
 		req.put(ProvisioningParams.UNISON_EXEC_TYPE, ProvisioningParams.UNISON_EXEC_SYNC);
