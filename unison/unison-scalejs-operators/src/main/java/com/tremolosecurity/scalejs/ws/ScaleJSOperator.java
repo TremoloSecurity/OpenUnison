@@ -42,6 +42,7 @@ import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.config.xml.UrlType;
 import com.tremolosecurity.provisioning.service.util.TremoloUser;
 import com.tremolosecurity.provisioning.service.util.WFCall;
+import com.tremolosecurity.proxy.ProxyResponse;
 import com.tremolosecurity.proxy.ProxySys;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.filter.HttpFilter;
@@ -99,6 +100,7 @@ public class ScaleJSOperator implements HttpFilter {
 			if (request.getRequestURI().endsWith("/ops/config")) {
 				ScaleJSUtils.addCacheHeaders(response);
 				response.setContentType("application/json; charset=UTF-8");
+				((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 				response.getWriter().println(gson.toJson(this.config).trim());
 			} else if (request.getRequestURI().endsWith("/ops/search")) {
 				runSearch(request, response, gson);
@@ -242,6 +244,7 @@ public class ScaleJSOperator implements HttpFilter {
 						ScaleError error = new ScaleError();
 						error.getErrors().add("Please contact your system administrator");
 						ScaleJSUtils.addCacheHeaders(response);
+						((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 						response.getWriter().print(gson.toJson(error).trim());
 						response.getWriter().flush();
 					}
@@ -250,6 +253,7 @@ public class ScaleJSOperator implements HttpFilter {
 				} else {
 					response.setStatus(500);
 					ScaleJSUtils.addCacheHeaders(response);
+					((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 					response.getWriter().print(gson.toJson(errors).trim());
 					response.getWriter().flush();
 				}
@@ -261,6 +265,7 @@ public class ScaleJSOperator implements HttpFilter {
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Operation not supported");
 			ScaleJSUtils.addCacheHeaders(response);
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 			response.getWriter().print(gson.toJson(error).trim());
 			response.getWriter().flush();
 			
@@ -399,6 +404,7 @@ public class ScaleJSOperator implements HttpFilter {
 		}
 		ScaleJSUtils.addCacheHeaders(response);
 		response.setContentType("application/json; charset=UTF-8");
+		((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 		response.getWriter().println(gson.toJson(userToSend).trim());
 	}
 
@@ -460,6 +466,7 @@ public class ScaleJSOperator implements HttpFilter {
 
 		ScaleJSUtils.addCacheHeaders(response);
 		response.setContentType("application/json; charset=UTF-8");
+		((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 		response.getWriter().println(gson.toJson(resList).trim());
 	}
 

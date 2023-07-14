@@ -99,6 +99,7 @@ import com.tremolosecurity.provisioning.service.util.WFDescription;
 import com.tremolosecurity.provisioning.tasks.Approval;
 import com.tremolosecurity.provisioning.util.DynamicWorkflow;
 import com.tremolosecurity.provisioning.workflow.ApprovalData;
+import com.tremolosecurity.proxy.ProxyResponse;
 import com.tremolosecurity.proxy.ProxySys;
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.auth.AuthInfo;
@@ -210,8 +211,9 @@ public class ScaleMain implements HttpFilter {
 				}
 				checkPreCheck(request, userData, allowedOrgs, workflowName, orgid, preCheckResp);
 				ScaleJSUtils.addCacheHeaders(response);
+				((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 				response.getWriter().print(gson.toJson(preCheckResp).trim());
-				response.getWriter().flush();
+				
 			} catch (Throwable t) {
 				logger.error("Could not check for preapproval status",t);
 				response.setStatus(500);
@@ -219,8 +221,9 @@ public class ScaleMain implements HttpFilter {
 				ScaleJSUtils.addCacheHeaders(response);
 				ScaleError error = new ScaleError();
 				error.getErrors().add("Unable to check");
+				((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 				response.getWriter().print(gson.toJson(error).trim());
-				response.getWriter().flush();
+				
 			}
 			
 		} else if (request.getMethod().equalsIgnoreCase("PUT") && request.getRequestURI().endsWith("/main/workflows")) {
@@ -253,8 +256,9 @@ public class ScaleMain implements HttpFilter {
 				ScaleJSUtils.addCacheHeaders(response);
 				ScaleError error = new ScaleError();
 				error.getErrors().add("Unauthorized");
+				((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 				response.getWriter().print(gson.toJson(error).trim());
-				response.getWriter().flush();
+				
 			} else {
 				ScaleApprovalData approvalData = gson.fromJson(new String((byte[]) request.getAttribute(ProxySys.MSG_BODY)), ScaleApprovalData.class);
 				try {
@@ -271,8 +275,9 @@ public class ScaleMain implements HttpFilter {
 					ScaleError error = new ScaleError();
 					error.getErrors().add("There was a problem completeding your request, please contact your system administrator");
 					ScaleJSUtils.addCacheHeaders(response);
+					((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 					response.getWriter().print(gson.toJson(error).trim());
-					response.getWriter().flush();
+					
 				}
 			}
 			
@@ -325,10 +330,11 @@ public class ScaleMain implements HttpFilter {
 			}
 			
 			
-			
+			response.setContentType("application/json; charset=UTF-8");
 			ScaleJSUtils.addCacheHeaders(response);
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 			response.getWriter().print(gson.toJson(urls.getUrls()).trim());
-			response.getWriter().flush();
+			
 		} else if (request.getMethod().equalsIgnoreCase("GET") && request.getRequestURI().contains("/main/urls/org")) {
 			String id = URLDecoder.decode(request.getRequestURI().substring(request.getRequestURI().lastIndexOf('/') + 1), "UTF-8");
 			AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
@@ -368,10 +374,16 @@ public class ScaleMain implements HttpFilter {
 			}
 			
 			
-			
+			response.setContentType("application/json; charset=UTF-8");
 			ScaleJSUtils.addCacheHeaders(response);
-			response.getWriter().print(gson.toJson(urls.getUrls()).trim());
-			response.getWriter().flush();
+			
+			
+			
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
+			
+			//response.getWriter().print(gson.toJson(urls.getUrls()).trim());
+			response.getOutputStream().write(gson.toJson(urls.getUrls()).trim().getBytes("UTF-8"));
+			
 		}
 		
 		
@@ -380,8 +392,9 @@ public class ScaleMain implements HttpFilter {
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Operation not supported");
 			ScaleJSUtils.addCacheHeaders(response);
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 			response.getWriter().print(gson.toJson(error).trim());
-			response.getWriter().flush();
+			
 		}
 
 		} catch (Throwable t) {
@@ -391,8 +404,9 @@ public class ScaleMain implements HttpFilter {
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Operation not supported");
 			ScaleJSUtils.addCacheHeaders(response);
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 			response.getWriter().print(gson.toJson(error).trim());
-			response.getWriter().flush();
+			
 			
 		}
 	}
@@ -442,7 +456,7 @@ public class ScaleMain implements HttpFilter {
 		
 			// generate a spreadsheet from the requested report data. 
 			ReportResults res = gson.fromJson(new String((byte[]) request.getAttribute(ProxySys.MSG_BODY)), ReportResults.class);
-			
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 			generateExcelReport(response, gson, res);
 		} else {
 			logger.error("Unsupported method for main/reports/excelx : " + request.getMethod());
@@ -457,8 +471,9 @@ public class ScaleMain implements HttpFilter {
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Report no longer available");
 			ScaleJSUtils.addCacheHeaders(response);
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 			response.getWriter().print(gson.toJson(error).trim());
-			response.getWriter().flush();
+			
 		} else {
 			
 		
@@ -587,8 +602,9 @@ public class ScaleMain implements HttpFilter {
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Report not found");
 			ScaleJSUtils.addCacheHeaders(response);
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 			response.getWriter().print(gson.toJson(error).trim());
-			response.getWriter().flush();
+			
 		} else {
 			HashSet<String> allowedOrgs = new HashSet<String>();
 			final AuthInfo userData = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
@@ -626,8 +642,9 @@ public class ScaleMain implements HttpFilter {
 				ScaleError error = new ScaleError();
 				error.getErrors().add("Unauthorized");
 				ScaleJSUtils.addCacheHeaders(response);
+				((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 				response.getWriter().print(gson.toJson(error).trim());
-				response.getWriter().flush();
+				
 			}
 		}
 	}
@@ -759,8 +776,9 @@ public class ScaleMain implements HttpFilter {
 				}
 				response.setContentType("application/json; charset=UTF-8");
 				ScaleJSUtils.addCacheHeaders(response);
+				((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 				response.getWriter().print(json);
-				response.getWriter().flush();
+				
 			} else {
 				ProvisioningResult pres = new ProvisioningResult();
 				pres.setSuccess(true);
@@ -773,8 +791,9 @@ public class ScaleMain implements HttpFilter {
 				}
 				response.setContentType("application/json; charset=UTF-8");
 				ScaleJSUtils.addCacheHeaders(response);
+				((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 				response.getWriter().print(json);
-				response.getWriter().flush();
+				
 			}
 		} finally {
 			if (rs != null) {
@@ -823,8 +842,9 @@ public class ScaleMain implements HttpFilter {
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Unauthorized");
 			ScaleJSUtils.addCacheHeaders(response);
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 			response.getWriter().print(gson.toJson(error).trim());
-			response.getWriter().flush();
+			
 		} else {
 			response.setContentType("application/json; charset=UTF-8");
 			
@@ -903,7 +923,7 @@ public class ScaleMain implements HttpFilter {
 			
 			ScaleJSUtils.addCacheHeaders(response);		
 			response.getWriter().println(gson.toJson(details).trim());
-			response.getWriter().flush();
+			
 		}
 	}
 
@@ -1133,8 +1153,9 @@ public class ScaleMain implements HttpFilter {
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Unauthorized");
 			ScaleJSUtils.addCacheHeaders(response);
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 			response.getWriter().print(gson.toJson(error).trim());
-			response.getWriter().flush();
+			
 		} else {
 			List<WorkflowType> wfs = GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getWorkflows().getWorkflow();
 			
@@ -1222,8 +1243,9 @@ public class ScaleMain implements HttpFilter {
 			}
 			ScaleJSUtils.addCacheHeaders(response);
 			response.setContentType("application/json; charset=UTF-8");
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);			
 			response.getWriter().println(gson.toJson(workflows).trim());
-			response.getWriter().flush();
+			
 		}
 	}
 	
@@ -1243,8 +1265,9 @@ public class ScaleMain implements HttpFilter {
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Unauthorized");
 			ScaleJSUtils.addCacheHeaders(response);
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 			response.getWriter().print(gson.toJson(error).trim());
-			response.getWriter().flush();
+			
 		} else {
 			
 			ReportsType reports = GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getReports();
@@ -1270,7 +1293,7 @@ public class ScaleMain implements HttpFilter {
 			response.setContentType("application/json; charset=UTF-8");
 			ScaleJSUtils.addCacheHeaders(response);
 			response.getWriter().println(gson.toJson(reportsList).trim());
-			response.getWriter().flush();
+			
 		}
 	}
 	
@@ -1407,16 +1430,18 @@ public class ScaleMain implements HttpFilter {
 				ScaleError error = new ScaleError();
 				error.getErrors().add("Please contact your system administrator");
 				ScaleJSUtils.addCacheHeaders(response);
+				((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 				response.getWriter().print(gson.toJson(error).trim());
-				response.getWriter().flush();
+				
 			}
 			
 			
 		} else {
 			response.setStatus(500);
 			ScaleJSUtils.addCacheHeaders(response);
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 			response.getWriter().print(gson.toJson(errors).trim());
-			response.getWriter().flush();
+			
 		}
 	}
 
@@ -1477,6 +1502,7 @@ public class ScaleMain implements HttpFilter {
 		attrNames.add("cn");
 		LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, equal(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),userData.getUserDN()).toString(), attrNames);
 		
+		try {
 		while (res.hasMore()) {
 			LDAPEntry entry = res.next();
 			
@@ -1487,9 +1513,13 @@ public class ScaleMain implements HttpFilter {
 			}
 		}
 		
+		
+		
 		ScaleJSUtils.addCacheHeaders(response);
 		response.getWriter().println(gson.toJson(userToSend).trim());
-		
+		} finally {
+			while (res.hasMore()) res.next();
+		}
 		
 	}
 
