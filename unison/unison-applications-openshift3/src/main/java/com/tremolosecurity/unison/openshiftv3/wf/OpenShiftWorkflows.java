@@ -68,6 +68,10 @@ public class OpenShiftWorkflows implements DynamicWorkflow {
 					HashMap<String,String> wfParams = new HashMap<String,String>();
 					String name = (String) item.getMetadata().get("name");
 					
+					if (item.getMetadata().get("namespace") != null) {
+						wfParams.put("namespace",(String) item.getMetadata().get("namespace"));
+					}
+					
 					if (nameFilter.contains(name)) {
 						continue;
 					}
