@@ -29,12 +29,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpSession;
 
 import com.tremolosecurity.util.NVP;
 
@@ -93,10 +93,7 @@ public class LocalSessionRequest extends HttpServletRequestWrapper {
 		return false;
 	}
 
-	@Override
-	public boolean isRequestedSessionIdFromUrl() {
-		return false;
-	}
+	
 
 	@Override
 	public boolean isRequestedSessionIdValid() {

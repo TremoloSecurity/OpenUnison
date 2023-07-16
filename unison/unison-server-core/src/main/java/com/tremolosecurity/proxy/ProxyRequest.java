@@ -35,19 +35,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.commons.collections.iterators.IteratorEnumeration;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileItemFactory;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.fileupload.servlet.ServletRequestContext;
+import org.apache.commons.fileupload2.core.FileItem;
+import org.apache.commons.fileupload2.core.FileItemFactory;
+import org.apache.commons.fileupload2.core.DiskFileItemFactory;
+import org.apache.commons.fileupload2.jakarta.JakartaServletFileUpload;
+import org.apache.commons.fileupload2.jakarta.JakartaServletRequestContext;
 import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.util.NVP;
@@ -154,7 +154,8 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 		
 		this.session = session;
 		
-		ServletRequestContext reqCtx = new ServletRequestContext(req);
+	
+		JakartaServletRequestContext reqCtx = new JakartaServletRequestContext(req);
 		this.isMultiPart = "POST".equalsIgnoreCase(req.getMethod()) && reqCtx.getContentType() != null && reqCtx.getContentType().toLowerCase(Locale.ENGLISH).startsWith("multipart/form-data");
 		
 		
@@ -188,12 +189,12 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 		if (this.isMultiPart) {
 			this.isPush = true;
 			// Create a factory for disk-based file items
-			FileItemFactory factory = new DiskFileItemFactory();
+			FileItemFactory factory = DiskFileItemFactory.builder().get();
 
 			
 			
 			// Create a new file upload handler
-			ServletFileUpload upload = new ServletFileUpload(factory);
+			JakartaServletFileUpload upload = new JakartaServletFileUpload(factory);
 			
 			List<FileItem>  items = upload.parseRequest(req);
 			
@@ -222,6 +223,9 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 					vals.add(item);
 				}
 			}
+			
+			
+			
 			
 			
 			

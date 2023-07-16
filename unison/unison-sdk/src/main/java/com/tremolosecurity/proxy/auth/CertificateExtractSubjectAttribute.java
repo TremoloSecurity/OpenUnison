@@ -18,7 +18,7 @@ package com.tremolosecurity.proxy.auth;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 
 /**
  * Implement this class to extract a subject attribute from a certificate

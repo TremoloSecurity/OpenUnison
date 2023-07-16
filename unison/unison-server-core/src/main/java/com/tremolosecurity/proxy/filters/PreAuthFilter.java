@@ -29,9 +29,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpResponse;

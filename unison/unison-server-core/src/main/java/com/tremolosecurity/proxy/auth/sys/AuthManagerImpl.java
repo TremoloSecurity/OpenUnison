@@ -26,11 +26,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
@@ -79,7 +79,7 @@ public class AuthManagerImpl implements AuthManager {
 	static transient Logger logger = org.apache.logging.log4j.LogManager.getLogger(AuthManager.class.getName());
 	
 	/* (non-Javadoc)
-	 * @see com.tremolosecurity.proxy.auth.sys.AuthManager#nextAuth(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, boolean)
+	 * @see com.tremolosecurity.proxy.auth.sys.AuthManager#nextAuth(jakarta.servlet.http.HttpServletRequest, jakarta.servlet.http.HttpServletResponse, jakarta.servlet.http.HttpSession, boolean)
 	 */
 	@Override
 	public boolean nextAuth(HttpServletRequest req, HttpServletResponse resp,
@@ -89,7 +89,7 @@ public class AuthManagerImpl implements AuthManager {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.tremolosecurity.proxy.auth.sys.AuthManager#nextAuth(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, boolean, com.tremolosecurity.proxy.util.NextSys)
+	 * @see com.tremolosecurity.proxy.auth.sys.AuthManager#nextAuth(jakarta.servlet.http.HttpServletRequest, jakarta.servlet.http.HttpServletResponse, jakarta.servlet.http.HttpSession, boolean, com.tremolosecurity.proxy.util.NextSys)
 	 */
 	@Override
 	public boolean nextAuth(HttpServletRequest req, HttpServletResponse resp,
@@ -136,7 +136,7 @@ public class AuthManagerImpl implements AuthManager {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.tremolosecurity.proxy.auth.sys.AuthManager#execAuth(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, boolean, com.tremolosecurity.config.util.UrlHolder, com.tremolosecurity.config.xml.AuthChainType, java.lang.String)
+	 * @see com.tremolosecurity.proxy.auth.sys.AuthManager#execAuth(jakarta.servlet.http.HttpServletRequest, jakarta.servlet.http.HttpServletResponse, jakarta.servlet.http.HttpSession, boolean, com.tremolosecurity.config.util.UrlHolder, com.tremolosecurity.config.xml.AuthChainType, java.lang.String)
 	 */
 	@Override
 	public boolean execAuth(HttpServletRequest req, HttpServletResponse resp,
@@ -150,7 +150,7 @@ public class AuthManagerImpl implements AuthManager {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.tremolosecurity.proxy.auth.sys.AuthManager#execAuth(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, boolean, com.tremolosecurity.config.util.UrlHolder, com.tremolosecurity.config.xml.AuthChainType, java.lang.String, com.tremolosecurity.proxy.util.NextSys)
+	 * @see com.tremolosecurity.proxy.auth.sys.AuthManager#execAuth(jakarta.servlet.http.HttpServletRequest, jakarta.servlet.http.HttpServletResponse, jakarta.servlet.http.HttpSession, boolean, com.tremolosecurity.config.util.UrlHolder, com.tremolosecurity.config.xml.AuthChainType, java.lang.String, com.tremolosecurity.proxy.util.NextSys)
 	 */
 	@Override
 	public boolean execAuth(HttpServletRequest req, HttpServletResponse resp,
@@ -622,7 +622,7 @@ public class AuthManagerImpl implements AuthManager {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.tremolosecurity.proxy.auth.sys.AuthManager#finishSuccessfulLogin(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, com.tremolosecurity.config.util.UrlHolder, com.tremolosecurity.config.xml.AuthChainType, com.tremolosecurity.proxy.auth.RequestHolder, com.tremolosecurity.proxy.auth.AuthController, com.tremolosecurity.proxy.util.NextSys)
+	 * @see com.tremolosecurity.proxy.auth.sys.AuthManager#finishSuccessfulLogin(jakarta.servlet.http.HttpServletRequest, jakarta.servlet.http.HttpServletResponse, com.tremolosecurity.config.util.UrlHolder, com.tremolosecurity.config.xml.AuthChainType, com.tremolosecurity.proxy.auth.RequestHolder, com.tremolosecurity.proxy.auth.AuthController, com.tremolosecurity.proxy.util.NextSys)
 	 */
 	@Override
 	public boolean finishSuccessfulLogin(HttpServletRequest req,
@@ -804,7 +804,7 @@ public class AuthManagerImpl implements AuthManager {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.tremolosecurity.proxy.auth.sys.AuthManager#loadAmtParams(javax.servlet.http.HttpSession, com.tremolosecurity.config.xml.AuthMechType)
+	 * @see com.tremolosecurity.proxy.auth.sys.AuthManager#loadAmtParams(jakarta.servlet.http.HttpSession, com.tremolosecurity.config.xml.AuthMechType)
 	 */
 	@Override
 	public void loadAmtParams(HttpSession session, AuthMechType amt) {

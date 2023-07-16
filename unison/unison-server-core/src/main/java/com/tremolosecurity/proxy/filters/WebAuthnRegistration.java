@@ -35,8 +35,8 @@ import java.util.zip.DeflaterOutputStream;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;

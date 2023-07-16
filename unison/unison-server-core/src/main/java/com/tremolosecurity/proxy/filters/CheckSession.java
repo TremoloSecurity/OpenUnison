@@ -15,7 +15,7 @@ package com.tremolosecurity.proxy.filters;
 import java.util.ArrayList;
 
 import javax.crypto.SecretKey;
-import javax.servlet.http.Cookie;
+import jakarta.servlet.http.Cookie;
 
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;

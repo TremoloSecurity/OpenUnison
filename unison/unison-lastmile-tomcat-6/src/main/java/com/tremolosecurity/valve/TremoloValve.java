@@ -34,9 +34,9 @@ import java.util.Properties;
 import java.util.Vector;
 
 import javax.crypto.SecretKey;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;

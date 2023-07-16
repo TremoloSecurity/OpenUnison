@@ -12,7 +12,7 @@
  *******************************************************************************/
 package com.tremolosecurity.scalejs.util;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.tremolosecurity.proxy.filter.HttpFilterResponse;
 

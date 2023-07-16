@@ -34,11 +34,11 @@ import java.util.Iterator;
 
 import javax.security.auth.kerberos.KerberosKey;
 import javax.security.auth.login.LoginException;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import net.sourceforge.spnego.SpnegoAuthenticator;
 import net.sourceforge.spnego.SpnegoFilterConfig;
@@ -310,6 +310,7 @@ MyVDConnection myvd = cfgMgr.getMyVD();
 				
 				spnegoCfg.put("spnego.preauth.username", userName);
 				spnegoCfg.put("spnego.preauth.password", password);
+				spnegoCfg.put("spnego.exclude.dirs", "");
 				
 				
 		            try {

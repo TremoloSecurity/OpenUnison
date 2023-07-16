@@ -46,7 +46,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tomcat</groupId>
-			<artifactId>catalina</artifactId>
+			<artifactId>tomcat-catalina</artifactId>
 			<version>${catalina.version}</version>
 			<scope>provided</scope>
 		</dependency>

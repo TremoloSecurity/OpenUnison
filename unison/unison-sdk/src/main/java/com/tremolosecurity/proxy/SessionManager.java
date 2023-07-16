@@ -20,10 +20,10 @@ package com.tremolosecurity.proxy;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UrlHolder;

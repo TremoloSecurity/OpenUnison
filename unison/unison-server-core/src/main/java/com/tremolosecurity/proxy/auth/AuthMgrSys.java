@@ -22,15 +22,15 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.logging.log4j.Logger;
 
@@ -167,7 +167,7 @@ public class AuthMgrSys {
 		MechanismType mt = cfgMgr.getAuthMechs().get(authMechName);
 		
 		String ruri = request.getRequestURI();
-		String forwardedURI = (String) request.getAttribute("javax.servlet.forward.request_uri");
+		String forwardedURI = (String) request.getAttribute("jakarta.servlet.forward.request_uri");
 		
 		/*Enumeration enumer = req.getAttributeNames();
 		while (enumer.hasMoreElements()) {

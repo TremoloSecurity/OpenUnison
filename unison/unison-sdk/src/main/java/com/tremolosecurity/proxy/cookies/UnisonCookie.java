@@ -31,7 +31,7 @@ package com.tremolosecurity.proxy.cookies;
 
 
 
-import javax.servlet.http.Cookie;
+import jakarta.servlet.http.Cookie;
 
 public class UnisonCookie extends Cookie {
 

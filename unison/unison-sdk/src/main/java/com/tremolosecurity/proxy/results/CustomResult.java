@@ -17,10 +17,10 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.results;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public interface CustomResult {
 	public String getResultValue(HttpServletRequest request,HttpServletResponse response) throws ServletException;

@@ -21,9 +21,9 @@ import java.io.Serializable;
 import java.util.Enumeration;
 import java.util.HashMap;
 
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpSessionContext;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpSession;
+
 
 import org.apache.logging.log4j.Logger;
 
@@ -121,18 +121,14 @@ public class TremoloHttpSession implements HttpSession, Serializable {
 		this.mgr = mgr;
 	}
 
-	@Override
-	public HttpSessionContext getSessionContext() {
-		return null;
-	}
 
-	@Override
+	
 	public Object getValue(String key) {
 		this.lastAccessedTime = System.currentTimeMillis();
 		return this.data.get(key);
 	}
 
-	@Override
+	
 	public String[] getValueNames() {
 		this.lastAccessedTime = System.currentTimeMillis();
 		String[] names = new String[this.data.keySet().size()];
@@ -159,7 +155,7 @@ public class TremoloHttpSession implements HttpSession, Serializable {
 		}
 	}
 
-	@Override
+	
 	public void putValue(String key, Object value) {
 		this.lastAccessedTime = System.currentTimeMillis();
 		this.data.put(key, value);
@@ -173,7 +169,7 @@ public class TremoloHttpSession implements HttpSession, Serializable {
 
 	}
 
-	@Override
+	
 	public void removeValue(String key) {
 		this.lastAccessedTime = System.currentTimeMillis();
 		this.data.remove(key);

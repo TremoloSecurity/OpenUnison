@@ -23,16 +23,19 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.function.Supplier;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
 
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
@@ -397,7 +400,7 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 		return resp.encodeRedirectURL(url);
 	}
 
-	@Override
+	
 	public String encodeRedirectUrl(String url) {
 		return resp.encodeRedirectURL(url);
 	}
@@ -407,9 +410,9 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 		return resp.encodeURL(url);
 	}
 
-	@Override
+	
 	public String encodeUrl(String url) {
-		return resp.encodeUrl(url);
+		return resp.encodeURL(url);
 	}
 
 	@Override
@@ -420,7 +423,7 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 
 	@Override
 	public void sendError(int code, String status) throws IOException {
-		resp.setStatus(code, status);
+		resp.sendError(code, status);
 
 	}
 
@@ -458,11 +461,8 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 
 	}
 
-	@Override
-	public void setStatus(int status, String line) {
-		resp.setStatus(status, line);
-
-	}
+	
+	
 
 	public static void addCookieToResponse(UrlHolder holder, Cookie sessionCookieName, HttpServletResponse resp2) {
 		
@@ -477,5 +477,49 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 		ProxyResponse.addCookieToResponse(appConfig, new StringBuilder(), DateTimeFormat.forPattern( "EEE, dd-MMM-yyyy HH:mm:ss 'GMT'" ).withLocale(Locale.US), sessionCookieName, resp2);	
 		
 	}
+
+	@Override
+	public int getStatus() {
+		return resp.getStatus();
+	}
+
+	@Override
+	public String getHeader(String name) {
+		Attribute attr = this.headers.get(name);
+		if (attr != null) {
+			return attr.getValues().get(0);
+		} else {
+			return null;
+		}
+	}
+
+	@Override
+	public Collection<String> getHeaders(String name) {
+		Attribute attr = this.headers.get(name);
+		if (attr != null) {
+			return attr.getValues();
+		} else {
+			return null;
+		}
+	}
+
+	@Override
+	public Collection<String> getHeaderNames() {
+		return this.headers.keySet();
+	}
+
+	@Override
+	public void setTrailerFields(Supplier<Map<String, String>> supplier) {
+		
+		resp.setTrailerFields(supplier);
+	}
+
+	@Override
+	public Supplier<Map<String, String>> getTrailerFields() {
+		
+		return resp.getTrailerFields();
+	}
+	
+	
 
 }

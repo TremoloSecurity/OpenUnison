@@ -39,8 +39,8 @@
 			<version>${httpmime.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>commons-fileupload</groupId>
-			<artifactId>commons-fileupload</artifactId>
+			<groupId>org.apache.commons</groupId>
+  			<artifactId>commons-fileupload2-jakarta</artifactId>
 			<version>${commons-fileupload.version}</version>
 		</dependency>
 		
@@ -244,6 +244,8 @@
 			<artifactId>netty-common</artifactId>
 			<version>${netty-common.version}</version>
 		</dependency>
+		
+
 	</dependencies>
 
 

@@ -15,7 +15,7 @@ package com.tremolosecurity.scalejs.sdk;
 import java.util.HashMap;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.saml.Attribute;

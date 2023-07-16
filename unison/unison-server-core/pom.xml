@@ -41,7 +41,7 @@
 
 		<dependency>
 			<groupId>net.sourceforge.spnego</groupId>
-			<artifactId>net.sourceforge.spnego</artifactId>
+			<artifactId>spnego-jakarta</artifactId>
 			<version>${net.sourceforge.spnego.version}</version>
 		</dependency>
 
@@ -87,10 +87,10 @@
 		</dependency>
 
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-			<version>${servlet.api.version}</version>
-			<scope>provided</scope>
+		  <groupId>jakarta.servlet</groupId>
+		  <artifactId>jakarta.servlet-api</artifactId>
+		  <version>${jakarta-api.version}</version>
+		  <scope>provided</scope>
 		</dependency>
 
 		<dependency>

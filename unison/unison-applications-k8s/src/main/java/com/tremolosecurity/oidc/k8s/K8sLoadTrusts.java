@@ -19,7 +19,7 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;

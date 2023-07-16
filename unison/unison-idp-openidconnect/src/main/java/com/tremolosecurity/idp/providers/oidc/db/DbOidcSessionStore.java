@@ -15,7 +15,7 @@ package com.tremolosecurity.idp.providers.oidc.db;
 import java.sql.Timestamp;
 import java.util.HashMap;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 import org.hibernate.Query;
 import org.hibernate.Session;

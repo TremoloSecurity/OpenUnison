@@ -21,7 +21,7 @@ import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 
 import java.util.ArrayList;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.logging.log4j.Logger;
 

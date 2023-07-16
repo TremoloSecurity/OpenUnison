@@ -18,6 +18,7 @@
 		<openunison.version>1.0.37</openunison.version>
 		<servlet.api.version>3.1.0</servlet.api.version>
 		<servlet.2x.api.version>2.5</servlet.2x.api.version>
+		<jakarta-api.version>6.0.0</jakarta-api.version>
 		<commons-collections.version>3.2.2</commons-collections.version>
 		<commons-cli.version>1.5.0</commons-cli.version>
 		<commons-codec.version>1.15</commons-codec.version>
@@ -40,14 +41,14 @@
 		<gson.version>2.10.1</gson.version>
 		<bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
 		<bcprov-ext-jdk15on.version>1.70</bcprov-ext-jdk15on.version>
-		<catalina.version>6.0.53</catalina.version>
+		<catalina.version>10.1.10</catalina.version>
 		<undertow-1x.version>1.0.0.Final</undertow-1x.version>
-		<myvd-server.version>1.0.18</myvd-server.version>
+		<myvd-server.version>1.0.19</myvd-server.version>
 		<jldap.version>1.0.3</jldap.version>
 		<httpclient.version>4.5.14</httpclient.version>
 		<httpcore.version>4.4.16</httpcore.version>
 		<httpmime.version>4.5.14</httpmime.version>
-		<commons-fileupload.version>1.5</commons-fileupload.version>
+		<commons-fileupload.version>2.0.0-M1-SNAPSHOT</commons-fileupload.version>
 		<javax.jms-api.version>2.0.1</javax.jms-api.version>
 		<quartz.version>2.3.2</quartz.version>
 		<quartz-jobs.version>2.3.2</quartz-jobs.version>
@@ -57,7 +58,7 @@
 		<javax.mail-api.version>1.6.2</javax.mail-api.version>
 		<sun.mail-api.version>1.6.2</sun.mail-api.version>
 		<bcpkix-jdk15on.version>1.70</bcpkix-jdk15on.version>
-		<net.sourceforge.spnego.version>7.1</net.sourceforge.spnego.version>
+		<net.sourceforge.spnego.version>3.0.0</net.sourceforge.spnego.version>
 		<reflections.version>0.10.2</reflections.version>
 		<apache-log4j-extras.version>1.2.17</apache-log4j-extras.version>
 		<googleauth.version>1.5.0</googleauth.version>
@@ -76,8 +77,8 @@
 		<jackson-core.version>2.14.2</jackson-core.version>
 		<slf4j.version>2.0.7</slf4j.version>
 		<guava.version>31.1-jre</guava.version>
-		<undertow.version>2.2.23.Final</undertow.version>
-	  	<jastow.version>2.1.0.Final</jastow.version>
+		<undertow.version>2.3.7.Final</undertow.version>
+	  	<jastow.version>2.2.6.Final</jastow.version>
 	  	<jboss-jstl-api_1.2_spec.version>1.1.4.Final</jboss-jstl-api_1.2_spec.version>
 	  	<xmlsec.version>2.0.6</xmlsec.version>
 	  	<snakeyaml.version>2.0</snakeyaml.version>
@@ -111,7 +112,7 @@
 		<pdfbox.version>2.0.27</pdfbox.version>
 		<ws.rs-api.version>2.1.1</ws.rs-api.version>
 		<qpid.version>1.8.0</qpid.version>
-		<commons-io.version>2.11.0</commons-io.version>
+		<commons-io.version>2.13.0</commons-io.version>
 		<graaljs.version>22.3.1</graaljs.version>
 		<commons-compress.version>1.23.0</commons-compress.version>
 		<webauthn4j.version>0.21.0.RELEASE</webauthn4j.version>
@@ -160,7 +161,7 @@
 	<modules>
 		<module>unison-sdk</module>
 		<module>unison-server-core</module>
-		<module>unison-lastmile-servlet-2.x</module>
+		
 		<module>unison-lastmile-servlet-3.x</module>
 		<module>unison-lastmile-tomcat-6</module>
 		<module>unison-applications-drupal</module>

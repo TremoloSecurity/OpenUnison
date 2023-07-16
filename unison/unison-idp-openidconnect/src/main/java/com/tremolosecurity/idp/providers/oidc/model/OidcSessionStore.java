@@ -15,7 +15,7 @@ package com.tremolosecurity.idp.providers.oidc.model;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 import org.joda.time.DateTime;
 

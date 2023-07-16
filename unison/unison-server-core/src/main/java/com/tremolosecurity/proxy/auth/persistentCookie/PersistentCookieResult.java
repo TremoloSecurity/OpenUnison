@@ -20,10 +20,10 @@ package com.tremolosecurity.proxy.auth.persistentCookie;
 import java.net.URISyntaxException;
 import java.util.HashSet;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
 import org.joda.time.DateTime;
@@ -117,7 +117,7 @@ public class PersistentCookieResult implements CustomResult {
 		
 		if (useSSLSession) {
 			
-			Object sessionID = request.getAttribute("javax.servlet.request.ssl_session_id");
+			Object sessionID = request.getAttribute("jakarta.servlet.request.ssl_session_id");
 			if (sessionID instanceof byte[]) {
 				sessionID = new String(Base64.encodeBase64((byte[]) sessionID));
 			}

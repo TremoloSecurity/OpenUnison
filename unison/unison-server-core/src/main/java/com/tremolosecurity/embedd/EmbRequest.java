@@ -29,12 +29,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Vector;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.logging.log4j.Logger;
 import org.joda.time.format.DateTimeFormat;
@@ -278,9 +278,9 @@ public class EmbRequest extends HttpServletRequestWrapper {
 		return request.isRequestedSessionIdFromURL();
 	}
 
-	@Override
+	
 	public boolean isRequestedSessionIdFromUrl() {
-		return request.isRequestedSessionIdFromUrl();
+		return request.isRequestedSessionIdFromURL();
 	}
 
 	@Override
@@ -370,9 +370,9 @@ public class EmbRequest extends HttpServletRequestWrapper {
 		return request.getReader();
 	}
 
-	@Override
+	
 	public String getRealPath(String arg0) {
-		return request.getRealPath(arg0);
+		return request.getSession().getServletContext().getRealPath(arg0);
 	}
 
 	@Override

@@ -1,19 +1,25 @@
 <!--
     Copyright 2018 Tremolo Security, Inc.
    
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
+    Licensed under the Apache
+License, Version 2.0 (the "License");
+    you may not use this file except in
+compliance with the License.
     You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
    
-        http://www.apache.org/licenses/LICENSE-2.0
-   
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
+    Unless required by applicable
+law or agreed to in writing, software
+    distributed under the License is
+distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.
+    See the License for the specific language
+governing permissions and
     limitations under the License.
  -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
@@ -24,7 +30,7 @@
 	<artifactId>openunison-on-undertow</artifactId>
 
 	<dependencies>
-	<dependency>
+		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
 			<version>${json-simple.version}</version>
@@ -33,58 +39,58 @@
 					<artifactId>junit</artifactId>
 					<groupId>junit</groupId>
 				</exclusion>
-				
+
 			</exclusions>
 		</dependency>
-	    <dependency>
-	    	<groupId>com.tremolosecurity.unison</groupId>
-	    	<artifactId>unison-service-undertow</artifactId>
-	    	<version>${openunison.version}</version>
-	    	<exclusions>
-	    		<exclusion>
-	    			<groupId>com.tremolosecurity.myvd</groupId>
-	    			<artifactId>apacheds-service</artifactId>
-	    		</exclusion>
-	    		<exclusion>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-service-undertow</artifactId>
+			<version>${openunison.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.tremolosecurity.myvd</groupId>
+					<artifactId>apacheds-service</artifactId>
+				</exclusion>
+				<exclusion>
 					<groupId>net.sf.ehcache</groupId>
 					<artifactId>ehcache</artifactId>
 				</exclusion>
-	    	</exclusions>
-	    </dependency>
-	    <dependency>
-	    	<groupId>com.tremolosecurity.unison</groupId>
-	    	<artifactId>openunison-util-classes</artifactId>
-	    	<version>${openunison.version}</version>
-	    	<exclusions>
-      <exclusion>
-        <groupId>*</groupId>
-        <artifactId>*</artifactId>
-      </exclusion> 
-    </exclusions>
-	    </dependency>
-	    <dependency>
-	    	<groupId>com.tremolosecurity.unison</groupId>
-	    	<artifactId>unison-server-core</artifactId>
-	    	<version>${openunison.version}</version>
-	    	<exclusions>
-      <exclusion>
-        <groupId>*</groupId>
-        <artifactId>*</artifactId>
-      </exclusion> 
-    </exclusions>
-	    </dependency>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>openunison-util-classes</artifactId>
+			<version>${openunison.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.tremolosecurity.unison</groupId>
+			<artifactId>unison-server-core</artifactId>
+			<version>${openunison.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>open-unison-classes</artifactId>
 			<version>${openunison.version}</version>
 			<exclusions>
-      <exclusion>
-        <groupId>*</groupId>
-        <artifactId>*</artifactId>
-      </exclusion> 
-    </exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-				<dependency>
+		<dependency>
 			<groupId>org.yaml</groupId>
 			<artifactId>snakeyaml</artifactId>
 			<version>${snakeyaml.version}</version>
@@ -99,6 +105,28 @@
 			<artifactId>unison-applications-okta</artifactId>
 			<version>${openunison.version}</version>
 		</dependency>
+		<dependency>
+		  <groupId>jakarta.servlet.jsp</groupId>
+		  <artifactId>jakarta.servlet.jsp-api</artifactId>
+		  <version>3.1.0</version>
+		</dependency>
+		<dependency>
+            <groupId>org.eclipse.jdt</groupId>
+            <artifactId>ecj</artifactId>
+            <version>3.31.0</version>
+            
+        </dependency>
+		<dependency>
+		  <groupId>jakarta.el</groupId>
+		  <artifactId>jakarta.el-api</artifactId>
+		  <version>5.0.1</version>
+		</dependency>
+		<dependency>
+            <groupId>org.glassfish.expressly</groupId>
+            <artifactId>expressly</artifactId>
+            <version>5.0.0</version>
+            
+        </dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>

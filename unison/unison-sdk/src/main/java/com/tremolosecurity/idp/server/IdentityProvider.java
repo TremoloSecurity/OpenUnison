@@ -19,7 +19,7 @@ package com.tremolosecurity.idp.server;
 
 import java.util.HashMap;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
 import com.tremolosecurity.proxy.ServletMethods;

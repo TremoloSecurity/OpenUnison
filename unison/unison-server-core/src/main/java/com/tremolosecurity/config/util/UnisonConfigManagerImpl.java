@@ -50,9 +50,9 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpSession;
 import javax.sql.DataSource;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -1460,10 +1460,10 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 
 	
 	/* (non-Javadoc)
-	 * @see com.tremolosecurity.config.util.ConfigManager#createAnonUser(javax.servlet.http.HttpSession)
+	 * @see com.tremolosecurity.config.util.ConfigManager#createAnonUser(jakarta.servlet.http.HttpSession)
 	 */
 	/* (non-Javadoc)
-	 * @see com.tremolosecurity.config.util.UnisonConfigManager#createAnonUser(javax.servlet.http.HttpSession)
+	 * @see com.tremolosecurity.config.util.UnisonConfigManager#createAnonUser(jakarta.servlet.http.HttpSession)
 	 */
 	
 	@Override

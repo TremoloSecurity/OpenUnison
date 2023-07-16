@@ -36,9 +36,9 @@ import java.util.Map;
 import javax.crypto.SecretKey;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpSession;
 import javax.xml.bind.JAXBException;
 
 import org.apache.http.client.config.RequestConfig;

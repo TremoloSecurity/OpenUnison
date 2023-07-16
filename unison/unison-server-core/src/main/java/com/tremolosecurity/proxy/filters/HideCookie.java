@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
-import javax.servlet.http.Cookie;
+import jakarta.servlet.http.Cookie;
 
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.logging.log4j.Logger;

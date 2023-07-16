@@ -18,12 +18,12 @@ package com.tremolosecurity.scalejs.token.sdk;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;
 import com.tremolosecurity.saml.Attribute;
-import javax.servlet.http.HttpServletRequest;;
+import jakarta.servlet.http.HttpServletRequest;;
 
 
 public class AttributeToken implements TokenLoader {

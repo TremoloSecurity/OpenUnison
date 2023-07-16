@@ -17,7 +17,7 @@ limitations under the License.
 
 package com.tremolosecurity.prelude.filters;
 
-import javax.servlet.http.Cookie;
+import jakarta.servlet.http.Cookie;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.proxy.auth.AuthController;

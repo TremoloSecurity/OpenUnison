@@ -20,7 +20,7 @@ package com.tremolosecurity.prelude.filters;
 import java.io.PrintWriter;
 import java.util.Iterator;
 
-import javax.servlet.http.Cookie;
+import jakarta.servlet.http.Cookie;
 
 
 

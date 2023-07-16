@@ -17,7 +17,7 @@ package com.tremolosecurity.idp.providers.oidc.none;
 
 import java.util.HashMap;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 import com.tremolosecurity.idp.providers.oidc.model.OidcSessionState;
 import com.tremolosecurity.idp.providers.oidc.model.OidcSessionStore;

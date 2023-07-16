@@ -15,7 +15,7 @@ package com.tremolosecurity.idp.providers.oidc.trusts;
 
 import java.util.HashMap;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 import com.tremolosecurity.idp.providers.OpenIDConnectTrust;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;

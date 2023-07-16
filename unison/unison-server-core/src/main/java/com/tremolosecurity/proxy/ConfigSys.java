@@ -30,12 +30,12 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpEntity;
@@ -98,7 +98,7 @@ public class ConfigSys  {
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.tremolosecurity.proxy.ConfigSys#doConfig(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, com.tremolosecurity.proxy.util.NextSys)
+	 * @see com.tremolosecurity.proxy.ConfigSys#doConfig(jakarta.servlet.http.HttpServletRequest, jakarta.servlet.http.HttpServletResponse, com.tremolosecurity.proxy.util.NextSys)
 	 */
 	
 	public void doConfig(HttpServletRequest req,HttpServletResponse resp,NextSys nextSys) throws IOException, ServletException {
@@ -342,10 +342,10 @@ public class ConfigSys  {
 				} finally {
 					if (pd != null && pd.getHttpRequestBase() != null) {
 						pd.getHttpRequestBase().releaseConnection();
-						if (! resp.isCommitted()) {
+						//if (! resp.isCommitted()) {
 							resp.getOutputStream().flush();
 							resp.getOutputStream().close();
-						}
+						//}
 					}
  				}
 				
@@ -407,7 +407,9 @@ public class ConfigSys  {
 		
 		
 		
-		
+			if (resp.isCommitted()) {
+				logger.warn("trying to push data on committed response");
+			}
 		
 		
 		

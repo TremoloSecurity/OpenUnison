@@ -15,8 +15,8 @@ package com.tremolosecurity.unison.proxy.auth.openidconnect.sdk;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.proxy.auth.AuthInfo;

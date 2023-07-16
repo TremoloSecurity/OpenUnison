@@ -19,7 +19,7 @@ package com.tremolosecurity.proxy.filters;
 
 import java.io.Serializable;
 
-import javax.servlet.http.Cookie;
+import jakarta.servlet.http.Cookie;
 
 import org.joda.time.DateTime;
 

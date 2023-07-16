@@ -30,12 +30,12 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.logging.log4j.Logger;
 import org.stringtemplate.v4.ST;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public class IdTokenLoader implements TokenLoader {
     static Logger logger = org.apache.logging.log4j.LogManager.getLogger(IdTokenLoader.class);

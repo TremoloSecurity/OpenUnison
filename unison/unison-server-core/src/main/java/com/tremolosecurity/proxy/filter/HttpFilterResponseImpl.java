@@ -23,9 +23,9 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.Logger;
 
@@ -44,7 +44,7 @@ public class HttpFilterResponseImpl implements HttpFilterResponse {
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.tremolosecurity.proxy.filter.HttpFilterResponse#addCookie(javax.servlet.http.Cookie)
+	 * @see com.tremolosecurity.proxy.filter.HttpFilterResponse#addCookie(jakarta.servlet.http.Cookie)
 	 */
 	@Override
 	public void addCookie(Cookie arg0) {
@@ -224,13 +224,17 @@ public class HttpFilterResponseImpl implements HttpFilterResponse {
 	}
 
 	
-	/* (non-Javadoc)
-	 * @see com.tremolosecurity.proxy.filter.HttpFilterResponse#setStatus(int, java.lang.String)
-	 */
-	@Override
-	public void setStatus(int arg0, String arg1) {
-		this.response.setStatus(arg0, arg1);
 
+
+	
+	public void setStatus(int arg0, String arg1)  {
+		//try {
+			//this.response.sendError(arg0,arg1);
+			this.response.setStatus(arg0);
+		//} catch (IOException e) {
+		//	logger.warn("Could not set status",e);
+		//}
+		
 	}
 
 	/* (non-Javadoc)

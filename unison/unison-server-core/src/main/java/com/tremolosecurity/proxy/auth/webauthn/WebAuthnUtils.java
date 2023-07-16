@@ -30,7 +30,7 @@ import java.util.zip.InflaterInputStream;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 
 import org.apache.commons.codec.binary.Base64;
 

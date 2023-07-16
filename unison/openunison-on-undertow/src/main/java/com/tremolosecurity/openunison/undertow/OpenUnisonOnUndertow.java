@@ -51,7 +51,7 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.security.auth.x500.X500Principal;
-import javax.servlet.DispatcherType;
+import jakarta.servlet.DispatcherType;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;

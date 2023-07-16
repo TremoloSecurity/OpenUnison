@@ -30,8 +30,8 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.logging.log4j.Logger;
 import org.stringtemplate.v4.ST;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 import java.net.http.HttpRequest;
 import java.security.cert.CertificateEncodingException;

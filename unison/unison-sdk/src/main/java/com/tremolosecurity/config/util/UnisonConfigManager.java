@@ -29,9 +29,9 @@ import java.util.HashMap;
 
 import javax.crypto.SecretKey;
 import javax.net.ssl.KeyManagerFactory;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpSession;
 import javax.xml.bind.JAXBException;
 
 import org.apache.http.conn.ssl.SSLSocketFactory;
@@ -204,7 +204,7 @@ public interface UnisonConfigManager {
 	
 
 	/* (non-Javadoc)
-	 * @see com.tremolosecurity.config.util.ConfigManager#createAnonUser(javax.servlet.http.HttpSession)
+	 * @see com.tremolosecurity.config.util.ConfigManager#createAnonUser(jakarta.servlet.http.HttpSession)
 	 */
 	public abstract void createAnonUser(HttpSession sharedSession);
 

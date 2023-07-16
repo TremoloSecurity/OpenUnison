@@ -20,7 +20,7 @@ package com.tremolosecurity.proxy.auth.otpsms;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 
 import com.tremolosecurity.proxy.auth.SMSAuth;
 import com.tremolosecurity.saml.Attribute;

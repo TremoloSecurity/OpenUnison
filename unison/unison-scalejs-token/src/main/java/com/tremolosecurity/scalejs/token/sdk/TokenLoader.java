@@ -18,8 +18,8 @@ package com.tremolosecurity.scalejs.token.sdk;
 import java.net.http.HttpRequest;
 import java.util.HashMap;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;

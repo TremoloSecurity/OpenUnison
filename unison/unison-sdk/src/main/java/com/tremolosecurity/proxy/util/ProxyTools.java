@@ -24,7 +24,7 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.logging.log4j.Logger;
 import org.w3c.dom.NamedNodeMap;

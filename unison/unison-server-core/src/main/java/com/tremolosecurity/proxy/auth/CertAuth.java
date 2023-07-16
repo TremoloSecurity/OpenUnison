@@ -36,11 +36,11 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import javax.security.auth.x500.X500Principal;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.logging.log4j.Logger;
 
@@ -107,7 +107,7 @@ public class CertAuth implements AuthMechanism {
 		
 		AuthMechType amt = act.getAuthMech().get(as.getId());
 		
-		X509Certificate[] certs = (X509Certificate[]) request.getAttribute("javax.servlet.request.X509Certificate");
+		X509Certificate[] certs = (X509Certificate[]) request.getAttribute("jakarta.servlet.request.X509Certificate");
 		
 		if (certs == null) {
 			if (amt.getRequired().equals("required")) {

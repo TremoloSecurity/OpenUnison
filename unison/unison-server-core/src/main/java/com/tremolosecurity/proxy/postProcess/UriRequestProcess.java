@@ -28,8 +28,8 @@ import java.util.List;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.tremolosecurity.proxy.HttpUpgradeRequestManager;
 import com.tremolosecurity.proxy.ProxyResponse;

@@ -39,12 +39,12 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
@@ -185,8 +185,8 @@ public class SessionManagerImpl implements SessionManager {
 	 * 
 	 * @see
 	 * com.tremolosecurity.proxy.SessionManager#getSession(com.tremolosecurity
-	 * .config.util.UrlHolder, javax.servlet.http.HttpServletRequest,
-	 * javax.servlet.http.HttpServletResponse, javax.servlet.ServletContext)
+	 * .config.util.UrlHolder, jakarta.servlet.http.HttpServletRequest,
+	 * jakarta.servlet.http.HttpServletResponse, jakarta.servlet.ServletContext)
 	 */
 	@Override
 	public HttpSession getSession(UrlHolder holder, HttpServletRequest request,
@@ -577,8 +577,8 @@ public class SessionManagerImpl implements SessionManager {
 	 * @see
 	 * com.tremolosecurity.proxy.SessionManager#getSession(java.lang.String,
 	 * com.tremolosecurity.config.util.UrlHolder,
-	 * javax.servlet.http.HttpServletRequest,
-	 * javax.servlet.http.HttpServletResponse, javax.servlet.ServletContext)
+	 * jakarta.servlet.http.HttpServletRequest,
+	 * jakarta.servlet.http.HttpServletResponse, jakarta.servlet.ServletContext)
 	 */
 	@Override
 	public HttpSession getSession(String sessionCookieName, UrlHolder holder,
@@ -594,8 +594,8 @@ public class SessionManagerImpl implements SessionManager {
 	 * @see
 	 * com.tremolosecurity.proxy.SessionManager#writeSession(com.tremolosecurity
 	 * .config.util.UrlHolder, com.tremolosecurity.proxy.TremoloHttpSession,
-	 * javax.servlet.http.HttpServletRequest,
-	 * javax.servlet.http.HttpServletResponse)
+	 * jakarta.servlet.http.HttpServletRequest,
+	 * jakarta.servlet.http.HttpServletResponse)
 	 */
 	@Override
 	public void writeSession(UrlHolder holder, TremoloHttpSession session,
@@ -656,9 +656,9 @@ public class SessionManagerImpl implements SessionManager {
 	 * 
 	 * @see
 	 * com.tremolosecurity.proxy.SessionManager#clearSession(com.tremolosecurity
-	 * .config.util.UrlHolder, javax.servlet.http.HttpSession,
-	 * javax.servlet.http.HttpServletRequest,
-	 * javax.servlet.http.HttpServletResponse)
+	 * .config.util.UrlHolder, jakarta.servlet.http.HttpSession,
+	 * jakarta.servlet.http.HttpServletRequest,
+	 * jakarta.servlet.http.HttpServletResponse)
 	 */
 	@Override
 	public void clearSession(UrlHolder holder, HttpSession sharedSession,

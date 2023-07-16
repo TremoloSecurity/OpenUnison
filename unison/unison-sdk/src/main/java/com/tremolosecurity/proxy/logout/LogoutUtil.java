@@ -19,7 +19,7 @@ package com.tremolosecurity.proxy.logout;
 
 import java.util.ArrayList;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public class LogoutUtil {
 	public static final String LOGOUT_HANDLERS = "TREMOLO_LOGOUT_HANDLERS";

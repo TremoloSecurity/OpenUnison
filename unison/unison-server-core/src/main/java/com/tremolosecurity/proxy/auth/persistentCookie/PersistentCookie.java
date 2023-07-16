@@ -23,12 +23,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.crypto.SecretKey;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.logging.log4j.Logger;
@@ -192,7 +192,7 @@ public class PersistentCookie implements AuthMechanism {
 				
 			} else if (attrib.getName().equalsIgnoreCase("SSL_SESSION_ID")) {
 				
-				Object sessionID = request.getAttribute("javax.servlet.request.ssl_session_id");
+				Object sessionID = request.getAttribute("jakarta.servlet.request.ssl_session_id");
 				if (sessionID instanceof byte[]) {
 					sessionID = new String(Base64.encodeBase64((byte[]) sessionID));
 				}

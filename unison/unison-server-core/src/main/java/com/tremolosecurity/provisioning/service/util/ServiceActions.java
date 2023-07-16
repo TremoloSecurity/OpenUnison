@@ -28,7 +28,7 @@ import java.util.Set;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Query;

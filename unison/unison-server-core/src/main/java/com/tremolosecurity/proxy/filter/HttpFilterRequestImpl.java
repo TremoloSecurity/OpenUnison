@@ -33,13 +33,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
-import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload2.core.FileItem;
 import org.apache.http.message.BasicHeader;
 import org.apache.logging.log4j.Logger;
 
@@ -156,7 +156,7 @@ public class HttpFilterRequestImpl implements HttpFilterRequest  {
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.tremolosecurity.proxy.filter.HttpFilterRequest#addCookie(javax.servlet.http.Cookie)
+	 * @see com.tremolosecurity.proxy.filter.HttpFilterRequest#addCookie(jakarta.servlet.http.Cookie)
 	 */
 	@Override
 	public void addCookie(Cookie cookie) {
@@ -343,7 +343,7 @@ public class HttpFilterRequestImpl implements HttpFilterRequest  {
 	 */
 	@Override
 	public boolean isRequestedSessionIdFromUrl() {
-		return request.isRequestedSessionIdFromUrl();
+		return request.isRequestedSessionIdFromURL();
 	}
 
 	
@@ -492,7 +492,7 @@ public class HttpFilterRequestImpl implements HttpFilterRequest  {
 	 */
 	@Override
 	public String getRealPath(String arg0) {
-		return request.getRealPath(arg0);
+		return request.getSession().getServletContext().getRealPath(arg0);
 	}
 
 	

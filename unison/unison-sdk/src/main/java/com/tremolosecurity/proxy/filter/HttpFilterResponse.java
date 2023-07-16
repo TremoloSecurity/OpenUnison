@@ -23,8 +23,8 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.tremolosecurity.saml.Attribute;
 

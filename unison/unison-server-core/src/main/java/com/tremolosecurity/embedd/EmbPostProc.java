@@ -29,10 +29,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import javax.servlet.FilterChain;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponseWrapper;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponseWrapper;
 
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.message.BasicHeader;

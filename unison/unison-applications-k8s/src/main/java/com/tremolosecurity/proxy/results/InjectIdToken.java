@@ -14,10 +14,10 @@ package com.tremolosecurity.proxy.results;
 
 import java.net.MalformedURLException;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.lang.JoseException;

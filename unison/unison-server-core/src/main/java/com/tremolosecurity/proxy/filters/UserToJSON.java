@@ -17,7 +17,7 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.filters;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 
 import com.google.gson.Gson;
 import com.tremolosecurity.proxy.auth.AuthController;

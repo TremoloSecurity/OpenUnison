@@ -22,8 +22,8 @@ import java.util.Properties;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
 
 import org.apache.logging.log4j.Logger;
 

@@ -19,7 +19,7 @@ package com.tremolosecurity.proxy.undertow;
 import java.util.HashSet;
 import java.util.List;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.xnio.StreamConnection;
 
