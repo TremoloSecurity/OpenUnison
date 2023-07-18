@@ -235,6 +235,9 @@ MyVDConnection myvd = cfgMgr.getMyVD();
 				  krb5Conf += "     default_tkt_enctypes = aes128-cts rc4-hmac des3-cbc-sha1 des-cbc-md5 des-cbc-crc\n";
 				  krb5Conf += "     default_tgs_enctypes = aes128-cts rc4-hmac des3-cbc-sha1 des-cbc-md5 des-cbc-crc\n";
 				  krb5Conf += "     permitted_enctypes   = aes128-cts rc4-hmac des3-cbc-sha1 des-cbc-md5 des-cbc-crc\n";
+				  if (init.get("allowWeakCrypto") != null && init.get("allowWeakCrypto").getValues().get(0).equalsIgnoreCase("true")) {
+					  krb5Conf += "     allow_weak_crypto = true\n";
+				  }
 				  
 				  if (init.get("domain").getValues().size() == 1) {
 					  krb5Conf += "     default_realm   = " + init.get("domain").getValues().get(0) + "\n";
