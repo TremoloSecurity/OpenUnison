@@ -122,7 +122,7 @@
 		<jna.version>5.13.0</jna.version>
 		<expressly.version>5.0.0</expressly.version>
 		<el-api.version>5.0.1</el-api.version>
-		<ecj.version>3.34.0</ecj.version>
+		<ecj.version>3.33.0</ecj.version>
 		<jakarta-jsp.version>3.1.1</jakarta-jsp.version>
 	</properties>
 
