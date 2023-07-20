@@ -37,13 +37,7 @@ limitations under the License.
   		<version>${openunison.version}</version>
   		<scope>provided</scope>
   	</dependency>
-  			<dependency>
-			<!-- Provided by Tomcat, but needed for compilation -->
-			<groupId>javax</groupId>
-			<artifactId>javaee-web-api</artifactId>
-			<version>${javaee.version}</version>
-			<scope>provided</scope>
-		</dependency>
+
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-scalejs-common</artifactId>

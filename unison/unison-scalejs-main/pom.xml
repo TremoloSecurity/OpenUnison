@@ -36,13 +36,7 @@ limitations under the License.
   			</exclusion>
   		</exclusions>
   	</dependency>
-  			<dependency>
-			<!-- Provided by Tomcat, but needed for compilation -->
-			<groupId>javax</groupId>
-			<artifactId>javaee-web-api</artifactId>
-			<version>${javaee.version}</version>
-			<scope>provided</scope>
-		</dependency>
+
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>

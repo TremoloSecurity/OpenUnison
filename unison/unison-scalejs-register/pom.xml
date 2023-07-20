@@ -28,13 +28,7 @@
 			<version>${openunison.version}</version>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<!-- Provided by Tomcat, but needed for compilation -->
-			<groupId>javax</groupId>
-			<artifactId>javaee-web-api</artifactId>
-			<version>7.0</version>
-			<scope>provided</scope>
-		</dependency>
+
 
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>

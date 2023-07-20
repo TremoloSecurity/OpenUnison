@@ -108,23 +108,23 @@ governing permissions and
 		<dependency>
 		  <groupId>jakarta.servlet.jsp</groupId>
 		  <artifactId>jakarta.servlet.jsp-api</artifactId>
-		  <version>3.1.0</version>
+		  <version>${jakarta-jsp.version}</version>
 		</dependency>
 		<dependency>
             <groupId>org.eclipse.jdt</groupId>
             <artifactId>ecj</artifactId>
-            <version>3.31.0</version>
+            <version>${ecj.version}</version>
             
         </dependency>
 		<dependency>
 		  <groupId>jakarta.el</groupId>
 		  <artifactId>jakarta.el-api</artifactId>
-		  <version>5.0.1</version>
+		  <version>${el-api.version}</version>
 		</dependency>
 		<dependency>
             <groupId>org.glassfish.expressly</groupId>
             <artifactId>expressly</artifactId>
-            <version>5.0.0</version>
+            <version>${expressly.version}</version>
             
         </dependency>
 	</dependencies>
