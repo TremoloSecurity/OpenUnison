@@ -43,7 +43,7 @@ limitations under the License.
 		</center>
 		<h1>Logged Out of OpenUnison</h1>
 
-		You are now logged out of OpenUnison, you may close this window or log back in.
+		<span>You are now logged out of OpenUnison, you may close this window or log back in.</span>
 		
 		<div class="button-container">
 			<button onClick="window.location='/';" class="button" id="login"
