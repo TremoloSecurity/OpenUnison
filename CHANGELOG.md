@@ -1,3 +1,19 @@
+# 1.0.37-2022072501
+
+**Tasks:**
+ - 1.0.37 build [\#764](https://github.com/TremoloSecurity/OpenUnison/issues/764)
+
+**enhancements:**
+ - Move login screens to Material UI [\#773](https://github.com/TremoloSecurity/OpenUnison/issues/773)
+ - IAW Auth - allow weak crypto [\#776](https://github.com/TremoloSecurity/OpenUnison/issues/776)
+ - Update J2EE interfaces to jakarta from javax [\#774](https://github.com/TremoloSecurity/OpenUnison/issues/774)
+ - WebAuthn - Support conditional UIs [\#772](https://github.com/TremoloSecurity/OpenUnison/issues/772)
+
+**bugs:**
+ - ScaleJS - web services not pushing headers and cookies [\#771](https://github.com/TremoloSecurity/OpenUnison/issues/771)
+ - OpenShit Target NPE when looking up objects for workflows [\#775](https://github.com/TremoloSecurity/OpenUnison/issues/775)
+
+
 # 1.0.26-2023051201
 
 **bugs:**
