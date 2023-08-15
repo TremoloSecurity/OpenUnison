@@ -86,7 +86,7 @@
 	  	<ibm-mq.version>9.3.3.0</ibm-mq.version>
 	  	<okta.version>8.2.3</okta.version>
 	  	<azure-auth.version>1.13.9</azure-auth.version>
-	  	<cryptacular.version>1.2.5</cryptacular.version>
+	  	<cryptacular.version>1.2.6</cryptacular.version>
 	  	<santuario-xmlsec.version>3.0.2</santuario-xmlsec.version>
 		<netty-codec.version>4.1.94.Final</netty-codec.version>
 		<netty-common.version>4.1.94.Final</netty-common.version>
