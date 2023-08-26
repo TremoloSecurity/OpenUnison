@@ -41,7 +41,7 @@
 		<gson.version>2.10.1</gson.version>
 		<bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
 		<bcprov-ext-jdk15on.version>1.70</bcprov-ext-jdk15on.version>
-		<catalina.version>10.1.10</catalina.version>
+		<catalina.version>10.1.13</catalina.version>
 		<undertow-1x.version>1.0.0.Final</undertow-1x.version>
 		<myvd-server.version>1.0.19</myvd-server.version>
 		<jldap.version>1.0.3</jldap.version>
