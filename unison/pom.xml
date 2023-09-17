@@ -52,7 +52,7 @@
 		<javax.jms-api.version>2.0.1</javax.jms-api.version>
 		<quartz.version>2.3.2</quartz.version>
 		<quartz-jobs.version>2.3.2</quartz-jobs.version>
-		<json-io.version>4.14.0</json-io.version>
+		<json-io.version>4.14.1</json-io.version>
 		<log4j.version>2.20.0</log4j.version>
 		<joda-time.version>2.12.5</joda-time.version>
 		<javax.mail-api.version>1.6.2</javax.mail-api.version>
@@ -86,7 +86,7 @@
 	  	<ibm-mq.version>9.3.3.0</ibm-mq.version>
 	  	<okta.version>8.2.3</okta.version>
 	  	<azure-auth.version>1.13.9</azure-auth.version>
-	  	<cryptacular.version>1.2.5</cryptacular.version>
+	  	<cryptacular.version>1.2.6</cryptacular.version>
 	  	<santuario-xmlsec.version>3.0.2</santuario-xmlsec.version>
 		<netty-codec.version>4.1.94.Final</netty-codec.version>
 		<netty-common.version>4.1.94.Final</netty-common.version>
