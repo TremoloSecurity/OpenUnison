@@ -18,6 +18,7 @@ package com.tremolosecurity.proxy.filters;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
+import com.tremolosecurity.proxy.ProxyResponse;
 import com.tremolosecurity.proxy.filter.HttpFilter;
 import com.tremolosecurity.proxy.filter.HttpFilterChain;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;
@@ -64,6 +65,10 @@ public class CheckK8sTargetMetadata implements HttpFilter {
 		}
 		
 		response.setContentType("application/json");
+		
+		
+		
+		((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 		response.getWriter().println(root.toString());
 		response.getWriter().flush();
 	}
