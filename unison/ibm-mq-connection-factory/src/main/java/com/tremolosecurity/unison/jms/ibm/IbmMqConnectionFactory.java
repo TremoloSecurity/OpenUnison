@@ -31,6 +31,9 @@ import com.ibm.msg.client.wmq.WMQConstants;
 public class IbmMqConnectionFactory implements ConnectionFactory {
 
     JmsConnectionFactory mqConnectionFactory;
+    
+    String userName;
+    String password;
 
     public IbmMqConnectionFactory() throws JMSException {
         JmsFactoryFactory ff = JmsFactoryFactory.getInstance(WMQConstants.WMQ_PROVIDER);
@@ -41,7 +44,11 @@ public class IbmMqConnectionFactory implements ConnectionFactory {
 
 	@Override
 	public Connection createConnection() throws JMSException {
-		return mqConnectionFactory.createConnection();
+		if (this.userName != null && this.password != null) {
+			return mqConnectionFactory.createConnection(userName,password);
+		} else {
+			return mqConnectionFactory.createConnection();
+		}
 	}
 
 	@Override
@@ -51,7 +58,11 @@ public class IbmMqConnectionFactory implements ConnectionFactory {
 
 	@Override
 	public JMSContext createContext() {
-		return mqConnectionFactory.createContext();
+		if (this.userName != null && this.password != null) {
+			return this.createContext(userName, password);
+		} else {
+			return mqConnectionFactory.createContext();
+		}
 	}
 
 	@Override
@@ -108,4 +119,14 @@ public class IbmMqConnectionFactory implements ConnectionFactory {
     public String getChannel() throws JMSException {
         return this.mqConnectionFactory.getStringProperty(WMQConstants.WMQ_CHANNEL);
     }
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+    
+    
 }
