@@ -100,86 +100,95 @@ public class JMSConnection {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Creating new connection checking thread");
 		}
-		st = new StopableThread() {
-			long lastCheck;
-			long timeToWait = 60000L;
-			
-			
-			
-			
-			
-			boolean keepRunning = true;
-			
-			
-			
-			@Override
-			public void run() {
+		
+		if (GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getQueueConfig().getKeepAliveMillis() > 0) {
+		
+			st = new StopableThread() {
+				long lastCheck;
+				long timeToWait = 60000L;
 				
-				if (GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning() != null &&  GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getQueueConfig() != null) {
-					timeToWait = GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getQueueConfig().getKeepAliveMillis(); 
-				}
 				
-				while (keepRunning) {
-					long now = System.currentTimeMillis();
-					if (lastCheck == 0 || (now-lastCheck >= timeToWait)) {
-						
-						
-						for (JMSSessionHolder session : sessions) {
-							synchronized (session.getSession()) {
-								sendKeepAliveMessage(session);
+				
+				
+				
+				boolean keepRunning = true;
+				
+				
+				
+				@Override
+				public void run() {
+					
+					if (GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning() != null &&  GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getQueueConfig() != null) {
+						timeToWait = GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getQueueConfig().getKeepAliveMillis(); 
+					}
+					
+					while (keepRunning) {
+						long now = System.currentTimeMillis();
+						if (lastCheck == 0 || (now-lastCheck >= timeToWait)) {
+							
+							
+							for (JMSSessionHolder session : sessions) {
+								synchronized (session.getSession()) {
+									sendKeepAliveMessage(session);
+								}
+							}
+							
+							
+							lastCheck = now;
+						} else {
+							try {
+								
+								Thread.sleep(10000);
+							} catch (InterruptedException e) {
+								
 							}
 						}
-						
-						
-						lastCheck = now;
-					} else {
-						try {
-							
-							Thread.sleep(10000);
-						} catch (InterruptedException e) {
-							
-						}
 					}
+					
 				}
-				
-			}
-
-			private void sendKeepAliveMessage(JMSSessionHolder sessionHolder) {
-				try {
-					TextMessage tm = sessionHolder.getSession().createTextMessage(UUID.randomUUID().toString());
-					tm.setStringProperty("JMSXGroupID", "unison-keepalive");
-					tm.setBooleanProperty("unisonignore", true);
-					
-					
-					if (logger.isDebugEnabled()) {
-						logger.debug("Sending keepalive for " + sessionHolder.getQueueName());
-					}
-					
-					sessionHolder.getMessageProduceer().send(tm);
-				} catch (Throwable t) {
-					logger.warn("Could not send keep alive for " + sessionHolder.getQueueName() + ", recreating",t);
+	
+				private void sendKeepAliveMessage(JMSSessionHolder sessionHolder) {
 					try {
-						if (keepRunning) {
-							rebuild();
+						Session session = sessionHolder.getSession();
+						synchronized (session) {
+							TextMessage tm = session.createTextMessage(UUID.randomUUID().toString());
+							tm.setStringProperty("JMSXGroupID", "unison-keepalive");
+							tm.setBooleanProperty("unisonignore", true);
+							
+							
+							if (logger.isDebugEnabled()) {
+								logger.debug("Sending keepalive for " + sessionHolder.getQueueName());
+							}
+							
+							sessionHolder.getMessageProduceer().send(tm);
 						}
-					} catch (JMSException e) {
-						logger.error("Could not recreate connection",e);
+					} catch (Throwable t) {
+						logger.warn("Could not send keep alive for " + sessionHolder.getQueueName() + ", recreating",t);
+						try {
+							if (keepRunning) {
+								rebuild();
+							}
+						} catch (JMSException e) {
+							logger.error("Could not recreate connection",e);
+						}
 					}
 				}
-			}
-
-			@Override
-			public void stop() {
-				keepRunning = false;
+	
+				@Override
+				public void stop() {
+					keepRunning = false;
+					
+				}
 				
-			}
+			};
 			
-		};
-		
-		
-		
-		GlobalEntries.getGlobalEntries().getConfigManager().addThread(st);
-		new Thread(st).start();
+			
+			
+			GlobalEntries.getGlobalEntries().getConfigManager().addThread(st);
+			new Thread(st).start();
+		} else {
+			logger.warn("JMS Keepalive Disabled");
+		}
 		
 	}
 
