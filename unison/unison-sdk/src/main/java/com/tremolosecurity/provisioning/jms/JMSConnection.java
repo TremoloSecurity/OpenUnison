@@ -101,7 +101,7 @@ public class JMSConnection {
 			logger.debug("Creating new connection checking thread");
 		}
 		
-		if (GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getQueueConfig().getKeepAliveMillis() > 0) {
+		if (GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getQueueConfig() != null && GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getQueueConfig().getKeepAliveMillis() > 0) {
 		
 			st = new StopableThread() {
 				long lastCheck;
