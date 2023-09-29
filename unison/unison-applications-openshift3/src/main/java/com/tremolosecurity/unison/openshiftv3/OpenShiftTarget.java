@@ -31,6 +31,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
+
+import javax.jms.JMSException;
+import javax.jms.TextMessage;
 
 import org.apache.commons.net.util.Base64;
 import org.apache.http.Consts;
@@ -82,14 +86,19 @@ import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.UserStoreProvider;
 import com.tremolosecurity.provisioning.core.UserStoreProviderWithAddGroup;
 import com.tremolosecurity.provisioning.core.Workflow;
+import com.tremolosecurity.provisioning.jms.JMSConnectionFactory;
+import com.tremolosecurity.provisioning.jms.JMSSessionHolder;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
+import com.tremolosecurity.provisioning.util.EncryptedMessage;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
+import com.tremolosecurity.unison.openshiftv3.dr.DisasterRecoveryAction;
 import com.tremolosecurity.unison.openshiftv3.model.Item;
 import com.tremolosecurity.unison.openshiftv3.model.Response;
 import com.tremolosecurity.unison.openshiftv3.model.groups.GroupItem;
+
 
 public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	
@@ -136,11 +145,14 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	
 	String gitUrl;
 	
+	List<JMSSessionHolder> drQueues;
+	
 	private boolean useDefaultCaPath;
 	
 	
 	boolean oidcTokenInitialized;
 	Map<String, Attribute> cfg;
+	
 
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
@@ -612,6 +624,19 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	}
 	
 	public String callWSDelete(String token, HttpCon con,String uri) throws IOException, ClientProtocolException {
+		String objToDeleteJson = "";
+		if (this.drQueues.size() > 0) {
+			try {
+				if (this.isObjectExistsByPath(token, con, uri)) {
+					objToDeleteJson = this.callWS(token, con, uri);
+				} 
+			} catch (IOException | ProvisioningException | ParseException e) {
+				throw new IOException("Could not delete object " + uri,e);
+			}
+		}
+		
+		
+		
 		StringBuffer b = new StringBuffer();
 		
 		b.append(this.getUrl()).append(uri);
@@ -625,11 +650,37 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 		HttpResponse resp = con.getHttp().execute(get);
 		
+		if (resp.getStatusLine().getStatusCode() >= 200 && resp.getStatusLine().getStatusCode() < 300) {
+			
+			try {
+				if (! objToDeleteJson.isEmpty()) {
+					boolean ignore = determineIgnoreDr(objToDeleteJson);
+					if (! ignore) {
+						this.sendtoDRQueue(uri, "DELETE", objToDeleteJson);
+					}
+				}
+			} catch (ProvisioningException | JMSException | ParseException e) {
+				throw new IOException("Could not send to dr queues",e);
+			}
+		}
+		
 		String json = EntityUtils.toString(resp.getEntity());
 		return json;
 	}
 	
 	public String callWSPut(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
+		
+		String objToPatch = "";
+		if (this.drQueues.size() > 0) {
+			try {
+				if (this.isObjectExistsByPath(token, con, uri)) {
+					objToPatch = this.callWS(token, con, uri);
+				} 
+			} catch (IOException | ProvisioningException | ParseException e) {
+				throw new IOException("Could not delete object " + uri,e);
+			}
+		}
+		
 		StringBuffer b = new StringBuffer();
 		
 		b.append(this.getUrl()).append(uri);
@@ -646,6 +697,20 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 		HttpResponse resp = con.getHttp().execute(put);
 		
+		if (resp.getStatusLine().getStatusCode() >= 200 && resp.getStatusLine().getStatusCode() < 300) {
+			
+			try {
+				if (! objToPatch.isEmpty()) {
+					boolean ignore = determineIgnoreDr(objToPatch);
+					if (! ignore) {
+						this.sendtoDRQueue(uri, "PUT", json);
+					}
+				}
+			} catch (ProvisioningException | JMSException | ParseException e) {
+				throw new IOException("Could not send to dr queues",e);
+			}
+		}
+		
 		json = EntityUtils.toString(resp.getEntity());
 		return json;
 	}
@@ -655,6 +720,17 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	}
 	
 	public String callWSPatchJson(String token, HttpCon con,String uri,String json,String contentType) throws IOException, ClientProtocolException {
+		String objToPatch = "";
+		if (this.drQueues.size() > 0) {
+			try {
+				if (this.isObjectExistsByPath(token, con, uri)) {
+					objToPatch = this.callWS(token, con, uri);
+				} 
+			} catch (IOException | ProvisioningException | ParseException e) {
+				throw new IOException("Could not delete object " + uri,e);
+			}
+		}
+		
 		StringBuffer b = new StringBuffer();
 		
 		b.append(this.getUrl()).append(uri);
@@ -671,8 +747,50 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 		HttpResponse resp = con.getHttp().execute(put);
 		
+		if (resp.getStatusLine().getStatusCode() >= 200 && resp.getStatusLine().getStatusCode() < 300) {
+			
+			try {
+				if (! objToPatch.isEmpty()) {
+					boolean ignore = determineIgnoreDr(objToPatch);
+					if (! ignore) {
+						this.sendtoDRQueue(uri, "PATCH", json,contentType);
+					}
+				}
+			} catch (ProvisioningException | JMSException | ParseException e) {
+				throw new IOException("Could not send to dr queues",e);
+			}
+		}
+		
 		json = EntityUtils.toString(resp.getEntity());
 		return json;
+	}
+	
+	
+	private void sendtoDRQueue(String uri,String method,String json) throws ProvisioningException, JMSException {
+		this.sendtoDRQueue(uri, method, json, null);
+		
+	}
+	
+	private void sendtoDRQueue(String uri,String method,String json,String contentType) throws ProvisioningException, JMSException {
+		if (this.drQueues.size() > 0) {
+			DisasterRecoveryAction dr = new DisasterRecoveryAction();
+			
+			dr.setMethod(method);
+			dr.setUrl(uri);
+			dr.setJson(json);
+			dr.setContentType(contentType);
+			
+			Gson gson = new Gson();
+			
+			EncryptedMessage encJson = this.cfgMgr.getProvisioningEngine().encryptObject(dr);
+			for (JMSSessionHolder session : this.drQueues) {
+				synchronized (session) {
+					TextMessage tm = session.getSession().createTextMessage(gson.toJson(encJson));
+					tm.setStringProperty("JMSXGroupID", "unison-kubernetes");
+					session.getMessageProduceer().send(tm);
+				}
+			}
+		}
 	}
 	
 	public String callWSPost(String token, HttpCon con,String uri,String json) throws IOException, ClientProtocolException {
@@ -688,12 +806,44 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		}
 		
 		StringEntity str = new StringEntity(json,ContentType.APPLICATION_JSON);
+		
+		
+		
+		
 		put.setEntity(str);
 		
 		HttpResponse resp = con.getHttp().execute(put);
 		
+		if (resp.getStatusLine().getStatusCode() >= 200 && resp.getStatusLine().getStatusCode() < 300) {
+			try {
+				boolean ignore = determineIgnoreDr(json);
+				if (! ignore) {
+					this.sendtoDRQueue(uri, "POST", json);
+				}
+			} catch (ProvisioningException | JMSException | ParseException e) {
+				throw new IOException("Could not send to dr queues",e);
+			}
+		}
+		
+		
 		json = EntityUtils.toString(resp.getEntity());
 		return json;
+	}
+
+	private boolean determineIgnoreDr(String json) throws ParseException {
+		boolean ignore = false;
+		JSONObject root = (JSONObject) new JSONParser().parse(json);
+		JSONObject metadata = (JSONObject) root.get("metadata");
+		if (metadata != null) {
+			JSONObject annotations = (JSONObject) metadata.get("annotations");
+			if (annotations != null) {
+				String ignoreAnnotation = (String) annotations.get("tremolo.io/dr-ignore");
+				if (ignoreAnnotation != null && ignoreAnnotation.equalsIgnoreCase("true")) {
+					ignore = true;
+				}
+			}
+		}
+		return ignore;
 	}
 
 	@Override
@@ -828,6 +978,19 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		}
 		
 		this.gitUrl = this.loadOptionalAttributeValue("gitUrl", "gitUrl", cfg, null);
+		
+		String drQueueNames = this.loadOptionalAttributeValue("drqueues", "drqueues", cfg, null);
+		this.drQueues = new ArrayList<JMSSessionHolder>();
+		if (drQueueNames != null) {
+			StringTokenizer toker = new StringTokenizer(drQueueNames,",",false);
+			while (toker.hasMoreTokens()) {
+				String queueName = toker.nextToken();
+				this.drQueues.add(JMSConnectionFactory.getConnectionFactory().getSession(queueName));
+			}
+			
+			
+			
+		}
 	}
 	
 	private void initRemoteOidc(Map<String, Attribute> cfg, ConfigManager cfgMgr, String name) throws ProvisioningException {
