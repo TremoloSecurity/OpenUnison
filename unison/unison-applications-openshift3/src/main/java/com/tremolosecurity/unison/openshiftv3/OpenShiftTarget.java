@@ -14,11 +14,13 @@ package com.tremolosecurity.unison.openshiftv3;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyManagementException;
+import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
@@ -77,11 +79,13 @@ import org.json.simple.parser.ParseException;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.ibm.icu.impl.UResource.Array;
 import com.tremolosecurity.certs.CertManager;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
+import com.tremolosecurity.provisioning.core.ProvisioningTarget;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.UserStoreProvider;
 import com.tremolosecurity.provisioning.core.UserStoreProviderWithAddGroup;
@@ -107,7 +111,8 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		STATIC,
 		LEGACY,
 		TOKENAPI,
-		OIDC
+		OIDC,
+		CERTIFICATE
 	}
 	
 	private TokenType tokenType;
@@ -152,6 +157,12 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	
 	boolean oidcTokenInitialized;
 	Map<String, Attribute> cfg;
+
+	private boolean useCertificate;
+
+	private String certSecretLocation;
+	
+	boolean loadedCert;
 	
 
 	@Override
@@ -849,8 +860,9 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	@Override
 	public void init(Map<String, Attribute> cfg, ConfigManager cfgMgr, String name) throws ProvisioningException {
 		this.cfg = cfg;
+		this.useCertificate = false;
 		this.url = this.loadOption("url", cfg, false);
-		
+		this.name = name;
 		
 		
 		this.useDefaultCaPath = false;
@@ -858,19 +870,23 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		String tmpUseToken = this.loadOptionalAttributeValue("useToken", "Use Token", cfg,null);
 		this.useToken = tmpUseToken != null && tmpUseToken.equalsIgnoreCase("true");
 		
-		if (! useToken) {
+		String localTokenType = this.loadOptionalAttributeValue("tokenType", "tokenType",cfg,null);
+		this.tokenType = TokenType.valueOf(localTokenType.toUpperCase());
+		
+		
+		if (! useToken && this.tokenType != TokenType.CERTIFICATE) {
 			this.userName = this.loadOption("userName", cfg, false);
 			this.password = this.loadOption("password", cfg, true);
 		} else {
 			
 		
-			String localTokenType = this.loadOptionalAttributeValue("tokenType", "tokenType",cfg,null);
+			
 			
 			if (localTokenType == null || localTokenType.trim().isEmpty()) {
 				localTokenType = "LEGACY";
 			}
 			
-			this.tokenType = TokenType.valueOf(localTokenType.toUpperCase());
+			
 			
 			switch (tokenType) {
 				case STATIC:  this.osToken = this.loadOptionalAttributeValue("token", "Token",cfg,"***************************"); break;
@@ -914,6 +930,16 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 					this.oidcTokenInitialized = false;
 					this.initRemoteOidc(cfg, cfgMgr, localTokenType);
 					break;
+				case CERTIFICATE:
+					this.useCertificate = true;
+					this.loadedCert = false;
+					this.certSecretLocation = this.loadOptionalAttributeValue("certSecretURI", "certSecretURI", cfg, null);
+					try {
+						this.loadRemoteKeyMaterial(cfgMgr,this.certSecretLocation);
+					} catch (Exception e) {
+						throw new ProvisioningException("Could not load remote key data",e);
+					}
+					break;
 					
 			}
 			
@@ -953,7 +979,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		
 		
 		this.cfgMgr = cfgMgr;
-		this.name = name;
+		
 		
 		if (cfg.get("certificate") != null) {
 			String certificate = cfg.get("certificate").getValues().get(0);
@@ -1078,6 +1104,11 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	
 
 	public HttpCon createClient() throws Exception {
+		if (this.tokenType == TokenType.CERTIFICATE && ! this.loadedCert) {
+			this.loadRemoteKeyMaterial(cfgMgr, this.certSecretLocation);
+			cfgMgr.buildHttpConfig();
+		}
+		
 		ArrayList<Header> defheaders = new ArrayList<Header>();
 		defheaders.add(new BasicHeader("X-Csrf-Token", "1"));
 
@@ -1105,7 +1136,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		HttpCon con = this.createClient();
 		try {
 			
-			if (! this.useToken) {
+			if (! this.useToken && this.tokenType != TokenType.CERTIFICATE) {
 			
 				StringBuffer b = new StringBuffer();
 				b.append(this.getUrl()).append("/oauth/authorize?response_type=token&client_id=openshift-challenging-client");
@@ -1135,11 +1166,15 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			} else {
 				
 				switch (this.tokenType) {
+					case CERTIFICATE:
+						
+						
 					case NONE: return null;
 					case TOKENAPI: this.checkProjectedToken();
 					case LEGACY:
 					case STATIC: return this.osToken;
 					case OIDC: return this.generateOidcToken();
+					
 					default:
 						throw new ProvisioningException("Unknown tokenType");
 					
@@ -1414,5 +1449,90 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	
 	public String getGitUrl() {
 		return this.gitUrl;
+	}
+	
+	public void loadRemoteKeyMaterial(ConfigManager cfgMgr,String uri) throws Exception {
+		
+		if (cfgMgr.getProvisioningEngine() == null) {
+			logger.warn("k8s target not yet available");
+			return;
+		}
+		
+		ProvisioningTarget target = cfgMgr.getProvisioningEngine().getTarget("k8s");
+		if (target == null) {
+			logger.warn("k8s target not yet available");
+			return;
+		}
+		
+		OpenShiftTarget k8s = (OpenShiftTarget) target.getProvider();
+		HttpCon http = k8s.createClient();
+		
+		try {
+			if (! k8s.isObjectExistsByPath(k8s.getAuthToken(), http, uri)) {
+				logger.error("Could not load " + uri + " from the k8s cluster");
+			} else {
+				String json = k8s.callWS(k8s.getAuthToken(), http, uri);
+				JSONObject root =(JSONObject)  new JSONParser().parse(json);
+				JSONObject data = (JSONObject) root.get("data");
+				String certAuthorityData = (String) data.get("certificate-authority");
+				if (certAuthorityData == null) {
+					logger.error("Could not load certificate-authority from " + uri);
+					return;
+				}
+				
+				
+				String clientCert = (String) data.get("client-certificate");
+				if (clientCert == null) {
+					logger.error("Could not load client-certificate from " + uri);
+					return;
+				}
+				
+				String clientKey = (String) data.get("client-key");
+				if (clientKey == null) {
+					logger.error("Could not load client-key from " + uri);
+					return;
+				}
+				
+				
+				// add ca cert
+				String pem = new String(java.util.Base64.getDecoder().decode(certAuthorityData));
+				ByteArrayInputStream bais = new ByteArrayInputStream(pem.getBytes("UTF-8"));
+		        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+		        Collection<? extends java.security.cert.Certificate> c = cf.generateCertificates(bais);
+		        int i = 0;
+		        for (java.security.cert.Certificate cert : c) {
+		        	cfgMgr.getKeyStore().setCertificateEntry(this.name + "-cacert-" + i, cert);
+		        	i++;
+		        }
+		        
+		        // add key
+		        pem = new String(java.util.Base64.getDecoder().decode(clientCert));
+				bais = new ByteArrayInputStream(pem.getBytes("UTF-8"));
+		        cf = CertificateFactory.getInstance("X.509");
+		        c = cf.generateCertificates(bais);
+		        
+		        java.security.cert.Certificate[] certs = new java.security.cert.Certificate[c.size()];
+		        i = 0 ;
+		        for (java.security.cert.Certificate cert : c) {
+		        	certs[i] = cert;
+		        	i++;
+		        }
+		        
+		        pem = new String(java.util.Base64.getDecoder().decode(clientKey));
+				bais = new ByteArrayInputStream(pem.getBytes("UTF-8"));
+				Object parsed = new org.bouncycastle.openssl.PEMParser(new InputStreamReader(bais)).readObject();
+			    KeyPair pair = new org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter().getKeyPair((org.bouncycastle.openssl.PEMKeyPair)parsed);
+		        
+		        cfgMgr.getKeyStore().setKeyEntry(this.name + "-client", pair.getPrivate(), cfgMgr.getCfg().getKeyStorePassword().toCharArray(), certs);
+		        
+		        
+				
+			}
+		} finally {
+			if (http != null) {
+				http.getHttp().close();
+				http.getBcm().close();
+			}
+		}
 	}
 }
