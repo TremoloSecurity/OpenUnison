@@ -48,6 +48,8 @@ public class ScaleJSRegisterConfig {
 	String submitButtonText;
 	String submittedText;
 	
+	List<String> jsUris;
+	
 	
 	
 	boolean enableThirdColumn;
@@ -59,6 +61,7 @@ public class ScaleJSRegisterConfig {
 		this.submitLoggedInUser = false;
 		this.reasons = new ArrayList<String>();
 		this.enableThirdColumn = false;
+		this.jsUris = new ArrayList<String>();
 	}
 
 	
@@ -291,6 +294,13 @@ public class ScaleJSRegisterConfig {
 	public void setEnableThirdColumn(boolean enableThirdColumn) {
 		this.enableThirdColumn = enableThirdColumn;
 	}
+
+
+
+	public List<String> getJsUris() {
+		return jsUris;
+	}
+	
 	
 	
 	
