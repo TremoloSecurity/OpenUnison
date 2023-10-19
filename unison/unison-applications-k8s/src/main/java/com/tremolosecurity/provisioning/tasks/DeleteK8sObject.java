@@ -164,12 +164,12 @@ public class DeleteK8sObject implements CustomTask {
     			    }
     			    
     			    if (kind.equalsIgnoreCase(this.kind)) {
-    			    	this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Delete,  approvalID, this.task.getWorkflow(), label, projectName);
+    			    	this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Delete,  approvalID, this.task.getWorkflow(), label, localURL);
     			    } else if (resp.get("status") != null) {
     			    	String status = (String) resp.get("status");
     			    	logger.info("status : '" + status + "'");
     			    	if (status != null && status.equalsIgnoreCase("success"))  {
-    			    		this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Delete,  approvalID, this.task.getWorkflow(), label, projectName);
+    			    		this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Delete,  approvalID, this.task.getWorkflow(), label, localURL);
     				    } else {
     				    	throw new ProvisioningException("Could not delete " + kind + " with url '" + localURL + "' - '" + respJSON + "'" );
     				    }
