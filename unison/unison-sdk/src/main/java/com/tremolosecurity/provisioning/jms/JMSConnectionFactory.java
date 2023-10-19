@@ -126,7 +126,12 @@ public class JMSConnectionFactory {
 				logger.debug("Retrieving session for '" + queueName + "'");
 			}
 			
-			JMSSessionHolder session = cons.get(cons.size() - 1).createSession(queueName);
+			JMSSessionHolder session = null;
+			
+			synchronized (cons) {
+				JMSConnection con = cons.get(cons.size() - 1);
+				session = con.createSession(queueName);
+			}
 			
 			if (logger.isDebugEnabled()) {
 				logger.debug("Session for '" + queueName + "' - '" + session + "'");
