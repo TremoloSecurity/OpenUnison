@@ -47,6 +47,7 @@ import com.tremolosecurity.provisioning.service.util.WFCall;
 import com.tremolosecurity.provisioning.tasks.Approval;
 import com.tremolosecurity.provisioning.workflow.ApprovalData;
 import com.tremolosecurity.provisioning.workflow.ExecuteWorkflow;
+import com.tremolosecurity.proxy.ProxyResponse;
 import com.tremolosecurity.proxy.ProxySys;
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.auth.AuthInfo;
@@ -99,7 +100,7 @@ public class ScaleRegister implements HttpFilter {
 			}
 			
 			
-			
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 			response.getWriter().println(gson.toJson(localCfg).trim());
 			
 		} else if (request.getRequestURI().endsWith("/register/values")) {
@@ -107,6 +108,7 @@ public class ScaleRegister implements HttpFilter {
 			List<NVP> values = this.scaleConfig.getAttributes().get(attributeName).getDynamicSource().getSourceList(request);
 			response.setContentType("application/json; charset=UTF-8");
 			ScaleJSUtils.addCacheHeaders(response);
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 			response.getWriter().println(gson.toJson(values).trim());
 			
 			
@@ -119,6 +121,7 @@ public class ScaleRegister implements HttpFilter {
 				ScaleJSUtils.addCacheHeaders(response);
 				ScaleError error = new ScaleError();
 				error.getErrors().add("Error processing request, see logs");
+				((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 				response.getWriter().print(gson.toJson(error).trim());
 				response.getWriter().flush();
 			}
@@ -130,6 +133,7 @@ public class ScaleRegister implements HttpFilter {
 			ScaleJSUtils.addCacheHeaders(response);
 			ScaleError error = new ScaleError();
 			error.getErrors().add("Operation not supported");
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 			response.getWriter().print(gson.toJson(error).trim());
 			response.getWriter().flush();
 		}
@@ -356,12 +360,14 @@ public class ScaleRegister implements HttpFilter {
 			res.setAddNewUsers(userData.getAuthLevel() != 0);
 			res.setWorkflowId(wfid);
 			ScaleJSUtils.addCacheHeaders(response);
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 			response.getWriter().print(gson.toJson(res));
 			response.getWriter().flush();
 			
 		} else {
 			response.setStatus(400);
 			ScaleJSUtils.addCacheHeaders(response);
+			((ProxyResponse) response.getServletResponse()).pushHeadersAndCookies(null);
 			response.getWriter().print(gson.toJson(errors).trim());
 			response.getWriter().flush();
 		}
@@ -596,6 +602,7 @@ public class ScaleRegister implements HttpFilter {
 			
 			
 			
+			
 			scaleConfig.getAttributes().put(attributeName, scaleAttr);
 		}
 		
@@ -611,6 +618,11 @@ public class ScaleRegister implements HttpFilter {
 			val = "false";
 		}
 		scaleConfig.setSubmitLoggedInUser(val.equalsIgnoreCase("true"));
+		
+		Attribute jsUris = config.getAttribute("jsUris");
+		if (jsUris != null) {
+			scaleConfig.getJsUris().addAll(jsUris.getValues());
+		}
 		
 		if (scaleConfig.isUseCustomSubmission()) {
 			scaleConfig.setCustomSubmissionClassName(this.loadAttributeValue("callWorkflowClassName", "Custom Submission Class", config));
