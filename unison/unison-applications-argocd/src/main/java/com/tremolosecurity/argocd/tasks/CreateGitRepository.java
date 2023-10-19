@@ -78,6 +78,7 @@ public class CreateGitRepository implements CustomTask {
 		String localName = task.renderTemplate(this.name, request);
 		String localRepoUrl = task.renderTemplate(this.repoUrl, request);
 		String localSshPrivateKey = task.renderTemplate(this.sshPrivateKey, request);
+		String localTarget = task.renderTemplate(this.target, request);
 		
 		GitRepo repo = new GitRepo();
 		repo.setType(localType);
@@ -91,7 +92,7 @@ public class CreateGitRepository implements CustomTask {
 		
 		//System.out.println(json);
 		
-		ArgoCDTarget argo = (ArgoCDTarget) task.getConfigManager().getProvisioningEngine().getTarget(this.target).getProvider();
+		ArgoCDTarget argo = (ArgoCDTarget) task.getConfigManager().getProvisioningEngine().getTarget(localTarget).getProvider();
 		
 		HttpCon con = null;
 		
