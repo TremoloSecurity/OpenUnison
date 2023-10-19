@@ -78,7 +78,11 @@ public class LoadFromLDAP implements SourceList {
 		if (request.getParameter("search") == null ) {
 			ArrayList<NVP> toReturn = new ArrayList<NVP>();
 			
-			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),present(this.searchAttribute)).toString(), new ArrayList<String>());
+			ArrayList<String> ldapAttrs = new ArrayList<String>();
+			ldapAttrs.add("*");
+			ldapAttrs.add("+");
+			
+			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),present(this.searchAttribute)).toString(), ldapAttrs);
 			int num = 0;
 			while (res.hasMore()) {
 				if ((this.dynSearch && num < this.maxEntries) || ! this.dynSearch) {
@@ -110,7 +114,11 @@ public class LoadFromLDAP implements SourceList {
 		} else {
 			ArrayList<NVP> toReturn = new ArrayList<NVP>();
 			
-			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),contains(this.searchAttribute,request.getParameter("search").getValues().get(0))).toString(), new ArrayList<String>());
+			ArrayList<String> ldapAttrs = new ArrayList<String>();
+			ldapAttrs.add("*");
+			ldapAttrs.add("+");
+			
+			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),contains(this.searchAttribute,request.getParameter("search").getValues().get(0))).toString(), ldapAttrs);
 			int num = 0;
 			while (res.hasMore() && num < this.maxEntries) {
 				LDAPEntry entry = res.next();
@@ -139,7 +147,10 @@ public class LoadFromLDAP implements SourceList {
 
 	@Override
 	public String validate(String value, HttpFilterRequest request) throws Exception {
-		LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),equal(this.valueField,value)).toString(), new ArrayList<String>());
+		ArrayList<String> ldapAttrs = new ArrayList<String>();
+		ldapAttrs.add("*");
+		ldapAttrs.add("+");
+		LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),equal(this.valueField,value)).toString(), ldapAttrs);
 		if (res.hasMore()) {
 			res.next();
 			while (res.hasMore()) res.next();
