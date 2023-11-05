@@ -77,6 +77,7 @@ public class RbacBindingsTarget implements UserStoreProvider {
 					} else {
 						JSONArray subjects = (JSONArray) root.get("subjects");
 						boolean found = false;
+						boolean hasUsers = true;
 						if (subjects != null) {
 							for (Object oo : subjects) {
 								JSONObject subject = (JSONObject) oo;
@@ -89,17 +90,25 @@ public class RbacBindingsTarget implements UserStoreProvider {
 									}
 								}
 							}
+						} else {
+							hasUsers = false;
 						}
 						
 						if (! found) {
-							String patch = String.format("[\n"
-									+ "                        {\n"
-									+ "                          \"op\":\"add\",\n"
-									+ "                          \"path\":\"/subjects/-\",\n"
-									+ "                          \"value\": {\"kind\":\"User\",\"name\":\"%s\"}\n"
-									+ "                        }\n"
-									+ "                      ]",user.getUserID());
-							k8s.callWSPatchJson(k8s.getAuthToken(), con, uri, patch,"application/json-patch+json");
+							if (hasUsers) {
+								
+								String patch = String.format("[\n"
+										+ "                        {\n"
+										+ "                          \"op\":\"add\",\n"
+										+ "                          \"path\":\"/subjects/-\",\n"
+										+ "                          \"value\": {\"kind\":\"User\",\"name\":\"%s\"}\n"
+										+ "                        }\n"
+										+ "                      ]",user.getUserID());
+								k8s.callWSPatchJson(k8s.getAuthToken(), con, uri, patch,"application/json-patch+json");
+							} else {
+								String patch = String.format("{\"subjects\":[{\"kind\":\"User\",\"name\":\"%s\"}]}", user.getUserID());
+								k8s.callWSPatchJson(k8s.getAuthToken(), con, uri, patch,"application/strategic-merge-patch+json");
+							}
 							
 							GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().logAction(targetName,false, ActionType.Add,  approvalID, workflow, "clusterrolebinding", crb);
 						}
@@ -121,6 +130,7 @@ public class RbacBindingsTarget implements UserStoreProvider {
 					} else {
 						JSONArray subjects = (JSONArray) root.get("subjects");
 						boolean found = false;
+						boolean hasUsers = true;
 						if (subjects != null) {
 							for (Object oo : subjects) {
 								JSONObject subject = (JSONObject) oo;
@@ -133,17 +143,26 @@ public class RbacBindingsTarget implements UserStoreProvider {
 									}
 								}
 							}
+						} else {
+							hasUsers = false;
 						}
 						
 						if (! found) {
-							String patch = String.format("[\n"
-									+ "                        {\n"
-									+ "                          \"op\":\"add\",\n"
-									+ "                          \"path\":\"/subjects/-\",\n"
-									+ "                          \"value\": {\"kind\":\"User\",\"name\":\"%s\"}\n"
-									+ "                        }\n"
-									+ "                      ]",user.getUserID());
-							k8s.callWSPatchJson(k8s.getAuthToken(), con, uri, patch,"application/json-patch+json");
+							logger.info("has subjects: " + hasUsers);
+							if (hasUsers) {
+								String patch = String.format("[\n"
+										+ "                        {\n"
+										+ "                          \"op\":\"add\",\n"
+										+ "                          \"path\":\"/subjects/-\",\n"
+										+ "                          \"value\": {\"kind\":\"User\",\"name\":\"%s\"}\n"
+										+ "                        }\n"
+										+ "                      ]",user.getUserID());
+								k8s.callWSPatchJson(k8s.getAuthToken(), con, uri, patch,"application/json-patch+json");
+							} else {
+								String patch = String.format("{\"subjects\":[{\"kind\":\"User\",\"name\":\"%s\"}]}", user.getUserID());
+								
+								k8s.callWSPatchJson(k8s.getAuthToken(), con, uri, patch,"application/strategic-merge-patch+json");
+							}
 							
 							GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().logAction(targetName,false, ActionType.Add,  approvalID, workflow, "rolebinding", String.format("%s:%s", namespace,rb));
 						}
