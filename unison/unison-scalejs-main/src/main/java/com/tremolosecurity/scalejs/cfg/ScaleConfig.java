@@ -57,6 +57,22 @@ public class ScaleConfig {
 	
 	boolean reasonIsList;
 	List<String> reasons;
+	
+	
+	String startPage;
+	
+	List<String> hidePages;
+	
+	String themePrimaryMain;
+	String themePrimaryDark;
+	String themePrimaryLight;
+	
+	String themeSecondaryMain;
+	String themeSecondaryDark;
+	String themeSecondaryLight;
+	
+	String errorColor;
+	
  	
 	public ScaleConfig(ScaleConfig from) {
 		this.displayNameAttribute = from.displayNameAttribute;
@@ -86,6 +102,19 @@ public class ScaleConfig {
 		this.reasons.addAll(from.reasons);
 		this.jitUserWorkflow = from.jitUserWorkflow;
 		this.requireReasons = from.requireReasons;
+		
+		this.startPage = from.startPage;
+		this.hidePages = new ArrayList<String>();
+		this.hidePages.addAll(from.hidePages);
+		
+		this.themePrimaryMain = from.themePrimaryMain;
+		this.themePrimaryDark = from.themePrimaryDark;
+		this.themePrimaryLight = from.themePrimaryLight;
+		
+		this.themeSecondaryMain = from.themeSecondaryMain;
+		this.themeSecondaryDark = from.themeSecondaryDark;
+		this.themeSecondaryLight = from.themeSecondaryLight;
+		this.errorColor = from.errorColor;
 	}
 	
 	public ScaleConfig() {
@@ -96,6 +125,7 @@ public class ScaleConfig {
 		this.userAttributeList = new ArrayList<String>();
 		this.reasons = new ArrayList<String>();
 		this.requireReasons = true;
+		this.hidePages = new ArrayList<String>();
 	}
 
 	
@@ -251,6 +281,75 @@ public class ScaleConfig {
 	public void setRequireReasons(boolean requireReasons) {
 		this.requireReasons = requireReasons;
 	}
+
+	public String getStartPage() {
+		return startPage;
+	}
+
+	public void setStartPage(String startPage) {
+		this.startPage = startPage;
+	}
+
+	public List<String> getHidePages() {
+		return hidePages;
+	}
+
+	public String getThemePrimaryMain() {
+		return themePrimaryMain;
+	}
+
+	public void setThemePrimaryMain(String themePrimaryMain) {
+		this.themePrimaryMain = themePrimaryMain;
+	}
+
+	public String getThemePrimaryDark() {
+		return themePrimaryDark;
+	}
+
+	public void setThemePrimaryDark(String themePrimaryDark) {
+		this.themePrimaryDark = themePrimaryDark;
+	}
+
+	public String getThemePrimaryLight() {
+		return themePrimaryLight;
+	}
+
+	public void setThemePrimaryLight(String themePrimaryLight) {
+		this.themePrimaryLight = themePrimaryLight;
+	}
+
+	public String getThemeSecondaryMain() {
+		return themeSecondaryMain;
+	}
+
+	public void setThemeSecondaryMain(String themeSecondaryMain) {
+		this.themeSecondaryMain = themeSecondaryMain;
+	}
+
+	public String getThemeSecondaryDark() {
+		return themeSecondaryDark;
+	}
+
+	public void setThemeSecondaryDark(String themeSecondaryDark) {
+		this.themeSecondaryDark = themeSecondaryDark;
+	}
+
+	public String getThemeSecondaryLight() {
+		return themeSecondaryLight;
+	}
+
+	public void setThemeSecondaryLight(String themeSecondaryLight) {
+		this.themeSecondaryLight = themeSecondaryLight;
+	}
+
+	public String getErrorColor() {
+		return errorColor;
+	}
+
+	public void setErrorColor(String errorColor) {
+		this.errorColor = errorColor;
+	}
+	
 	
 	
 

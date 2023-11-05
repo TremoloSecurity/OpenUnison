@@ -38,12 +38,31 @@ public class OperatorsConfig {
 
     String homeUrl;
 
+    boolean approveChecked;
+    boolean showPreApprove;
+    
+    
+    String approvedLabel;
+    String deniedLabel;
+    
+    String reasonApprovedLabel;
+    String reasonDeniedLabel;
+    
+    
 
     public OperatorsConfig() {
         this.searchBases = new ArrayList<String>();
         this.searchableAttributes = new ArrayList<AttributeConfig>();
         this.resultsAttributes = new ArrayList<AttributeConfig>();
         this.baseLabelToDN = new HashMap<String,String>();
+        this.approveChecked = false;
+        this.showPreApprove = true;
+        
+        
+        this.approvedLabel = "Approved";
+        this.deniedLabel = "Denied";
+        this.reasonApprovedLabel = "Reason for approval";
+        this.reasonDeniedLabel = "Reason for denial";
         
     }
 
@@ -126,6 +145,55 @@ public class OperatorsConfig {
         this.homeUrl = homeUrl;
     }
 
+	public boolean isApproveChecked() {
+		return approveChecked;
+	}
+
+	public void setApproveChecked(boolean approveChecked) {
+		this.approveChecked = approveChecked;
+	}
+
+	public boolean isShowPreApprove() {
+		return showPreApprove;
+	}
+
+	public void setShowPreApprove(boolean showPreApprove) {
+		this.showPreApprove = showPreApprove;
+	}
+
+	public String getApprovedLabel() {
+		return approvedLabel;
+	}
+
+	public void setApprovedLabel(String approvedLabel) {
+		this.approvedLabel = approvedLabel;
+	}
+
+	public String getDeniedLabel() {
+		return deniedLabel;
+	}
+
+	public void setDeniedLabel(String deniedLabel) {
+		this.deniedLabel = deniedLabel;
+	}
+
+	public String getReasonApprovedLabel() {
+		return reasonApprovedLabel;
+	}
+
+	public void setReasonApprovedLabel(String reasonApprovedLabel) {
+		this.reasonApprovedLabel = reasonApprovedLabel;
+	}
+
+	public String getReasonDeniedLabel() {
+		return reasonDeniedLabel;
+	}
+
+	public void setReasonDeniedLabel(String reasonDeniedLabel) {
+		this.reasonDeniedLabel = reasonDeniedLabel;
+	}
+
+    
 
 
 }

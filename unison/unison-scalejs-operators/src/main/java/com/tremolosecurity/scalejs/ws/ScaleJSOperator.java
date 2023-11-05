@@ -574,7 +574,41 @@ public class ScaleJSOperator implements HttpFilter {
 			this.dec.init(decCfg);
 		}
 
-
+		String tmp = this.loadOptionalAttributeValue("approveChecked", "approveChecked", config);
+		if (tmp != null) {
+			this.config.setApproveChecked(tmp.equalsIgnoreCase("true"));
+		} else {
+			this.config.setApproveChecked(false);
+		}
+		
+		tmp = this.loadOptionalAttributeValue("showPreApprove", "showPreApprove", config);
+		if (tmp != null) {
+			this.config.setShowPreApprove(tmp.equalsIgnoreCase("true"));
+		} else {
+			this.config.setShowPreApprove(true);
+		}
+		
+		
+		tmp = this.loadOptionalAttributeValue("approvedLabel", "approvedLabel", config);
+		if (tmp != null) {
+			this.config.setApprovedLabel(tmp);
+		}
+		
+		tmp = this.loadOptionalAttributeValue("deniedLabel", "deniedLabel", config);
+		if (tmp != null) {
+			this.config.setDeniedLabel(tmp);
+		}
+		
+		tmp = this.loadOptionalAttributeValue("reasonApprovedLabel", "reasonApprovedLabel", config);
+		if (tmp != null) {
+			this.config.setReasonApprovedLabel(tmp);
+		}
+		
+		tmp = this.loadOptionalAttributeValue("reasonDeniedLabel", "reasonDeniedLabel", config);
+		if (tmp != null) {
+			this.config.setReasonDeniedLabel(tmp);
+		}
+		
 
 	}
 
