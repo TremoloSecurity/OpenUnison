@@ -967,14 +967,18 @@ public class ScaleMain implements HttpFilter {
 				} else {
 					WFCall wfCall = new WFCall();
 					wfCall.setName(req.getName());
-					String requestReason = req.getReason().trim();
-					
-					if (requestReason.length() > 255) {
-						logger.warn("Reason is oversized : " + requestReason.length());
-						requestReason = requestReason.substring(0,255);
+					if (this.scaleConfig.isRequireReasons()) {
+						String requestReason = req.getReason().trim();
+						
+						if (requestReason.length() > 255) {
+							logger.warn("Reason is oversized : " + requestReason.length());
+							requestReason = requestReason.substring(0,255);
+						}
+						
+						wfCall.setReason(requestReason);
+					} else {
+						wfCall.setReason("");
 					}
-					
-					wfCall.setReason(requestReason);
 					wfCall.setUidAttributeName(this.scaleConfig.getUidAttributeName());
 					wfCall.setEncryptedParams(req.getEncryptedParams());	
 					
@@ -1733,6 +1737,68 @@ public class ScaleMain implements HttpFilter {
 				if (reasons != null) {
 					scaleConfig.getReasons().addAll(reasons.getValues());
 				}
+			}
+			
+			val = this.loadOptionalAttributeValue("startPage", "startPage", config);
+			if (val != null) {
+				this.scaleConfig.setStartPage(val);
+			} else {
+				this.scaleConfig.setStartPage("front-page");
+			}
+			
+			if (config.getAttribute("hidePages") != null) {
+				this.scaleConfig.getHidePages().addAll(config.getAttribute("hidePages").getValues());
+			}
+			
+			
+			
+			val = this.loadOptionalAttributeValue("themePrimaryMain", "themePrimaryMain", config);
+			if (val != null) {
+				this.scaleConfig.setThemePrimaryMain(val);
+			} else {
+				this.scaleConfig.setThemePrimaryMain("#AC1622");
+			}
+			
+			val = this.loadOptionalAttributeValue("themePrimaryDark", "themePrimaryDark", config);
+			if (val != null) {
+				this.scaleConfig.setThemePrimaryDark(val);
+			} else {
+				this.scaleConfig.setThemePrimaryDark("#780f17");
+			}
+			
+			val = this.loadOptionalAttributeValue("themePrimaryLight", "themePrimaryLight", config);
+			if (val != null) {
+				this.scaleConfig.setThemePrimaryLight(val);
+			} else {
+				this.scaleConfig.setThemePrimaryLight("#bc444e");
+			}
+			
+			val = this.loadOptionalAttributeValue("themeSecondaryMain", "themeSecondaryMain", config);
+			if (val != null) {
+				this.scaleConfig.setThemeSecondaryMain(val);
+			} else {
+				this.scaleConfig.setThemeSecondaryMain("#16aca0");
+			}
+			
+			val = this.loadOptionalAttributeValue("themeSecondaryDark", "themeSecondaryDark", config);
+			if (val != null) {
+				this.scaleConfig.setThemeSecondaryDark(val);
+			} else {
+				this.scaleConfig.setThemeSecondaryDark("#0f7870");
+			}
+			
+			val = this.loadOptionalAttributeValue("themeSecondaryLight", "themeSecondaryLight", config);
+			if (val != null) {
+				this.scaleConfig.setThemeSecondaryLight(val);
+			} else {
+				this.scaleConfig.setThemeSecondaryLight("#44bcb3");
+			}
+			
+			val = this.loadOptionalAttributeValue("errorColor", "errorColor", config);
+			if (val != null) {
+				this.scaleConfig.setErrorColor(val);
+			} else {
+				this.scaleConfig.setErrorColor("#ff1744");
 			}
 		}
 		
