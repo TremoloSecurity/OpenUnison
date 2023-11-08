@@ -46,6 +46,7 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.config.xml.AnnotationType;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.WorkflowTaskType;
 import com.tremolosecurity.config.xml.WorkflowType;
@@ -83,6 +84,8 @@ public class WorkflowImpl implements  Workflow {
 	private String description;
 	private String label;
 	
+	private Map<String,String> annotationFilters;
+	
 	/* (non-Javadoc)
 	 * @see com.tremolosecurity.provisioning.core.Workflow#getUserNum()
 	 */
@@ -117,7 +120,20 @@ public class WorkflowImpl implements  Workflow {
 			
 		}
 		
+		this.annotationFilters = new HashMap<String,String>();
 		
+		if (wf.getDynamicConfiguration() != null && wf.getDynamicConfiguration().isDynamic() && wf.getDynamicConfiguration().getFilterAnnotations() != null) {
+			for (AnnotationType at : wf.getDynamicConfiguration().getFilterAnnotations()) {
+				this.annotationFilters.put(at.getName(), at.getRequestObjectName());
+			}
+		}
+		
+		
+	}
+	
+	@Override
+	public Map<String,String> getAnnotationFilters() {
+		return this.annotationFilters;
 	}
 	
 	/* (non-Javadoc)

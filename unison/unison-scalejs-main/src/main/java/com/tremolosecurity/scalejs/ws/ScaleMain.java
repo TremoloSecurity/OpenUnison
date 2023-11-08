@@ -69,6 +69,7 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.config.xml.AnnotationType;
 import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.AzRuleType;
 import com.tremolosecurity.config.xml.OrgType;
@@ -1222,6 +1223,14 @@ public class ScaleMain implements HttpFilter {
 								desc.setDescription(st.render());
 								
 								desc.setEncryptedParams(lm.generateLastMileToken(cfgMgr.getSecretKey(cfgMgr.getCfg().getProvisioning().getApprovalDB().getEncryptionKey())));
+								
+								
+								for (AnnotationType at : wf.getDynamicConfiguration().getFilterAnnotations()) {
+									String annotationValue = wfParamSet.get(at.getRequestObjectName());
+									if (annotationValue != null) {
+										desc.getFilterAnnotations().put(at.getName(),annotationValue);
+									}
+								}
 								
 								workflows.add(desc);
 								

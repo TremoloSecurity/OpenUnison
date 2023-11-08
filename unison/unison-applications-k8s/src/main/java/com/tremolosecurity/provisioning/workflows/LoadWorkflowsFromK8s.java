@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.config.xml.AnnotationType;
 import com.tremolosecurity.config.xml.DynamicWorkflowType;
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.config.xml.TremoloType;
@@ -201,6 +202,22 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 				pt.setName((String)p.get("name"));
 				pt.setValue((String) p.get("value"));
 				dwt.getParam().add(pt);
+			}
+			
+			JSONArray filterAnnotations = (JSONArray) dynWfJson.get("filterAnnotations");
+			if (filterAnnotations != null) {
+				for (Object o : filterAnnotations) {
+					JSONObject annotation = (JSONObject) o;
+					String annotationName = (String) annotation.get("name");
+					String requestObjectName = (String) annotation.get("requestObjectName");
+					
+					AnnotationType at = new AnnotationType();
+					at.setName(annotationName);
+					at.setRequestObjectName(requestObjectName);
+					
+					dwt.getFilterAnnotations().add(at);
+					
+				}
 			}
 		}
 		

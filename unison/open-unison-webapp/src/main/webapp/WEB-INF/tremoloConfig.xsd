@@ -2514,7 +2514,9 @@
 				<documentation>Parameter used to initialize the dynamic workflow generator</documentation>
 			</annotation>
 			
+			
 			</element>
+			<element name="filterAnnotations" type="tns:annotationType" minOccurs="0" maxOccurs="unbounded"></element>
 		</sequence>
 		
 		
@@ -2529,6 +2531,15 @@
 				<documentation>Implementation of com.tremolosecurity.provisioning.util.DynamicWorkflow</documentation>
 			</annotation>
 		</attribute>
+		
+	</complexType>
+	
+	<complexType name="annotationType">
+		<annotation>
+			<documentation>Identify annotations</documentation>
+		</annotation>
+		<attribute name="name" type="string"></attribute>
+		<attribute name="requestObjectName" type="string"></attribute>
 	</complexType>
 
 	<complexType name="notificationType">

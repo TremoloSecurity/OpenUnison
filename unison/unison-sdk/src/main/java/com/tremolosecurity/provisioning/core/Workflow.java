@@ -81,4 +81,6 @@ public interface Workflow extends Serializable {
 	
 	public abstract Workflows getFromDB(Session session) throws HibernateException, ProvisioningException;
 
+	Map<String, String> getAnnotationFilters();
+
 }

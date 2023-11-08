@@ -17,14 +17,19 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.service.util;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class WFDescription {
 	String name;
 	String description;
 	String label;
 	String encryptedParams;
 	String uuid;
+	Map<String,String> filterAnnotations;
 	
 	public WFDescription() {
+		this.filterAnnotations = new HashMap<String,String>();
 		
 	}
 
@@ -66,6 +71,14 @@ public class WFDescription {
 
 	public void setUuid(String uuid) {
 		this.uuid = uuid;
+	}
+
+	public Map<String, String> getFilterAnnotations() {
+		return filterAnnotations;
+	}
+
+	public void setFilterAnnotations(Map<String, String> filterAnnotations) {
+		this.filterAnnotations = filterAnnotations;
 	}
 	
 	

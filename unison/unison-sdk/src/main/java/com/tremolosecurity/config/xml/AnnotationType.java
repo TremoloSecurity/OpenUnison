@@ -23,27 +23,25 @@
 
 package com.tremolosecurity.config.xml;
 
-import java.util.ArrayList;
-import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * List of identity providers on this URL
+ * Identify annotations
  * 
- * <p>Java class for idpsType complex type.
+ * <p>Java class for annotationType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="idpsType"&gt;
+ * &lt;complexType name="annotationType"&gt;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
- *       &lt;sequence&gt;
- *         &lt;element name="idp" type="{http://www.tremolosecurity.com/tremoloConfig}idpType" maxOccurs="unbounded" minOccurs="0"/&gt;
- *       &lt;/sequence&gt;
+ *       &lt;attribute name="name" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="requestObjectName" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
@@ -52,40 +50,60 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "idpsType", propOrder = {
-    "idp"
-})
-public class IdpsType {
+@XmlType(name = "annotationType")
+public class AnnotationType {
 
-    protected List<IdpType> idp;
+    @XmlAttribute(name = "name")
+    protected String name;
+    @XmlAttribute(name = "requestObjectName")
+    protected String requestObjectName;
 
     /**
-     * Gets the value of the idp property.
+     * Gets the value of the name property.
      * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the idp property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getIdp().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link IdpType }
-     * 
-     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
      */
-    public List<IdpType> getIdp() {
-        if (idp == null) {
-            idp = new ArrayList<IdpType>();
-        }
-        return this.idp;
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Sets the value of the name property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setName(String value) {
+        this.name = value;
+    }
+
+    /**
+     * Gets the value of the requestObjectName property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getRequestObjectName() {
+        return requestObjectName;
+    }
+
+    /**
+     * Sets the value of the requestObjectName property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setRequestObjectName(String value) {
+        this.requestObjectName = value;
     }
 
 }
