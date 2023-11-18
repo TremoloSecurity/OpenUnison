@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -27,6 +28,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
+import com.google.gson.Gson;
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
@@ -39,6 +41,7 @@ import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.unison.openshiftv3.OpenShiftTarget;
 import com.tremolosecurity.unison.openshiftv3.model.users.User;
+import com.tremolosecurity.k8s.model.Binding;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -73,6 +76,10 @@ public class AddClusterBindingsAsAttribute implements Insert {
 	String target;
 	String namespace;
 	
+	boolean json;
+	
+	Gson gson;
+	
 	@Override
 	public String getName() {
 		return name;
@@ -87,6 +94,14 @@ public class AddClusterBindingsAsAttribute implements Insert {
 		this.labelAnnotation = props.getProperty("labelAnnotation");
 		this.target = props.getProperty("target");
 		this.namespace = props.getProperty("namespace");
+		
+		if (props.get("json") != null) {
+			this.json = props.get("json").equals("true");
+		} else {
+			this.json = false;
+		}
+		
+		this.gson = new Gson();
 
 	}
 
@@ -159,6 +174,9 @@ public class AddClusterBindingsAsAttribute implements Insert {
 			throws LDAPException {
 		chain.nextPostSearchEntry(entry, base, scope, filter, attributes, typesOnly, constraints);
 		HttpCon con = null;
+		
+		JSONArray jsonRes = new JSONArray();
+		
 		try {
 			
 			if (entry.getEntry().getAttribute(this.lookupByAttribute) == null) {
@@ -192,6 +210,8 @@ public class AddClusterBindingsAsAttribute implements Insert {
 				return;
 			}
 			
+			Map<String,Map<String,Binding>> bindings = new HashMap<String,Map<String,Binding>>();
+			
 			for (Object o : items) {
 				logger.info("Target: " + o.toString());
 				JSONObject target = (JSONObject) o;
@@ -213,18 +233,52 @@ public class AddClusterBindingsAsAttribute implements Insert {
 					}
 					
 					RbacBindingsTarget cluster = (RbacBindingsTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget((String)metadata.get("name")).getProvider();
-					com.tremolosecurity.provisioning.core.User fromTarget = cluster.findUser(searchByAttrValue, new HashSet<String>(), new HashMap<String,Object>());
+					Map<String,Object> request = new HashMap<String,Object>();
+					com.tremolosecurity.provisioning.core.User fromTarget = cluster.findUser(searchByAttrValue, new HashSet<String>(), request);
 					if (fromTarget != null) {
 						for (String group : fromTarget.getGroups()) {
-							attrToAdd.addValue(String.format("%s - %s", label,group));
+							if (this.json) {
+								JSONObject obj = new JSONObject();
+								obj.put("Cluster", label);
+								if (group.startsWith("rb")) {
+									int begin = group.indexOf(':');
+									int end = group.indexOf(':',begin + 1);
+									obj.put("Namespace", group.substring(begin + 1,end));
+									obj.put("Binding", group.substring(end + 1));
+								} else {
+									obj.put("Namespace", "N/A");
+									obj.put("Binding", group.substring(group.indexOf(':') + 1));
+									
+								}
+								
+								jsonRes.add(obj);
+							} else {
+								attrToAdd.addValue(String.format("%s:%s", (String) metadata.get("name"),group));
+							}
+							
 						}
+						
+						bindings.put((String)metadata.get("name"), (Map<String, Binding>) request.get(RbacBindingsTarget.USER_BINDINGS));
 					}
 				}
 				
 			}
 			
+			if (this.json) {
+				if (jsonRes.size() > 0) {
+					attrToAdd.addValue(jsonRes.toString().getBytes("UTF-8"));
+				} else {
+					attrToAdd.addValue("[]".getBytes("UTF-8"));
+				}
+			}
+			
 			if (attrToAdd.getAllValues().size() > 0) {
+				
+				
 				entry.getEntry().getAttributeSet().add(attrToAdd);
+				LDAPAttribute bindingsAttr = new LDAPAttribute(new StringBuilder().append(this.attributeToAdd).append("-bindings").toString());
+				bindingsAttr.addValue(gson.toJson(bindings));
+				entry.getEntry().getAttributeSet().add(bindingsAttr);
 			}
 			
 		} catch (Exception e) {

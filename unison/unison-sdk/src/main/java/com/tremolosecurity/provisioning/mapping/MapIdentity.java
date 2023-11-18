@@ -18,6 +18,7 @@ limitations under the License.
 package com.tremolosecurity.provisioning.mapping;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,7 +29,8 @@ import java.util.StringTokenizer;
 
 import org.apache.logging.log4j.Logger;
 
-
+import com.novell.ldap.LDAPAttribute;
+import com.novell.ldap.LDAPSearchConstraints;
 import com.tremolosecurity.config.xml.IdpMappingType;
 import com.tremolosecurity.config.xml.ProvisionMappingType;
 import com.tremolosecurity.config.xml.ProvisionMappingsType;
@@ -41,6 +43,13 @@ import com.tremolosecurity.provisioning.core.WorkflowTask;
 
 import com.tremolosecurity.provisioning.mapping.MapIdentity.MappingType;
 import com.tremolosecurity.saml.Attribute;
+
+import net.sourceforge.myvd.chain.PostSearchEntryInterceptorChain;
+import net.sourceforge.myvd.types.Bool;
+import net.sourceforge.myvd.types.DistinguishedName;
+import net.sourceforge.myvd.types.Entry;
+import net.sourceforge.myvd.types.Filter;
+import net.sourceforge.myvd.types.Int;
 
 public class MapIdentity implements Serializable {
 	
@@ -272,6 +281,78 @@ public class MapIdentity implements Serializable {
 	
 	public User mapUser(User userObj,boolean strict) throws ProvisioningException {
 		return this.mapUser(userObj,strict,null,null);
+	}
+	
+	
+	public void mapUser(PostSearchEntryInterceptorChain chain, Entry entry, DistinguishedName base, Int scope,
+			Filter filter, ArrayList<net.sourceforge.myvd.types.Attribute> attributes2, Bool typesOnly, LDAPSearchConstraints constraints) {
+		
+		for (String name : this.map.keySet()) {
+			MappingEntry mapping = this.map.get(name);
+			
+			LDAPAttribute ldapAttr = new  LDAPAttribute(name);
+			switch (mapping.type) {
+				case staticValue:
+					try {
+						ldapAttr.addValue(mapping.staticValue.getBytes("UTF-8"));
+					} catch (UnsupportedEncodingException e) {
+						
+					}
+					break;
+				case userAttr:
+					LDAPAttribute source = entry.getEntry().getAttribute(mapping.userAttr);
+					if (source != null) {
+						ldapAttr.setAllValues(source.getAllValues());
+					}
+					break;
+					
+				case custom:
+					User srcUser = new User(entry.getEntry());
+					Attribute mappedUser = mapping.mapping.doMapping(srcUser, name);
+					if (mappedUser != null) {
+						for (String val : mappedUser.getValues()) {
+							try {
+								ldapAttr.addValue(val.getBytes("UTF-8"));
+							} catch (UnsupportedEncodingException e) {
+								
+							}
+						}
+					}
+					break;
+					
+				case composite:
+					StringBuilder b = new StringBuilder();
+					for (MappingPart mp : mapping.composite) {
+						 if (mp.isAttr) {
+							 LDAPAttribute attr = entry.getEntry().getAttribute(mp.val);
+							 
+							 if (attr != null) {
+								b.append(attr.getStringValue());
+							 }
+						 } else {
+							 b.append(mp.val);
+						 }
+					 }
+					
+					 String newVal = b.toString();
+					try {
+						ldapAttr.addValue(b.toString().getBytes("UTF-8"));
+					} catch (UnsupportedEncodingException e) {
+						
+					}
+					 break;
+					
+			}
+			
+			if (ldapAttr.getAllValues().size() > 0) {
+				if (entry.getEntry().getAttributeSet().getAttribute(ldapAttr.getName()) != null) {
+					entry.getEntry().getAttributeSet().remove(ldapAttr.getName());
+				}
+				entry.getEntry().getAttributeSet().add(ldapAttr);
+			}
+			
+		}
+		
 	}
 	
 	public User mapUser(User userObj,boolean strict,Map<String,Object> request,WorkflowTask task) throws ProvisioningException {
