@@ -358,25 +358,26 @@ public class ScaleJSOperator implements HttpFilter {
 			
 			userToSend.getAttributes().add(attr);
 			
-		}
+		} else {
 		
 		
-		ArrayList<String> attrNames = new ArrayList<String>();
-		attrNames.add("cn");
-		attrNames.add(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute());
-		res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, equal(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),dn).toString(), attrNames);
-		
-		net.sourceforge.myvd.types.Filter ldapFiltertoCheck = new net.sourceforge.myvd.types.Filter(equal(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),dn).toString());
-
-		
-		while (res.hasMore()) {
-			entry = res.next();
-			if (ldapFiltertoCheck.getRoot().checkEntry(entry)) {
-				LDAPAttribute la = entry.getAttribute("cn");
-				if (la != null) {
-					String val = la.getStringValue();
-					if (! userToSend.getGroups().contains(val)) {
-						userToSend.getGroups().add(val);
+			ArrayList<String> attrNames = new ArrayList<String>();
+			attrNames.add("cn");
+			attrNames.add(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute());
+			res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot(), 2, equal(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),dn).toString(), attrNames);
+			
+			net.sourceforge.myvd.types.Filter ldapFiltertoCheck = new net.sourceforge.myvd.types.Filter(equal(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),dn).toString());
+	
+			
+			while (res.hasMore()) {
+				entry = res.next();
+				if (ldapFiltertoCheck.getRoot().checkEntry(entry)) {
+					LDAPAttribute la = entry.getAttribute("cn");
+					if (la != null) {
+						String val = la.getStringValue();
+						if (! userToSend.getGroups().contains(val)) {
+							userToSend.getGroups().add(val);
+						}
 					}
 				}
 			}
@@ -609,6 +610,20 @@ public class ScaleJSOperator implements HttpFilter {
 			this.config.setReasonDeniedLabel(tmp);
 		}
 		
+		tmp = this.loadOptionalAttributeValue("maxWidth", "maxWidth", config);
+		if (tmp != null) {
+			this.config.setMaxWidth(tmp);
+		}
+		
+		tmp = this.loadOptionalAttributeValue("attributesWidth", "attributesWidth", config);
+		if (tmp != null) {
+			this.config.setAttributesWidth(Integer.parseInt(tmp));
+		}
+		
+		tmp = this.loadOptionalAttributeValue("rolesWidth", "rolesWidth", config);
+		if (tmp != null) {
+			this.config.setRolesWidth(Integer.parseInt(tmp));
+		}
 
 	}
 

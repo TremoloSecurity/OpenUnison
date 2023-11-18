@@ -48,6 +48,11 @@ public class OperatorsConfig {
     String reasonApprovedLabel;
     String reasonDeniedLabel;
     
+    String maxWidth;
+    int attributesWidth;
+    int rolesWidth;
+    
+    
     
 
     public OperatorsConfig() {
@@ -63,6 +68,9 @@ public class OperatorsConfig {
         this.deniedLabel = "Denied";
         this.reasonApprovedLabel = "Reason for approval";
         this.reasonDeniedLabel = "Reason for denial";
+        this.maxWidth = "sm";
+        this.attributesWidth = 6;
+        this.rolesWidth = 6;
         
     }
 
@@ -193,6 +201,31 @@ public class OperatorsConfig {
 		this.reasonDeniedLabel = reasonDeniedLabel;
 	}
 
+	public String getMaxWidth() {
+		return maxWidth;
+	}
+
+	public void setMaxWidth(String maxWidth) {
+		this.maxWidth = maxWidth;
+	}
+
+	public int getAttributesWidth() {
+		return attributesWidth;
+	}
+
+	public void setAttributesWidth(int attributesWidth) {
+		this.attributesWidth = attributesWidth;
+	}
+
+	public int getRolesWidth() {
+		return rolesWidth;
+	}
+
+	public void setRolesWidth(int rolesWidth) {
+		this.rolesWidth = rolesWidth;
+	}
+
+	
     
 
 

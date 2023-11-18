@@ -1809,6 +1809,21 @@ public class ScaleMain implements HttpFilter {
 			} else {
 				this.scaleConfig.setErrorColor("#ff1744");
 			}
+			
+			val = this.loadOptionalAttributeValue("groupsAreJson", "groupsAreJson", config);
+			if (val != null) {
+				this.scaleConfig.setGroupsAreJson(val.equalsIgnoreCase("true"));
+			}
+			
+			if (this.scaleConfig.isGroupsAreJson()) {
+				Attribute groupsHeaders = config.getAttribute("groupFields");
+				if (groupsHeaders == null) {
+					logger.warn("groupFields not set");
+					
+				} else {
+					this.scaleConfig.getGroupsFields().addAll(groupsHeaders.getValues());
+				}
+			}
 		}
 		
 	}

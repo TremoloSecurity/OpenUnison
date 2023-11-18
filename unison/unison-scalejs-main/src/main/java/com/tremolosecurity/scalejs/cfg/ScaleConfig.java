@@ -73,6 +73,10 @@ public class ScaleConfig {
 	
 	String errorColor;
 	
+	boolean groupsAreJson;
+	List<String> groupsFields;
+	
+	
  	
 	public ScaleConfig(ScaleConfig from) {
 		this.displayNameAttribute = from.displayNameAttribute;
@@ -115,6 +119,9 @@ public class ScaleConfig {
 		this.themeSecondaryDark = from.themeSecondaryDark;
 		this.themeSecondaryLight = from.themeSecondaryLight;
 		this.errorColor = from.errorColor;
+		
+		this.groupsAreJson = from.groupsAreJson;
+		this.groupsFields.addAll(from.groupsFields);
 	}
 	
 	public ScaleConfig() {
@@ -126,6 +133,8 @@ public class ScaleConfig {
 		this.reasons = new ArrayList<String>();
 		this.requireReasons = true;
 		this.hidePages = new ArrayList<String>();
+		this.groupsAreJson = false;
+		this.groupsFields = new ArrayList<String>();
 	}
 
 	
@@ -348,6 +357,18 @@ public class ScaleConfig {
 
 	public void setErrorColor(String errorColor) {
 		this.errorColor = errorColor;
+	}
+
+	public boolean isGroupsAreJson() {
+		return groupsAreJson;
+	}
+
+	public void setGroupsAreJson(boolean groupsAreJson) {
+		this.groupsAreJson = groupsAreJson;
+	}
+
+	public List<String> getGroupsFields() {
+		return groupsFields;
 	}
 	
 	
