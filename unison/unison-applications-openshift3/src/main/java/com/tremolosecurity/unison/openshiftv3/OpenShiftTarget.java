@@ -871,7 +871,11 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		this.useToken = tmpUseToken != null && tmpUseToken.equalsIgnoreCase("true");
 		
 		String localTokenType = this.loadOptionalAttributeValue("tokenType", "tokenType",cfg,null);
-		this.tokenType = TokenType.valueOf(localTokenType.toUpperCase());
+		if (localTokenType != null) {
+			this.tokenType = TokenType.valueOf(localTokenType.toUpperCase());
+		} else {
+			this.tokenType = TokenType.LEGACY;
+		}
 		
 		
 		if (! useToken && this.tokenType != TokenType.CERTIFICATE) {
