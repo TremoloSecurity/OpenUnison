@@ -55,6 +55,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang.StringUtils;
 
 import com.tremolosecurity.server.GlobalEntries;
 
@@ -187,6 +188,8 @@ public class Saml2MetadataLookup {
 					}
 					
 					i++;
+					
+					base64 = StringUtils.deleteWhitespace(base64);
 					
 					GlobalEntries.getGlobalEntries().getConfigManager().getKeyStore().setCertificateEntry(name, CertUtil.decodeCertificate(Base64.getDecoder().decode(base64)));
 					
