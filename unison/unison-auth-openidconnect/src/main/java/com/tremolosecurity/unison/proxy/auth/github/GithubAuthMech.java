@@ -119,6 +119,11 @@ public class GithubAuthMech implements AuthMechanism {
 		String uidAttr = authParams.get("uidAttr").getValues().get(0);
 		String lookupFilter = authParams.get("lookupFilter").getValues().get(0);
 		
+		String githubApiUrl = "https://api.github.com";
+		if (authParams.get("apiUrl") != null) {
+			githubApiUrl = authParams.get("apiUrl").getValues().get(0);
+		}
+		
 		
 		String defaultObjectClass = authParams.get("defaultObjectClass").getValues().get(0);
 		
@@ -238,7 +243,7 @@ public class GithubAuthMech implements AuthMechanism {
 				Gson gson = new Gson();
 				
 				
-				HttpGet get = new HttpGet("https://api.github.com/user");
+				HttpGet get = new HttpGet(String.format("%s/user",githubApiUrl));
 				
 				get.addHeader("Authorization",new StringBuilder().append("Bearer ").append(accessToken).toString());
 				
@@ -274,7 +279,7 @@ public class GithubAuthMech implements AuthMechanism {
 					as.setSuccess(false);
 				} else {
 					
-					get = new HttpGet("https://api.github.com/user/emails");
+					get = new HttpGet(String.format("%s/user/emails",githubApiUrl));
 					get.addHeader("Authorization",new StringBuilder().append("Bearer ").append(accessToken).toString());
 					httpResp = http.execute(get);
 					in = new BufferedReader(new InputStreamReader(httpResp.getEntity().getContent()));
@@ -314,7 +319,7 @@ public class GithubAuthMech implements AuthMechanism {
 						lookupUser(as, session, myvd, noMatchOU, uidAttr, lookupFilter, act, jwtNVP,defaultObjectClass);
 					}
 					
-					get = new HttpGet("https://api.github.com/user/orgs");
+					get = new HttpGet(String.format("%s/user/orgs",githubApiUrl));
 					get.addHeader("Authorization", new StringBuilder().append("Bearer ").append(accessToken).toString());
 					httpResp = http.execute(get);
 					in = new BufferedReader(new InputStreamReader(httpResp.getEntity().getContent()));
@@ -339,7 +344,7 @@ public class GithubAuthMech implements AuthMechanism {
 						
 						HttpUriRequest graphql = RequestBuilder.post()
 								.addHeader(new BasicHeader("Authorization","Bearer " + accessToken))
-								.setUri("https://api.github.com/graphql")
+								.setUri(String.format("%s/graphql",githubApiUrl))
 								.setEntity(new StringEntity("{\"query\":\"{organization(login: \\\"" + orgName + "\\\") { teams(first: 100, userLogins: [\\\"" + jwtNVP.get("login") + "\\\"]) { totalCount edges {node {name description}}}}}\"}")).build();
 			
 						
