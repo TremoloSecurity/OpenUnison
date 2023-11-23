@@ -512,9 +512,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 
 	@Override
 	public String getLabel() {
-		StringBuffer b = new StringBuffer();
-		b.append("Approval ").append(this.label);
-		return b.toString();
+		return label;
 	}
 	
 	public boolean updateAllowedApprovals(Session session,ConfigManager cfg, Map<String, Object> request,List<Object> objToSave) throws ProvisioningException, SQLException {
