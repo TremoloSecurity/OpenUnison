@@ -121,6 +121,8 @@ import org.quartz.impl.matchers.GroupMatcher;
 
 import com.cedarsoftware.util.io.JsonReader;
 import com.cedarsoftware.util.io.JsonWriter;
+import com.cedarsoftware.util.io.ReadOptionsBuilder;
+import com.cedarsoftware.util.io.WriteOptionsBuilder;
 import com.google.gson.Gson;
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
@@ -1078,9 +1080,13 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 		
 
+		/*String json = JsonWriter.toJson(wf, new WriteOptionsBuilder().build());
 		
 		
-		wf = (WorkflowImpl) JsonReader.jsonToJava(JsonWriter.objectToJson(wf));
+		wf = (WorkflowImpl) JsonReader.toObjects(json);*/
+		
+		String json = JsonWriter.objectToJson(wf);
+		wf = (WorkflowImpl) JsonReader.jsonToJava(json);
 		
 		wf.reInit(this.cfgMgr);
 		return wf;
