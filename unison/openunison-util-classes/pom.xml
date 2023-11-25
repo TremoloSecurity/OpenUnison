@@ -155,6 +155,11 @@
 			<artifactId>xmlsec</artifactId>
 			<version>${santuario-xmlsec.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk18on</artifactId>
+			<version>${bcprov-jdk18on.version}</version>
+		</dependency>
     </dependencies>
 
 </project>

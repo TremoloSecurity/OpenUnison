@@ -104,6 +104,16 @@ governing permissions and
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-applications-okta</artifactId>
 			<version>${openunison.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcpkix-jdk15on</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcprov-jdk15on</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 		  <groupId>jakarta.servlet.jsp</groupId>
