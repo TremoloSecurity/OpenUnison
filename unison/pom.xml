@@ -41,6 +41,7 @@
 		<gson.version>2.10.1</gson.version>
 		<bcprov-jdk18on.version>1.77</bcprov-jdk18on.version>
 		<bcprov-ext-jdk18on.version>1.77</bcprov-ext-jdk18on.version>
+		<bcpkix-jdk18on.version>1.77</bcpkix-jdk18on.version>
 		<catalina.version>10.1.10</catalina.version>
 		<undertow-1x.version>1.0.0.Final</undertow-1x.version>
 		<myvd-server.version>1.0.20</myvd-server.version>

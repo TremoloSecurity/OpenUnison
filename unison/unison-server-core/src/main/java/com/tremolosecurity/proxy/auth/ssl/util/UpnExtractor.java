@@ -64,12 +64,14 @@ public class UpnExtractor implements CertificateExtractSubjectAttribute {
                   ASN1ObjectIdentifier id = ASN1ObjectIdentifier.getInstance(seq.getObjectAt(0));
                   if (id.getId().equals("1.3.6.1.4.1.311.20.2.3")) {
                       ASN1TaggedObject obj = (ASN1TaggedObject) seq.getObjectAt(1);
+                      
                       DERUTF8String str =  null;
                       while (str == null) {
-	                      if (obj.getObject() instanceof DERTaggedObject) {
-	                    	  obj = (ASN1TaggedObject) obj.getObject();
-	                      } else if (obj.getObject() instanceof DERUTF8String) {
-	                    	  str = (DERUTF8String) obj.getObject();
+                    	  
+	                      if (obj.getExplicitBaseObject() instanceof DERTaggedObject) {
+	                    	  obj = (ASN1TaggedObject) obj.getExplicitBaseObject();
+	                      } else if (obj.getExplicitBaseObject() instanceof DERUTF8String) {
+	                    	  str = (DERUTF8String) obj.getExplicitBaseObject();
 	                      } else {
 	                    	  asn1Input.close();
 	                    	  return null;
