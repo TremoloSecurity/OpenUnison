@@ -28,6 +28,11 @@
         <artifactId>com.ibm.mq.allclient</artifactId>
         <version>${ibm-mq.version}</version>
     </dependency>
+    <dependency>
+		<groupId>org.json</groupId>
+		<artifactId>json</artifactId>
+		<version>${org-json-json.version}</version>
+	</dependency>
   </dependencies>
 
   <build>

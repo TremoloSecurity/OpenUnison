@@ -24,13 +24,13 @@
 
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
-			<version>${bcprov-jdk15on.version}</version>
+			<artifactId>bcprov-jdk18on</artifactId>
+			<version>${bcprov-jdk18on.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-ext-jdk15on</artifactId>
-			<version>${bcprov-ext-jdk15on.version}</version>
+			<artifactId>bcprov-ext-jdk18on</artifactId>
+			<version>${bcprov-ext-jdk18on.version}</version>
 		</dependency>
 		<dependency>
 		  <groupId>jakarta.servlet</groupId>

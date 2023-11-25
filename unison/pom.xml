@@ -39,8 +39,8 @@
 		<jboss-as-logging.version>7.2.0.Final</jboss-as-logging.version>
 		<jboss-as-web.version>7.2.0.Final</jboss-as-web.version>
 		<gson.version>2.10.1</gson.version>
-		<bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
-		<bcprov-ext-jdk15on.version>1.70</bcprov-ext-jdk15on.version>
+		<bcprov-jdk18on.version>1.77</bcprov-jdk18on.version>
+		<bcprov-ext-jdk18on.version>1.77</bcprov-ext-jdk18on.version>
 		<catalina.version>10.1.10</catalina.version>
 		<undertow-1x.version>1.0.0.Final</undertow-1x.version>
 		<myvd-server.version>1.0.20</myvd-server.version>
@@ -90,6 +90,7 @@
 	  	<santuario-xmlsec.version>4.0.0</santuario-xmlsec.version>
 		<netty-codec.version>4.1.94.Final</netty-codec.version>
 		<netty-common.version>4.1.101.Final</netty-common.version>
+		<netty-https2.version>4.1.101.Final</netty-https2.version>
 		<dom4j.version>2.1.4</dom4j.version>  
 		<gitlab.version>5.4.0</gitlab.version>
 		<commons-beanutils.version>1.9.4</commons-beanutils.version>
@@ -125,6 +126,7 @@
 		<!-- last version that supports java 11 -->
 		<ecj.version>3.33.0</ecj.version>
 		<jakarta-jsp.version>3.1.1</jakarta-jsp.version>
+		<org-json-json.version>20231013</org-json-json.version>
 	</properties>
 
 	<repositories>

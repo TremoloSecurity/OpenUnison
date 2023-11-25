@@ -78,6 +78,12 @@ limitations under the License.
 			<artifactId>unison-scalejs-token</artifactId>
 			<version>1.0.38</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-codec-http2</artifactId>
+			<version>${netty-https2.version}</version>
+		</dependency>
 
     </dependencies>
 </project>

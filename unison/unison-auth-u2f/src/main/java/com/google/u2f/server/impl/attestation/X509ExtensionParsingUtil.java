@@ -142,7 +142,7 @@ public class X509ExtensionParsingUtil {
         throw new CertificateParsingException("Expected DERTagged object");
       }
       ASN1TaggedObject asn1TaggedObject = (ASN1TaggedObject) asn1EncodablePurpose;
-      taggedObjects.put(Integer.valueOf(asn1TaggedObject.getTagNo()), asn1TaggedObject.getObject());
+      taggedObjects.put(Integer.valueOf(asn1TaggedObject.getTagNo()), asn1TaggedObject.getLoadedObject());
     }
 
     return taggedObjects;
