@@ -1,3 +1,33 @@
+# 1.0.38-2023113001
+
+**Tasks:**
+ - 1.0.38 build [\#791](https://github.com/TremoloSecurity/OpenUnison/issues/791)
+
+**bugs:**
+ - Approval.getLabel getting picked up by hibernate [\#826](https://github.com/TremoloSecurity/OpenUnison/issues/826)
+ - SAML2 Auth - Metadata parser not working with base64 encoded certs that are broken by line [\#792](https://github.com/TremoloSecurity/OpenUnison/issues/792)
+ - ScaleMain - If reason isn't required it's failing validation [\#822](https://github.com/TremoloSecurity/OpenUnison/issues/822)
+ - ScaleJS Register - Load From LDAP doesn't load operational attributes [\#810](https://github.com/TremoloSecurity/OpenUnison/issues/810)
+ - K8s Dynamic Config Load - issues with synchronization [\#808](https://github.com/TremoloSecurity/OpenUnison/issues/808)
+ - pre-push cookies and headers for web services [\#795](https://github.com/TremoloSecurity/OpenUnison/issues/795)
+ - ArgoCD Target - add support for parameters [\#804](https://github.com/TremoloSecurity/OpenUnison/issues/804)
+
+**enhancements:**
+ - OpenUnision integration with GitHub enterprise  [\#779](https://github.com/TremoloSecurity/OpenUnison/issues/779)
+ - OpenShift Target - load vcluster private key [\#807](https://github.com/TremoloSecurity/OpenUnison/issues/807)
+ - Support better customization in ScaleJS [\#821](https://github.com/TremoloSecurity/OpenUnison/issues/821)
+ - OpenShift/K8s Target - provision directly to RoleBindings and ClusterRoleBindings [\#815](https://github.com/TremoloSecurity/OpenUnison/issues/815)
+ - Support Kubernetes RBAC for provisioning and authorization [\#820](https://github.com/TremoloSecurity/OpenUnison/issues/820)
+ - Create JavaScript listener [\#811](https://github.com/TremoloSecurity/OpenUnison/issues/811)
+ - Add Azure MyVD Insert [\#801](https://github.com/TremoloSecurity/OpenUnison/issues/801)
+ - ScaleJS Register - Make js URLs configurable [\#809](https://github.com/TremoloSecurity/OpenUnison/issues/809)
+ - Provisioning - Add NoOp Target [\#806](https://github.com/TremoloSecurity/OpenUnison/issues/806)
+ - MyVD - Add DN Attribute [\#805](https://github.com/TremoloSecurity/OpenUnison/issues/805)
+ - GitHub - task to delete deployment key [\#803](https://github.com/TremoloSecurity/OpenUnison/issues/803)
+ - Create mechanism to disable healthchecks [\#789](https://github.com/TremoloSecurity/OpenUnison/issues/789)
+ - K8s target - Disaster Recovery updates [\#793](https://github.com/TremoloSecurity/OpenUnison/issues/793)
+ - Better IBM MQ support [\#790](https://github.com/TremoloSecurity/OpenUnison/issues/790)
+
 # 1.0.37-2022072501
 
 **Tasks:**
