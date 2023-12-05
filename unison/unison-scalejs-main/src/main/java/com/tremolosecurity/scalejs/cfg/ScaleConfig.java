@@ -121,7 +121,10 @@ public class ScaleConfig {
 		this.errorColor = from.errorColor;
 		
 		this.groupsAreJson = from.groupsAreJson;
-		this.groupsFields.addAll(from.groupsFields);
+		this.groupsFields = new ArrayList<String>();
+		if (from.groupsFields != null) {
+			this.groupsFields.addAll(from.groupsFields);
+		}
 	}
 	
 	public ScaleConfig() {
