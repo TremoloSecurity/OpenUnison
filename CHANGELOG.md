@@ -1,3 +1,8 @@
+# 1.0.38-2023120501
+
+**bugs:**
+ - NPE in ScaleMain [\#829](https://github.com/TremoloSecurity/OpenUnison/issues/829)
+
 # 1.0.38-2023113001
 
 **Tasks:**
