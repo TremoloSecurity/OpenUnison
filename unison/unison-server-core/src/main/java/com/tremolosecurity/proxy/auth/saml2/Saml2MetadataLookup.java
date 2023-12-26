@@ -153,8 +153,7 @@ public class Saml2MetadataLookup {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setNamespaceAware(true);
 			DocumentBuilder builder = factory.newDocumentBuilder();
-			Element root = builder
-					.parse(new InputSource(new StringReader(metadata))).getDocumentElement();
+			Element root = builder.parse(new InputSource(new ByteArrayInputStream(metadata.getBytes("UTF-8")))).getDocumentElement();
 			EntityDescriptor ed =  (EntityDescriptor) XMLObjectSupport.getUnmarshaller(root).unmarshall(root);
 			IDPSSODescriptor idp = ed.getIDPSSODescriptor("urn:oasis:names:tc:SAML:2.0:protocol");
 			
