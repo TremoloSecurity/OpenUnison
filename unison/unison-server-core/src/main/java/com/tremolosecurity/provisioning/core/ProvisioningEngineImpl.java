@@ -59,6 +59,8 @@ import java.util.Queue;
 import java.util.Stack;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -1721,7 +1723,18 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				EncryptedMessage encMsg = this.encryptObject(wfHolder);
 				
 				String json = JsonWriter.objectToJson(encMsg);
-				bm.setText(json);
+				
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				DeflaterOutputStream compressor  = new DeflaterOutputStream(baos,new Deflater(Deflater.BEST_COMPRESSION,true));
+				
+				compressor.write(json.getBytes("UTF-8"));
+				compressor.flush();
+				compressor.close();
+				
+				String b64 = new String( org.bouncycastle.util.encoders.Base64.encode(baos.toByteArray()));
+				
+				
+				bm.setText(b64);
 				session.getMessageProduceer().send(bm);
 				
 			}

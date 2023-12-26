@@ -17,9 +17,13 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.core;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.util.Stack;
+import java.util.zip.Deflater;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -67,7 +71,23 @@ public class TaskConsumer implements MessageListener {
 				return;
 			}
 			
-			EncryptedMessage encMsg = (EncryptedMessage) JsonReader.jsonToJava(bmsg.getText());
+			String json = null;
+			
+			try {
+				byte[] b64decoded = org.bouncycastle.util.encoders.Base64.decode(bmsg.getText());
+				InflaterInputStream decompressor = new InflaterInputStream(new ByteArrayInputStream(b64decoded),new Inflater(true));
+				byte[] decomped = decompressor.readAllBytes();
+				json = new String(decomped);
+			} catch (Throwable t) {
+				logger.warn("message is legacy, not base64 encoded",t);
+				json = bmsg.getText();
+			}
+			
+
+			
+			
+			
+			EncryptedMessage encMsg = (EncryptedMessage) JsonReader.jsonToJava(json);
 			
 			
 			WorkflowHolder wfHolder = (WorkflowHolder) this.prov.decryptObject(encMsg);
