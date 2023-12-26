@@ -529,6 +529,9 @@ public class OpenUnisonOnUndertow {
 		try {
 			keystore.load(new FileInputStream(unisonConfiguration.getKeyStorePath()), unisonConfiguration.getKeyStorePassword().toCharArray());
 		} catch (Throwable t) {
+			
+			logger.warn(String.format("Could not create PKCS12 from %s, falling back to JCEKS",unisonConfiguration.getKeyStorePath()),t);
+			
 			keystore = KeyStore.getInstance("JCEKS");
 			keystore.load(new FileInputStream(unisonConfiguration.getKeyStorePath()), unisonConfiguration.getKeyStorePassword().toCharArray());
 		}
