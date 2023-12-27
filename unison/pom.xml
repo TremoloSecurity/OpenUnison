@@ -71,7 +71,7 @@
 		<hibernate.version>5.6.15.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
 		<org.apache.poi.version>5.2.4</org.apache.poi.version>
-		<jose4j.version>0.9.3</jose4j.version>
+		<jose4j.version>0.9.4</jose4j.version>
 		<mongodb-driver.version>3.12.14</mongodb-driver.version>
 		<xalan.version>2.7.3</xalan.version>
 		<jackson.version>2.16.0</jackson.version>
