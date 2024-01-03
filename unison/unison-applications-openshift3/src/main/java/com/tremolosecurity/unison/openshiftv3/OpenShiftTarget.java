@@ -89,6 +89,7 @@ import com.tremolosecurity.provisioning.core.ProvisioningTarget;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.UserStoreProvider;
 import com.tremolosecurity.provisioning.core.UserStoreProviderWithAddGroup;
+import com.tremolosecurity.provisioning.core.UserStoreProviderWithMetadata;
 import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.jms.JMSConnectionFactory;
 import com.tremolosecurity.provisioning.jms.JMSSessionHolder;
@@ -104,7 +105,7 @@ import com.tremolosecurity.unison.openshiftv3.model.Response;
 import com.tremolosecurity.unison.openshiftv3.model.groups.GroupItem;
 
 
-public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
+public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreProviderWithMetadata {
 	
 	public enum TokenType {
 		NONE,
@@ -164,6 +165,9 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 	
 	boolean loadedCert;
 	
+	
+	private Map<String,String> annotations;
+	private Map<String,String> labels;
 
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
@@ -864,6 +868,8 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 		this.url = this.loadOption("url", cfg, false);
 		this.name = name;
 		
+		this.annotations = new HashMap<String,String>();
+		this.labels = new HashMap<String,String>();
 		
 		this.useDefaultCaPath = false;
 		
@@ -1021,6 +1027,9 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 			
 			
 		}
+		
+		this.annotations = new HashMap<String,String>();
+		this.labels = new HashMap<String,String>();
 	}
 	
 	private void initRemoteOidc(Map<String, Attribute> cfg, ConfigManager cfgMgr, String name) throws ProvisioningException {
@@ -1538,5 +1547,19 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup {
 				http.getBcm().close();
 			}
 		}
+	}
+
+	@Override
+	public Map<String, String> getAnnotations() {
+		return this.annotations;
+	}
+
+	@Override
+	public Map<String, String> getLabels() {
+		return this.labels;
+	}
+	
+	public String getName() {
+		return this.name;
 	}
 }

@@ -25,34 +25,21 @@ package com.tremolosecurity.config.xml;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * Implementation of an authentication mechanism for this
- * 				chain
- * 
- * <p>Java class for authMechType complex type.
+ * <p>Java class for nameValue complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="authMechType"&gt;
+ * &lt;complexType name="nameValue"&gt;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
- *       &lt;sequence&gt;
- *         &lt;element name="name" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
- *         &lt;element name="required"&gt;
- *           &lt;simpleType&gt;
- *             &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string"&gt;
- *               &lt;enumeration value="sufficient"/&gt;
- *               &lt;enumeration value="required"/&gt;
- *             &lt;/restriction&gt;
- *           &lt;/simpleType&gt;
- *         &lt;/element&gt;
- *         &lt;element name="params" type="{http://www.tremolosecurity.com/tremoloConfig}authMechParamType"/&gt;
- *       &lt;/sequence&gt;
+ *       &lt;attribute name="name" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="value" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
@@ -61,19 +48,13 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "authMechType", propOrder = {
-    "name",
-    "required",
-    "params"
-})
-public class AuthMechType {
+@XmlType(name = "nameValue")
+public class NameValue {
 
-    @XmlElement(required = true)
+    @XmlAttribute(name = "name")
     protected String name;
-    @XmlElement(required = true)
-    protected String required;
-    @XmlElement(required = true)
-    protected AuthMechParamType params;
+    @XmlAttribute(name = "value")
+    protected String value;
 
     /**
      * Gets the value of the name property.
@@ -100,51 +81,27 @@ public class AuthMechType {
     }
 
     /**
-     * Gets the value of the required property.
+     * Gets the value of the value property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getRequired() {
-        return required;
+    public String getValue() {
+        return value;
     }
 
     /**
-     * Sets the value of the required property.
+     * Sets the value of the value property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setRequired(String value) {
-        this.required = value;
-    }
-
-    /**
-     * Gets the value of the params property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link AuthMechParamType }
-     *     
-     */
-    public AuthMechParamType getParams() {
-        return params;
-    }
-
-    /**
-     * Sets the value of the params property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link AuthMechParamType }
-     *     
-     */
-    public void setParams(AuthMechParamType value) {
-        this.params = value;
+    public void setValue(String value) {
+        this.value = value;
     }
 
 }

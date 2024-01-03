@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2020 Tremolo Security, Inc.
+ * Copyright 2020, 2022 Tremolo Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.config.xml.NameValue;
 import com.tremolosecurity.config.xml.OrgType;
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.config.xml.TargetAttributeType;
@@ -66,6 +67,30 @@ public class LoadTargetsFromK8s implements DynamicTargets, K8sWatchTarget {
 		target.setName(name);
 		target.setParams(new TargetConfigType());
 		HttpCon nonwatchHttp = null;
+		
+		JSONObject metadata = (JSONObject) item.get("metadata");
+		if (metadata != null) {
+			JSONObject annotations = (JSONObject) metadata.get("annotations");
+			if (annotations != null) {
+				for (Object vname : annotations.keySet()) {
+					NameValue nv = new NameValue();
+					nv.setName((String) vname);
+					nv.setValue((String) annotations.get(vname));
+					target.getAnnotation().add(nv);
+				}
+			}
+			
+			JSONObject labels = (JSONObject) metadata.get("labels");
+			if (labels != null) {
+				for (Object vname : annotations.keySet()) {
+					NameValue nv = new NameValue();
+					nv.setName((String) vname);
+					nv.setValue((String) labels.get(vname));
+					target.getLabel().add(nv);
+				}
+			}
+		}
+		
 		
 		JSONObject spec = (JSONObject) item.get("spec");
 		try {

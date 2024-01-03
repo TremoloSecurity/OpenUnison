@@ -136,6 +136,7 @@ import com.tremolosecurity.config.xml.ApprovalDBType;
 import com.tremolosecurity.config.xml.DynamicPortalUrlsType;
 import com.tremolosecurity.config.xml.JobType;
 import com.tremolosecurity.config.xml.MessageListenerType;
+import com.tremolosecurity.config.xml.NameValue;
 import com.tremolosecurity.config.xml.OrgType;
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.config.xml.ParamWithValueType;
@@ -926,6 +927,23 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			MapIdentity mapper = new MapIdentity(targetCfg);
 			this.userStores.put(targetCfg.getName(), new ProvisioningTargetImpl(targetCfg.getName(),provider,mapper));
+			
+			if (provider instanceof UserStoreProviderWithMetadata) {
+				UserStoreProviderWithMetadata providerWithMetaData = (UserStoreProviderWithMetadata) provider;
+				if (targetCfg.getAnnotation() != null && providerWithMetaData.getAnnotations() != null) {
+					for (NameValue nv : targetCfg.getAnnotation()) {
+						providerWithMetaData.getAnnotations().put(nv.getName(), nv.getValue());
+					}
+				}
+				
+				if (targetCfg.getLabel() != null && providerWithMetaData.getLabels() != null) {
+					for (NameValue nv : targetCfg.getLabel()) {
+						providerWithMetaData.getLabels().put(nv.getName(), nv.getValue());
+					}
+				}
+			}
+			
+			
 			provider.init(cfg,cfgMgr,targetCfg.getName());
 		}
 	}
