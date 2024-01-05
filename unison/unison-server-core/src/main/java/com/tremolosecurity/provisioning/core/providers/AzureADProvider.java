@@ -517,6 +517,9 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 			if (root.containsKey("error") ) {
 				JSONObject error = (JSONObject) root.get("error");
 				String code = (String) error.get("code");
+				if (code.equalsIgnoreCase("Request_ResourceNotFound")) {
+					return null;
+				}
 				throw new ProvisioningException("Could not lookup user " + json);
 				
 			}
