@@ -124,7 +124,7 @@ import org.quartz.impl.matchers.GroupMatcher;
 import com.cedarsoftware.util.io.JsonReader;
 import com.cedarsoftware.util.io.JsonWriter;
 import com.cedarsoftware.util.io.ReadOptionsBuilder;
-import com.cedarsoftware.util.io.WriteOptionsBuilder;
+
 import com.google.gson.Gson;
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
