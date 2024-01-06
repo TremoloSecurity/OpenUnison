@@ -38,6 +38,8 @@ public class K8sProjectCheck implements CreateRegisterUser {
 	String targetName;
 	String projectAttributeName;
 	
+	boolean checkIfExists;
+	
 	
 	
 	@Override
@@ -54,6 +56,12 @@ public class K8sProjectCheck implements CreateRegisterUser {
 		projectAttributeName = registerConfig.getCustomSubmissionConfig().get("projectAttributeName").getValues().get(0);
 		
 		logger.info("Attribute Name : '" + projectAttributeName + "'");
+		
+		if (registerConfig.getCustomSubmissionConfig().get("checkIfExists") != null) {
+			this.checkIfExists = registerConfig.getCustomSubmissionConfig().get("checkIfExists").getValues().get(0).equalsIgnoreCase("true");
+		} else {
+			this.checkIfExists = true;
+		}
 
 	}
 
@@ -77,11 +85,13 @@ public class K8sProjectCheck implements CreateRegisterUser {
 				con = target.createClient();
 				
 				
-				
-				if (target.isObjectExistsByName(token, con, "/api/v1/namespaces", newUser.getAttributes().get(this.projectAttributeName))) {
-					errors.add("Namespace name already exists");
-					return "";
-				} 
+				if (this.checkIfExists) {
+					if (target.isObjectExistsByName(token, con, "/api/v1/namespaces", newUser.getAttributes().get(this.projectAttributeName))) {
+						
+						errors.add("Namespace name already exists");
+						return "";
+					} 
+				}
 				
 			} catch (Exception e) {
 				throw new ProvisioningException("Could not check if namespace exists",e);
