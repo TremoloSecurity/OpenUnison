@@ -179,6 +179,9 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	
 	private static HashSet<String> ignoredClaims;
 	
+	
+	boolean logTokenLifeCycle;
+	
 	static {
 		ignoredClaims = new HashSet<String>();
 		ignoredClaims.add("iss");
@@ -1261,8 +1264,15 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		claims.setNotBeforeMinutesInThePast(trusts.get(clientID).getAccessTokenSkewMillis() / 1000 / 60); // time before which the token is not yet valid (2 minutes ago)
 		claims.setExpirationTimeMinutesInTheFuture(trusts.get(clientID).getAccessTokenTimeToLive() / 1000 / 60); // time when the token will expire (10 minutes from now)
 		
+		
+		String claimsJson = claims.toJson();
+		
+		if (this.logTokenLifeCycle) {
+			OpenIDConnectTokenLifeCycle.logRefresh(claimsJson);
+		}
+		
 		jws = new JsonWebSignature();
-		jws.setPayload(claims.toJson());
+		jws.setPayload(claimsJson);
 		jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getPrivateKey(this.jwtSigningKeyName));
 		jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
 		String newIdToken = jws.getCompactSerialization();
@@ -1998,6 +2008,12 @@ public class OpenIDConnectIdP implements IdentityProvider {
         	this.scopes = new HashSet<String>();
         	this.scopes.addAll(init.get("scopes").getValues());
         }
+        
+        if (init.get("logTokenLifeCycle") != null) {
+        	this.logTokenLifeCycle = init.get("logTokenLifeCycle").getValues().get(0).equals("true");
+        } else {
+        	this.logTokenLifeCycle = false;
+        }
 
 	}
 
@@ -2135,14 +2151,17 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		//String dn,ConfigManager cfg,URL url,OpenIDConnectTrust trust,HttpServletRequest request,String nonce
 		//JwtClaims claims = generateClaims(dn, cfg, url, trust, nonce);
 	    
-	   
+	   String claimsJson = claims.toJson();
+	   if (this.logTokenLifeCycle) {
+		   OpenIDConnectTokenLifeCycle.logCreate(claimsJson);
+	   }
 
 	    // A JWT is a JWS and/or a JWE with JSON claims as the payload.
 	    // In this example it is a JWS so we create a JsonWebSignature object.
 	    JsonWebSignature jws = new JsonWebSignature();
 
 	    // The payload of the JWS is JSON content of the JWT Claims
-	    jws.setPayload(claims.toJson());
+	    jws.setPayload(claimsJson);
 
 	    // The JWT is signed using the private key
 	    jws.setKey(cfg.getPrivateKey(this.jwtSigningKeyName));
@@ -2322,7 +2341,19 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 	public void removeSession(OidcSessionState oidcSession) {
 		try {
-			
+			if (this.logTokenLifeCycle) {
+				JsonWebSignature jws = new JsonWebSignature();
+				jws.setCompactSerialization(this.decryptToken(this.trusts.get(oidcSession.getClientID()).getCodeLastmileKeyName(), new Gson(), oidcSession.getEncryptedIdToken()));
+				jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.jwtSigningKeyName).getPublicKey());
+				
+				if (! jws.verifySignature()) {
+					logger.warn("id_token tampered with, session being deleted");
+				}
+				
+				JwtClaims claims = JwtClaims.parse(jws.getPayload());
+				
+				OpenIDConnectTokenLifeCycle.logDelete(claims.toJson());
+			}
 			this.sessionStore.deleteSession(oidcSession.getSessionID());
 		} catch (Exception e) {
 			logger.error("Could not delete session",e);
@@ -2401,6 +2432,19 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	}
 
 	public void removeAllSessions(OidcSessionState session) throws Exception {
+		if (this.logTokenLifeCycle) {
+			JsonWebSignature jws = new JsonWebSignature();
+			jws.setCompactSerialization(this.decryptToken(this.trusts.get(session.getClientID()).getCodeLastmileKeyName(), new Gson(), session.getEncryptedIdToken()));
+			jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.jwtSigningKeyName).getPublicKey());
+			
+			if (! jws.verifySignature()) {
+				logger.warn("id_token tampered with, session being deleted");
+			}
+			
+			JwtClaims claims = JwtClaims.parse(jws.getPayload());
+			
+			OpenIDConnectTokenLifeCycle.logDeleteAll(claims.toJson());
+		}
 		this.sessionStore.deleteAllSessions(session.getSessionID());
 		
 	}
