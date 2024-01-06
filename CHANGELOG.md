@@ -1,3 +1,19 @@
+# 1.0.39-2024010601
+
+**enhancements:**
+ - New Kubernetes Project - make check for namespace configurable [\#839](https://github.com/TremoloSecurity/OpenUnison/issues/839)
+ - generate log messages when generating new tokens [\#832](https://github.com/TremoloSecurity/OpenUnison/issues/832)
+ - support for new scalejs interface [\#834](https://github.com/TremoloSecurity/OpenUnison/issues/834)
+ - workflows are too big, causing size issues [\#836](https://github.com/TremoloSecurity/OpenUnison/issues/836)
+
+**Tasks:**
+ - 1.0.39 Build [\#830](https://github.com/TremoloSecurity/OpenUnison/issues/830)
+
+**bugs:**
+ - AzureAD - lookup user returns error code now [\#838](https://github.com/TremoloSecurity/OpenUnison/issues/838)
+ - need better error message when the keystore can't get loaded [\#835](https://github.com/TremoloSecurity/OpenUnison/issues/835)
+ - saml2 metadata - can't load from azuread in azure [\#833](https://github.com/TremoloSecurity/OpenUnison/issues/833)
+
 # 1.0.38-2023120501
 
 **bugs:**
