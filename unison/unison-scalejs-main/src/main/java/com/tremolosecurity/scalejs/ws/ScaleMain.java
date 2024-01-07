@@ -1748,81 +1748,83 @@ public class ScaleMain implements HttpFilter {
 				}
 			}
 			
-			val = this.loadOptionalAttributeValue("startPage", "startPage", config);
-			if (val != null) {
-				this.scaleConfig.setStartPage(val);
+			
+		}
+		
+		val = this.loadOptionalAttributeValue("startPage", "startPage", config);
+		if (val != null) {
+			this.scaleConfig.setStartPage(val);
+		} else {
+			this.scaleConfig.setStartPage("front-page");
+		}
+		
+		if (config.getAttribute("hidePages") != null) {
+			this.scaleConfig.getHidePages().addAll(config.getAttribute("hidePages").getValues());
+		}
+		
+		
+		
+		val = this.loadOptionalAttributeValue("themePrimaryMain", "themePrimaryMain", config);
+		if (val != null) {
+			this.scaleConfig.setThemePrimaryMain(val);
+		} else {
+			this.scaleConfig.setThemePrimaryMain("#AC1622");
+		}
+		
+		val = this.loadOptionalAttributeValue("themePrimaryDark", "themePrimaryDark", config);
+		if (val != null) {
+			this.scaleConfig.setThemePrimaryDark(val);
+		} else {
+			this.scaleConfig.setThemePrimaryDark("#780f17");
+		}
+		
+		val = this.loadOptionalAttributeValue("themePrimaryLight", "themePrimaryLight", config);
+		if (val != null) {
+			this.scaleConfig.setThemePrimaryLight(val);
+		} else {
+			this.scaleConfig.setThemePrimaryLight("#bc444e");
+		}
+		
+		val = this.loadOptionalAttributeValue("themeSecondaryMain", "themeSecondaryMain", config);
+		if (val != null) {
+			this.scaleConfig.setThemeSecondaryMain(val);
+		} else {
+			this.scaleConfig.setThemeSecondaryMain("#16aca0");
+		}
+		
+		val = this.loadOptionalAttributeValue("themeSecondaryDark", "themeSecondaryDark", config);
+		if (val != null) {
+			this.scaleConfig.setThemeSecondaryDark(val);
+		} else {
+			this.scaleConfig.setThemeSecondaryDark("#0f7870");
+		}
+		
+		val = this.loadOptionalAttributeValue("themeSecondaryLight", "themeSecondaryLight", config);
+		if (val != null) {
+			this.scaleConfig.setThemeSecondaryLight(val);
+		} else {
+			this.scaleConfig.setThemeSecondaryLight("#44bcb3");
+		}
+		
+		val = this.loadOptionalAttributeValue("errorColor", "errorColor", config);
+		if (val != null) {
+			this.scaleConfig.setErrorColor(val);
+		} else {
+			this.scaleConfig.setErrorColor("#ff1744");
+		}
+		
+		val = this.loadOptionalAttributeValue("groupsAreJson", "groupsAreJson", config);
+		if (val != null) {
+			this.scaleConfig.setGroupsAreJson(val.equalsIgnoreCase("true"));
+		}
+		
+		if (this.scaleConfig.isGroupsAreJson()) {
+			Attribute groupsHeaders = config.getAttribute("groupFields");
+			if (groupsHeaders == null) {
+				logger.warn("groupFields not set");
+				
 			} else {
-				this.scaleConfig.setStartPage("front-page");
-			}
-			
-			if (config.getAttribute("hidePages") != null) {
-				this.scaleConfig.getHidePages().addAll(config.getAttribute("hidePages").getValues());
-			}
-			
-			
-			
-			val = this.loadOptionalAttributeValue("themePrimaryMain", "themePrimaryMain", config);
-			if (val != null) {
-				this.scaleConfig.setThemePrimaryMain(val);
-			} else {
-				this.scaleConfig.setThemePrimaryMain("#AC1622");
-			}
-			
-			val = this.loadOptionalAttributeValue("themePrimaryDark", "themePrimaryDark", config);
-			if (val != null) {
-				this.scaleConfig.setThemePrimaryDark(val);
-			} else {
-				this.scaleConfig.setThemePrimaryDark("#780f17");
-			}
-			
-			val = this.loadOptionalAttributeValue("themePrimaryLight", "themePrimaryLight", config);
-			if (val != null) {
-				this.scaleConfig.setThemePrimaryLight(val);
-			} else {
-				this.scaleConfig.setThemePrimaryLight("#bc444e");
-			}
-			
-			val = this.loadOptionalAttributeValue("themeSecondaryMain", "themeSecondaryMain", config);
-			if (val != null) {
-				this.scaleConfig.setThemeSecondaryMain(val);
-			} else {
-				this.scaleConfig.setThemeSecondaryMain("#16aca0");
-			}
-			
-			val = this.loadOptionalAttributeValue("themeSecondaryDark", "themeSecondaryDark", config);
-			if (val != null) {
-				this.scaleConfig.setThemeSecondaryDark(val);
-			} else {
-				this.scaleConfig.setThemeSecondaryDark("#0f7870");
-			}
-			
-			val = this.loadOptionalAttributeValue("themeSecondaryLight", "themeSecondaryLight", config);
-			if (val != null) {
-				this.scaleConfig.setThemeSecondaryLight(val);
-			} else {
-				this.scaleConfig.setThemeSecondaryLight("#44bcb3");
-			}
-			
-			val = this.loadOptionalAttributeValue("errorColor", "errorColor", config);
-			if (val != null) {
-				this.scaleConfig.setErrorColor(val);
-			} else {
-				this.scaleConfig.setErrorColor("#ff1744");
-			}
-			
-			val = this.loadOptionalAttributeValue("groupsAreJson", "groupsAreJson", config);
-			if (val != null) {
-				this.scaleConfig.setGroupsAreJson(val.equalsIgnoreCase("true"));
-			}
-			
-			if (this.scaleConfig.isGroupsAreJson()) {
-				Attribute groupsHeaders = config.getAttribute("groupFields");
-				if (groupsHeaders == null) {
-					logger.warn("groupFields not set");
-					
-				} else {
-					this.scaleConfig.getGroupsFields().addAll(groupsHeaders.getValues());
-				}
+				this.scaleConfig.getGroupsFields().addAll(groupsHeaders.getValues());
 			}
 		}
 		
