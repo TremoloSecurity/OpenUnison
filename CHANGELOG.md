@@ -1,4 +1,4 @@
-# 1.0.39-2024010601
+# 1.0.39-2024010701
 
 **enhancements:**
  - New Kubernetes Project - make check for namespace configurable [\#839](https://github.com/TremoloSecurity/OpenUnison/issues/839)
