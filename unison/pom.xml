@@ -119,7 +119,7 @@
 		<commons-compress.version>1.25.0</commons-compress.version>
 		<webauthn4j.version>0.22.0.RELEASE</webauthn4j.version>
 		<githubapi.version>1.318</githubapi.version>
-		<json-path.version>2.8.0</json-path.version>
+		<json-path.version>2.9.0</json-path.version>
 		<lazysodium.version>5.1.4</lazysodium.version>
 		<jna.version>5.14.0</jna.version>
 		<expressly.version>5.0.0</expressly.version>
