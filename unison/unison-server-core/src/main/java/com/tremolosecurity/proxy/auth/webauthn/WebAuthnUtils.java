@@ -33,6 +33,8 @@ import javax.crypto.spec.IvParameterSpec;
 import jakarta.servlet.ServletException;
 
 import org.apache.commons.codec.binary.Base64;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 import com.google.gson.Gson;
 import com.tremolosecurity.provisioning.core.ProvisioningParams;
@@ -45,6 +47,8 @@ import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 import com.webauthn4j.authenticator.Authenticator;
+import com.webauthn4j.converter.AttestedCredentialDataConverter;
+import com.webauthn4j.converter.util.ObjectConverter;
 
 public class WebAuthnUtils {
 	static Gson gson = new Gson();
@@ -61,6 +65,12 @@ public class WebAuthnUtils {
 		oos.writeObject(webAuthnUserData);
 		
 		
+		
+		
+		
+		byte[] jsonSerialized = webAuthnUserData.serialize();
+		
+		
 		EncryptedMessage msg = new EncryptedMessage();
 		
 		SecretKey key = GlobalEntries.getGlobalEntries().getConfigManager().getSecretKey(encryptionKeyName);
@@ -70,7 +80,7 @@ public class WebAuthnUtils {
 		
 		Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 		cipher.init(Cipher.ENCRYPT_MODE, key);
-		msg.setMsg(cipher.doFinal(baos.toByteArray()));
+		msg.setMsg(cipher.doFinal(jsonSerialized));
 		msg.setIv(cipher.getIV());
 		
 		
@@ -144,8 +154,14 @@ public class WebAuthnUtils {
 				
 				
 				byte[] bytes = cipher.doFinal(msg.getMsg());
-				ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
-				WebAuthnUserData webAuthnData = (WebAuthnUserData) ois.readObject();
+				
+				String jsonStr = new String(bytes);
+				
+				WebAuthnUserData webAuthnData = WebAuthnUserData.deserialize((JSONObject)new JSONParser().parse(jsonStr));
+				
+				
+				
+				
 				return webAuthnData;
 			} catch (Exception e) {
 				throw new ServletException("Could not extract webauthn user data",e);

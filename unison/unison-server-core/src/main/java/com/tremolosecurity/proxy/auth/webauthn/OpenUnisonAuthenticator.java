@@ -15,14 +15,22 @@
  *******************************************************************************/
 package com.tremolosecurity.proxy.auth.webauthn;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.Set;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.joda.time.DateTime;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import org.springframework.util.Base64Utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webauthn4j.authenticator.AuthenticatorImpl;
+import com.webauthn4j.converter.AttestedCredentialDataConverter;
+import com.webauthn4j.converter.util.ObjectConverter;
 import com.webauthn4j.data.AuthenticatorTransport;
 import com.webauthn4j.data.attestation.authenticator.AttestedCredentialData;
 import com.webauthn4j.data.attestation.statement.AttestationStatement;
@@ -30,6 +38,7 @@ import com.webauthn4j.data.extension.authenticator.AuthenticationExtensionsAuthe
 import com.webauthn4j.data.extension.authenticator.RegistrationExtensionAuthenticatorOutput;
 import com.webauthn4j.data.extension.client.AuthenticationExtensionsClientOutputs;
 import com.webauthn4j.data.extension.client.RegistrationExtensionClientOutput;
+import com.webauthn4j.util.Base64Util;
 
 public class OpenUnisonAuthenticator extends AuthenticatorImpl {
 
@@ -72,6 +81,29 @@ public class OpenUnisonAuthenticator extends AuthenticatorImpl {
         this.label = label;
         this.created = DateTime.now();
     }
+    
+    public static OpenUnisonAuthenticator deserialize(JSONObject root) throws ParseException {
+    	byte[] bytes;
+    	ObjectConverter objConverter = new ObjectConverter();
+    	
+    	bytes = Base64Util.decode((String) root.get("attestedCredentialData"));
+    	AttestedCredentialDataConverter attestedCredentialDataConverter = new AttestedCredentialDataConverter(new ObjectConverter());
+    	AttestedCredentialData attestedCredentialData = attestedCredentialDataConverter.convert(bytes);
+    	
+    	
+    	bytes = Base64Util.decode((String) root.get("attestationStatement"));
+    	AttestationStatementEnvelope deserializedEnvelope = objConverter.getCborConverter().readValue(bytes, AttestationStatementEnvelope.class);
+    	AttestationStatement deserializedAttestationStatement = deserializedEnvelope.getAttestationStatement();
+    	
+    	
+    	return new OpenUnisonAuthenticator(
+    			(String) root.get("label"),
+    			attestedCredentialData,
+    			deserializedAttestationStatement,
+    			(Long) root.get("counter")
+    			);
+    	
+    }
 
 	public String getLabel() {
 		return label;
@@ -79,6 +111,31 @@ public class OpenUnisonAuthenticator extends AuthenticatorImpl {
 
 	public DateTime getCreated() {
 		return created;
+	}
+	
+	
+	
+	
+	public JSONObject serialize() {
+		JSONObject serialized = new JSONObject();
+		
+		serialized.put("label", this.label);
+		serialized.put("counter", this.getCounter());
+		
+		
+		AttestedCredentialDataConverter attestedCredentialDataConverter = new AttestedCredentialDataConverter(new ObjectConverter()); 
+		byte[] bytes = attestedCredentialDataConverter.convert(this.getAttestedCredentialData());
+		serialized.put("attestedCredentialData", Base64Util.encodeToString(bytes));
+		
+		
+		ObjectConverter objConverter = new ObjectConverter();
+		AttestationStatementEnvelope envelope = new AttestationStatementEnvelope(this.getAttestationStatement());
+		bytes = objConverter.getCborConverter().writeValueAsBytes(envelope);
+		serialized.put("attestationStatement", Base64Utils.encodeToString(bytes));
+		
+		return serialized;
+		
+		
 	}
 	
 	
