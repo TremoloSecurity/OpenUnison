@@ -13,7 +13,7 @@
 	<parent>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison</artifactId>
-		<version>1.0.39</version>
+		<version>1.0.40</version>
 	</parent>
 	<artifactId>open-unison-webapp</artifactId>
 	<packaging>war</packaging>
