@@ -31,7 +31,7 @@ import javax.crypto.spec.IvParameterSpec;
 import jakarta.servlet.ServletException;
 
 import org.apache.logging.log4j.Logger;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 
 import com.cedarsoftware.util.io.JsonReader;

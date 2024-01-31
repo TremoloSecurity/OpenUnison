@@ -13,7 +13,7 @@
         <maven.compiler.target>11</maven.compiler.target>
     </properties>
     <dependencies>
-        <dependency>
+        <!-- <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
             <version>2.3.0</version>
@@ -29,9 +29,25 @@
             <artifactId>jakarta.activation</artifactId>
             <version>1.2.1</version>
             <scope>runtime</scope>
-        </dependency>        
+        </dependency>  -->        
     </dependencies>
     <build>
+    	<pluginManagement>
+	        <plugins>
+	            <!--
+	                If we e.g. execute on JDK 1.7, we should compile for Java 7 to get
+	                the same (or higher) JAXB API version as used during the xjc execution.
+	            -->
+	            <plugin>
+	                <groupId>org.apache.maven.plugins</groupId>
+	                <artifactId>maven-compiler-plugin</artifactId>
+	                <configuration>
+	                    <source>11</source>
+	                    <target>11</target>
+	                </configuration>
+	            </plugin>
+	        </plugins>
+	    </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -49,6 +65,31 @@
                     <argLine>--illegal-access=permit</argLine>
                 </configuration>
             </plugin>
+            <plugin>
+			    <groupId>org.codehaus.mojo</groupId>
+			    <artifactId>jaxb2-maven-plugin</artifactId>
+			    <version>3.1.0</version>
+			    <executions>
+			        <execution>
+			            <id>xjc</id>
+			            <goals>
+			                <goal>xjc</goal>
+			            </goals>
+			        </execution>
+			    </executions>
+			    <configuration>
+			        <!--  <xjbSources>
+			            <xjbSource>src/main/resources/global.xjb</xjbSource>
+			        </xjbSources> -->
+			        <sources>
+			            <source>${basedir}/open-unison-webapp/src/main/webapp/WEB-INF/tremoloConfig.xsd</source>
+			        </sources>
+			        <outputDirectory>${basedir}/unison-sdk/src/main/java</outputDirectory>
+			        <clearOutputDir>false</clearOutputDir>
+			        <packageName>com.tremolosecurity.config.xml</packageName>
+			        
+			    </configuration>
+			</plugin>
             <plugin>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-xjc-plugin</artifactId>

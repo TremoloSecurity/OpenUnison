@@ -7,8 +7,8 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
 	the specific language governing permissions and limitations under the License. -->
 <schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tremolosecurity.com/tremoloConfig"
-	xmlns:tns="http://www.tremolosecurity.com/tremoloConfig" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
-    jaxb:version="2.1"
+	xmlns:tns="http://www.tremolosecurity.com/tremoloConfig" xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+    jaxb:version="3.0"
 	elementFormDefault="qualified">
 
 

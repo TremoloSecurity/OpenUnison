@@ -59,7 +59,7 @@ import jakarta.servlet.http.HttpSession;
 import org.apache.log4j.Category;
 import org.apache.log4j.Logger;
 import org.apache.xml.security.utils.Base64;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
@@ -2169,7 +2169,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	    // Set the Key ID (kid) header because it's just the polite thing to do.
 	    // We only have one key in this example but a using a Key ID helps
 	    // facilitate a smooth key rollover process
-	    //jws.setKeyIdHeaderValue(javax.xml.bind.DatatypeConverter.printHexBinary(cfg.getCertificate(jwtSigningKeyName).getExtensionValue("2.5.29.14")));
+	    //jws.setKeyIdHeaderValue(jakarta.xml.bind.DatatypeConverter.printHexBinary(cfg.getCertificate(jwtSigningKeyName).getExtensionValue("2.5.29.14")));
 
 	    jws.setKeyIdHeaderValue(this.buildKID(cfg.getCertificate(this.jwtSigningKeyName)));
 	    

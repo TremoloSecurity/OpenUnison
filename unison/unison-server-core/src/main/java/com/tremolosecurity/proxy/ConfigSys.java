@@ -367,7 +367,7 @@ public class ConfigSys  {
 			
 			AccessLog.log(AccessEvent.Error, appType, (HttpServletRequest) req, userAuth , "NONE");
 			
-			
+			logger.error("Error generated in request",e);
 			if (req.getContentType() != null && req.getContentType().startsWith("application/json")) {
 				
 				resp.setStatus(500);

@@ -84,10 +84,10 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.sql.DataSource;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -96,7 +96,7 @@ import org.apache.commons.dbcp.datasources.SharedPoolDataSource;
 import org.apache.commons.net.smtp.SMTP;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.logging.log4j.Logger;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.cfgxml.spi.LoadedConfig;
@@ -422,7 +422,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			this.auditLogTypes = new HashMap<String,AuditLogType>();
 			
 			
-			List<AuditLogType> alts = session.createCriteria(AuditLogType.class).list();
+			List<AuditLogType> alts = session.createQuery("FROM AuditLogType",AuditLogType.class).list();
 			if ( alts.size() == 0 ) {
 				session.beginTransaction();
 				AuditLogType alt = new AuditLogType();
@@ -564,7 +564,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	        org.hibernate.Session session = sessionFactory.openSession();
 	        
 	        try {
-		        List<Targets> targets = session.createCriteria(Targets.class).list();
+		        List<Targets> targets = session.createQuery("FROM Targets",Targets.class).list();
 		        for (Targets target : targets) {
 		        	this.targetIDs.put(target.getName(), target);
 		        }
@@ -954,7 +954,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			org.hibernate.Session session = sessionFactory.openSession();
 	        
 	        try {
-		        List<Targets> targets = session.createCriteria(Targets.class).list();
+		        List<Targets> targets = session.createQuery("FROM Targets",Targets.class).list();
 		        for (Targets target : targets) {
 		        	this.targetIDs.put(target.getName(), target);
 		        }
@@ -1161,7 +1161,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			
 			
-			Query query = session.createQuery("FROM Approvers WHERE userKey = :user_key");
+			Query query = session.createQuery("FROM Approvers WHERE userKey = :user_key", Approvers.class);
 			query.setParameter("user_key", userID);
 			List<Approvers> approvers = query.list();
 			Approvers approverObj = null;

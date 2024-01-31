@@ -39,7 +39,7 @@ import javax.net.ssl.SSLContext;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpSession;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;

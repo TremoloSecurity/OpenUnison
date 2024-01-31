@@ -27,8 +27,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.logging.log4j.Logger;
-import org.hibernate.Query;
+
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
@@ -44,6 +45,8 @@ import com.tremolosecurity.provisioning.objects.Approvals;
 import com.tremolosecurity.provisioning.objects.ApproverAttributes;
 import com.tremolosecurity.provisioning.objects.Approvers;
 import com.tremolosecurity.proxy.az.CustomAuthorization;
+
+
 
 
 public class AzUtils {
@@ -310,7 +313,7 @@ public class AzUtils {
 			throws SQLException {
 		
 		
-		Query query = session.createQuery("FROM Approvers WHERE userKey = :user_key");
+		Query query = session.createQuery("FROM Approvers WHERE userKey = :user_key",Approvers.class);
 		query.setParameter("user_key", userID);
 		List<Approvers> approvers = query.list();
 		Approvers approverObj = null;

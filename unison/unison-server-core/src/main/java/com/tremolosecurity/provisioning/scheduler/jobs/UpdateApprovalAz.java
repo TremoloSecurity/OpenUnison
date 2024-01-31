@@ -39,7 +39,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.jms.*;
 
 import com.tremolosecurity.provisioning.scheduler.jobs.util.DisposeConnection;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.quartz.JobExecutionContext;
 
 import com.google.gson.Gson;
