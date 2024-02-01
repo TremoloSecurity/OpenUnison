@@ -23,9 +23,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import com.okta.sdk.client.Client;
-import com.okta.sdk.resource.group.Group;
-import com.okta.sdk.resource.group.GroupList;
+import com.okta.sdk.resource.client.ApiClient;
 import com.tremolosecurity.proxy.filter.HttpFilterRequest;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.scalejs.cfg.ScaleAttribute;
@@ -69,14 +67,14 @@ public class LoadGroupsFromOkta implements SourceList {
 			throw new Exception("The target " + targetName + " does not exist");
 		}
 		
-		Client client = okta.getOkta();
+		ApiClient client = okta.getOkta();
 		
 		
 		if (request.getParameter("search") == null ) {
 			ArrayList<NVP> toReturn = new ArrayList<NVP>();
-			GroupList groupList  = client.listGroups();
+			List<com.okta.sdk.resource.model.Group> groupList  = okta.getGroupApi().listGroups(null, null, null, null, null, null, null, null);
 			int i = 0;
-			for (Group group : groupList) {
+			for (com.okta.sdk.resource.model.Group group : groupList) {
 				toReturn.add(new NVP(group.getProfile().getName(),group.getProfile().getName()));
 				if (this.dynSearch && i >= this.maxEntries) {
 					break;
@@ -94,8 +92,11 @@ public class LoadGroupsFromOkta implements SourceList {
 		} else {
 			int i = 0;
 			ArrayList<NVP> toReturn = new ArrayList<NVP>();
-			GroupList groupList  = client.listGroups(request.getParameter("search").getValues().get(0),null,null);
-			for (Group group : groupList) {
+			
+			List<com.okta.sdk.resource.model.Group> groupList  = okta.getGroupApi().listGroups(null, request.getParameter("search").getValues().get(0), null, null, null, null, null, null);
+			
+			
+			for (com.okta.sdk.resource.model.Group group : groupList) {
 				toReturn.add(new NVP(group.getProfile().getName(),group.getProfile().getName()));
 				i++;
 				if (i >= this.maxEntries) {
@@ -128,11 +129,15 @@ public class LoadGroupsFromOkta implements SourceList {
 			throw new Exception("The target " + targetName + " does not exist");
 		}
 		
-		Client client = okta.getOkta();
 		
-		GroupList groupList = client.listGroups(value, null,null);
 		
-		Group group = groupList.single();
+		List<com.okta.sdk.resource.model.Group>  groupList = okta.getGroupApi().listGroups(null, value, null, null, null, null, null, null);
+		
+		if (groupList.size() == 0) {
+			return this.errorMessage;
+		}
+		
+		com.okta.sdk.resource.model.Group group = groupList.get(0);
 		
 		if (group == null || ! group.getProfile().getName().equals(value)) {
 			return this.errorMessage;

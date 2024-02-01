@@ -1,13 +1,15 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>com.tremolosecurity.unison</groupId>
-    <artifactId>unison</artifactId>
-    <version>1.0.40</version>
-  </parent>
-  <artifactId>unison-applications-okta</artifactId>
-  
-  <dependencies>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.tremolosecurity.unison</groupId>
+		<artifactId>unison</artifactId>
+		<version>1.0.40</version>
+	</parent>
+	<artifactId>unison-applications-okta</artifactId>
+
+	<dependencies>
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-sdk</artifactId>
@@ -21,81 +23,61 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-		<groupId>com.googlecode.json-simple</groupId>
-		<artifactId>json-simple</artifactId>
-		<version>${json-simple.version}</version>
-		<exclusions>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>${json-simple.version}</version>
+			<exclusions>
 				<exclusion>
 					<artifactId>junit</artifactId>
 					<groupId>junit</groupId>
 				</exclusion>
-				
+
 			</exclusions>
-	</dependency>
-	<dependency>
-    <groupId>com.okta.sdk</groupId>
-    <artifactId>okta-sdk-api</artifactId>
-    <version>${okta.version}</version>
-</dependency>
-<dependency>
-    <groupId>com.okta.sdk</groupId>
-    <artifactId>okta-sdk-impl</artifactId>
-    <version>${okta.version}</version>
-    <exclusions>
-    	<exclusion>
-    		<groupId>org.testng</groupId>
-    		<artifactId>testng</artifactId>
-    	</exclusion>
-    	<exclusion>
-    		<groupId>org.bouncycastle</groupId>
-    		<artifactId>bcprov-jdk15on</artifactId>
-    	</exclusion>
-    	<exclusion>
-    		<groupId>org.bouncycastle</groupId>
-    		<artifactId>bcpkix-jdk15on</artifactId>
-    	</exclusion>
-    </exclusions>
-    
-</dependency>
-<dependency>
-    <groupId>com.okta.sdk</groupId>
-    <artifactId>okta-sdk-httpclient</artifactId>
-    <version>${okta.version}</version>
-    
-</dependency>
-<dependency>
-    <groupId>com.okta.sdk</groupId>
-    <artifactId>okta-sdk-httpclient</artifactId>
-    <version>${okta-http.version}</version>
-    
-</dependency>
+		</dependency>
+		<dependency>
+			<groupId>com.okta.sdk</groupId>
+			<artifactId>okta-sdk-api</artifactId>
+			<version>${okta.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.okta.sdk</groupId>
+			<artifactId>okta-sdk-impl</artifactId>
+			<version>${okta.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.testng</groupId>
+					<artifactId>testng</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcprov-jdk15on</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcpkix-jdk15on</artifactId>
+				</exclusion>
+			</exclusions>
 
-<dependency>
-    <groupId>com.okta.authn.sdk</groupId>
-    <artifactId>okta-authn-sdk-api</artifactId>
-    <version>${okta-authn.version}</version>
-</dependency>
-<dependency>
-    <groupId>com.okta.authn.sdk</groupId>
-    <artifactId>okta-authn-sdk-impl</artifactId>
-    <version>${okta-authn.version}</version>
-    <scope>runtime</scope>
-</dependency>
+		</dependency>
 
-	<dependency>
-    <groupId>org.yaml</groupId>
-    <artifactId>snakeyaml</artifactId>
-    <version>${snakeyaml.version}</version>
-</dependency>
 
-	<dependency>
+
+
+
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+			<version>${snakeyaml.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
 			<version>${jackson-core.version}</version>
-		</dependency> 
-		
+		</dependency>
+
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<plugin>

@@ -16,6 +16,7 @@
 package com.tremolosecurity.unison.okta.provisioning;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,14 +28,21 @@ import java.util.Set;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import com.okta.sdk.authc.credentials.TokenClientCredentials;
-import com.okta.sdk.client.Client;
+import com.okta.sdk.resource.client.ApiClient;
+import com.okta.sdk.resource.client.ApiException;
+
 import com.okta.sdk.client.Clients;
-import com.okta.sdk.resource.ResourceException;
-import com.okta.sdk.resource.group.Group;
-import com.okta.sdk.resource.group.GroupList;
+import com.okta.sdk.client.ClientBuilder;
+import com.okta.sdk.resource.group.GroupBuilder;
 import com.okta.sdk.resource.user.UserBuilder;
-import com.okta.sdk.resource.user.UserProfile;
+
+import com.okta.sdk.resource.api.UserApi;
+import com.okta.sdk.resource.api.GroupApi;
+import com.okta.sdk.resource.model.*;
+
+import com.okta.sdk.resource.model.Group;
+
+import com.okta.sdk.authc.credentials.TokenClientCredentials;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.ProvisioningTarget;
@@ -44,13 +52,21 @@ import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.util.ObjUtils;
 
 public class OktaTarget implements UserStoreProvider {
 	
 	String token;
 	String domain;
 	private ConfigManager cfgMgr;
-	private Client okta;
+	
+	ClientBuilder builder;
+    ApiClient okta;
+    
+    UserApi userApi = null;
+    GroupApi groupApi = null;
+	
+	
 	String name;
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
@@ -63,9 +79,9 @@ public class OktaTarget implements UserStoreProvider {
 		
 		Workflow workflow = (Workflow) request.get("WORKFLOW");
 		
-		com.okta.sdk.resource.user.User forOkta = null;
+		com.okta.sdk.resource.model.User forOkta = null;
 		UserBuilder ub = UserBuilder.instance();
-		HashMap<String,Object> profile = new HashMap<String,Object>();
+		HashMap<String,String> profile = new HashMap<String,String>();
 		
 		for (String attrName : user.getAttribs().keySet()) {
 			
@@ -74,15 +90,22 @@ public class OktaTarget implements UserStoreProvider {
 			}
 		}
 		
-		ub.setProfileProperties(profile);
+		try {
+			ObjUtils.map2props(profile, ub);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			throw new ProvisioningException("Could not set properties",e);
+		}
+		
+		
+		
 		
 		for (String group : user.getGroups()) {
-			GroupList gl = okta.listGroups(group, null,null);
+			List<Group> gl = this.groupApi.listGroups(group, null,null, null, null, null, null, null);
 			
 			ub.addGroup(gl.iterator().next().getId());
 		}
 		
-		ub.buildAndCreate(this.okta);
+		ub.buildAndCreate(this.userApi);
 		
 		this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Add,  approvalID, workflow, "login", user.getUserID());
 		for (String attrName : user.getAttribs().keySet()) {
@@ -114,14 +137,18 @@ public class OktaTarget implements UserStoreProvider {
 		
 		Workflow workflow = (Workflow) request.get("WORKFLOW");
 		
-		com.okta.sdk.resource.user.User fromOkta = null;
+		com.okta.sdk.resource.model.User fromOkta = null;
+		Map<String,String> propsFromUser = null;
 		
 		try {
-			fromOkta = okta.getUser(user.getUserID());
-		} catch (ResourceException e) {
-			if (e.getStatus() != 404) {
+			fromOkta = this.userApi.getUser(user.getUserID());
+			propsFromUser = ObjUtils.props2map(fromOkta);
+		} catch (ApiException  e) {
+			if (e.getCode() != 404) {
 				throw new ProvisioningException("Could not lookup user",e);
 			}
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			throw new ProvisioningException("Could not lookup user",e);
 		}
 		
 		if (fromOkta == null) {
@@ -132,7 +159,7 @@ public class OktaTarget implements UserStoreProvider {
 			
 			for (String attrName : user.getAttribs().keySet()) {
 				if (attributes.contains(attrName)) {
-					if (fromOkta.getProfile().get(attrName) == null || ! ((String) fromOkta.getProfile().get(attrName)).equalsIgnoreCase(user.getAttribs().get(attrName).getValues().get(0)) ) {
+					if (propsFromUser.get(attrName) == null || ! propsFromUser.get(attrName).equalsIgnoreCase(user.getAttribs().get(attrName).getValues().get(0)) ) {
 						changed.put(attrName, user.getAttribs().get(attrName).getValues().get(0));
 					}
 				}
@@ -140,12 +167,13 @@ public class OktaTarget implements UserStoreProvider {
 			}
 			
 			for (String attrName : changed.keySet()) {
-				fromOkta.getProfile().put(attrName, changed.get(attrName));
+				propsFromUser.put(attrName, changed.get(attrName));
 			}
 			
 			HashSet<String> groups = new HashSet<String>();
 			List<String> groupsToAdd = new ArrayList<String>();
-			for (Group group : fromOkta.listGroups()) {
+			List<Group> groupsFromUser = this.userApi.listUserGroups(fromOkta.getId()); 
+			for (Group group : groupsFromUser) {
 				groups.add(group.getProfile().getName());
 			}
 			
@@ -156,8 +184,11 @@ public class OktaTarget implements UserStoreProvider {
 			}
 			
 			for (String group : groupsToAdd) {
-				GroupList gl = okta.listGroups(group, null,null);
-				fromOkta.addToGroup(gl.iterator().next().getId());
+				List<Group> gl = this.groupApi.listGroups(group, null,null, null, null, null, null, null);
+				
+				Group groupFromOkta = gl.iterator().next();
+				groupApi.assignUserToGroup(groupFromOkta.getId(), fromOkta.getId());
+				
 			}
 			
 			for (String attrName : changed.keySet()) {
@@ -170,11 +201,18 @@ public class OktaTarget implements UserStoreProvider {
 			
 			
 			
-			fromOkta.update();
+			try {
+				ObjUtils.map2props(changed, fromOkta.getProfile());
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				throw new ProvisioningException("Could not store user changes",e);
+			}
+			com.okta.sdk.resource.model.UpdateUserRequest updateRequest = new com.okta.sdk.resource.model.UpdateUserRequest();
+			updateRequest.setProfile(fromOkta.getProfile());
+			this.userApi.updateUser(fromOkta.getId(), updateRequest, true);
 			
 			List<Group> groupsToRemove = new ArrayList<Group>();
 			if (! addOnly) {
-				for (Group group : fromOkta.listGroups()) {
+				for (Group group : groupsFromUser) {
 					if (! user.getGroups().contains(group.getProfile().getName())) {
 						groupsToRemove.add(group);
 					}
@@ -182,7 +220,10 @@ public class OktaTarget implements UserStoreProvider {
 				
 				for (Group g : groupsToRemove) {
 					if (! g.getProfile().getName().equals("Everyone")) {
-						g.removeUser(fromOkta.getId());
+						
+						groupApi.unassignUserFromGroup(g.getId(), fromOkta.getId());
+						
+						
 						this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Delete,  approvalID, workflow, "group", g.getProfile().getName());
 					}
 				}
@@ -200,16 +241,16 @@ public class OktaTarget implements UserStoreProvider {
 		
 		Workflow workflow = (Workflow) request.get("WORKFLOW");
 		
-		com.okta.sdk.resource.user.User fromOkta = null;
+		com.okta.sdk.resource.model.User fromOkta = null;
 		
 		try {
-			fromOkta = okta.getUser(user.getUserID());
-		} catch (ResourceException e) {
+			fromOkta = this.userApi.getUser(user.getUserID());
+		} catch (ApiException e) {
 			throw new ProvisioningException("Could not lookup user",e);
 		}
 		
-		fromOkta.deactivate();
-		fromOkta.delete();
+		this.userApi.deactivateUser(user.getUserID(), false);
+		this.userApi.deleteUser(user.getUserID(), false);
 		this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Delete,  approvalID, workflow, "login", user.getUserID());
 	}
 	@Override
@@ -218,12 +259,12 @@ public class OktaTarget implements UserStoreProvider {
 		
 		
 		try {
-			com.okta.sdk.resource.user.User fromOkta = null;
+			com.okta.sdk.resource.model.User fromOkta = null;
 			
 			try {
-				fromOkta = okta.getUser(userID);
-			} catch (ResourceException e) {
-				if (e.getStatus() == 404) {
+				fromOkta = userApi.getUser(userID);
+			} catch (ApiException e) {
+				if (e.getCode() == 404) {
 					return null;
 				} else {
 					throw new ProvisioningException("Could not lookup user",e);
@@ -233,10 +274,11 @@ public class OktaTarget implements UserStoreProvider {
 			User user = new User(userID);
 			UserProfile profile = fromOkta.getProfile();
 			
+			Map<String,String> profileMap = ObjUtils.props2map(profile);
 			
-			for (Object attrKey : profile.keySet()) {
+			for (Object attrKey : profileMap.keySet()) {
 				String attrName = (String) attrKey;
-				String value = (String) profile.get(attrKey);
+				String value = (String) profileMap.get(attrKey);
 				
 				if (attributes.contains(attrName)) {
 					user.getAttribs().put(attrName, new Attribute(attrName,value));
@@ -245,7 +287,7 @@ public class OktaTarget implements UserStoreProvider {
 			}
 			
 			
-			GroupList groups = fromOkta.listGroups();
+			List<Group> groups = this.userApi.listUserGroups(userID);
 			for (Group group : groups) {
 				user.getGroups().add(group.getProfile().getName());
 			}
@@ -276,14 +318,20 @@ public class OktaTarget implements UserStoreProvider {
 		
 		this.token = cfg.get("token").getValues().get(0);
 		
+		this.builder = Clients.builder();
 		this.okta = Clients.builder()
-			    .setOrgUrl(this.domain)
-			    .setClientCredentials(new TokenClientCredentials(this.token))
-			    .build();
+						.setOrgUrl(this.domain)
+						.setClientCredentials(new TokenClientCredentials(this.token))
+						.build();
+		
+		
+		this.userApi = new UserApi(okta);
+		this.groupApi = new GroupApi(okta);
+		
 		this.name = name;
 	}
 
-	public Client getOkta() {
+	public ApiClient getOkta() {
 		return this.okta;
 	}
 	@Override
@@ -293,6 +341,14 @@ public class OktaTarget implements UserStoreProvider {
 	}
 	public String getDomain() {
 		return domain;
+	}
+	
+	public UserApi getUserApi() {
+		return this.userApi;
+	}
+	
+	public GroupApi getGroupApi() {
+		return this.groupApi;
 	}
 	
 	

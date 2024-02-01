@@ -85,7 +85,7 @@
 	  	<snakeyaml.version>2.2</snakeyaml.version>
 	  	<prometheus.version>0.16.0</prometheus.version>
 	  	<ibm-mq.version>9.3.4.1</ibm-mq.version>
-	  	<okta.version>8.2.3</okta.version>
+	  	<okta.version>15.0.0</okta.version>
 	  	<azure-auth.version>1.14.2</azure-auth.version>
 	  	<cryptacular.version>1.2.6</cryptacular.version>
 	  	<santuario-xmlsec.version>4.0.1</santuario-xmlsec.version>
@@ -103,8 +103,6 @@
 		<xmlgraphics-commons.version>2.9</xmlgraphics-commons.version>
 		<json-smart.version>2.5.0</json-smart.version>
 		<xnio-api.version>3.8.12.Final</xnio-api.version>
-		<okta-authn.version>2.0.11</okta-authn.version>
-		<okta-http.version>8.2.5</okta-http.version>
 		<jersey.version>2.41</jersey.version>
 		<woodstox.version>6.5.1</woodstox.version>
 		<spring.version>5.3.31</spring.version>
