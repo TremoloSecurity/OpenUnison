@@ -70,22 +70,27 @@ public class LoadTargetsFromK8s implements DynamicTargets, K8sWatchTarget {
 		
 		JSONObject metadata = (JSONObject) item.get("metadata");
 		if (metadata != null) {
+			
 			JSONObject annotations = (JSONObject) metadata.get("annotations");
 			if (annotations != null) {
+				
 				for (Object vname : annotations.keySet()) {
 					NameValue nv = new NameValue();
 					nv.setName((String) vname);
 					nv.setValue((String) annotations.get(vname));
+				
 					target.getAnnotation().add(nv);
 				}
 			}
 			
 			JSONObject labels = (JSONObject) metadata.get("labels");
 			if (labels != null) {
-				for (Object vname : annotations.keySet()) {
+				
+				for (Object vname : labels.keySet()) {
 					NameValue nv = new NameValue();
 					nv.setName((String) vname);
 					nv.setValue((String) labels.get(vname));
+				
 					target.getLabel().add(nv);
 				}
 			}

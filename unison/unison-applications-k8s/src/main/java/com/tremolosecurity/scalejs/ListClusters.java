@@ -19,6 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
+import com.oracle.truffle.js.runtime.builtins.JSFunctionData.Target;
+import com.tremolosecurity.config.xml.NameValue;
 import com.tremolosecurity.config.xml.TargetType;
 import com.tremolosecurity.proxy.filter.HttpFilterRequest;
 import com.tremolosecurity.saml.Attribute;
@@ -29,6 +33,8 @@ import com.tremolosecurity.unison.openshiftv3.OpenShiftTarget;
 import com.tremolosecurity.util.NVP;
 
 public class ListClusters implements SourceList {
+	
+	static Logger logger = Logger.getLogger(ListClusters.class.getName());
 
 	@Override
 	public void init(ScaleAttribute attribute, Map<String, Attribute> config) {
@@ -41,12 +47,29 @@ public class ListClusters implements SourceList {
 		List<TargetType> targets = GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getTargets().getTarget();
 		List<NVP> k8sTargets = new ArrayList<NVP>();
 		
+		
+		
 		k8sTargets.add(new NVP("",""));
 		
 		for (TargetType tt : targets) {
+			boolean shouldIgnore = false;
 			if (tt.getClassName().equalsIgnoreCase("com.tremolosecurity.unison.openshiftv3.OpenShiftTarget")) {
-				OpenShiftTarget target = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(tt.getName()).getProvider();
-				k8sTargets.add(new NVP(target.getLabel(),tt.getName()));
+				
+				if (tt.getLabel() != null) {
+					
+					for (NameValue nv : tt.getLabel()) {
+						
+						if (nv.getName().equalsIgnoreCase("tremolo.io/list") && nv.getValue().equalsIgnoreCase("false")) {
+							
+							shouldIgnore = true;
+						}
+					}
+				}
+				
+				if (! shouldIgnore) {
+					OpenShiftTarget target = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(tt.getName()).getProvider();
+					k8sTargets.add(new NVP(target.getLabel(),tt.getName()));
+				}
 			}
 		}
 		
