@@ -1681,14 +1681,16 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				this.mpPools.add(sessionHolder);
 			}
 			
+			if (this.cfgMgr.getCfg().getProvisioning().getQueueConfig().isManualDlq()) {
+				this.dlqProducer = JMSConnectionFactory.getConnectionFactory().getSession(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getManualDlqName());
+			}
+			
 			
 			
 			
 		}
 		
-		if (this.cfgMgr.getCfg().getProvisioning().getQueueConfig().isManualDlq()) {
-			this.dlqProducer = JMSConnectionFactory.getConnectionFactory().getSession(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getManualDlqName());
-		}
+		
 	}
 	
 	@Override
