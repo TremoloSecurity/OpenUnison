@@ -58,5 +58,10 @@ public class DisasterRecoveryAction {
 		this.contentType = contentType;
 	}
 	
+	@Override
+	public String toString() {
+		return String.format("url: %s / method: %s / contentType: %s / json : %s",url,method,contentType,json);
+	}
+	
 	
 }

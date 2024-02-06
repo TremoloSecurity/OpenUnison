@@ -96,6 +96,7 @@ import org.apache.commons.dbcp.datasources.SharedPoolDataSource;
 import org.apache.commons.net.smtp.SMTP;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.logging.log4j.Logger;
+import org.apache.qpid.jms.message.JmsMessage;
 import org.hibernate.query.Query;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
@@ -278,6 +279,10 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 
 
 	private HashMap<String, JMSSessionHolder> listenerSessions;
+
+
+
+	private JMSSessionHolder dlqProducer;
 	
 	
 	
@@ -1680,6 +1685,43 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			
 		}
+		
+		if (this.cfgMgr.getCfg().getProvisioning().getQueueConfig().isManualDlq()) {
+			this.dlqProducer = JMSConnectionFactory.getConnectionFactory().getSession(this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getManualDlqName());
+		}
+	}
+	
+	@Override
+	public void dlqMessage(javax.jms.TextMessage m) {
+		TextMessage newMessage = null;
+		try {
+			synchronized (this.dlqProducer.getSession()) {
+				newMessage = this.dlqProducer.getSession().createTextMessage();	
+			}
+			
+			newMessage.setText(m.getText());
+			
+			Enumeration enumer = m.getPropertyNames();
+			while (enumer.hasMoreElements()) {
+				String propertyName = (String) enumer.nextElement();
+				if (propertyName.equals("TremoloNumTries")) {
+					newMessage.setIntProperty("TremoloNumTries", 0);
+				} else {
+					try {
+						newMessage.setObjectProperty(propertyName,m.getObjectProperty(propertyName));
+					} catch (JMSException e) {
+						logger.warn(String.format("could not set %s",propertyName),e);
+					}
+				}
+			}
+			
+			synchronized (this.dlqProducer.getMessageProduceer()) {
+				this.dlqProducer.getMessageProduceer().send(newMessage);
+			}
+		
+		} catch (JMSException e) {
+			logger.error("could not enqueue to DLQ",e);
+		}
 	}
 
 	
@@ -1705,6 +1747,10 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	
 	
 	public void enqueue(WorkflowHolder wfHolder) throws ProvisioningException {
+		this.enqueue(wfHolder,1);
+	}
+	
+	public void enqueue(WorkflowHolder wfHolder,int num) throws ProvisioningException {
 		
 		
 		TextMessage bm;
@@ -1730,6 +1776,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				bm.setStringProperty("WorkflowSubject", wfHolder.getUser().getUserID());
 				bm.setStringProperty("JMSXGroupID", "unison");
 				bm.setStringProperty("nonce", UUID.randomUUID().toString());
+				bm.setIntProperty("TremoloNumTries", num);
 				
 				
 				TaskHolder holder = wfHolder.getWfStack().peek();
@@ -1761,6 +1808,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		}
 		
 	}
+	
+	
 	
 	public void execute() {
 		
@@ -2207,6 +2256,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		JMSSessionHolder session = JMSConnectionFactory.getConnectionFactory().getSession(mlt.getQueueName());
 		session.setMessageListener(uml);
 		
+		uml.setListenerSession(session, cfgMgr);
+		
 		this.listenerSessions.put(mlt.getQueueName(),session);
 	}
 	
@@ -2222,6 +2273,45 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				logger.warn("Could not shutdown queue '" + name + "'",t);
 			}
 			this.listenerSessions.remove(name);
+		}
+	}
+	
+	
+	public void reEnQueueTask(TextMessage tm,int numOfTries) throws Exception {
+		this.reEnQueue(tm, numOfTries, this.getTaskMessageProducer());
+	}
+	
+	@Override
+	public void reEnQueue(TextMessage tm, int numOfTries, JMSSessionHolder session) {
+		logger.info(String.format("Re-enqueueing %s",numOfTries));
+		TextMessage newMessage = null;
+		try {
+			synchronized (session.getSession()) {
+				newMessage = session.getSession().createTextMessage();	
+			}
+			
+			newMessage.setText(tm.getText());
+			
+			Enumeration enumer = tm.getPropertyNames();
+			while (enumer.hasMoreElements()) {
+				String propertyName = (String) enumer.nextElement();
+				if (propertyName.equals("TremoloNumTries")) {
+					newMessage.setIntProperty("TremoloNumTries", numOfTries);
+				} else {
+					try {
+						newMessage.setObjectProperty(propertyName,tm.getObjectProperty(propertyName));
+					} catch (JMSException e) {
+						logger.warn(String.format("could not set %s",propertyName),e);
+					}
+				}
+			}
+			
+			synchronized (session.getMessageProduceer()) {
+				session.getMessageProduceer().send(newMessage);
+			}
+		
+		} catch (JMSException e) {
+			logger.error("could not enqueue to DLQ",e);
 		}
 	}
 
@@ -2332,6 +2422,7 @@ class SendMessageThread implements MessageListener {
 			bm.setStringProperty("OriginalQueue", this.smtpQueue);
 			bm.setStringProperty("nonce", UUID.randomUUID().toString());
 			bm.setStringProperty("JMSXGroupID", "unison-email");
+			bm.setIntProperty("TremoloNumTries", 0);
 			smtpSendSession.getMessageProduceer().send(bm);
 		}
 		//session.commit();
@@ -2378,16 +2469,53 @@ class SendMessageThread implements MessageListener {
 			fromq.acknowledge();
 			//session.commit();
 		} catch (MessagingException | JMSException e) {
+			
+			
+			
 			logger.error("Could not send email",e);
 			
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			PrintWriter baout = new PrintWriter(baos);
-			e.printStackTrace(baout);
-			baout.flush();
-			baout.close();
-			StringBuffer b = new StringBuffer();
-			b.append("Could not send email\n").append(new String(baos.toByteArray()));
-			throw new RuntimeException(b.toString(),e);
+			
+			if (GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getQueueConfig().isManualDlq()) {
+				// determine if too many retries
+				int numberOfTries = 0;
+				try {
+					numberOfTries = msg.getIntProperty("TremoloNumTries");
+				} catch (JMSException je) {
+					numberOfTries = 0;
+				}
+				numberOfTries++;
+				
+				if (numberOfTries >= GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getProvisioning().getQueueConfig().getManualDlqMaxAttempts()) {
+					GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().dlqMessage(fromq);
+				} else {
+					try {
+						this.prov.reEnQueue(fromq, numberOfTries, smtpSendSession);
+					} catch (Exception je) {
+						logger.error("Could not re-enqueue workflow",je);
+					}
+				}
+				
+				try {
+					// if this is from qpid, set the achnowledgement mode manually
+					if (msg instanceof JmsMessage) {
+						msg.setIntProperty("JMS_AMQP_ACK_TYPE", 1);
+					}
+					
+					msg.acknowledge();
+				} catch (JMSException je) {
+					logger.error("Error handling failed message",je);
+				}
+			} else {
+			
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				PrintWriter baout = new PrintWriter(baos);
+				e.printStackTrace(baout);
+				baout.flush();
+				baout.close();
+				StringBuffer b = new StringBuffer();
+				b.append("Could not send email\n").append(new String(baos.toByteArray()));
+				throw new RuntimeException(b.toString(),e);
+			}
 			
 		}
 		

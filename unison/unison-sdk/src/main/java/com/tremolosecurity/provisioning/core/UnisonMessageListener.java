@@ -32,6 +32,7 @@ import org.apache.qpid.jms.message.JmsMessage;
 
 import com.google.gson.Gson;
 import com.tremolosecurity.config.util.ConfigManager;
+import com.tremolosecurity.provisioning.jms.JMSSessionHolder;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
@@ -40,14 +41,21 @@ import com.tremolosecurity.server.GlobalEntries;
 public abstract class UnisonMessageListener implements MessageListener {
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonMessageListener.class.getName());
 	
+	JMSSessionHolder session;
+	ConfigManager cfgMgr;
+	
+	public void setListenerSession(JMSSessionHolder session,ConfigManager cfgMgr) {
+		this.session = session;
+		this.cfgMgr = cfgMgr;
+	}
 	
 	@Override
 	public void onMessage(Message msg) {
 		
-		
+		TextMessage smsg = null;
 		
 		try {
-			TextMessage smsg = (TextMessage) msg;
+			smsg = (TextMessage) msg;
 			
 			if (smsg.getBooleanProperty("unisonignore")) {
 				
@@ -79,8 +87,57 @@ public abstract class UnisonMessageListener implements MessageListener {
 			
 			msg.acknowledge();
 		} catch (Throwable t) {
+			
+			if (this.cfgMgr.getCfg().getProvisioning().getQueueConfig().isManualDlq()) {
+				// manually managing the DLQ.  First, log the error
+				logger.error(t);
+				
+				// determine if too many retries
+				int numberOfTries = 0;
+				try {
+					numberOfTries = msg.getIntProperty("TremoloNumTries");
+				} catch (JMSException e) {
+					numberOfTries = 0;
+				}
+				numberOfTries++;
+				
+				if (numberOfTries >= this.cfgMgr.getCfg().getProvisioning().getQueueConfig().getManualDlqMaxAttempts()) {
+					this.cfgMgr.getProvisioningEngine().dlqMessage(smsg);
+				} else {
+					try {
+						this.cfgMgr.getProvisioningEngine().reEnQueue(smsg, numberOfTries, session);
+					} catch (Exception e) {
+						logger.error("Could not re-enqueue workflow",e);
+					}
+				}
+				
+				try {
+					// if this is from qpid, set the achnowledgement mode manually
+					if (msg instanceof JmsMessage) {
+						msg.setIntProperty("JMS_AMQP_ACK_TYPE", 1);
+					}
+					
+					msg.acknowledge();
+				} catch (JMSException e) {
+					logger.error("Error handling failed message",e);
+				}
+				
+			}
+			
 			// if this is from qpid, set the achnowledgement mode manually
-			if (msg instanceof JmsMessage) {
+			else if (msg instanceof JmsMessage) {
+				logger.error("Error processing message",t);
+				try {
+					msg.setIntProperty("JMS_AMQP_ACK_TYPE", 2);
+					msg.acknowledge();
+					
+				} catch (JMSException e) {
+					logger.error("error setting message rejected property",e);
+				}
+			}
+			
+			// if this is from qpid, set the achnowledgement mode manually
+			else if (msg instanceof JmsMessage) {
 				logger.error("Error processing message",t);
 				try {
 					msg.setIntProperty("JMS_AMQP_ACK_TYPE", 2);

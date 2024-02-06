@@ -26,6 +26,7 @@ import java.util.Stack;
 
 import javax.jms.JMSException;
 import javax.jms.MessageProducer;
+import javax.jms.TextMessage;
 
 import org.hibernate.SessionFactory;
 import org.quartz.JobKey;
@@ -37,6 +38,7 @@ import com.tremolosecurity.config.xml.MessageListenerType;
 import com.tremolosecurity.config.xml.TargetType;
 import com.tremolosecurity.config.xml.WorkflowType;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
+import com.tremolosecurity.provisioning.jms.JMSSessionHolder;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
 
 
@@ -172,6 +174,10 @@ public interface ProvisioningEngine {
 			ClassNotFoundException, ProvisioningException, JMSException;
 
 	void removeMessageListener(String name);
+
+	void dlqMessage(javax.jms.TextMessage m);
+
+	void reEnQueue(TextMessage tm, int numOfTries,JMSSessionHolder session);
 	
 
 }

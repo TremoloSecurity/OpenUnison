@@ -2046,6 +2046,22 @@
 				<documentation>Number of task queues</documentation>
 			</annotation>
 		</attribute>
+		<attribute name="manualDlq" type="boolean" default="false">
+			<annotation>
+				<documentation>If true, OpenUnison manages the retry of messages on its own</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="manualDlqMaxAttempts" type="int" default="3">
+			<annotation>
+				<documentation>When manualDql is true, the maximum number of tries</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="manualDlqName" type="string" default="">
+			<annotation>
+				<documentation>When manualDql is true, the name of the DLQ</documentation>
+			</annotation>
+		</attribute>
+		
 	</complexType>
 
 	<complexType name="portalUrlType">

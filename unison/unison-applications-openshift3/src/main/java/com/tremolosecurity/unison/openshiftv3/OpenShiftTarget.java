@@ -787,6 +787,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 	}
 	
 	private void sendtoDRQueue(String uri,String method,String json,String contentType) throws ProvisioningException, JMSException {
+		logger.info("DR Queues Size : " + this.drQueues.size());
 		if (this.drQueues.size() > 0) {
 			DisasterRecoveryAction dr = new DisasterRecoveryAction();
 			
@@ -795,11 +796,14 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 			dr.setJson(json);
 			dr.setContentType(contentType);
 			
+			logger.info("Encrypting and enqueueing " + dr.toString());
+			
 			Gson gson = new Gson();
 			
 			EncryptedMessage encJson = this.cfgMgr.getProvisioningEngine().encryptObject(dr);
 			for (JMSSessionHolder session : this.drQueues) {
 				synchronized (session) {
+					logger.info("Sending to " + session.getQueueName());
 					TextMessage tm = session.getSession().createTextMessage(gson.toJson(encJson));
 					tm.setStringProperty("JMSXGroupID", "unison-kubernetes");
 					session.getMessageProduceer().send(tm);
@@ -1015,7 +1019,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 		
 		this.gitUrl = this.loadOptionalAttributeValue("gitUrl", "gitUrl", cfg, null);
 		
-		String drQueueNames = this.loadOptionalAttributeValue("drqueues", "drqueues", cfg, null);
+		String drQueueNames = this.loadOptionalAttributeValue("drqueues","drqueues", cfg, null);
 		this.drQueues = new ArrayList<JMSSessionHolder>();
 		if (drQueueNames != null) {
 			StringTokenizer toker = new StringTokenizer(drQueueNames,",",false);

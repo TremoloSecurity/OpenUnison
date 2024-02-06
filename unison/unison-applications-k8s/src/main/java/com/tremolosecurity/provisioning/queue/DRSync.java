@@ -21,6 +21,8 @@ import java.util.HashMap;
 
 import javax.jms.Message;
 
+import org.apache.log4j.Logger;
+
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.UnisonMessageListener;
@@ -32,9 +34,14 @@ import com.tremolosecurity.unison.openshiftv3.dr.DisasterRecoveryAction;
 public class DRSync extends UnisonMessageListener {
 	String target;
 	
+	static Logger logger = Logger.getLogger(DRSync.class.getName());
+	
 	@Override
 	public void onMessage(ConfigManager cfg, Object payload, Message msg) throws ProvisioningException {
 		DisasterRecoveryAction drAction = (DisasterRecoveryAction) payload;
+		
+		logger.info("dr action : " + drAction.toString());
+		
 		
 		OpenShiftTarget k8s = (OpenShiftTarget) cfg.getProvisioningEngine().getTarget(target).getProvider();
 		
@@ -43,13 +50,13 @@ public class DRSync extends UnisonMessageListener {
 		try {
 			http = k8s.createClient();
 			if (drAction.getMethod().equalsIgnoreCase("POST")) {
-				k8s.callWSPost(k8s.getAuthToken(), http, drAction.getUrl(), drAction.getJson());
+				logger.info(k8s.callWSPost(k8s.getAuthToken(), http, drAction.getUrl(), drAction.getJson()));
 			} else if (drAction.getMethod().equalsIgnoreCase("DELETE")) {
-				k8s.callWSDelete(k8s.getAuthToken(), http, drAction.getUrl());
+				logger.info(k8s.callWSDelete(k8s.getAuthToken(), http, drAction.getUrl()));
 			} else if (drAction.getMethod().equalsIgnoreCase("PATCH")) {
-				k8s.callWSPatchJson(k8s.getAuthToken(), http, drAction.getUrl(), drAction.getJson(), drAction.getContentType());
+				logger.info(k8s.callWSPatchJson(k8s.getAuthToken(), http, drAction.getUrl(), drAction.getJson(), drAction.getContentType()));
 			} else if (drAction.getMethod().equalsIgnoreCase("PUT")) {
-				k8s.callWSPut(k8s.getAuthToken(), http, drAction.getUrl(),drAction.getJson());
+				logger.info(k8s.callWSPut(k8s.getAuthToken(), http, drAction.getUrl(),drAction.getJson()));
 			}
 		} catch (Exception e) {
 			throw new ProvisioningException("Could not sync dr action",e);
