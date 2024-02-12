@@ -65,7 +65,11 @@ public class LoginService implements AuthMechanism {
 		
 		request.getSession().setAttribute(LoginService.CHAINS, chainMap);
 		
-		if (chainMap.keySet().size() == 1) {
+		
+		if (session.getAttribute("tremolo.io/loginservice/detination") != null) {
+			String chainLabel = (String) session.getAttribute("tremolo.io/loginservice/detination");
+			startLogin(request,response, session, chainMap, chainLabel,cookieName,days);
+		} else if (chainMap.keySet().size() == 1) {
 			String chainLabel = chainMap.keySet().iterator().next();
 			startLogin(request,response, session, chainMap, chainLabel,cookieName,days);
 		} else if (request.getParameter("chain") != null) {
