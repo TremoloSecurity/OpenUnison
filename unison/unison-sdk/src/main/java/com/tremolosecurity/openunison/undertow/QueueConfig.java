@@ -32,8 +32,14 @@ public class QueueConfig {
 	long keepAliveMillis;
 	List<QueueConfigParam> params;
 	
+	boolean manualDlq;
+	int manualDlqMaxAttempts;
+	String manualDlqName;
+	
+	
 	public QueueConfig() {
 		this.params = new ArrayList<QueueConfigParam>();
+		this.manualDlq = false;
 	}
 
 	public boolean isUseInternalQueue() {
@@ -130,6 +136,30 @@ public class QueueConfig {
 
 	public void setParams(List<QueueConfigParam> params) {
 		this.params = params;
+	}
+
+	public boolean isManualDlq() {
+		return manualDlq;
+	}
+
+	public void setManualDlq(boolean manualDlq) {
+		this.manualDlq = manualDlq;
+	}
+
+	public int getManualDlqMaxAttempts() {
+		return manualDlqMaxAttempts;
+	}
+
+	public void setManualDlqMaxAttempts(int manualDlqMaxAttempts) {
+		this.manualDlqMaxAttempts = manualDlqMaxAttempts;
+	}
+
+	public String getManualDlqName() {
+		return manualDlqName;
+	}
+
+	public void setManualDlqName(String manualDlqName) {
+		this.manualDlqName = manualDlqName;
 	}
 	
 	

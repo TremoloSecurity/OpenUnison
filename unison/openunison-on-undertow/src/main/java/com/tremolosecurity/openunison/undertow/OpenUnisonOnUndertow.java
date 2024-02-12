@@ -216,6 +216,10 @@ public class OpenUnisonOnUndertow {
 			qc.setSmtpQueueName(config.getQueueConfiguration().getSmtpQueueName());
 			qc.setTaskQueueName(config.getQueueConfiguration().getTaskQueueName());
 			
+			qc.setManualDlq(config.getQueueConfiguration().isManualDlq());
+			qc.setManualDlqMaxAttempts(config.getQueueConfiguration().getManualDlqMaxAttempts());
+			qc.setManualDlqName(config.getQueueConfiguration().getManualDlqName());
+			
 			for (QueueConfigParam param : config.getQueueConfiguration().getParams()) {
 				ParamType pt = new ParamType();
 				pt.setName(param.getName());
