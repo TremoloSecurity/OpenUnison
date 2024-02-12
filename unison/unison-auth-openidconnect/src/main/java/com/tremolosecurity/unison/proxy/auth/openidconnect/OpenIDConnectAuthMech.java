@@ -48,6 +48,7 @@ import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
@@ -144,7 +145,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 				
 				BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(GlobalEntries.getGlobalEntries().getConfigManager().getHttpClientSocketRegistry());
 				RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
-				CloseableHttpClient http = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(rc).build();
+				CloseableHttpClient http = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(rc).setRoutePlanner(new SystemDefaultRoutePlanner(null)).build();
 				
 				try {
 					HttpGet get = new HttpGet(b.toString());
@@ -226,6 +227,20 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 		String lookupFilter = authParams.get("lookupFilter").getValues().get(0);
 		String userLookupClassName = authParams.get("userLookupClassName").getValues().get(0);
 		
+		
+		boolean enableLoginHint = authParams.get("loginHintEnabled") != null && authParams.get("loginHintEnabled").getValues().get(0).equals("true");
+		String loginHintAttribute;
+		String loginHint = null;
+		if (enableLoginHint) {
+			loginHintAttribute = authParams.get("loginHintAttribute").getValues().get(0);
+			AuthInfo authInfo = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+			Attribute attr = authInfo.getAttribs().get(loginHintAttribute);
+			if (attr != null) {
+				loginHint = attr.getValues().get(0);
+			}
+			
+		}
+		
 		String defaultObjectClass = authParams.get("defaultObjectClass").getValues().get(0);
 		
 		boolean forceAuth = authParams.get("forceAuthentication") != null ? authParams.get("forceAuthentication").getValues().get(0).equalsIgnoreCase("true") : true;
@@ -304,6 +319,10 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			
 			if (hd != null && ! hd.isEmpty()) {
 				redirToSend.append("&hd=").append(hd);
+			}
+			
+			if (loginHint != null) {
+				redirToSend.append("&login_hint=").append(loginHint);
 			}
 			
 			response.sendRedirect(redirToSend.toString());
