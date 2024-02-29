@@ -231,15 +231,30 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 		boolean enableLoginHint = authParams.get("loginHintEnabled") != null && authParams.get("loginHintEnabled").getValues().get(0).equals("true");
 		String loginHintAttribute;
 		String loginHint = null;
+		boolean loginHintFromUser = true;
 		if (enableLoginHint) {
 			loginHintAttribute = authParams.get("loginHintAttribute").getValues().get(0);
-			AuthInfo authInfo = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
-			Attribute attr = authInfo.getAttribs().get(loginHintAttribute);
-			if (attr != null) {
-				loginHint = attr.getValues().get(0);
+			loginHintFromUser = authParams.get("loginHintFromUser") == null || authParams.get("loginHintFromUser").getValues().get(0).equalsIgnoreCase("true");
+			
+			
+			if (loginHintFromUser) {
+				AuthInfo authInfo = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+				Attribute attr = authInfo.getAttribs().get(loginHintAttribute);
+				if (attr != null) {
+					loginHint = attr.getValues().get(0);
+				}
+			} else {
+				loginHint = (String) request.getSession().getAttribute(loginHintAttribute);
 			}
 			
+			
+			
+			
+			
+			
 		}
+		
+		
 		
 		String defaultObjectClass = authParams.get("defaultObjectClass").getValues().get(0);
 		
