@@ -91,7 +91,7 @@
 			    </configuration>
 			</plugin>
             <plugin>
-                <groupId>org.apache.cxf</groupId>
+                <groupId>org.codehaus.mojo</groupId>
                 <artifactId>cxf-xjc-plugin</artifactId>
                 <version>3.3.0</version>
                 <executions>

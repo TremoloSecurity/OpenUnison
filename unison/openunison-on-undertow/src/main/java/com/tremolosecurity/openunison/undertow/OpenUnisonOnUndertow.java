@@ -249,14 +249,14 @@ public class OpenUnisonOnUndertow {
 
 
 
-		JAXBContext jc = JAXBContext.newInstance("com.tremolosecurity.config.xml");
+		JAXBContext jc = JAXBContext.newInstance(TremoloType.class);
 		Unmarshaller unmarshaller = jc.createUnmarshaller();
 		
-		Object obj = unmarshaller.unmarshal(new ByteArrayInputStream(unisonXMLContent.getBytes("UTF-8")));
+		TremoloType unisonConfiguration = (TremoloType) unmarshaller.unmarshal(new ByteArrayInputStream(unisonXMLContent.getBytes("UTF-8")));
 		
-		JAXBElement<TremoloType> cfg = (JAXBElement<TremoloType>) obj;
+		 
 		
-		TremoloType unisonConfiguration = cfg.getValue();
+		//TremoloType unisonConfiguration = cfg.getValue();
 		
 		logger.info("Loading keystore : '" + unisonConfiguration.getKeyStorePath() + "'");
 		
