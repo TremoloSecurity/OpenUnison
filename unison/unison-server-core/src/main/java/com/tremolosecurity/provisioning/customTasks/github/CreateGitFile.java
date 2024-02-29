@@ -18,10 +18,7 @@ package com.tremolosecurity.provisioning.customTasks.github;
 import java.io.IOException;
 import java.util.Map;
 
-import org.gitlab4j.api.GitLabApi;
-import org.gitlab4j.api.GitLabApiException;
-import org.gitlab4j.api.models.Project;
-import org.gitlab4j.api.models.RepositoryFile;
+
 import org.kohsuke.github.GHBranch;
 import org.kohsuke.github.GHContent;
 import org.kohsuke.github.GHContentUpdateResponse;
@@ -38,7 +35,7 @@ import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.util.CustomTask;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
-import com.tremolosecurity.unison.gitlab.provisioning.targets.GitlabUserProvider;
+
 
 public class CreateGitFile implements CustomTask {
 	

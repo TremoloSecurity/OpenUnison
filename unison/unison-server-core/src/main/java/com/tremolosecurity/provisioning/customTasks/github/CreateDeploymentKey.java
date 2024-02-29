@@ -38,7 +38,7 @@ import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
-import org.gitlab4j.api.GitLabApi;
+
 import org.jose4j.lang.JoseException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -58,7 +58,7 @@ import com.tremolosecurity.provisioning.core.providers.GitHubProvider;
 import com.tremolosecurity.provisioning.util.CustomTask;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
-import com.tremolosecurity.unison.gitlab.provisioning.targets.GitlabUserProvider;
+
 
 public class CreateDeploymentKey implements CustomTask {
 	
