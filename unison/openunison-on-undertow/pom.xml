@@ -55,6 +55,10 @@ governing permissions and
 					<groupId>net.sf.ehcache</groupId>
 					<artifactId>ehcache</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>com.novell.ldap</groupId>
+					<artifactId>jldap</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
