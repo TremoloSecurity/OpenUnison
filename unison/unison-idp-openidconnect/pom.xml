@@ -81,7 +81,7 @@
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-sdk</artifactId>
 			<version>${openunison.version}</version>
-			<scope>provided</scope>
+			
 		</dependency>
 		<dependency>
 			<groupId>org.bitbucket.b_c</groupId>

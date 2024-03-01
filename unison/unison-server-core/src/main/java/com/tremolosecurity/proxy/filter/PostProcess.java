@@ -74,6 +74,7 @@ import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UnisonConfigManagerImpl;
 import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.config.xml.ProxyType;
+import com.tremolosecurity.proxy.ProcessAfterFilterChain;
 import com.tremolosecurity.proxy.ProxyConfig;
 import com.tremolosecurity.proxy.ProxySys;
 import com.tremolosecurity.proxy.SessionManager;
@@ -87,12 +88,13 @@ import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 
 
-public abstract class PostProcess {
+public abstract class PostProcess extends ProcessAfterFilterChain {
 	
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(PostProcess.class);
 	
 	
 	
+	@Override
 	public abstract void postProcess(HttpFilterRequest req,
 			HttpFilterResponse resp,UrlHolder holder, HttpFilterChain httpFilterChain) throws Exception;
 	

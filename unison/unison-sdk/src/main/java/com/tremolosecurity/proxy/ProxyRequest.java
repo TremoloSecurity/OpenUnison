@@ -262,7 +262,7 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 					
 							
 					
-					req.setAttribute(ProxySys.MSG_BODY, rawBody);
+					req.setAttribute(com.tremolosecurity.proxy.SdkProxyConstants.MSG_BODY, rawBody);
 					
 				} else if (contentType.startsWith("application/x-www-form-urlencoded")) {
 					ByteArrayOutputStream baos = new ByteArrayOutputStream();

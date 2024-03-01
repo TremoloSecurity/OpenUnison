@@ -43,10 +43,10 @@ import org.apache.commons.fileupload2.core.FileItem;
 import org.apache.http.message.BasicHeader;
 import org.apache.logging.log4j.Logger;
 
-import com.tremolosecurity.filter.AutoIDMPrincipal;
+
 import com.tremolosecurity.proxy.ProxyRequest;
 import com.tremolosecurity.proxy.ProxyUtil;
-import com.tremolosecurity.proxy.TremoloHttpSession;
+
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.util.ProxyConstants;

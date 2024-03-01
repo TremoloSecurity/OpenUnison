@@ -116,6 +116,8 @@ import com.tremolosecurity.openunison.OpenUnisonConstants;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
+import com.tremolosecurity.proxy.ProcessAfterFilterChain;
+import com.tremolosecurity.proxy.ProxyResponse;
 import com.tremolosecurity.proxy.SessionManagerImpl;
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.auth.AuthInfo;
@@ -136,6 +138,7 @@ import com.tremolosecurity.proxy.logout.LogoutUtil;
 import com.tremolosecurity.proxy.util.NextSys;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.proxy.util.ProxyTools;
+import com.tremolosecurity.proxy.InternalNextSys;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.server.StopableThread;
@@ -196,6 +199,34 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	
 	
 	
+	private void addCorsHeaders(HttpServletResponse resp,HttpServletRequest req,ProcessAfterFilterChain postProcess) throws IOException, ServletException {
+		/*resp.addHeader("Vary", "Origin");
+		resp.addHeader("Access-Control-Allow-Origin","*");
+        resp.addHeader("Access-Control-Allow-Methods","*");
+        resp.addHeader("Access-Control-Allow-Headers","*");*/
+		
+		NextSys next = new InternalNextSys(postProcess);
+		next.nextSys(req, resp);
+		
+	}
+	
+	public void sendErrorCode(HttpServletRequest request,final HttpServletResponse response, final int code) throws IOException, ServletException {
+		ProcessAfterFilterChain proc = new ProcessAfterFilterChain() {
+
+			@Override
+			public void postProcess(HttpFilterRequest req, HttpFilterResponse resp, UrlHolder holder,
+					HttpFilterChain httpFilterChain) throws Exception {
+				resp.setContentType("application/json");
+				resp.setStatus(code);
+				((ProxyResponse) response).pushHeadersAndCookies(null);
+				
+				
+				
+				
+			}};
+		this.addCorsHeaders(response,request,proc);
+	}
+	
 	public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
 
@@ -214,35 +245,64 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			throw new ServletException("Holder is null");
 		}
 		
-		AuthController ac = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL));
+		final AuthController ac = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL));
 		
 		
 		if (action.equalsIgnoreCase(".well-known/openid-configuration")) {
 			
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
-			String json = gson.toJson(new OpenIDConnectConfig(this.authURI,request,mapper));
-			response.setContentType("application/json");
-			response.getWriter().print(json);
+			final String json = gson.toJson(new OpenIDConnectConfig(this.authURI,request,mapper));
+			//((ProxyResponse) response).pushHeadersAndCookies(null);
+			
+			ProcessAfterFilterChain proc = new ProcessAfterFilterChain() {
+
+				@Override
+				public void postProcess(HttpFilterRequest req, HttpFilterResponse resp, UrlHolder holder,
+						HttpFilterChain httpFilterChain) throws Exception {
+					resp.setContentType("application/json");
+					((ProxyResponse) resp.getServletResponse()).pushHeadersAndCookies(null);
+					
+					resp.getWriter().print(json);
+					AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) req.getServletRequest(), ac.getAuthInfo() , "NONE");
+					
+				}};
+			this.addCorsHeaders(response,request,proc);
 			
 			
-			AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() , "NONE");
+			
+			
 			
 			return;
 		
 		} else if (action.equalsIgnoreCase("certs")) {
 			try {
 				X509Certificate cert = GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.jwtSigningKeyName);
-				JsonWebKey jwk = JsonWebKey.Factory.newJwk(cert.getPublicKey());
+				final JsonWebKey jwk = JsonWebKey.Factory.newJwk(cert.getPublicKey());
 				
 				
 				String keyID = buildKID(cert);
 				jwk.setKeyId(keyID);
 				jwk.setUse("sig");
 				jwk.setAlgorithm("RS256");
-				response.setContentType("application/json");
-				response.getWriter().print(new JsonWebKeySet(jwk).toJson());
 				
-				AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() , "NONE");
+				
+				ProcessAfterFilterChain proc = new ProcessAfterFilterChain() {
+
+					@Override
+					public void postProcess(HttpFilterRequest req, HttpFilterResponse resp, UrlHolder holder,
+							HttpFilterChain httpFilterChain) throws Exception {
+						resp.setContentType("application/json");
+						((ProxyResponse) resp.getServletResponse()).pushHeadersAndCookies(null);
+						
+						
+						resp.getWriter().print(new JsonWebKeySet(jwk).toJson());
+						
+						AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) req.getServletRequest(), ac.getAuthInfo() , "NONE");
+						
+					}};
+				this.addCorsHeaders(response,request,proc);
+				
+				
 				
 				return;
 			} catch (JoseException e) {
@@ -527,7 +587,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				} catch (Exception e1) {
 					logger.warn("Could not refresh token",e1);
 					AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() ,  "NONE");
-					response.sendError(401);
+					
+					this.sendErrorCode(request, response, 401);
 				} 
 				
 				
@@ -557,7 +618,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				if (! trust.isSts()) {
 					String errorMessage = new StringBuilder().append("Trust '").append(clientID).append("' not an sts").toString();
 					logger.warn(errorMessage);
-					response.sendError(401);
+					this.sendErrorCode(request, response, 401);
 					return;
 				}
 				
@@ -569,7 +630,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 					
 					if (! trust.isStsDelegation()) {
 						logger.warn(new StringBuilder().append("clientid '").append(clientID).append("' does not support delegation"));
-						response.sendError(403);
+						this.sendErrorCode(request, response, 403);
 					}
 					
 					// validate the actor
@@ -578,7 +639,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 					
 					if (sigCert == null) {
 						logger.error(new StringBuilder().append("JWT Signing Certificate '").append(this.getJwtSigningKeyName()).append("' does not exist").toString());
-						response.sendError(500);
+						this.sendErrorCode(request, response, 500);
 						return;
 					}
 					
@@ -602,7 +663,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 					String uidAttribute = this.getUidAttributeFromMap();
 					if (uidAttribute == null) {
 						logger.error(new StringBuilder().append("IdP ").append(holder.getApp().getName()).append(" does not have a sub attribute mapped to a user attribute").toString());
-						response.sendError(500);
+						this.sendErrorCode(request, response, 500);
 						return;
 					}
 					
@@ -620,7 +681,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 					if (actorAuth == null) {
 						//don't think this can happen
 						logger.error("Could not create user auth object from jwt");
-						response.sendError(500);
+						this.sendErrorCode(request, response, 500);
 						return;
 					}
 					
@@ -630,13 +691,13 @@ public class OpenIDConnectIdP implements IdentityProvider {
 					
 					if (! azSys.checkRules(actorAuth, GlobalEntries.getGlobalEntries().getConfigManager(), trust.getClientAzRules(), new HashMap<String,Object>())) {
 						AccessLog.log(AccessEvent.AzFail, holder.getApp(), request, actorAuth, new StringBuilder().append("client not authorized to exchange token for subject '").append(actorTokenData.subjectUid).append("'").toString());
-						response.sendError(403);
+						this.sendErrorCode(request, response, 403);
 						return;
 					} 
 					
 					if (! trust.getAllowedAudiences().contains(stsRequest.getAudience())) {
 						AccessLog.log(AccessEvent.AzFail, holder.getApp(), request, actorAuth, new StringBuilder().append("Audience '").append(stsRequest.getAudience()).append("' is not an authorized audience for sts '").append(trust.getTrustName()).append("'").toString());
-						response.sendError(403);
+						this.sendErrorCode(request, response, 403);
 						return;
 					}
 					
@@ -644,7 +705,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 					if (targetTrust == null) {
 						logger.warn(new StringBuilder().append("Audience '").append(stsRequest.getAudience()).append("' does not exist").toString());
 						
-						response.sendError(404);
+						this.sendErrorCode(request, response, 404);
 						return;
 					}
 					
@@ -668,14 +729,16 @@ public class OpenIDConnectIdP implements IdentityProvider {
 					if (subjectAuth == null) {
 						//don't think this can happen
 						logger.error("Could not create user auth object from jwt");
-						response.sendError(500);
+						this.sendErrorCode(request, response, 500);
 						return;
 					}
+					
+					((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).setAuthInfo(subjectAuth);
 
 					
 					if (! azSys.checkRules(subjectAuth, GlobalEntries.getGlobalEntries().getConfigManager(), trust.getSubjectAzRules(), new HashMap<String,Object>())) {
 						AccessLog.log(AccessEvent.AzFail, holder.getApp(), request, actorAuth, new StringBuilder().append("client not authorized to exchange token for subject '").append(subjectTokenData.subjectUid).append("'").toString());
-						response.sendError(403);
+						this.sendErrorCode(request, response, 403);
 						return;
 					} 
 					
@@ -694,15 +757,28 @@ public class OpenIDConnectIdP implements IdentityProvider {
 					
 					
 					Gson gson = new Gson();
-					String json = gson.toJson(access);
+					final String json = gson.toJson(access);
 					
-					response.setContentType("application/json");
-					response.getOutputStream().write(json.getBytes("UTF-8"));
-					response.getOutputStream().flush();
 					
-					if (logger.isDebugEnabled()) {
-						logger.debug("Token JSON : '" + json + "'");
-					}
+					ProcessAfterFilterChain proc = new ProcessAfterFilterChain() {
+
+						@Override
+						public void postProcess(HttpFilterRequest req, HttpFilterResponse resp, UrlHolder holder,
+								HttpFilterChain httpFilterChain) throws Exception {
+							resp.setContentType("application/json");
+							((ProxyResponse) resp.getServletResponse()).pushHeadersAndCookies(null);
+							
+							
+							resp.getOutputStream().write(json.getBytes("UTF-8"));
+							resp.getOutputStream().flush();
+							
+							if (logger.isDebugEnabled()) {
+								logger.debug("Token JSON : '" + json + "'");
+							}
+							
+						}};
+					this.addCorsHeaders(response,request,proc);
+					
 				}
 				
 				
@@ -721,10 +797,27 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		} 
 		} catch (Throwable t) {
 			if (request.getHeader("Accept") != null && request.getHeader("Accept").startsWith("application/json")) {
-				response.sendError(500);
-				response.setContentType("application/json");
-				response.getWriter().print("{\"error\":\"invalid_request\"}");
+				
 				logger.error("Sending JSON Error",t);
+				ProcessAfterFilterChain proc = new ProcessAfterFilterChain() {
+
+					@Override
+					public void postProcess(HttpFilterRequest req, HttpFilterResponse resp, UrlHolder holder,
+							HttpFilterChain httpFilterChain) throws Exception {
+						resp.setContentType("application/json");
+						resp.setStatus(500);
+						((ProxyResponse) resp.getServletResponse()).pushHeadersAndCookies(null);
+						
+						
+						resp.getWriter().print("{\"error\":\"invalid_request\"}");
+						
+						
+					}};
+				this.addCorsHeaders(response,request,proc);
+				
+				
+				
+				
 			} else {
 				if (t instanceof ServletException) {
 					throw (ServletException)t;
@@ -748,7 +841,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			jws.setKey(validationKey);
 			if (! jws.verifySignature()) {
 				AccessLog.log(AccessEvent.AzFail, holder.getApp(), req, authData, new StringBuilder().append("Invalid ").append(tokenType).append(" signature").toString());
-				resp.sendError(403);
+				this.sendErrorCode(req, resp, 403);
 				return null;
 			}
 			
@@ -760,13 +853,13 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			
 			if (new DateTime(exp).isBeforeNow()) {
 				AccessLog.log(AccessEvent.AzFail, holder.getApp(), req, authData, new StringBuilder().append(tokenType).append(" has expired").toString());
-				resp.sendError(403);
+				this.sendErrorCode(req, resp, 403);;
 				return null;
 			}
 			
 			if (new DateTime(nbf).isAfterNow()) {
 				AccessLog.log(AccessEvent.AzFail, holder.getApp(), req, authData, new StringBuilder().append(tokenType).append(" is not yet valid").toString());
-				resp.sendError(403);
+				this.sendErrorCode(req, resp, 403);
 				return null;
 			}
 			
@@ -780,14 +873,14 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			
 			if (! ((String) obj.get("iss")).equals(issuerUrl)) {
 				AccessLog.log(AccessEvent.AzFail, holder.getApp(), req, authData, new StringBuilder().append(tokenType).append(" has an invalid issuer").toString());
-				resp.sendError(403);
+				this.sendErrorCode(req, resp, 403);
 				return null;
 			}
 			
 			if (requiredAudience != null) {
 				if (! ((String) obj.get("aud")).equals(requiredAudience)  ) {
 					AccessLog.log(AccessEvent.AzFail, holder.getApp(), req, authData, new StringBuilder().append(tokenType).append(" has an invalid audience").toString());
-					resp.sendError(403);
+					this.sendErrorCode(req, resp, 403);
 					return null;
 				}
 			}
@@ -795,7 +888,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			td.subjectUid = (String) obj.get("sub");
 			if (td.subjectUid == null) {
 				logger.error("Subject has no sub claim");
-				resp.sendError(422);
+				this.sendErrorCode(req, resp, 422);
 				return null;
 			}
 			
@@ -803,7 +896,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			if (amrs == null ) {
 				if (requiresAmr) {
 					logger.warn("subject_token does not contain an amr claim");
-					resp.sendError(422);
+					this.sendErrorCode(req, resp, 422);
 					return null;
 				}
 			} else {
@@ -953,7 +1046,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		if (! trust.isEnableClientCredentialGrant()) {
 			logger.error(new StringBuilder().append("Trust '").append(clientID).append("' does not support the client_credentials grant").toString());
-			response.sendError(403);
+			this.sendErrorCode(request, response, 403);
 			return;
 		}
 		
@@ -970,7 +1063,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			} else {
 				if (clientSecret == null || ! clientSecret.equals(trust.getClientSecret())) {
 					logger.warn(new StringBuilder().append("Invalid client secret for '").append(clientID).append("'"));
-					response.sendError(401);
+					this.sendErrorCode(request, response, 401);
 					
 				} else {
 					HttpSession session = request.getSession();
@@ -1055,7 +1148,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		if (header == null) {
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() ,  "NONE");
-			response.sendError(401);
+			this.sendErrorCode(request, response, 401);
 			return;
 		}
 		
@@ -1064,7 +1157,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		OidcSessionState dbSession = this.getSessionByAccessToken(accessToken);
 		if (dbSession == null) {
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() ,  "NONE");
-			response.sendError(401);
+			this.sendErrorCode(request, response, 401);
 			return;
 		}
 		
@@ -1078,7 +1171,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		if (! jws.verifySignature()) {
 			logger.warn("id_token tampered with");
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo() ,  "NONE");
-			response.sendError(401);
+			this.sendErrorCode(request, response, 401);
 			return;
 		}
 		
@@ -1093,7 +1186,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		
 		
-		response.setContentType("application/jwt");
+		
 		String jwt = null;
 		
 		if (trust.isSignedUserInfo()) {
@@ -1107,14 +1200,31 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			jwt = claims.toJson();
 		}
 		
+		final String jwtToSend = jwt;
 		
+		ProcessAfterFilterChain proc = new ProcessAfterFilterChain() {
 
-		response.getOutputStream().write(jwt.getBytes("UTF-8"));
+			@Override
+			public void postProcess(HttpFilterRequest req, HttpFilterResponse resp, UrlHolder holder,
+					HttpFilterChain httpFilterChain) throws Exception {
+				resp.setContentType("application/jwt");
+				((ProxyResponse) resp.getServletResponse()).pushHeadersAndCookies(null);
+				
+				
+				resp.getOutputStream().write(jwtToSend.getBytes("UTF-8"));
+				
+				
+				
+			}};
+		this.addCorsHeaders(response,request,proc);
 		
 		AuthInfo remUser = new AuthInfo();
 		remUser.setUserDN(dbSession.getUserDN());
 		AccessLog.log(AccessEvent.AuSuccess, holder.getApp(), (HttpServletRequest) request, remUser ,  "NONE");
 		AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, remUser ,  "NONE");
+		
+		
+		
 	}
 	
 	
@@ -1168,7 +1278,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		if (session == null) {
 			logger.warn("Session does not exist from refresh_token");
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
-			response.sendError(401);
+			this.sendErrorCode(request, response, 401);
 			return;
 		}
 		
@@ -1194,9 +1304,26 @@ public class OpenIDConnectIdP implements IdentityProvider {
 						
 						json = gson.toJson(access);
 						
-						response.setContentType("text/json");
-						response.getOutputStream().write(json.getBytes());
-						response.getOutputStream().flush();
+
+						final String jsonToSend = json;
+						ProcessAfterFilterChain proc = new ProcessAfterFilterChain() {
+
+							@Override
+							public void postProcess(HttpFilterRequest req, HttpFilterResponse resp, UrlHolder holder,
+									HttpFilterChain httpFilterChain) throws Exception {
+								resp.setContentType("application/json");
+								((ProxyResponse) resp.getServletResponse()).pushHeadersAndCookies(null);
+								
+								
+								resp.getOutputStream().write(jsonToSend.getBytes());
+								resp.getOutputStream().flush();
+								
+							}};
+						this.addCorsHeaders(response,request,proc);
+						
+						
+						
+						
 						
 						AuthInfo remUser = new AuthInfo();
 						remUser.setUserDN(session.getUserDN());
@@ -1211,14 +1338,14 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				// none of the expired refresh tokens are still valid
 				logger.warn("Session does not exist from refresh_token");
 				AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
-				response.sendError(401);
+				this.sendErrorCode(request, response, 401);
 				return;
 				
 				
 			} else {
 				logger.warn("Session does not exist from refresh_token");
 				AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
-				response.sendError(401);
+				this.sendErrorCode(request, response, 401);
 				return;
 			}
 			
@@ -1231,7 +1358,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			if (!trust.getClientSecret().equals(clientSecret)) {
 				logger.warn("Invalid client_secret");
 				AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData, "NONE");
-				response.sendError(401);
+				this.sendErrorCode(request, response, 401);
 				return;
 			}
 		}
@@ -1239,7 +1366,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		if (session.getExpires().isBeforeNow()) {
 			logger.warn("Session expired");
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData, "NONE");
-			response.sendError(401);
+			this.sendErrorCode(request, response, 401);
 			this.sessionStore.deleteSession(session.getSessionID());
 			return;
 		}
@@ -1253,7 +1380,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		if (! jws.verifySignature()) {
 			logger.warn("id_token tampered with");
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
-			response.sendError(401);
+			this.sendErrorCode(request, response, 401);
 			return;
 		}
 		
@@ -1284,7 +1411,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		if (! jws.verifySignature()) {
 			logger.warn("access_token tampered with");
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
-			response.sendError(401);
+			this.sendErrorCode(request, response, 401);
 			return;
 		}
 		
@@ -1323,9 +1450,28 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		json = gson.toJson(access);
 		
-		response.setContentType("text/json");
-		response.getOutputStream().write(json.getBytes());
-		response.getOutputStream().flush();
+		
+		
+		final String jsonToSend = json;
+		
+		ProcessAfterFilterChain proc = new ProcessAfterFilterChain() {
+
+			@Override
+			public void postProcess(HttpFilterRequest req, HttpFilterResponse resp, UrlHolder holder,
+					HttpFilterChain httpFilterChain) throws Exception {
+				resp.setContentType("application/json");
+				((ProxyResponse) resp.getServletResponse()).pushHeadersAndCookies(null);
+				
+				
+				resp.getOutputStream().write(jsonToSend.getBytes());
+				resp.getOutputStream().flush();
+				
+			}};
+		this.addCorsHeaders(response,request,proc);
+		
+		
+		
+		
 		
 		AuthInfo remUser = new AuthInfo();
 		remUser.setUserDN(session.getUserDN());
@@ -1351,7 +1497,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		if (! trust.isPublicEndpoint()) {
 			if (!clientSecret.equals(trust.getClientSecret())) {
 				AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData, "NONE");
-				response.sendError(403);
+				this.sendErrorCode(request, response, 403);
 				return;
 			}
 		}
@@ -1364,14 +1510,14 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			lmreq.loadLastMielToken(lastMileToken, codeKey);
 		} catch (Exception e) {
 			logger.warn("Could not decrypt code token",e);
-			response.sendError(403);
+			this.sendErrorCode(request, response, 403);
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
 			return;
 		}
 		
 		if (! lmreq.isValid()) {
 			
-			response.sendError(403);
+			this.sendErrorCode(request, response, 403);
 			logger.warn("Could not validate code token");
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
 			return;
@@ -1406,7 +1552,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		}
 		
 		if (clientidFromReq == null || ! clientidFromReq.getValues().get(0).equals(clientID) ) {
-			response.sendError(401);
+			this.sendErrorCode(request, response, 401);
 			logger.warn(String.format("Attempt to post to %s from %s", clientID,clientidFromReq.getValues().get(0) ));
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
 			return;
@@ -1415,7 +1561,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		if (codeVerifierAttr != null) {
 			// need to run a code verifier
 			if (codeVerifier == null) {
-				response.sendError(400);
+				this.sendErrorCode(request, response, 400);
 				logger.warn("No code_verifier parameter in the token request");
 				AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
 				return;
@@ -1424,7 +1570,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			if (codeVerifierS256 != null && codeVerifierS256.getValues().get(0).equals("false")) {
 				// plain, ew
 				if (! codeVerifierAttr.getValues().get(0).equals(codeVerifier)) {
-					response.sendError(400);
+					this.sendErrorCode(request, response, 400);
 					logger.warn("code_verifier parameter does not match from transaction, plain");
 					AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
 					return;
@@ -1440,7 +1586,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				String s256CodeVerifier = new String(org.apache.commons.codec.binary.Base64.encodeBase64URLSafe(encodedhash));
 				
 				if (! s256CodeVerifier.equals(codeVerifierAttr.getValues().get(0)) ) {
-					response.sendError(400);
+					this.sendErrorCode(request, response, 400);
 					logger.warn("code_verifier parameter does not match from transaction, S256");
 					AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, authData ,  "NONE");
 					return;
@@ -1491,15 +1637,34 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		
 		Gson gson = new Gson();
-		String json = gson.toJson(access);
+		final String json = gson.toJson(access);
 		
-		response.setContentType("application/json");
-		response.getOutputStream().write(json.getBytes("UTF-8"));
-		response.getOutputStream().flush();
 		
 		if (logger.isDebugEnabled()) {
 			logger.debug("Token JSON : '" + json + "'");
 		}
+		
+		
+		ProcessAfterFilterChain proc = new ProcessAfterFilterChain() {
+
+			@Override
+			public void postProcess(HttpFilterRequest req, HttpFilterResponse resp, UrlHolder holder,
+					HttpFilterChain httpFilterChain) throws Exception {
+				resp.setContentType("application/json");
+				((ProxyResponse) resp.getServletResponse()).pushHeadersAndCookies(null);
+				
+				
+				resp.getOutputStream().write(json.getBytes("UTF-8"));
+				resp.getOutputStream().flush();
+				
+				
+				
+			}};
+		this.addCorsHeaders(response,request,proc);
+		
+		
+		
+		
 		
 		
 		AuthInfo remUser = new AuthInfo();
@@ -2228,8 +2393,9 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	    			userFromLdap = true;
 	    			
 	    		}
-	    	} catch (LDAPException e) {
-	    		if (e.getResultCode() == 32) {
+	    	} catch (com.novell.ldap.LDAPException e) {
+	    		logger.info(e.getResultCode());
+	    		if (e.getResultCode() == LDAPException.NO_SUCH_OBJECT) {
 	    			userFromLdap = false;
 	    		} else {
 	    			throw e;

@@ -25,9 +25,8 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.UrlHolder;
-import com.tremolosecurity.proxy.HttpProxy;
-import com.tremolosecurity.proxy.TremoloHttpSession;
-import com.tremolosecurity.proxy.auth.RequestHolder.HTTPMethod;
+import com.tremolosecurity.proxy.ProcessAfterFilterChain;
+
 
 public class HttpFilterChainImpl implements HttpFilterChain {
 	
@@ -36,7 +35,7 @@ public class HttpFilterChainImpl implements HttpFilterChain {
 	Iterator<HttpFilter> chain;
 	//HttpProxy proxy;
 	UrlHolder holder;
-	PostProcess postProcess;
+	ProcessAfterFilterChain postProcess;
 	InputStream ins;
 	boolean isText;
 	HttpEntity entity;
@@ -62,7 +61,7 @@ public class HttpFilterChainImpl implements HttpFilterChain {
 
 	private boolean noProxy;
 
-	public HttpFilterChainImpl(UrlHolder holder,PostProcess postProcess) {
+	public HttpFilterChainImpl(UrlHolder holder,ProcessAfterFilterChain postProcess) {
 		this.holder = holder;
 		this.postProcess = postProcess;
 		

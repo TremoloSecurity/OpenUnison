@@ -47,18 +47,18 @@ import com.tremolosecurity.proxy.util.ProxyConstants;
 
 public class ProxySys {
 
-    public static final String HTTP_CTX = "TREMOLO_HTTP_CTX";
+    public static final String HTTP_CTX = com.tremolosecurity.proxy.SdkProxyConstants.HTTP_CTX;
     static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ProxySys.class);
 
-	public static String TREMOLO_BINARY_DATA = "TREMOLO_BINARY_DATA";
+	public static String TREMOLO_BINARY_DATA = com.tremolosecurity.proxy.SdkProxyConstants.TREMOLO_BINARY_DATA;
 	
-	public static final String AUTOIDM_STREAM_WRITER = "AUTOIDM_STREAM_WRITER";
+	public static final String AUTOIDM_STREAM_WRITER = com.tremolosecurity.proxy.SdkProxyConstants.AUTOIDM_STREAM_WRITER;
 
-	public static final String TREMOLO_TXT_DATA = "TREMOLO_TXT_DATA";
+	public static final String TREMOLO_TXT_DATA = com.tremolosecurity.proxy.SdkProxyConstants.TREMOLO_TXT_DATA;
 
-	public static final String QUERY_PARAMS = "TREMOLO_PROXY_QUERY_PARAMS";
+	public static final String QUERY_PARAMS = com.tremolosecurity.proxy.SdkProxyConstants.QUERY_PARAMS;
 
-	public static final String MSG_BODY = "TREMOLO_PROXY_MSG_BODY";
+	public static final String MSG_BODY = com.tremolosecurity.proxy.SdkProxyConstants.MSG_BODY;
 
 	
 	public void doURI(HttpServletRequest req, HttpServletResponse resp)

@@ -30,7 +30,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.proxy.ProxyResponse;
-import com.tremolosecurity.proxy.TremoloHttpSession;
 import com.tremolosecurity.saml.Attribute;
 
 public class HttpFilterResponseImpl implements HttpFilterResponse {
