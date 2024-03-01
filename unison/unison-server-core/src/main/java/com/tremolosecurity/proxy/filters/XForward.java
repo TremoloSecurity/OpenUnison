@@ -17,6 +17,7 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.filters;
 
+import java.net.URI;
 import java.net.URL;
 
 import org.apache.logging.log4j.Logger;
@@ -41,10 +42,12 @@ public class XForward implements HttpFilter {
 			HttpFilterResponse response, HttpFilterChain chain)
 			throws Exception {
 		
-		URL url = new URL(request.getRequestURL().toString());
+		//URL url = new URL(request.getRequestURL().toString());
+		
+		URI url = new URI(request.getRequestURL().toString());
 		
 		String host = request.getHeader("Host").getValues().get(0);
-		String proto = url.getProtocol();
+		String proto = url.getScheme();
 		String clientIP = request.getRemoteAddr();
 		
 		if (this.createHeaders) {
