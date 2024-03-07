@@ -147,7 +147,7 @@ public class TaskConsumer implements MessageListener {
 				int numberOfTries = 0;
 				try {
 					numberOfTries = msg.getIntProperty("TremoloNumTries");
-				} catch (JMSException e) {
+				} catch (Exception e) {
 					numberOfTries = 0;
 				}
 				numberOfTries++;

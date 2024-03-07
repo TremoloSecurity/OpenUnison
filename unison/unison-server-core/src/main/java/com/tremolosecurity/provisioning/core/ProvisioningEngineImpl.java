@@ -2295,10 +2295,12 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			newMessage.setText(tm.getText());
 			
 			Enumeration enumer = tm.getPropertyNames();
+			boolean foundNumTries = false;
 			while (enumer.hasMoreElements()) {
 				String propertyName = (String) enumer.nextElement();
 				if (propertyName.equals("TremoloNumTries")) {
 					newMessage.setIntProperty("TremoloNumTries", numOfTries);
+					foundNumTries = true;
 				} else {
 					try {
 						newMessage.setObjectProperty(propertyName,tm.getObjectProperty(propertyName));
@@ -2306,6 +2308,10 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 						logger.warn(String.format("could not set %s",propertyName),e);
 					}
 				}
+			}
+			
+			if (! foundNumTries) {
+				newMessage.setIntProperty("TremoloNumTries", numOfTries);
 			}
 			
 			synchronized (session.getMessageProduceer()) {
