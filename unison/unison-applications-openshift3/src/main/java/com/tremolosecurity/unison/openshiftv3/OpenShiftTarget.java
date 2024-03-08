@@ -99,6 +99,7 @@ import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
+import com.tremolosecurity.unison.openshiftv3.cache.K8sApis;
 import com.tremolosecurity.unison.openshiftv3.dr.DisasterRecoveryAction;
 import com.tremolosecurity.unison.openshiftv3.model.Item;
 import com.tremolosecurity.unison.openshiftv3.model.Response;
@@ -168,6 +169,8 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 	
 	private Map<String,String> annotations;
 	private Map<String,String> labels;
+
+	private K8sApis k8sApi;
 
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
@@ -1034,6 +1037,13 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 		
 		this.annotations = new HashMap<String,String>();
 		this.labels = new HashMap<String,String>();
+		
+		this.k8sApi = new K8sApis(this);
+		
+	}
+	
+	public K8sApis getApis() {
+		return this.k8sApi;
 	}
 	
 	private void initRemoteOidc(Map<String, Attribute> cfg, ConfigManager cfgMgr, String name) throws ProvisioningException {

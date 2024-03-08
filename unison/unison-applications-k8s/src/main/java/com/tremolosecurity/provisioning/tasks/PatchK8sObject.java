@@ -105,6 +105,9 @@ public class PatchK8sObject implements CustomTask {
 
         String localURL = task.renderTemplate(url,request);
 
+        if (patchType.equalsIgnoreCase("application/apply-patch+yaml")) {
+        	localURL = String.format("%s?fieldManager=kubectl&fieldValidation=Strict&force=false", localURL);
+        }
 
         HttpCon con = null;
         

@@ -45,8 +45,7 @@ public class CreateK8sObject implements CustomTask {
 
     String template;
     String targetName;
-    String kind;
-    String url;
+    
     String label;
     boolean doPost;
     
@@ -71,9 +70,9 @@ public class CreateK8sObject implements CustomTask {
     public void init(WorkflowTask task, Map<String, Attribute> params) throws ProvisioningException {
         this.targetName = params.get("targetName").getValues().get(0);
         this.template = params.get("template").getValues().get(0);
-        this.kind = params.get("kind").getValues().get(0);
-        this.url = params.get("url").getValues().get(0);
-        this.label = "kubernetes-" + this.kind.toLowerCase();
+        
+        
+        this.label = "kubernetes-";
 
         this.doPost = params.get("doPost") == null || params.get("doPost").getValues().get(0).equalsIgnoreCase("true"); 
         
@@ -100,13 +99,14 @@ public class CreateK8sObject implements CustomTask {
         if (params.get("patchType") != null) {
         	this.patchType = params.get("patchType").getValues().get(0);
         } else {
-        	this.patchType = "merge";
+        	this.patchType = "apply";
         }
         
         switch (this.patchType) {
         	case "strategic": this.patchContentType = "application/strategic-merge-patch+json"; break;
         	case "merge" : this.patchContentType = "application/merge-patch+json"; break;
         	case "json" : this.patchContentType = "application/json-patch+json"; break;
+        	case "apply" : this.patchContentType = "application/apply-patch+yaml"; break;
         	default: throw new ProvisioningException("Unknown patch type, one of strategic, merge, or json is required");
         }
         
@@ -134,7 +134,7 @@ public class CreateK8sObject implements CustomTask {
 
         Workflow workflow = (Workflow) request.get("WORKFLOW");
 
-        String localURL = task.renderTemplate(this.url,request);
+        String kind = "unknown";
         String localTemplateJSON = "";
 
         HttpCon con = null;
@@ -158,9 +158,20 @@ public class CreateK8sObject implements CustomTask {
             JSONObject metadata = (JSONObject) objectRoot.get("metadata");
             
             String objectName = null;
-            
+            String nameSpace = null;
             if (metadata != null) {
             	objectName = (String) metadata.get("name");
+            	nameSpace = (String) metadata.get("namespace");
+            }
+            kind = (String) objectRoot.get("kind");
+            String apiGroup = (String) objectRoot.get("apiVersion");
+            
+            String localURL = null;
+            
+            if (nameSpace == null) {
+            	localURL = os.getApis().getUri(apiGroup, kind);
+            } else {
+            	localURL = os.getApis().getUri(apiGroup, kind, nameSpace);
             }
             
             if (logger.isDebugEnabled()) {
@@ -211,11 +222,15 @@ public class CreateK8sObject implements CustomTask {
             		gitFiles.add(gitFile);
             		
             	} else if (this.patchTemplate != null) {
-            		doPatch(objectName,request, task, this.patchTemplate, this.targetName, this.url, writeToRequestConfig, this.path, this.patchType, this.requestAttribute, this.kind, this.label, this.patchContentType);
+            		
+            		doPatch(objectName,request, task, this.patchTemplate, this.targetName, String.format("%s/%s",localURL,objectName), writeToRequestConfig, this.path, this.patchType, this.requestAttribute, kind, String.format("%s%s",this.label,kind), this.patchContentType,kind);
+            	} else if (this.patchType != null && this.patchType.equals("apply")) {
+            		doPatch(objectName,request, task, localTemplateJSON, this.targetName, String.format("%s/%s",localURL,objectName), writeToRequestConfig, this.path, this.patchType, this.requestAttribute, kind, String.format("%s%s",this.label,kind), this.patchContentType,kind);
             	}
+            		
             	
             } else {
-            	writeToAPIServer(localTemplateJSON, approvalID, localURL, con, os, token,localTarget,request,objectName);
+            	writeToAPIServer(localTemplateJSON, approvalID, localURL, con, os, token,localTarget,request,objectName,kind);
             }
             
         } catch (Exception e) {
@@ -229,58 +244,108 @@ public class CreateK8sObject implements CustomTask {
     }
 
 	private void writeToAPIServer(String localTemplate, int approvalID, String localURL, HttpCon con,
-			OpenShiftTarget os, String token,String localTarget,Map<String, Object> request, String objectName)
+			OpenShiftTarget os, String token,String localTarget,Map<String, Object> request, String objectName,String kind)
 			throws IOException, ClientProtocolException, ProvisioningException, ParseException {
 		
 		
 		
 		if (this.doPost) {
-		    if (! os.isObjectExists(token, con, localURL,localTemplate)) {
+			JSONParser parser = new JSONParser();
+			String respJSON = os.callWS(token, con, String.format("%s/%s",localURL,objectName));
+			
+			JSONObject resp = (JSONObject) parser.parse(respJSON);
+			
+			boolean objectFound = false;
+			
+			
+			if (resp.get("kind") != null) {
+			
+				if (resp.get("kind").equals("Status")) {
+					if (((Long)resp.get("code")) == 404L) {
+						objectFound = false;
+					} else {
+						logger.warn(String.format("Unknown response to %s, %s", localURL,respJSON));
+						throw new ProvisioningException(String.format("Unknown response to %s, %s", localURL,respJSON));
+					}
+				} else {
+					objectFound = true;
+					JSONObject metadata = (JSONObject) resp.get("metadata");
+					if (metadata == null) {
+						logger.warn(String.format("No metadata from response to %s, %s", localURL,respJSON));
+						throw new ProvisioningException(String.format("No metadata from response to %s, %s", localURL,respJSON));
+					} else {
+						String resourceVersion = (String) metadata.get("resourceVersion");
+						JSONObject tmpObj = (JSONObject) parser.parse(localTemplate);
+						JSONObject tmpMetaData = (JSONObject) tmpObj.get("metadata");
+						if (tmpMetaData == null) {
+							logger.warn(String.format("Object for %s has no metadata", localURL));
+							throw new ProvisioningException(String.format("Object for %s has no metadata", localURL));
+						}
+						
+						tmpMetaData.put("resourceVersion", resourceVersion);
+						localTemplate = tmpObj.toString();
+					}
+				}
+			
+			} else {
+				logger.warn(String.format("Unknown response to %s, %s", localURL,respJSON));
+				throw new ProvisioningException(String.format("Unknown response to %s, %s", localURL,respJSON));
+			}
+			
+		    if (! objectFound) {
 
-		        String respJSON = os.callWSPost(token, con, localURL, localTemplate);
+		        respJSON = os.callWSPost(token, con, localURL, localTemplate);
 
 		        if (logger.isDebugEnabled()) {
 		            logger.debug("Response for creating project : '" + respJSON + "'");
 		        }
 
-		        JSONParser parser = new JSONParser();
-		        JSONObject resp = (JSONObject) parser.parse(respJSON);
-		        String kind = (String) resp.get("kind");
+		        
+		        resp = (JSONObject) parser.parse(respJSON);
+		        String localkind = (String) resp.get("kind");
 		        String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
 
 
-		        if (! kind.equalsIgnoreCase(this.kind)) {
+		        if (! localkind.equalsIgnoreCase(kind)) {
 		            throw new ProvisioningException("Could not create " + kind + " with json '" + localTemplate + "' - '" + respJSON + "'" );
 		        } else {
-		            this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Add,  approvalID, this.task.getWorkflow(), label, projectName);
+		            this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Add,  approvalID, this.task.getWorkflow(), String.format("%s%s",this.label,kind), projectName);
 		        }
 		    } else if (this.patchTemplate != null) {
-		    	doPatch(objectName,request, task, this.patchTemplate, this.targetName, this.url, writeToRequestConfig, this.path, this.patchType, this.requestAttribute, this.kind, this.label, this.patchContentType);
-		    }
+		    	doPatch(objectName,request, task, this.patchTemplate, this.targetName, localURL, writeToRequestConfig, this.path, this.patchType, this.requestAttribute, kind, String.format("%s%s",this.label,kind), this.patchContentType,kind);
+		    } else  {
+		    	doPut(localTemplate, approvalID, String.format("%s/%s", localURL,objectName), con, os, token, localTarget, kind);
+        	}
 		} else {
-			String respJSON = os.callWSPut(token, con, localURL, localTemplate);
-			
-		    if (logger.isDebugEnabled()) {
-		        logger.debug("Response for putting object : '" + respJSON + "'");
-		    }
+			doPut(localTemplate, approvalID, String.format("%s/%s", localURL,objectName), con, os, token, localTarget, kind);
+		}
+	}
 
-		    JSONParser parser = new JSONParser();
-		    JSONObject resp = (JSONObject) parser.parse(respJSON);
-		    String kind = (String) resp.get("kind");
-		    String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
+	private void doPut(String localTemplate, int approvalID, String localURL, HttpCon con, OpenShiftTarget os,
+			String token, String localTarget, String kind)
+			throws IOException, ClientProtocolException, ParseException, ProvisioningException {
+		String respJSON = os.callWSPut(token, con, localURL, localTemplate);
+		
+		if (logger.isDebugEnabled()) {
+		    logger.debug("Response for putting object : '" + respJSON + "'");
+		}
+
+		JSONParser parser = new JSONParser();
+		JSONObject resp = (JSONObject) parser.parse(respJSON);
+		String localkind = (String) resp.get("kind");
+		String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
 
 
-		    if (! kind.equalsIgnoreCase(this.kind)) {
-		        throw new ProvisioningException("Could not create " + kind + " with json '" + localTemplate + "' - '" + respJSON + "'" );
-		    } else {
-		        this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Replace,  approvalID, this.task.getWorkflow(), label, projectName);
-		    }
+		if (! localkind.equalsIgnoreCase(kind)) {
+		    throw new ProvisioningException("Could not create " + kind + " with json '" + localTemplate + "' - '" + respJSON + "'" );
+		} else {
+		    this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Replace,  approvalID, this.task.getWorkflow(), String.format("%s%s",this.label,kind), projectName);
 		}
 	}
 	
-	private void doPatch(String objectName, Map<String, Object> request, WorkflowTask task, String template,String targetName,String url,String writeToRequestConfig,String path,String patchType,String requestAttribute,String expKind,String label,String patchContentType) throws ProvisioningException {
-		String localUrl = new StringBuilder().append(url).append("/").append(objectName).toString();
-		PatchK8sObject.doPatch(request, task, patchTemplate, this.targetName, localUrl, writeToRequestConfig, path, patchType, requestAttribute, kind, label, patchContentType);
+	private void doPatch(String objectName, Map<String, Object> request, WorkflowTask task, String template,String targetName,String url,String writeToRequestConfig,String path,String patchType,String requestAttribute,String expKind,String label,String patchContentType,String kind) throws ProvisioningException {
+		
+		PatchK8sObject.doPatch(request, task, template, this.targetName, url, writeToRequestConfig, path, patchType, requestAttribute, kind, label, patchContentType);
 	}
 	
 }
