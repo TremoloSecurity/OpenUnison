@@ -1,3 +1,26 @@
+# 1.0.40-2024030801
+
+**Tasks:**
+ - 1.0.40 build [\#845](https://github.com/TremoloSecurity/OpenUnison/issues/845)
+ - Bump Okta libraries from 9 --> 15 [\#850](https://github.com/TremoloSecurity/OpenUnison/issues/850)
+
+**enhancements:**
+ - k8s target - remove need for specific URL [\#794](https://github.com/TremoloSecurity/OpenUnison/issues/794)
+ - k8s create object - support PUT when an object already exists [\#865](https://github.com/TremoloSecurity/OpenUnison/issues/865)
+ - JMS - Manual DLQ logic [\#852](https://github.com/TremoloSecurity/OpenUnison/issues/852)
+ - OpenID Connect IdP - Support filters on all URLs, not just completeFed [\#863](https://github.com/TremoloSecurity/OpenUnison/issues/863)
+ - oidc auth - integrate login_hint support [\#855](https://github.com/TremoloSecurity/OpenUnison/issues/855)
+ - Migrate to Hibernate 6.x [\#847](https://github.com/TremoloSecurity/OpenUnison/issues/847)
+ - AzureAD OIDC - Cannot activate orchestra-login-azuread behind corporate proxy [\#853](https://github.com/TremoloSecurity/OpenUnison/issues/853)
+ - LoginService - short circuit by session variable  [\#856](https://github.com/TremoloSecurity/OpenUnison/issues/856)
+ - List clusters - Add method to ignore clusters [\#851](https://github.com/TremoloSecurity/OpenUnison/issues/851)
+
+**bugs:**
+ - XForward filter doesn't work with wss scheme [\#861](https://github.com/TremoloSecurity/OpenUnison/issues/861)
+ - old jldap jar imported [\#862](https://github.com/TremoloSecurity/OpenUnison/issues/862)
+ - WebAuthn - Pre 1.0.39 fails to authenticate [\#846](https://github.com/TremoloSecurity/OpenUnison/issues/846)
+
+
 # 1.0.39-2024010701
 
 **enhancements:**
