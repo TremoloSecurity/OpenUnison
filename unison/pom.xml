@@ -102,7 +102,7 @@
 		<batik-svgbrowser.version>1.17</batik-svgbrowser.version>
 		<xmlgraphics-commons.version>2.9</xmlgraphics-commons.version>
 		<json-smart.version>2.5.0</json-smart.version>
-		<xnio-api.version>3.8.13.Final</xnio-api.version>
+		<xnio-api.version>3.8.14.Final</xnio-api.version>
 		<jersey.version>2.41</jersey.version>
 		<woodstox.version>6.6.1</woodstox.version>
 		<spring.version>5.3.32</spring.version>
