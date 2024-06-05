@@ -66,7 +66,7 @@ public class K8sWatcher implements StopableThread {
 	private String group;
 	
 	private String lastResourceId;
-	private long lastResourceIdNum;
+	
 	
 	public K8sWatcher(String k8sTarget,String namespace, String plural, String group,K8sWatchTarget watchTarget,ConfigManager cfgMgr, ProvisioningEngine provisioningEngine) {
 		this.k8sTarget = k8sTarget;
@@ -120,6 +120,13 @@ public class K8sWatcher implements StopableThread {
 			
 			
 			JSONObject list = (JSONObject) new JSONParser().parse(json);
+			JSONObject listmetadata = (JSONObject) list.get("metadata");
+			
+			if (listmetadata != null) {
+				this.lastResourceId = (String) listmetadata.get("resourceVersion");
+				logger.info(String.format("Starting watch at %s",this.lastResourceId));
+			}
+			
 			JSONArray items = (JSONArray) list.get("items");
 			
 			if (items == null) {
@@ -152,19 +159,6 @@ public class K8sWatcher implements StopableThread {
 				} else {
 					this.resourceVersions.add(resourceVersion);
 					this.watchee.addObject(cfgMgr.getCfg(), jsonObj);
-					
-					
-					long localResourceId = Long.parseLong(resourceVersion);
-					
-					if (this.lastResourceIdNum < localResourceId) {
-						this.lastResourceIdNum = localResourceId;
-						this.lastResourceId = resourceVersion;
-					}
-					
-					
-					
-					 
-					
 				}
 				
 				
