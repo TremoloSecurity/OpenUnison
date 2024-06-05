@@ -417,6 +417,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			
 			//Store the bearer token for use by Unison
 			request.getSession().setAttribute(bearerTokenName, tokenNVP.get("access_token"));
+			request.getSession().setAttribute(String.format("%s-id",bearerTokenName),tokenNVP.get("id_token"));
 			
 			
 			
