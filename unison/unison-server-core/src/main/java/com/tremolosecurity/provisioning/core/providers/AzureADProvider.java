@@ -18,6 +18,7 @@ package com.tremolosecurity.provisioning.core.providers;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -513,6 +514,7 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 			}
 			
 			json = this.callWS(con, new StringBuilder().append("/users/").append(URLEncoder.encode(userID, "UTf-8")).append("/memberOf").toString());
+			
 			root = (JSONObject) new JSONParser().parse(json);
 			
 			if (root.containsKey("error") ) {
@@ -525,16 +527,16 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 				
 			}
 			
-			JSONArray values = (JSONArray) root.get("value");
+			addGroupsToUser(root, user);
 			
-			
-			
-			for (Object o : values) {
-				JSONObject group = (JSONObject) o;
-				if (group.get("@odata.type").equals("#microsoft.graph.group")) {
-					user.getGroups().add((String)group.get("displayName")); 
-				}
-				
+			while (root.get("@odata.nextLink") != null) {
+				String nextUrl = (String) root.get("@odata.nextLink");
+				URL url = new URL(nextUrl);
+				String uri = new StringBuilder().append(url.getPath()).append("?").append(url.getQuery()).toString();
+				uri = uri.substring(5);
+				json = this.callWS(con, uri);
+				root = (JSONObject) new JSONParser().parse(json);
+				addGroupsToUser(root, user);
 			}
 			
 			return user;
@@ -550,6 +552,20 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 			con.getBcm().close();
 		}
 		//return null;
+	}
+
+	private void addGroupsToUser(JSONObject root, User user) {
+		JSONArray values = (JSONArray) root.get("value");
+		
+		
+		
+		for (Object o : values) {
+			JSONObject group = (JSONObject) o;
+			if (group.get("@odata.type").equals("#microsoft.graph.group")) {
+				user.getGroups().add((String)group.get("displayName")); 
+			}
+			
+		}
 	}
 	
 	
@@ -805,7 +821,6 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 		b.setLength(0);
 		b.append("Bearer ").append(this.oauth2Token);
 		put.addHeader(new BasicHeader("Authorization",b.toString()));
-		
 		StringEntity str = new StringEntity(json,ContentType.create("application/json"));
 		put.setEntity(str);
 		
