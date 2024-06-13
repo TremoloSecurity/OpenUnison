@@ -86,7 +86,7 @@
 	  	<prometheus.version>0.16.0</prometheus.version>
 	  	<ibm-mq.version>9.3.5.0</ibm-mq.version>
 	  	<okta.version>15.0.0</okta.version>
-	  	<azure-auth.version>1.14.3</azure-auth.version>
+	  	<azure-auth.version>1.15.1</azure-auth.version>
 	  	<cryptacular.version>1.2.6</cryptacular.version>
 	  	<santuario-xmlsec.version>4.0.2</santuario-xmlsec.version>
 		<netty-codec.version>4.1.107.Final</netty-codec.version>
