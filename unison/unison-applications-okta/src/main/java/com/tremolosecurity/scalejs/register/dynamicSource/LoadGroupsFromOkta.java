@@ -93,7 +93,7 @@ public class LoadGroupsFromOkta implements SourceList {
 			int i = 0;
 			ArrayList<NVP> toReturn = new ArrayList<NVP>();
 			
-			List<com.okta.sdk.resource.model.Group> groupList  = okta.getGroupApi().listGroups(null, request.getParameter("search").getValues().get(0), null, null, null, null, null, null);
+			List<com.okta.sdk.resource.model.Group> groupList  = okta.getGroupApi().listGroups(request.getParameter("search").getValues().get(0),null, null, null, null, null, null, null);
 			
 			
 			for (com.okta.sdk.resource.model.Group group : groupList) {
@@ -130,8 +130,8 @@ public class LoadGroupsFromOkta implements SourceList {
 		}
 		
 		
-		
-		List<com.okta.sdk.resource.model.Group>  groupList = okta.getGroupApi().listGroups(null, value, null, null, null, null, null, null);
+		logger.info("validating okta group '" + value + "'");
+		List<com.okta.sdk.resource.model.Group>  groupList = okta.getGroupApi().listGroups(value, null, null, null, null, null, null, null);
 		
 		if (groupList.size() == 0) {
 			return this.errorMessage;
