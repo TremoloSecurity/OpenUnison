@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" ?>
 <!-- 
 Copyright 2015 Tremolo Security, Inc.
 
@@ -17,8 +16,8 @@ limitations under the License.
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"
 	import="com.tremolosecurity.proxy.auth.*,com.tremolosecurity.proxy.util.*,com.tremolosecurity.config.util.*"%>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
+<!DOCTYPE html>
+<html lang="en">
 <%
 RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
 String targetURL = "";
@@ -32,36 +31,74 @@ if (reqHolder != null) {
 }
 %>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta charset="UTF-8">
-	<title>OpenUnison Login</title>
-	<link rel="stylesheet" href="css-material/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <title>OpenUnison Login</title>
+  <!-- MDB icon -->
+  <link rel="icon" href="<%= auth %>img/mdb-favicon.ico" type="image/x-icon" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/all.min.css" />
+  <!-- Google Fonts Roboto -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/fonts.css" />
+  <!-- MDB -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/mdb.min.css" />
 </head>
-<body>
-	<div class="container">
-		<form id="login" role="form"
-			action="<%=session.getAttribute("TREMOLO_AUTH_URI")%>" method="post">
-			<center>
-				<img src="images/ts_logo.png" />
-			</center>
-			<h1>Login</h1>
-			<div class="form-group">
-				<input type="text" required="required" id="user" name="user" /> <label
-					for="input" class="control-label">User Name</label><i class="bar"></i>
-			</div>
-			<div class="form-group">
-				<input type="password" required="required" id="pwd" name="pwd" /> <label
-					for="input" class="control-label">Password</label><i class="bar"></i>
-			</div>
-			<input type="hidden" name="target" id="target" value="<%=targetURL%>" />
-		</form>
-		<div class="button-container">
-			<button onClick="document.getElementById('login').submit();" class="button" id="submit" name="submit"> 
-				<span>Sign In</span>
-			</button>
-		</div>
-	</div>
 
+<body>
+  <div class="row">
+    <div class="col vh-100 d-none d-md-block col-md-5 col-lg-6 col-xl-8 d-inline-block"
+      style="background-color: #AC1622;">
+
+    </div>
+    <div class="col vh-100 col-md-7 col-lg-6 col-xl-4 d-inline-block d-flex align-items-center ">
+      <div class="container">
+        <form class="bg-white rounded shadow-5-strong p-5" action="<%=session.getAttribute("TREMOLO_AUTH_URI")%>" method="post">
+          <div class="row row-cols-1  ">
+            <div class="col text-center"><img src="<%= auth %>img/ts_logo.png" class="center-block" /></div>
+
+          </div>
+          <div class="row row-cols-1">
+            <div class="col text-center"><h1>Login</h1></div>
+          </div>
+          <div class="row row-cols-1">
+            <div class="col">
+              <div class="form-outline mb-4" data-mdb-input-init>
+                <input type="text" id="user" name="user" class="form-control" />
+                <label class="form-label" for="user">User Name</label>
+              </div>
+            </div>
+          </div>
+          <div class="row row-cols-1">
+            <div class="col">
+              <div class="form-outline mb-4" data-mdb-input-init>
+                <input type="password" id="pwd" name="pwd" class="form-control" />
+                <label class="form-label" for="form1Example2">Password</label>
+              </div>
+            </div>
+          </div>
+          <div class="row row-cols-2">
+            <div class="col">
+              <button type="submit" id="submit" name="submit" class="btn btn-primary btn-block" data-mdb-ripple-init>Sign in</button>
+            </div>
+            <div class="col">
+              <button type="reset" id="reset" name="reset" class="btn btn-primary btn-block" data-mdb-ripple-init>Reset Form</button>
+            </div>
+          </div>
+          <input type="hidden" name="target" id="target" value="<%=targetURL%>" />
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- End your project here-->
+
+  <!-- MDB -->
+  <script type="text/javascript" src="<%= auth %>js-mdb/mdb.umd.min.js"></script>
+  <!-- Custom scripts -->
+  <script type="text/javascript"></script>
 </body>
+
 </html>

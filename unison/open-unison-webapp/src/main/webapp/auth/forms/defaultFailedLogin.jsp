@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" ?>
 <!-- 
 Copyright 2015 Tremolo Security, Inc.
 
@@ -16,45 +15,83 @@ limitations under the License.
  -->
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"
-	import="java.util.*,com.tremolosecurity.proxy.auth.*,com.tremolosecurity.proxy.util.*,com.tremolosecurity.config.util.*"%>
-<%
-RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
-String targetURL = "";
-String auth = "/auth/forms/";
-if (reqHolder != null) {
-	ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
-	targetURL = cfg.getAuthManager().getGetRedirectURL(reqHolder).toString();
-	auth = cfg.getAuthFormsPath();
-}
-%>
+	import="java.util.*,com.tremolosecurity.proxy.auth.*,com.tremolosecurity.proxy.util.*,com.tremolosecurity.config.util.*,com.tremolosecurity.proxy.auth.util.*"%>
+<!DOCTYPE html>
+<html lang="en">
+<% 
+		
+		RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
+		String auth = "/auth/forms/";
+		
+		if (reqHolder != null) {
+			ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
+			
+			auth = cfg.getAuthFormsPath();
+		}	
+		
+			%>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta charset="UTF-8">
-	<title>OpenUnison Login</title>
-	<link rel="stylesheet" href="css-material/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <title>OpenUnison Login</title>
+  <!-- MDB icon -->
+  <link rel="icon" href="<%= auth %>img/mdb-favicon.ico" type="image/x-icon" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/all.min.css" />
+  <!-- Google Fonts Roboto -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/fonts.css" />
+  <!-- MDB -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/mdb.min.css" />
 </head>
+
 <body>
+  <div class="row">
+    <div class="col vh-100 d-none d-md-block col-md-5 col-lg-6 col-xl-8 d-inline-block"
+      style="background-color: #AC1622;">
 
-	<div class="container">
+    </div>
+    <div class="col vh-100 col-md-7 col-lg-6 col-xl-4 d-inline-block d-flex align-items-center ">
+      <div class="container">
+        <div class="bg-white rounded shadow-5-strong p-5" >
+          <div class="row row-cols-1  ">
+            <div class="col text-center"><img src="<%= auth %>img/ts_logo.png" class="center-block" /></div>
 
-		<center>
-			<img src="images/ts_logo.png" />
-		</center>
-		<h1>Invalid Login</h1>
-
-		You are not authorized for failed authentication. If you feel you
+          </div>
+          <div class="row row-cols-1">
+            <div class="col text-center"><h1>Invalid Login</h1></div>
+          </div>
+          <div class="row row-cols-1">
+            <div class="col">
+              <div class="alert alert-danger">
+              	You are not authorized for failed authentication. If you feel you
 		received this message in error, please contact your system
-		administrator or help desk.<br />
-		<br />
-		<div class="button-container">
-			<button onClick="history.go(-1);" class="button" id="goback"
-				name="goback">
-				<span>Go Back</span>
-			</button>
-		</div>
+		administrator or help desk.
+              </div>
+              
+            </div>
+          </div>
+          <div class="row row-cols-1">
+            <div class="col">
+              <button type="button" id="goback" name="goback" class="btn btn-primary btn-block" data-mdb-ripple-init onclick="javascript:history.go(-1);">Go Back</button>
+            </div>
+            
+          </div>
+          
+        </div>
+      </div>
 
-	</div>
+    </div>
+  </div>
+
+  <!-- End your project here-->
+
+  <!-- MDB -->
+  <script type="text/javascript" src="<%= auth %>js-mdb/mdb.umd.min.js"></script>
+  <!-- Custom scripts -->
+  <script type="text/javascript"></script>
 </body>
+
 </html>
+		

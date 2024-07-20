@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" ?>
 <!-- 
 Copyright 2015 Tremolo Security, Inc.
 
@@ -15,64 +14,83 @@ See the License for the specific language governing permissions and
 limitations under the License.
  -->
 <%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8" import="com.tremolosecurity.proxy.auth.*,com.tremolosecurity.proxy.util.*,com.tremolosecurity.config.util.*" %>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+	pageEncoding="UTF-8"
+	import="com.tremolosecurity.proxy.auth.*,com.tremolosecurity.proxy.util.*,com.tremolosecurity.config.util.*"%>
+<!DOCTYPE html>
+<html lang="en">
 <%
-	RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
-	String targetURL = "";
-	String authURL = "/auth/forms/";
-	
-	if (reqHolder != null) {
-		ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
-		targetURL =  cfg.getAuthManager().getGetRedirectURL(reqHolder).toString();
-		authURL = cfg.getAuthFormsPath();
-	}
+RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
+String targetURL = "";
+String auth = "/auth/forms/";
+
+if (reqHolder != null) {
+	ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
+
+	targetURL = cfg.getAuthManager().getGetRedirectURL(reqHolder).toString();
+	auth = cfg.getAuthFormsPath();
+}
 %>
+
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-<title></title>
-<!-- Bootstrap core CSS -->
-    <link href="<%= authURL %>css/bootstrap.min.css" rel="stylesheet" />
-
-    <!-- Custom styles for this template -->
-    <link href="<%= authURL %>jumbotron-narrow.css" rel="stylesheet" />
-
-
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <!-- <script src="assets/js/ie10-viewport-bug-workaround.js"></script>  -->
-
-    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <title>OpenUnison Login</title>
+  <!-- MDB icon -->
+  <link rel="icon" href="<%= auth %>img/mdb-favicon.ico" type="image/x-icon" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/all.min.css" />
+  <!-- Google Fonts Roboto -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/fonts.css" />
+  <!-- MDB -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/mdb.min.css" />
 </head>
+
 <body>
+  <div class="row">
+    <div class="col vh-100 d-none d-md-block col-md-5 col-lg-6 col-xl-8 d-inline-block"
+      style="background-color: #AC1622;">
 
+    </div>
+    <div class="col vh-100 col-md-7 col-lg-6 col-xl-4 d-inline-block d-flex align-items-center ">
+      <div class="container">
+        <form class="bg-white rounded shadow-5-strong p-5" action="<%=session.getAttribute("TREMOLO_AUTH_URI")%>" method="post">
+          <div class="row row-cols-1  ">
+            <div class="col text-center"><img src="<%= auth %>img/ts_logo.png" class="center-block" /></div>
 
-<div class="container">
-		
-		<div class="login-header">
-			<h3>Login</h3>	
-		</div>
-		<div class="jumbotron">
-			<img src="<%= authURL %>logos/ts_logo.png" />
-			<br />
-			<form  role="form" action="<%= session.getAttribute("TREMOLO_AUTH_URI") %>" method="post">
-				<input  class="form-control" placeholder="One Time Password"  type="text" id="code" name="code" />
-<br/>
-        
-        <button class="btn btn-lg btn-danger btn-block" type="submit" name="submit" id="submit">Sign in</button>
-        <input type="hidden" name="target" id="target" value="<%= targetURL %>" />
-      </form>
-		</div>
-	</div>
+          </div>
+          <div class="row row-cols-1">
+            <div class="col text-center"><h1>Login</h1></div>
+          </div>
+          <div class="row row-cols-1">
+            <div class="col">
+              <div class="form-outline mb-4" data-mdb-input-init>
+                <input type="text" id="code" name="code" class="form-control" />
+                <label class="form-label" for="code">One Time Password</label>
+              </div>
+            </div>
+          </div>          
+          <div class="row row-cols-2">
+            <div class="col">
+              <button type="submit" id="submit" name="submit" class="btn btn-primary btn-block" data-mdb-ripple-init>Sign in</button>
+            </div>
+            <div class="col">
+              <button type="reset" id="reset" name="reset" class="btn btn-primary btn-block" data-mdb-ripple-init>Reset Form</button>
+            </div>
+          </div>
+          <input type="hidden" name="target" id="target" value="<%=targetURL%>" />
+        </form>
+      </div>
 
+    </div>
+  </div>
+
+  <!-- End your project here-->
+
+  <!-- MDB -->
+  <script type="text/javascript" src="<%= auth %>js-mdb/mdb.umd.min.js"></script>
+  <!-- Custom scripts -->
+  <script type="text/javascript"></script>
 </body>
+
 </html>

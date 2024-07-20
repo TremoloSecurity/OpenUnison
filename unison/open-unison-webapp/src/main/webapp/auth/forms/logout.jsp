@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" ?>
 <!-- 
 Copyright 2015 Tremolo Security, Inc.
 
@@ -15,45 +14,81 @@ See the License for the specific language governing permissions and
 limitations under the License.
  -->
 <%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8" import="java.util.*,com.tremolosecurity.proxy.auth.*,com.tremolosecurity.proxy.util.*,com.tremolosecurity.config.util.*"%>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-		<% 
+	pageEncoding="UTF-8"
+	import="java.util.*,com.tremolosecurity.proxy.auth.*,com.tremolosecurity.proxy.util.*,com.tremolosecurity.config.util.*,com.tremolosecurity.proxy.auth.util.*"%>
+<!DOCTYPE html>
+<html lang="en">
+<% 
 		
 		RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
-		String authURL = "/auth/forms/";
+		String auth = "/auth/forms/";
 		
 		if (reqHolder != null) {
 			ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
 			
-			authURL = cfg.getAuthFormsPath();
+			auth = cfg.getAuthFormsPath();
 		}	
-			%>
-<head>
-<meta charset="UTF-8">
-	<title>OpenUnison Logout</title>
-	<link rel="stylesheet" href="css-material/style.css">
-</head>
-<body>
-
-<div class="container">
-
-		<center>
-			<img src="images/ts_logo.png" />
-		</center>
-		<h1>Logged Out of OpenUnison</h1>
-
-		<span>You are now logged out of OpenUnison, you may close this window or log back in.</span>
 		
-		<div class="button-container">
-			<button onClick="window.location='/';" class="button" id="login"
-				name="login">
-				<span>Login</span>
-			</button>
-		</div>
+			%>
 
-	</div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <title>OpenUnison Login</title>
+  <!-- MDB icon -->
+  <link rel="icon" href="<%= auth %>img/mdb-favicon.ico" type="image/x-icon" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/all.min.css" />
+  <!-- Google Fonts Roboto -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/fonts.css" />
+  <!-- MDB -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/mdb.min.css" />
+</head>
 
+<body>
+  <div class="row">
+    <div class="col vh-100 d-none d-md-block col-md-5 col-lg-6 col-xl-8 d-inline-block"
+      style="background-color: #AC1622;">
 
+    </div>
+    <div class="col vh-100 col-md-7 col-lg-6 col-xl-4 d-inline-block d-flex align-items-center ">
+      <div class="container">
+        <div class="bg-white rounded shadow-5-strong p-5" >
+          <div class="row row-cols-1  ">
+            <div class="col text-center"><img src="<%= auth %>img/ts_logo.png" class="center-block" /></div>
+
+          </div>
+          <div class="row row-cols-1">
+            <div class="col text-center"><h1>Logged Out of OpenUnison</h1></div>
+          </div>
+          <div class="row row-cols-1">
+            <div class="col">
+              <div class="alert alert-primary">
+              	You are now logged out of OpenUnison, you may close this window or log back in.
+              </div>
+              
+            </div>
+          </div>
+          <div class="row row-cols-1">
+            <div class="col">
+              <button type="button" id="goback" name="goback" class="btn btn-primary btn-block" data-mdb-ripple-init onclick="window.location='/';">Login</button>
+            </div>
+            
+          </div>
+          
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- End your project here-->
+
+  <!-- MDB -->
+  <script type="text/javascript" src="<%= auth %>js-mdb/mdb.umd.min.js"></script>
+  <!-- Custom scripts -->
+  <script type="text/javascript"></script>
 </body>
+
 </html>

@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" ?>
 <!-- 
 Copyright 2015 Tremolo Security, Inc.
 
@@ -17,68 +16,78 @@ limitations under the License.
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"
 	import="java.util.*,com.tremolosecurity.proxy.auth.*,com.tremolosecurity.proxy.util.*,com.tremolosecurity.config.util.*,com.tremolosecurity.proxy.auth.util.*"%>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en">
 <% 
 		
 		RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
-		String authURL = "/auth/forms/";
+		String auth = "/auth/forms/";
 		
 		if (reqHolder != null) {
 			ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
 			
-			authURL = cfg.getAuthFormsPath();
+			auth = cfg.getAuthFormsPath();
 		}	
 		
 			%>
+
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-
-<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="description" content="" />
-<meta name="author" content="" />
-<title></title>
-<!-- Bootstrap core CSS -->
-<link href="<%= authURL %>css/bootstrap.min.css" rel="stylesheet" />
-
-<!-- Custom styles for this template -->
-<link href="<%= authURL %>jumbotron-narrow.css" rel="stylesheet" />
-
-<link href="<%= authURL %>css/font-awesome.min.css" type="text/css"
-	rel="stylesheet" />
-<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<!-- <script src="<%= authURL %>assets/js/ie10-viewport-bug-workaround.js"></script>  -->
-
-<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
-<!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <title>OpenUnison Login</title>
+  <!-- MDB icon -->
+  <link rel="icon" href="<%= auth %>img/mdb-favicon.ico" type="image/x-icon" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/all.min.css" />
+  <!-- Google Fonts Roboto -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/fonts.css" />
+  <!-- MDB -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/mdb.min.css" />
 </head>
+
 <body>
-	<div class="container">
-		<div class="login-header">
-			<h3>Finishing Login</h3>
-		</div>
-		<div class="jumbotron">
+  <div class="row">
+    <div class="col vh-100 d-none d-md-block col-md-5 col-lg-6 col-xl-8 d-inline-block"
+      style="background-color: #AC1622;">
 
+    </div>
+    <div class="col vh-100 col-md-7 col-lg-6 col-xl-4 d-inline-block d-flex align-items-center ">
+      <div class="container">
+        <div class="bg-white rounded shadow-5-strong p-5" >
+          <div class="row row-cols-1  ">
+            <div class="col text-center"><img src="<%= auth %>img/ts_logo.png" class="center-block" /></div>
 
-
-			<img src="<%=authURL%>logos/ts_logo.png" /> <br />
-			<div class="alert alert-info" role="alert">
-				<h2>Finishing Login</h2>
-				We are completing your login ...</i><br />
-				<script language="javascript">
+          </div>
+          <div class="row row-cols-1">
+            <div class="col text-center"><h1>Finishing Login</h1></div>
+          </div>
+          <div class="row row-cols-1">
+            <div class="col">
+              <div class="alert alert-primary">
+              	We are completing your login ..
+              </div>
+              <script language="javascript">
 				
 					window.location.href = "<%= request.getParameter("redirto") %>?finishsso=true";
 				</script>
 				<div id="error"></div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
 
+    </div>
+  </div>
 
-			</div>
-		</div>
-	</div>
+  <!-- End your project here-->
 
+  <!-- MDB -->
+  <script type="text/javascript" src="<%= auth %>js-mdb/mdb.umd.min.js"></script>
+  <!-- Custom scripts -->
+  <script type="text/javascript"></script>
 </body>
+
 </html>
+		

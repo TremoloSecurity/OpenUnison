@@ -93,7 +93,55 @@ import com.tremolosecurity.saml.Saml2Assertion;
 
 public class Saml2Idp implements IdentityProvider {
 
-	public static String DEFAULT_SAML2_POST_TEMPLATE = "<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<title>Completing Federation</title>\n</head>\n<body onload=\"document.forms[0].submit()\">\n<form method=\"post\" action=\"$postaction$\">\n<input name=\"SAMLResponse\" value=\"$postdata$\" type=\"hidden\"/>\n<input name=\"RelayState\" value=\"$relaystate$\" type=\"hidden\"/>\n</form>\n<center>\n<img src=\"/auth/forms/images/ts_logo.png\" /><br />\n<h2>Completing Federation...</h2>\n</center>\n</body>\n</html>";
+	public static String DEFAULT_SAML2_POST_TEMPLATE = "<head>\n"
+			+ "  <meta charset=\"UTF-8\" />\n"
+			+ "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\" />\n"
+			+ "  <meta http-equiv=\"x-ua-compatible\" content=\"ie=edge\" />\n"
+			+ "  <title>OpenUnison Login</title>\n"
+			+ "  <!-- MDB icon -->\n"
+			+ "  <link rel=\"icon\" href=\"$auth$img/mdb-favicon.ico\" type=\"image/x-icon\" />\n"
+			+ "  <!-- Font Awesome -->\n"
+			+ "  <link rel=\"stylesheet\" href=\"$auth$css-mdb/all.min.css\" />\n"
+			+ "  <!-- Google Fonts Roboto -->\n"
+			+ "  <link rel=\"stylesheet\" href=\"$auth$css-mdb/fonts.css\" />\n"
+			+ "  <!-- MDB -->\n"
+			+ "  <link rel=\"stylesheet\" href=\"$auth$css-mdb/mdb.min.css\" />\n"
+			+ "</head>\n"
+			+ "\n"
+			+ "<body onload=\"document.forms[0].submit();\">\n"
+			+ "  <div class=\"row\">\n"
+			+ "    <div class=\"col vh-100 d-none d-md-block col-md-5 col-lg-6 col-xl-8 d-inline-block\"\n"
+			+ "      style=\"background-color: #AC1622;\">\n"
+			+ "\n"
+			+ "    </div>\n"
+			+ "    <div class=\"col vh-100 col-md-7 col-lg-6 col-xl-4 d-inline-block d-flex align-items-center \">\n"
+			+ "      <div class=\"container\">\n"
+			+ "        <form class=\"bg-white rounded shadow-5-strong p-5\" action=\"$postaction$\" method=\"post\">\n"
+			+ "          <div class=\"row row-cols-1  \">\n"
+			+ "            <div class=\"col text-center\"><img src=\"$auth$img/ts_logo.png\" class=\"center-block\" /></div>\n"
+			+ "\n"
+			+ "          </div>\n"
+			+ "          <div class=\"row row-cols-1\">\n"
+			+ "            <div class=\"col text-center\"><h1>Completing Saml2 Login...</h1></div>\n"
+			+ "          </div>\n"
+			+ "          \n"
+			+ "          <input type=\"hidden\" name=\"SAMLResponse\" id=\"SAMLResponse\" value=\"$postdata$\" />\n"
+			+ "          <input type=\"hidden\" name=\"RelayState\" id=\"RelayState\" value=\"$relaystate$\" />\n"
+			+ "        </form>\n"
+			+ "      </div>\n"
+			+ "\n"
+			+ "    </div>\n"
+			+ "  </div>\n"
+			+ "\n"
+			+ "  <!-- End your project here-->\n"
+			+ "\n"
+			+ "  <!-- MDB -->\n"
+			+ "  <script type=\"text/javascript\" src=\"$auth$js-mdb/mdb.umd.min.js\"></script>\n"
+			+ "  <!-- Custom scripts -->\n"
+			+ "  <script type=\"text/javascript\"></script>\n"
+			+ "</body>\n"
+			+ "\n"
+			+ "</html>";
 
 	private static HashMap<String, String> xmlDigSigAlgs;
 
@@ -798,6 +846,7 @@ public class Saml2Idp implements IdentityProvider {
 		st.add("relaystate", (String) request.getAttribute("relaystate"));
 		st.add("postdata",base64);
 		st.add("postaction",transaction.postToURL);
+		st.add("auth", cfg.getAuthFormsPath());
 		response.setContentType("text/html");
 		response.getWriter().write(st.render());
 		
@@ -884,6 +933,7 @@ public class Saml2Idp implements IdentityProvider {
 		st.add("relaystate", (String) request.getAttribute("relaystate"));
 		st.add("postdata",base64);
 		st.add("postaction",transaction.postToURL);
+		st.add("auth", cfg.getAuthFormsPath());
 		response.setContentType("text/html");
 		response.getWriter().write(st.render());
 		

@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" ?>
 <!-- 
 Copyright 2021 Tremolo Security, Inc.
 
@@ -17,7 +16,8 @@ limitations under the License.
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"
 	import="java.util.*,com.tremolosecurity.proxy.auth.*,com.tremolosecurity.proxy.util.*,com.tremolosecurity.config.util.*"%>
-
+<!DOCTYPE html>
+<html lang="en">
 <%
 RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
 String targetURL = "";
@@ -29,69 +29,94 @@ if (reqHolder != null) {
 }
 %>
 
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-
-<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="description" content="" />
-<meta name="author" content="" />
-<title></title>
-<!-- Bootstrap core CSS -->
-<link href="<%= auth %>css/bootstrap.min.css" rel="stylesheet" />
-
-<!-- Custom styles for this template -->
-<link href="<%= auth %>jumbotron-narrow.css" rel="stylesheet" />
-<link href="<%= auth %>js/base64url.js" rel="script" />
-
-
-<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<!--  <script src="forms/assets/js/ie10-viewport-bug-workaround.js"></script>  -->
-
-<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
-<!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-<title></title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <title>OpenUnison Login</title>
+  <!-- MDB icon -->
+  <link rel="icon" href="<%= auth %>img/mdb-favicon.ico" type="image/x-icon" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/all.min.css" />
+  <!-- Google Fonts Roboto -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/fonts.css" />
+  <!-- MDB -->
+  <link rel="stylesheet" href="<%= auth %>css-mdb/mdb.min.css" />
 </head>
+
 <body>
+  <div class="row">
+    <div class="col vh-100 d-none d-md-block col-md-5 col-lg-6 col-xl-8 d-inline-block"
+      style="background-color: #AC1622;">
 
+    </div>
+    <form class="col vh-100 col-md-7 col-lg-6 col-xl-4 d-inline-block d-flex align-items-center " method="post" action="<%= session.getAttribute("TREMOLO_AUTH_URI") %>" id="webauthnResponseForm">
+      <div class="container">
+        <div class="bg-white rounded shadow-5-strong p-5" >
+          <div class="row row-cols-1  ">
+            <div class="col text-center"><img src="<%= auth %>img/ts_logo.png" class="center-block" /></div>
 
-	<div class="container">
-		<div class="login-header">
-			<h3>Authenticate With Your WebAuthn Token</h3>
-		</div>
-		<div class="jumbotron">
-			<img src="<%= auth %>logos/ts_logo.png" /> <br /> <br />
+          </div>
+          <div class="row row-cols-1">
+            <div class="col text-center"><h1>Authenticate With Your WebAuthn Token</h1></div>
+          </div>
+          <div class="row row-cols-1">
+            <div class="col">
+              <div class="alert alert-primary" id="msg">
+              	Please insert your webauthn key to complete authentication
+              </div>
+            </div>
+          </div>
+          
+          <div class="row row-cols-1">
+            <div class="col">
+              <button type="button" id="login" name="login" class="btn btn-primary btn-block" data-mdb-ripple-init onclick="javascript:loginClick();">Login</button>
+              <div>
+						<input type="hidden" name="webauthnResponse" id="webauthnResponse" />
+						<input type="hidden" name="serverProperty" id="serverProperty" />
+				</div>
+            </div>
+            
+          </div>
+          <div class="row row-cols-1">
+            <div class="col">
+              <div class="form-outline mb-4" data-mdb-input-init>
+                <input type="text" id="username" name="username" class="form-control" autocomplete="username webauthn" />
+                <label class="form-label" for="username">User Name</label>
+              </div>
+            </div>
+          </div>
+          
+          <% if (((Boolean)request.getSession().getAttribute("webauthn.allowpassword"))) { %>
+          
+          <div class="row row-cols-1">
+            <div class="col">
+              <div class="form-outline mb-4" data-mdb-input-init>
+                <input type="password" id="password" name="password" class="form-control" />
+                <label class="form-label" for="password">Password</label>
+              </div>
+            </div>
+          </div>
+          
+          <% } %>
+          
+        </div>
+      </div>
 
-			<div id="msg" class="h4">Please insert your webauthn key to
-				complete authentication</div>
-			<button class="btn btn-lg btn-danger btn-block" type="button"
-				name="login" id="login" onclick="javascript:loginClick();">Login</button>
-			<div>
-				<form method="post"
-					action="<%= session.getAttribute("TREMOLO_AUTH_URI") %>"
-					id="webauthnResponseForm">
-					<input class="form-control" placeholder="User Name" type="text"
-						id="username" name="username" autocomplete="username webauthn" />
-					<% if (((Boolean)request.getSession().getAttribute("webauthn.allowpassword"))) { %>
-					<input class="form-control" placeholder="Password" type="password"
-						id="password" name="password" />
-					<% } %>
-					<input type="hidden" name="webauthnResponse" id="webauthnResponse" />
-					<input type="hidden" name="serverProperty" id="serverProperty" />
-				</form>
-			</div>
+    </form>
+  </div>
 
-			<script src="<%= auth %>js/base64url.js"></script>
+  <!-- End your project here-->
 
-			<script>
+  <!-- MDB -->
+  <script type="text/javascript" src="<%= auth %>js-mdb/mdb.umd.min.js"></script>
+  <!-- Custom scripts -->
+  <script type="text/javascript"></script>
+  
+  <script src="<%= auth %>js/base64url.js"></script>
 
-// initialize the webauthn process and generate a promise
+<script>
+//initialize the webauthn process and generate a promise
 
 (async () => {
     if (
@@ -209,13 +234,7 @@ function doAuthentication() {
     xhr.send();
 }
 
-
 </script>
-
-		</div>
-	</div>
-
-
-
 </body>
-</html>
+
+</html>  
