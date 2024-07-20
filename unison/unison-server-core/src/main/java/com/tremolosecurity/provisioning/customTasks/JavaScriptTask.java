@@ -100,19 +100,25 @@ public class JavaScriptTask implements CustomTask {
 	@Override
 	public boolean doTask(User user, Map<String, Object> request) throws ProvisioningException {
 		if (initCompleted) {
-			Context context = Context.newBuilder("js").allowAllAccess(true).build();
-			context.getBindings("js").putMember("state", state);
-			context.getBindings("js").putMember("task", task);
-			Value val = context.eval("js",this.javaScript);
 			
-			Value doTask = context.getBindings("js").getMember("doTask");
-			Value result = doTask.execute(user,request);
-			
-			context.close();
-			
-			
-			
-			return result.asBoolean();
+			try {
+				Context context = Context.newBuilder("js").allowAllAccess(true).build();
+				context.getBindings("js").putMember("state", state);
+				context.getBindings("js").putMember("task", task);
+				Value val = context.eval("js",this.javaScript);
+				
+				Value doTask = context.getBindings("js").getMember("doTask");
+				Value result = doTask.execute(user,request);
+				
+				context.close();
+				
+				
+				
+				return result.asBoolean();
+			} catch (Throwable t) {
+				logger.error("Could not run task",t);
+				throw new ProvisioningException("Could not run javascript task",t);
+			}
 		} else {
 			throw new ProvisioningException("Javascript initialization did not complete, not attempting to run task");
 		}
