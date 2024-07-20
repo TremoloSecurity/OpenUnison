@@ -211,7 +211,6 @@
 		<module>unison-auth-openidconnect</module>
 		<module>unison-idp-openidconnect</module>
 		<module>unison-applications-k8s</module>
-		<module>unison-auth-u2f</module>
 		<module>unison-auth-duo</module>
 		<module>openunison-on-undertow</module>
 		<module>myvd-on-undertow</module>
