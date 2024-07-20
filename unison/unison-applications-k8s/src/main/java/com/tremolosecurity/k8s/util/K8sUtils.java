@@ -58,4 +58,35 @@ public class K8sUtils {
 		
 		return map;
 	}
+	
+	public static Map<String,String> loadSecret(String targetName,String namespace,String configMapName) throws Exception {
+		HashMap<String,String> map = new HashMap<String,String>();
+		
+		OpenShiftTarget k8s = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(targetName).getProvider();
+		HttpCon con = k8s.createClient();
+		
+		try {
+			StringBuilder sb = new StringBuilder();
+			sb.append("/api/v1/namespaces/").append(namespace).append("/secrets/").append(configMapName);
+			String uri = sb.toString();
+			
+			String jsonData = k8s.callWS(k8s.getAuthToken(), con, uri);
+			JSONObject root = (JSONObject)  new JSONParser().parse(jsonData);
+			
+			for (Object key : ((JSONObject)root.get("data")).keySet()) {
+				String b64val = (String) ((JSONObject) root.get("data")).get(key);
+				map.put((String) key, new String(java.util.Base64.getDecoder().decode(b64val.getBytes("UTF-8"))) );
+			}
+			
+		} finally {
+			if (con != null) {
+				con.getHttp().close();
+				con.getBcm().close();
+			}
+		}
+		
+		
+		
+		return map;
+	}
 }
