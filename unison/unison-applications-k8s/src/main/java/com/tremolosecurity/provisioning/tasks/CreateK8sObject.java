@@ -174,6 +174,10 @@ public class CreateK8sObject implements CustomTask {
             	localURL = os.getApis().getUri(apiGroup, kind, nameSpace);
             }
             
+            if (localURL == null) {
+            	throw new ProvisioningException(String.format("API %s/%s does not exist in target %s",apiGroup,kind,localTarget));
+            }
+            
             if (logger.isDebugEnabled()) {
             	logger.debug("Write To Request  : '" + this.writeToRequestConfig + "'");
             }
