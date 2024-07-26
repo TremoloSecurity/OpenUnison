@@ -49,6 +49,7 @@ import java.sql.Timestamp;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -56,7 +57,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Queue;
+import java.util.Set;
 import java.util.Stack;
+import java.util.StringTokenizer;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.zip.Deflater;
@@ -119,6 +122,7 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
+import org.quartz.impl.SchedulerRepository;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.impl.matchers.GroupMatcher;
 
@@ -269,6 +273,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 
 
 	private Scheduler scheduler;
+	private Scheduler localScheduler;
+	private Set<String> localJobs;
 	
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ProvisioningEngineImpl.class.getName());
 
@@ -1985,9 +1991,11 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			instanceLabel = "AUTO";
 		}*/
 		
+	
+		
 		scheduleProps.setProperty("org.quartz.scheduler.instanceId", UUID.randomUUID().toString());
 		scheduleProps.setProperty("org.quartz.threadPool.threadCount", Integer.toString(sct.getThreadCount()));
-		
+		scheduleProps.setProperty("org.quartz.scheduler.instanceName", "global");
 		if (sct.isUseDB()) {
 			scheduleProps.setProperty("org.quartz.jobStore.class", "org.quartz.impl.jdbcjobstore.JobStoreTX");
 			scheduleProps.setProperty("org.quartz.jobStore.driverDelegateClass", sct.getScheduleDB().getDelegateClassName());
@@ -2000,29 +2008,76 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			scheduleProps.setProperty("org.quartz.dataSource.scheduleDB.validationQuery", sct.getScheduleDB().getValidationQuery());
 			scheduleProps.setProperty("org.quartz.jobStore.useProperties", "true");
 			scheduleProps.setProperty("org.quartz.jobStore.isClustered", "true");
+			
+			
+			
 		} else {
 			scheduleProps.setProperty("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
 		}
 		
-		try {
+		
+		
+		if (sct.isUseDB() && System.getProperties().get("tremolo.io/localscheduler.table.prefix") != null) {
+			logger.info("Local scheduler with table prefix '" + System.getProperties().get("tremolo.io/localscheduler.table.prefix") + "'");
+			Properties localScheduleProps = new Properties();
+			localScheduleProps.putAll(scheduleProps);
+			localScheduleProps.setProperty("org.quartz.jobStore.tablePrefix", System.getProperty("tremolo.io/localscheduler.table.prefix"));
+			localScheduleProps.setProperty("org.quartz.scheduler.instanceId", UUID.randomUUID().toString());
+			localScheduleProps.setProperty("org.quartz.threadPool.threadCount", Integer.toString(sct.getThreadCount()));
+			localScheduleProps.setProperty("org.quartz.jobStore.class", "org.quartz.impl.jdbcjobstore.JobStoreTX");
+			localScheduleProps.setProperty("org.quartz.jobStore.driverDelegateClass", sct.getScheduleDB().getDelegateClassName());
+			localScheduleProps.setProperty("org.quartz.jobStore.dataSource", "scheduleDB");
+			localScheduleProps.setProperty("org.quartz.dataSource.scheduleDB.driver", sct.getScheduleDB().getDriver());
+			localScheduleProps.setProperty("org.quartz.dataSource.scheduleDB.URL", sct.getScheduleDB().getUrl());
+			localScheduleProps.setProperty("org.quartz.dataSource.scheduleDB.user", sct.getScheduleDB().getUser());
+			localScheduleProps.setProperty("org.quartz.dataSource.scheduleDB.password", sct.getScheduleDB().getPassword());
+			localScheduleProps.setProperty("org.quartz.dataSource.scheduleDB.maxConnections", Integer.toString(sct.getScheduleDB().getMaxConnections()));
+			localScheduleProps.setProperty("org.quartz.dataSource.scheduleDB.validationQuery", sct.getScheduleDB().getValidationQuery());
+			localScheduleProps.setProperty("org.quartz.jobStore.useProperties", "true");
+			localScheduleProps.setProperty("org.quartz.jobStore.isClustered", "true");
+			localScheduleProps.setProperty("org.quartz.scheduler.instanceName", "local");
 			
-			/*String classpath = System.getProperty("java.class.path");
-			String[] classpathEntries = classpath.split(File.pathSeparator);
-			for (String cp : classpathEntries) {
-				System.out.println(cp);
-			}*/
+			try {
+				
+				/*String classpath = System.getProperty("java.class.path");
+				String[] classpathEntries = classpath.split(File.pathSeparator);
+				for (String cp : classpathEntries) {
+					System.out.println(cp);
+				}*/
+				
+				
+				
+				StdSchedulerFactory fact = new StdSchedulerFactory();
+				fact.initialize(localScheduleProps);
+				
+				Collection<Scheduler> schedulers = SchedulerRepository.getInstance().lookupAll();
+				for (Scheduler sched : schedulers) {
+					logger.info("Scheduler: " + sched.getSchedulerName());
+				}
+				
+				this.localScheduler = fact.getScheduler();
+				this.localScheduler.start();
+				this.cfgMgr.addThread(new StopScheduler(this.localScheduler));
+				
+				
+				this.localJobs = new HashSet<String>();
+				String localJobsNames = System.getProperty("tremolo.io/localscheduler.jobs");
+				if (localJobsNames != null) {
+					StringTokenizer toker = new StringTokenizer(localJobsNames,",",false);
+					while (toker.hasMoreTokens()) {
+						this.localJobs.add(toker.nextToken().toLowerCase());
+					}
+				}
+			} catch (SchedulerException e1) {
+				throw new ProvisioningException("Could not initialize local scheduler", e1);
+			}
 			
-			
-			PrintStream out = new PrintStream(new FileOutputStream(System.getProperty(OpenUnisonConstants.UNISON_CONFIG_QUARTZDIR) + "/quartz.properties"));
-			scheduleProps.store(out, "Unison internal scheduler properties");
-			out.flush();
-			out.close();
-		} catch (IOException e) {
-			throw new ProvisioningException("Could not write to quartz.properties",e);
 		}
 		
 		try {
-			this.scheduler = StdSchedulerFactory.getDefaultScheduler();
+			StdSchedulerFactory fact = new StdSchedulerFactory();
+			fact.initialize(scheduleProps);
+			this.scheduler = fact.getScheduler();
 			this.scheduler.start();
 			this.cfgMgr.addThread(new StopScheduler(this.scheduler));
 			HashSet<String> jobKeys = new HashSet<String>();
@@ -2059,6 +2114,12 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			for (String groupName : scheduler.getJobGroupNames()) {
 				this.deleteRemovedJobs(jobKeys, groupName);
 			}
+			
+			if (this.localScheduler != null) {
+				for (String groupName : this.localScheduler.getJobGroupNames()) {
+					this.deleteRemovedLocalJobs(jobKeys, groupName);
+				}
+			}
 		
 			
 			
@@ -2090,7 +2151,35 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		  
 		  if (! jobKeys.contains(jobName + "-" + jobGroup)) {
 			  logger.info("Removing job '" + jobName + "' / '" + jobGroup + "'");
+			  
 			  scheduler.deleteJob(jobKey);
+			  
+		  }
+		  
+	 
+	    }
+		  
+	}
+	
+	public void deleteRemovedLocalJobs(HashSet<String> jobKeys, String groupName)
+			throws SchedulerException {
+		//get job's trigger
+			 
+		
+		
+	     for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.jobGroupEquals(groupName))) {
+	 
+		  String jobName = jobKey.getName();
+		  String jobGroup = jobKey.getGroup();
+	 
+		  
+		  List<Trigger> triggers = (List<Trigger>) scheduler.getTriggersOfJob(jobKey);
+		  
+		  if (! jobKeys.contains(jobName + "-" + jobGroup)) {
+			  logger.info("Removing job '" + jobName + "' / '" + jobGroup + "'");
+			  
+			  localScheduler.deleteJob(jobKey);
+			  
 		  }
 		  
 	 
@@ -2103,8 +2192,15 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	public void addNewJob(HashSet<String> jobKeys, JobType jobType)
 			throws SchedulerException, ProvisioningException, ClassNotFoundException {
 		jobKeys.add(jobType.getName() + "-" + jobType.getGroup());
+		
+		boolean localJob = this.localJobs != null && this.localJobs.contains(jobType.getName().toLowerCase());
+		
 		JobKey jk = new JobKey(jobType.getName(),jobType.getGroup());
-		JobDetail jd = this.scheduler.getJobDetail(jk);
+		
+		
+		
+		
+		JobDetail jd = localJob ? this.localScheduler.getJobDetail(jk) : this.scheduler.getJobDetail(jk);
 		if (jd == null) {
 			logger.info("Adding new job '" + jobType.getName() + "' / '" + jobType.getGroup() + "'");
 			try {
@@ -2140,7 +2236,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				jobProps.setProperty(key, (String) jd.getJobDataMap().getString(key));
 			}
 			
-			List<Trigger> triggers = (List<Trigger>) scheduler.getTriggersOfJob(jd.getKey());
+			List<Trigger> triggers = localJob ? (List<Trigger>) localScheduler.getTriggersOfJob(jd.getKey()) :  (List<Trigger>) scheduler.getTriggersOfJob(jd.getKey());
 			CronTrigger trigger = (CronTrigger) triggers.get(0);
 			
 			if (! jobType.getClassName().equals(jd.getJobClass().getName())) {
@@ -2158,6 +2254,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 
 	private void addJob(JobType jobType, JobKey jk)
 			throws ClassNotFoundException, SchedulerException {
+		
+		boolean localJob = this.localJobs != null && this.localJobs.contains(jobType.getName().toLowerCase());
+		
 		JobDetail jd;
 		JobBuilder jb = JobBuilder.newJob((Class<? extends Job>) Class.forName(jobType.getClassName()));
 		for (ParamWithValueType pt : jobType.getParam()) {
@@ -2184,12 +2283,25 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		TriggerBuilder tb = TriggerBuilder.newTrigger()
 				                           .withIdentity("trigger_" + jobType.getName(),jobType.getGroup())
 				                           .withSchedule(CronScheduleBuilder.cronSchedule(cron.toString()).withMisfireHandlingInstructionFireAndProceed());;
-				                        		
-		this.scheduler.scheduleJob(jd, tb.build());
+			
+		if (localJob) {
+			logger.info(String.format("Adding job %s to local scheduler",jobType.getName()));
+			this.localScheduler.scheduleJob(jd, tb.build());
+		} else {
+			logger.info(String.format("Adding job %s to global scheduler",jobType.getName()));
+			this.scheduler.scheduleJob(jd, tb.build());
+		}
+		
 	}
 
 	private void reloadJob(JobType jobType, JobDetail jd) throws SchedulerException, ClassNotFoundException {
-		this.scheduler.deleteJob(jd.getKey());
+		boolean localJob = this.localJobs != null && this.localJobs.contains(jobType.getName().toLowerCase());
+		
+		if (localJob) {
+			this.localScheduler.deleteJob(jd.getKey());
+		} else {
+			this.scheduler.deleteJob(jd.getKey());
+		}
 		addJob(jobType, jd.getKey());
 		
 	}
