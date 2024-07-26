@@ -545,7 +545,9 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 			sb.append("Unexpected result calling '").append(get.getURI()).append("' - ").append(resp.getStatusLine().getStatusCode()).append(" / ").append(json);
 			throw new IOException(sb.toString());
 		} else  {
-			logger.warn("Unexpected result calling '" + get.getURI() + "' - " + resp.getStatusLine().getStatusCode() + " / " + json);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Unexpected result calling '" + get.getURI() + "' - " + resp.getStatusLine().getStatusCode() + " / " + json);
+			}
 			return json;
 		}
 		
@@ -962,7 +964,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 			
 			
 			
-			if (this.url.isEmpty()) {
+			if (this.url.isEmpty() || this.url.equalsIgnoreCase("https://kubernetes.default.svc")) {
 				this.localToken = true;
 				
 				
