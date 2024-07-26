@@ -55,6 +55,7 @@ public class WaitForStatus implements CustomTask {
 	Map<String,String> conditions;
 	String label;
 	String namespace;
+	boolean syncDr;
 	
 	
 	
@@ -76,6 +77,11 @@ public class WaitForStatus implements CustomTask {
 				String value = condition.substring(condition.lastIndexOf('=') + 1);
 				this.conditions.put(jsonPath, value);
 			}
+		}
+		
+		this.syncDr = true;
+		if (params.get("syncDr") != null) {
+			this.syncDr = params.get("syncDr").getValues().get(0).equalsIgnoreCase("true");
 		}
 		
 		
@@ -158,6 +164,12 @@ public class WaitForStatus implements CustomTask {
 			waitForObj.put("metadata", metadata);
 			metadata.put("name",this.task.renderTemplate(this.label, request) + "-" + this.task.getWorkflow().getId() + "-x");
 			metadata.put("namespace", this.namespace);
+			
+			if (! this.syncDr) {
+				JSONObject annotations = new JSONObject();
+				annotations.put("tremolo.io/dr-ignore", "true");
+				metadata.put("annotations", annotations);
+			}
 			
 			JSONObject spec = new JSONObject();
 			waitForObj.put("spec", spec);

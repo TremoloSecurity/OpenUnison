@@ -81,6 +81,8 @@ public class WaitForJob extends UnisonJob {
 					
 					String waitForName = (String) ((JSONObject)waitfor.get("metadata")).get("name");
 					
+					logger.info(String.format("Checking wait for state - %s",waitForName));
+					
 					
 					Token encWaitfor = gson.fromJson( new String(Base64.getDecoder().decode( (String)((JSONObject) waitfor.get("spec") ).get("state") )), Token.class);
 					
@@ -149,7 +151,7 @@ public class WaitForJob extends UnisonJob {
 								}
 								
 								if (! resp.toString().equals(condition)) {
-									logger.warn(String.format("Path %s for %s does not equal - actual/exp %s/%s",jsonPath,waitForName,resp.toString(),condition));
+									logger.info(String.format("Path %s for %s does not equal - actual/exp %s/%s",jsonPath,waitForName,resp.toString(),condition));
 									continue;
 								} else {
 									numFound++;
@@ -164,9 +166,9 @@ public class WaitForJob extends UnisonJob {
 								logger.warn(String.format("Not all conditions met for %s", waitForName));
 								continue;
 							} else {
-								if (logger.isDebugEnabled()) {
-									logger.debug(String.format("All conditions met for %s",waitForName));
-								}
+								
+								logger.info(String.format("All conditions met for %s",waitForName));
+								
 								
 								Workflow wf = (Workflow) JsonReader.jsonToJava(new String(Base64.getDecoder().decode(wfs.getBase64Workflow())));
 								
