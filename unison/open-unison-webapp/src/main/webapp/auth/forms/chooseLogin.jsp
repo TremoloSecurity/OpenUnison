@@ -65,7 +65,7 @@ if (reqHolder != null) {
 				<form class="bg-white rounded shadow-5-strong p-5" action="<%=session.getAttribute("TREMOLO_AUTH_URI")%>" method="post">
 					<div class="row row-cols-1  ">
 						<div class="col text-center">
-							<img src="<%=auth%>img/ts_logo.png" class="center-block" />
+							<img src="<%=auth%>images/ts_logo.png" class="center-block" />
 						</div>
 
 					</div>

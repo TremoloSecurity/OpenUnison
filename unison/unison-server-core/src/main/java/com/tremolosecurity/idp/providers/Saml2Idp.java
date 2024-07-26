@@ -118,7 +118,7 @@ public class Saml2Idp implements IdentityProvider {
 			+ "      <div class=\"container\">\n"
 			+ "        <form class=\"bg-white rounded shadow-5-strong p-5\" action=\"$postaction$\" method=\"post\">\n"
 			+ "          <div class=\"row row-cols-1  \">\n"
-			+ "            <div class=\"col text-center\"><img src=\"$auth$img/ts_logo.png\" class=\"center-block\" /></div>\n"
+			+ "            <div class=\"col text-center\"><img src=\"$auth$images/ts_logo.png\" class=\"center-block\" /></div>\n"
 			+ "\n"
 			+ "          </div>\n"
 			+ "          <div class=\"row row-cols-1\">\n"

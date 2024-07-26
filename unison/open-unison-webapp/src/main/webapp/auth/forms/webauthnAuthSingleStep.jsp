@@ -54,7 +54,7 @@ if (reqHolder != null) {
       <div class="container">
         <div class="bg-white rounded shadow-5-strong p-5" >
           <div class="row row-cols-1  ">
-            <div class="col text-center"><img src="<%= auth %>img/ts_logo.png" class="center-block" /></div>
+            <div class="col text-center"><img src="<%= auth %>images/ts_logo.png" class="center-block" /></div>
 
           </div>
           <div class="row row-cols-1">
