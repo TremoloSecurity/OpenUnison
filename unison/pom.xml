@@ -44,7 +44,7 @@
 		<bcpkix-jdk18on.version>1.77</bcpkix-jdk18on.version>
 		<catalina.version>10.1.10</catalina.version>
 		<undertow-1x.version>1.0.0.Final</undertow-1x.version>
-		<myvd-server.version>1.0.21</myvd-server.version>
+		<myvd-server.version>1.0.22</myvd-server.version>
 		<jldap.version>1.0.3</jldap.version>
 		<httpclient.version>4.5.14</httpclient.version>
 		<httpcore.version>4.4.16</httpcore.version>
