@@ -400,6 +400,22 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 		String json = this.callWS(con, "/groups?$select=displayName,id");
 		
 		JSONObject root = (JSONObject) new JSONParser().parse(json);
+		loadAllGroups(groups, root);
+		
+		while (root.get("@odata.nextLink") != null) {
+			String nextUrl = (String) root.get("@odata.nextLink");
+			URL url = new URL(nextUrl);
+			String uri = new StringBuilder().append(url.getPath()).append("?").append(url.getQuery()).toString();
+			uri = uri.substring(5);
+			json = this.callWS(con, uri);
+			root = (JSONObject) new JSONParser().parse(json);
+			loadAllGroups(groups, root);
+		}
+		
+		return groups;
+	}
+
+	private void loadAllGroups(HashMap<String, String> groups, JSONObject root) {
 		JSONArray value = (JSONArray) root.get("value");
 		for (Object o : value) {
 			JSONObject group = (JSONObject) o;
@@ -407,8 +423,6 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 			String name = (String) group.get("displayName");
 			groups.put(name, id);
 		}
-		
-		return groups;
 	}
 	
 	private Object getValue(Attribute attr) {
@@ -825,27 +839,30 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 		put.setEntity(str);
 		
 		HttpResponse resp = con.getHttp().execute(put);
-		put.abort();
-		if (resp.getStatusLine().getStatusCode() != 204) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("url : '" + uri + "'");
-				logger.debug("Response Code : " + resp.getStatusLine().getStatusCode());
-				logger.debug(json);
-			}
-			
-			if (resp.getStatusLine().getStatusCode() == 401) {
-				if (callNumber == 1) {
-					throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
-				} else {
-					loadCredentials();
-					this.callWSPostJsonNoReesponseExpected(con, uri, json, callNumber + 1);
+		try {
+			if (resp.getStatusLine().getStatusCode() != 204) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("url : '" + uri + "'");
+					logger.debug("Response Code : " + resp.getStatusLine().getStatusCode());
+					logger.debug(json);
 				}
 				
-			} else {
-				throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
+				if (resp.getStatusLine().getStatusCode() == 401) {
+					if (callNumber == 1) {
+						throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
+					} else {
+						loadCredentials();
+						this.callWSPostJsonNoReesponseExpected(con, uri, json, callNumber + 1);
+					}
+					
+				} else {
+					throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
+				}
+				
+				
 			}
-			
-			
+		} finally {
+			put.abort();
 		}
 		
 		
