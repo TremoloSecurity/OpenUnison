@@ -15,18 +15,37 @@ limitations under the License.
  -->
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"
-	import="java.util.*,com.tremolosecurity.proxy.auth.*,com.tremolosecurity.proxy.util.*,com.tremolosecurity.config.util.*,com.tremolosecurity.proxy.auth.util.*"%>
+	import="java.util.*,com.tremolosecurity.idp.providers.*,com.tremolosecurity.proxy.auth.*,com.tremolosecurity.proxy.util.*,com.tremolosecurity.config.util.*,com.tremolosecurity.proxy.auth.util.*"%>
 <!DOCTYPE html>
 <html lang="en">
 <% 
+RequestHolder reqHolder = (RequestHolder) session.getAttribute(LoginService.ORIG_REQ_HOLDER);
+String targetURL = "";
+String authURL = "/auth/forms/";
+
+if (request.getSession().getAttribute(Saml2Idp.SAML2_AUTHN_REQ_URL) != null) {
+	targetURL = session.getAttribute(Saml2Idp.SAML2_AUTHN_REQ_URL).toString();	
+} else {
+
+	
+
+	if (reqHolder != null) {
+		ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
+AuthController au = (AuthController) session.getAttribute(ProxyConstants.AUTH_CTL);
+au.setHolder(reqHolder);
+targetURL =  cfg.getAuthManager().getGetRedirectURL(reqHolder).toString();
+authURL = cfg.getAuthFormsPath();
+	}
+}
+
+
 		
-		RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
 		String auth = "/auth/forms/";
-		String targetURL = "";
+		
 		
 		if (reqHolder != null) {
 			ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
-			targetURL =  cfg.getAuthManager().getGetRedirectURL(reqHolder).toString();
+		
 			auth = cfg.getAuthFormsPath();
 		}	
 		
