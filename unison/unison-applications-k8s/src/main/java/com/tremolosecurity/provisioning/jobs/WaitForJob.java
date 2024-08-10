@@ -28,7 +28,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.quartz.JobExecutionContext;
 
-import com.cedarsoftware.util.io.JsonReader;
+
 import com.google.gson.Gson;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
@@ -43,6 +43,7 @@ import com.tremolosecurity.provisioning.tasks.dataobj.WaitForState;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.unison.openshiftv3.OpenShiftTarget;
+import com.tremolosecurity.util.JsonTools;
 
 public class WaitForJob extends UnisonJob {
 	
@@ -99,7 +100,7 @@ public class WaitForJob extends UnisonJob {
 					String jsonDecr = new String(cipher.doFinal(encBytes));
 					
 					
-					WaitForState wfs = (WaitForState) JsonReader.jsonToJava(jsonDecr);
+					WaitForState wfs = (WaitForState) JsonTools.readObjectFromJson(jsonDecr);
 					
 					ProvisioningTarget checkTarget = configManager.getProvisioningEngine().getTarget(wfs.getTarget());
 					if (checkTarget == null) {
@@ -170,7 +171,7 @@ public class WaitForJob extends UnisonJob {
 								logger.info(String.format("All conditions met for %s",waitForName));
 								
 								
-								Workflow wf = (Workflow) JsonReader.jsonToJava(new String(Base64.getDecoder().decode(wfs.getBase64Workflow())));
+								Workflow wf = (Workflow)  JsonTools.readObjectFromJson(new String(Base64.getDecoder().decode(wfs.getBase64Workflow())));
 								
 								
 								

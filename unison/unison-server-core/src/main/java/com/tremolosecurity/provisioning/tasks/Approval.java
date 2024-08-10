@@ -44,7 +44,7 @@ import org.hibernate.Session;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.joda.time.DateTime;
 
-import com.cedarsoftware.util.io.JsonWriter;
+
 import com.google.gson.Gson;
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
@@ -74,6 +74,7 @@ import com.tremolosecurity.proxy.az.AzRule;
 import com.tremolosecurity.proxy.az.CustomAuthorization;
 import com.tremolosecurity.proxy.az.VerifyEscalation;
 import com.tremolosecurity.server.GlobalEntries;
+import com.tremolosecurity.util.JsonTools;
 import com.tremolosecurity.proxy.az.AzRule.ScopeType;
 
 public class Approval extends WorkflowTaskImpl implements Serializable {
@@ -394,7 +395,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				Gson gson = new Gson();
 				String json = "";
 				synchronized (this.getWorkflow()) {
-					json = JsonWriter.objectToJson(this.getWorkflow());
+					json =  JsonTools.writeObjectToJson(this.getWorkflow());
 				}
 				
 				

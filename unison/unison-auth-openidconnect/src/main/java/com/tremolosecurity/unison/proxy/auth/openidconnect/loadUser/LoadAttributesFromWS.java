@@ -35,6 +35,7 @@ import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.unison.proxy.auth.openidconnect.OidcIdpUrls;
 import com.tremolosecurity.unison.proxy.auth.openidconnect.OpenIDConnectAuthMech;
 import com.tremolosecurity.unison.proxy.auth.openidconnect.sdk.LoadUserData;
+import com.tremolosecurity.util.JsonTools;
 
 public class LoadAttributesFromWS implements LoadUserData {
 
@@ -82,7 +83,7 @@ public class LoadAttributesFromWS implements LoadUserData {
 		httpResp.close();
 		bhcm.close();
 		
-		Map jwtNVP = com.cedarsoftware.util.io.JsonReader.jsonToMaps(token.toString());
+		Map jwtNVP =  JsonTools.jsonToMap(token.toString());
 		
 		return jwtNVP;
 		

@@ -27,7 +27,7 @@ import javax.crypto.Cipher;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import com.cedarsoftware.util.io.JsonWriter;
+
 import com.google.gson.Gson;
 import com.tremolosecurity.json.Token;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
@@ -40,6 +40,7 @@ import com.tremolosecurity.provisioning.util.CustomTask;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.unison.openshiftv3.OpenShiftTarget;
+import com.tremolosecurity.util.JsonTools;
 
 import net.bytebuddy.asm.Advice.This;
 
@@ -128,7 +129,7 @@ public class WaitForStatus implements CustomTask {
 			
 			String json = "";
 			synchronized (this.task.getWorkflow()) {
-				json = JsonWriter.objectToJson(this.task.getWorkflow());
+				json =  JsonTools.writeObjectToJson(this.task.getWorkflow());
 			}
 			
 			try {
@@ -137,7 +138,7 @@ public class WaitForStatus implements CustomTask {
 				throw new ProvisioningException("Could not encode workflow",e);
 			}
 			
-			json = JsonWriter.objectToJson(state);
+			json =  JsonTools.writeObjectToJson(state);
 			String encodedToken = "";
 			try {
 				Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");

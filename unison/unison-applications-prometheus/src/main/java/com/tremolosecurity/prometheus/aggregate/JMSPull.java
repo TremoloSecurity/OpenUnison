@@ -16,8 +16,7 @@ limitations under the License.
 
 package com.tremolosecurity.prometheus.aggregate;
 
-import com.cedarsoftware.util.io.JsonReader;
-import com.cedarsoftware.util.io.JsonWriter;
+
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.prometheus.sdk.AdditionalMetrics;
 import com.tremolosecurity.prometheus.util.CloseSession;
@@ -30,6 +29,7 @@ import com.tremolosecurity.proxy.filter.HttpFilterConfig;
 import com.tremolosecurity.proxy.filter.HttpFilterRequest;
 import com.tremolosecurity.proxy.filter.HttpFilterResponse;
 import com.tremolosecurity.server.StopableThread;
+import com.tremolosecurity.util.JsonTools;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -101,7 +101,7 @@ public class JMSPull implements HttpFilter {
             
             PullRequest pullRequest = new PullRequest();
             
-            TextMessage tm = this.reqSession.getSession().createTextMessage(JsonWriter.objectToJson(pullRequest));
+            TextMessage tm = this.reqSession.getSession().createTextMessage(JsonTools.writeObjectToJson(pullRequest) );
             tm.setStringProperty("JMSXGroupID", "unison-prometheus-request");
             this.reqSession.getMessageProduceer().send(tm);
             
@@ -116,7 +116,7 @@ public class JMSPull implements HttpFilter {
                 
                 
 
-                pullResponse = (PullResponse) JsonReader.jsonToJava(tm.getText());
+                pullResponse = (PullResponse) JsonTools.readObjectFromJson(tm.getText());
                 found = pullResponse.getId().equals(pullRequest.getId());
 
                 if (! found) {

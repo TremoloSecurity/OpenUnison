@@ -16,7 +16,7 @@ limitations under the License.
 
 package com.tremolosecurity.prometheus.aggregate;
 
-import com.cedarsoftware.util.io.JsonWriter;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.tremolosecurity.config.util.ConfigManager;
@@ -29,6 +29,7 @@ import com.tremolosecurity.provisioning.core.UnisonMessageListener;
 import com.tremolosecurity.provisioning.jms.JMSConnectionFactory;
 import com.tremolosecurity.provisioning.jms.JMSSessionHolder;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.util.JsonTools;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -139,7 +140,7 @@ public class PullListener extends UnisonMessageListener {
             
            synchronized (this.jmsSession) {
         	   logger.debug("creating and sending message");
-               TextMessage tm = this.jmsSession.getSession().createTextMessage(JsonWriter.objectToJson(pullResponse));
+               TextMessage tm = this.jmsSession.getSession().createTextMessage( JsonTools.writeObjectToJson(pullResponse));
                tm.setStringProperty("JMSXGroupID", "unison-prometheus-response");
                this.jmsSession.getMessageProduceer().send(tm);
                logger.debug("sent");

@@ -25,6 +25,7 @@ import org.apache.logging.log4j.Logger;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.unison.proxy.auth.openidconnect.sdk.LoadUserData;
+import com.tremolosecurity.util.JsonTools;
 
 public class LoadJWTFromAccessToken implements LoadUserData {
 
@@ -57,7 +58,7 @@ public class LoadJWTFromAccessToken implements LoadUserData {
 			logger.info("json : '" + json + "'");
 		}
 		
-		jwtNVP = com.cedarsoftware.util.io.JsonReader.jsonToMaps(json);
+		jwtNVP = JsonTools.jsonToMap(json);
 
 			
 		

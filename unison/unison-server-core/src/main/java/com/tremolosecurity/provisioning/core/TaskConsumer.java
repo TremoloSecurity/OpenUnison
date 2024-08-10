@@ -35,13 +35,14 @@ import javax.jms.TextMessage;
 import org.apache.logging.log4j.Logger;
 import org.apache.qpid.jms.message.JmsMessage;
 
-import com.cedarsoftware.util.io.JsonReader;
+
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.tasks.CallWorkflow;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
 
 import com.tremolosecurity.provisioning.util.TaskHolder;
 import com.tremolosecurity.server.GlobalEntries;
+import com.tremolosecurity.util.JsonTools;
 
 public class TaskConsumer implements MessageListener {
 	
@@ -89,7 +90,7 @@ public class TaskConsumer implements MessageListener {
 			
 			
 			
-			EncryptedMessage encMsg = (EncryptedMessage) JsonReader.jsonToJava(json);
+			EncryptedMessage encMsg = (EncryptedMessage) JsonTools.readObjectFromJson(json);
 			
 			
 			wfHolder = (WorkflowHolder) this.prov.decryptObject(encMsg);

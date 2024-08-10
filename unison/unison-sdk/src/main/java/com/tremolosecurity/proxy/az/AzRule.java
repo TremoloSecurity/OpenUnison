@@ -17,6 +17,7 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.az;
 
+import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,11 +27,11 @@ import java.util.UUID;
 
 import org.apache.logging.log4j.Logger;
 
-import com.cedarsoftware.util.io.JsonReader;
-import com.cedarsoftware.util.io.JsonWriter;
+
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.Workflow;
+import com.tremolosecurity.util.JsonTools;
 
 
 
@@ -91,8 +92,10 @@ public class AzRule  {
 				caz = new AlwaysFail();
 			}
 			
-			String json = JsonWriter.objectToJson(caz);
-			this.customAz = (CustomAuthorization) JsonReader.jsonToJava(json);
+			
+			String json = JsonTools.writeObjectToJson(caz);
+			
+			this.customAz = (CustomAuthorization) JsonTools.readObjectFromJson(json);
 			
 			synchronized (customRules) {
 				Set<AzRule> azRules = customRules.get(constraint);
@@ -166,8 +169,8 @@ public class AzRule  {
 		
 		for (AzRule rule : azRules) {
 			synchronized (rule) {
-				String json = JsonWriter.objectToJson(caz);
-				CustomAuthorization newCazInstance = (CustomAuthorization) JsonReader.jsonToJava(json);
+				String json = JsonTools.writeObjectToJson(caz);
+				CustomAuthorization newCazInstance = (CustomAuthorization) JsonTools.readObjectFromJson(json);
 				try {
 					newCazInstance.setWorkflow(rule.getCustomAuthorization().getWorkflow());
 				} catch (AzException e) {

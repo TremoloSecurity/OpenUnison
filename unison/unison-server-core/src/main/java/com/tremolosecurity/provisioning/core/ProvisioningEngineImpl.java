@@ -126,9 +126,7 @@ import org.quartz.impl.SchedulerRepository;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.impl.matchers.GroupMatcher;
 
-import com.cedarsoftware.util.io.JsonReader;
-import com.cedarsoftware.util.io.JsonWriter;
-import com.cedarsoftware.util.io.ReadOptionsBuilder;
+
 
 import com.google.gson.Gson;
 import com.novell.ldap.LDAPAttribute;
@@ -191,6 +189,7 @@ import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.server.StopableThread;
+import com.tremolosecurity.util.JsonTools;
 
 
 /**
@@ -1116,8 +1115,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 		wf = (WorkflowImpl) JsonReader.toObjects(json);*/
 		
-		String json = JsonWriter.objectToJson(wf);
-		wf = (WorkflowImpl) JsonReader.jsonToJava(json);
+		String json = JsonTools.writeObjectToJson(wf);
+		wf = (WorkflowImpl) JsonTools.readObjectFromJson(json);
 		
 		wf.reInit(this.cfgMgr);
 		return wf;
@@ -1273,7 +1272,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			String jsonDecr = new String(cipher.doFinal(encBytes));
 			
 			
-			Workflow wf = (Workflow) JsonReader.jsonToJava(jsonDecr);
+			Workflow wf = (Workflow)  JsonTools.readObjectFromJson(jsonDecr);
 			
 			Approval approval = (Approval) wf.findCurrentApprovalTask();
 			
@@ -1795,7 +1794,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				
 				EncryptedMessage encMsg = this.encryptObject(wfHolder);
 				
-				String json = JsonWriter.objectToJson(encMsg);
+				String json = JsonTools.writeObjectToJson(encMsg);
 				
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				DeflaterOutputStream compressor  = new DeflaterOutputStream(baos,new Deflater(Deflater.BEST_COMPRESSION,true));
@@ -1916,7 +1915,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 		
 		try {
-			String json = JsonWriter.objectToJson(o);
+			String json = JsonTools.writeObjectToJson(o);
 			
 			byte[] encoded = json.getBytes("UTF-8");
 			EncryptedMessage msg = new EncryptedMessage();
@@ -1949,7 +1948,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			byte[] bytes = cipher.doFinal(msg.getMsg());
 			
 			
-			return JsonReader.jsonToJava(new String(bytes,"UTF-8"));
+			return JsonTools.readObjectFromJson(new String(bytes,"UTF-8"));
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException | UnsupportedEncodingException  e) {
 			throw new ProvisioningException("Could not decrypt message",e);
 		}

@@ -91,7 +91,8 @@ import com.webauthn4j.data.extension.client.RegistrationExtensionClientInput;
 import com.webauthn4j.server.ServerProperty;
 import com.webauthn4j.util.Base64UrlUtil;
 import com.webauthn4j.util.exception.WebAuthnException;
-import com.webauthn4j.validator.exception.ValidationException;
+
+import com.webauthn4j.verifier.exception.VerificationException;
 
 public class WebAuthnRegistration implements HttpFilter {
 	
@@ -288,8 +289,8 @@ public class WebAuthnRegistration implements HttpFilter {
 		    throw e;
 		}
 		try {
-		    webAuthnManager.validate(registrationData, registrationParameters);
-		} catch (ValidationException e) {
+		    webAuthnManager.verify(registrationData, registrationParameters);
+		} catch (VerificationException e) {
 		    // If you would like to handle WebAuthn data validation error, please catch ValidationException
 		    throw e;
 		}

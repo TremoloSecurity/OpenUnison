@@ -52,6 +52,7 @@ import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -411,7 +412,12 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			
 			Gson gson = new Gson();
 			
-			Map tokenNVP = com.cedarsoftware.util.io.JsonReader.jsonToMaps(token.toString());
+			JSONObject tokenNVP;
+			try {
+				tokenNVP = (JSONObject) new JSONParser().parse(token.toString());
+			} catch (ParseException e) {
+				throw new ServletException("Could not part JWT",e);
+			}
 			
 			String accessToken;
 			

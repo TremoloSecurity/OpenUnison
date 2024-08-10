@@ -26,9 +26,10 @@ import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
 
-import com.cedarsoftware.util.io.JsonReader;
+
 import org.apache.logging.log4j.Logger;
 import org.apache.qpid.jms.message.JmsMessage;
+
 
 import com.google.gson.Gson;
 import com.tremolosecurity.config.util.ConfigManager;
@@ -37,6 +38,7 @@ import com.tremolosecurity.provisioning.util.EncryptedMessage;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
+import com.tremolosecurity.util.JsonTools;
 
 public abstract class UnisonMessageListener implements MessageListener {
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonMessageListener.class.getName());
@@ -75,7 +77,7 @@ public abstract class UnisonMessageListener implements MessageListener {
 				EncryptedMessage em = gson.fromJson(smsg.getText(), EncryptedMessage.class);
 				obj = cfgMgr.getProvisioningEngine().decryptObject(em);
 			} else {
-				obj = JsonReader.jsonToJava(smsg.getText());
+				obj =  JsonTools.readObjectFromJson(smsg.getText());
 			}
 			
 			this.onMessage(cfgMgr,obj,msg);

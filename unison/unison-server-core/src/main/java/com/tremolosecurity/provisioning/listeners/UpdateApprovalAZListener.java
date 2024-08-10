@@ -46,8 +46,7 @@ import javax.jms.ObjectMessage;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 
-import com.cedarsoftware.util.io.JsonReader;
-import com.cedarsoftware.util.io.JsonWriter;
+
 import com.google.gson.Gson;
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
@@ -66,6 +65,7 @@ import com.tremolosecurity.provisioning.objects.Approvals;
 import com.tremolosecurity.provisioning.tasks.Approval;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
+import com.tremolosecurity.util.JsonTools;
 
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
@@ -126,7 +126,7 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 		byte[] encBytes = org.bouncycastle.util.encoders.Base64.decode(token.getEncryptedRequest());
 		
 		String json = new String(cipher.doFinal(encBytes));
-		Workflow wf = (Workflow) JsonReader.jsonToJava(json);
+		Workflow wf = (Workflow) JsonTools.readObjectFromJson(json);
 		
 		Approval approval = (Approval) wf.findCurrentApprovalTask();
 		
@@ -162,7 +162,7 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 		approval.updateAllowedApprovals(session,cfg,wf.getRequest(),objToSave);
 		
 		//need to write the approval back to the db
-		json = JsonWriter.objectToJson(wf);
+		json = JsonTools.writeObjectToJson(wf);
 		
 		
 		cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");

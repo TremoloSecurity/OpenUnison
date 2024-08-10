@@ -76,7 +76,8 @@ import com.webauthn4j.data.client.challenge.DefaultChallenge;
 import com.webauthn4j.server.ServerProperty;
 import com.webauthn4j.util.Base64UrlUtil;
 import com.webauthn4j.util.Base64Util;
-import com.webauthn4j.validator.exception.ValidationException;
+
+import com.webauthn4j.verifier.exception.VerificationException;
 
 import edu.emory.mathcs.backport.java.util.Arrays;
 
@@ -428,8 +429,8 @@ public class WebAuthn implements AuthMechanism {
 			}
 
 			try {
-				webAuthnManager.validate(authenticationData, authenticationParameters);
-			} catch (ValidationException e) {
+				webAuthnManager.verify(authenticationData, authenticationParameters);
+			} catch (VerificationException e) {
 				StringBuilder sb = new StringBuilder();
 				sb.append("User '").append(userData.getUserDN())
 						.append("' could not validate authentication data with credential '")
@@ -696,8 +697,8 @@ public class WebAuthn implements AuthMechanism {
 			}
 
 			try {
-				webAuthnManager.validate(authenticationData, authenticationParameters);
-			} catch (ValidationException e) {
+				webAuthnManager.verify(authenticationData, authenticationParameters);
+			} catch (VerificationException e) {
 				StringBuilder sb = new StringBuilder();
 				sb.append("User '").append(userData.getUserDN())
 						.append("' could not validate authentication data with credential '")

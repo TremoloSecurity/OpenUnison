@@ -34,7 +34,7 @@ import org.apache.logging.log4j.Logger;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
 
-import com.cedarsoftware.util.io.JsonReader;
+
 import com.google.gson.Gson;
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
@@ -48,6 +48,7 @@ import com.tremolosecurity.provisioning.objects.Approvals;
 import com.tremolosecurity.provisioning.objects.UserAttributes;
 import com.tremolosecurity.provisioning.objects.Workflows;
 import com.tremolosecurity.server.GlobalEntries;
+import com.tremolosecurity.util.JsonTools;
 
 public class ServiceActions {
 	
@@ -222,7 +223,7 @@ public class ServiceActions {
 			
 			
 			
-			Workflow wf = (Workflow) JsonReader.jsonToJava(json);
+			Workflow wf = (Workflow)  JsonTools.readObjectFromJson(json);
 			
 			sum.setUserObj(wf.getUser());
 			sum.setRequestAttributes(new HashMap<String,String>());

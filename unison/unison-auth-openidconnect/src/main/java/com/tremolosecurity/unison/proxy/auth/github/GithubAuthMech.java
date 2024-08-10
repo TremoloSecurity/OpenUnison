@@ -80,6 +80,7 @@ import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.unison.proxy.auth.openidconnect.sdk.LoadUserData;
+import com.tremolosecurity.util.JsonTools;
 
 
 
@@ -270,7 +271,7 @@ public class GithubAuthMech implements AuthMechanism {
 				
 				
 				
-				Map jwtNVP = com.cedarsoftware.util.io.JsonReader.jsonToMaps(token.toString());;
+				Map jwtNVP =  JsonTools.jsonToMap(token.toString());
 				
 				
 				
