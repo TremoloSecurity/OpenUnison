@@ -101,6 +101,8 @@ import org.xml.sax.InputSource;
 import com.tremolosecurity.proxy.util.OpenSAMLUtils;
 import com.tremolosecurity.proxy.util.ProxyTools;
 
+import net.shibboleth.shared.xml.SerializeSupport;
+
 
 
 public  class Saml2Assertion {
@@ -357,7 +359,7 @@ public  class Saml2Assertion {
 		// Marshall the Subject
 		Element responseElement = marshaller.marshall(r);
 		
-		return net.shibboleth.utilities.java.support.xml.SerializeSupport.nodeToString(responseElement);
+		return SerializeSupport.nodeToString(responseElement);
 
 		
 		

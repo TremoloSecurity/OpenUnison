@@ -30,6 +30,8 @@ import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.config.xml.TrustType;
 import com.tremolosecurity.proxy.util.OpenSAMLUtils;
 
+import net.shibboleth.shared.xml.SerializeSupport;
+
 import org.apache.commons.codec.binary.Hex;
 import org.opensaml.core.config.InitializationService;
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
@@ -221,7 +223,7 @@ public class Saml2Metadata {
 		
 		
 
-		String metadata = net.shibboleth.utilities.java.support.xml.SerializeSupport.nodeToString(assertionElement);
+		String metadata = SerializeSupport.nodeToString(assertionElement);
 		
 		if (excludens) {
 			metadata = metadata.replaceAll("md:", "").replaceAll("ds:", "");

@@ -67,6 +67,8 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.PropertyException;
 import jakarta.xml.bind.Unmarshaller;
+import net.shibboleth.shared.xml.SerializeSupport;
+
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -475,7 +477,7 @@ public class OpenUnisonUtils {
 		
 		for (String nidf : nameids) {
 			NameIDFormat nif = nifb.buildObject();
-			nif.setFormat(nidf);
+			nif.setURI(nidf);
 			sd.getNameIDFormats().add(nif);
 		}
 		
@@ -520,7 +522,7 @@ public class OpenUnisonUtils {
 		
 		
 
-		logger.info(net.shibboleth.utilities.java.support.xml.SerializeSupport.nodeToString(assertionElement));
+		logger.info(SerializeSupport.nodeToString(assertionElement));
 	}
 
 	private static void importIdpMetadata(Options options, CommandLine cmd, String unisonXMLFile, TremoloType ttRead,
@@ -610,7 +612,7 @@ public class OpenUnisonUtils {
 				
 				pt = new ParamType();
 				pt.setName("defaultNameId");
-				pt.setValue(nameid.getFormat());
+				pt.setValue(nameid.getURI());
 				trust.getParam().add(pt);
 				
 				
@@ -619,7 +621,7 @@ public class OpenUnisonUtils {
 			
 			pt = new ParamType();
 			pt.setName("nameIdMap");
-			pt.setValue(nameid.getFormat() + "=");
+			pt.setValue(nameid.getURI() + "=");
 			trust.getParam().add(pt);
 		}
 		
@@ -887,7 +889,7 @@ public class OpenUnisonUtils {
 		// Marshall the Subject
 		Element assertionElement = marshaller.marshall(ed);
 
-		String xml = net.shibboleth.utilities.java.support.xml.SerializeSupport.prettyPrintXML(assertionElement);
+		String xml = SerializeSupport.prettyPrintXML(assertionElement);
 		
 		logger.info(xml);
 	}

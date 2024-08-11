@@ -60,6 +60,8 @@ import com.tremolosecurity.config.xml.TrustType;
 import com.tremolosecurity.proxy.util.OpenSAMLUtils;
 import com.tremolosecurity.server.GlobalEntries;
 
+import net.shibboleth.shared.xml.SerializeSupport;
+
 public class Saml2MetadataUtils {
 	public static String generateIdpMetadata(String idpName,String baseURL) throws Exception {
 		InitializationService.initialize();
@@ -173,7 +175,9 @@ public class Saml2MetadataUtils {
 		
 		for (String nidf : nameids) {
 			NameIDFormat nif = nifb.buildObject();
-			nif.setFormat(nidf);
+			
+			
+			nif.setURI(nidf);
 			sd.getNameIDFormats().add(nif);
 		}
 		
@@ -199,6 +203,6 @@ public class Saml2MetadataUtils {
 		
 		
 
-		return net.shibboleth.utilities.java.support.xml.SerializeSupport.nodeToString(assertionElement);
+		return SerializeSupport.nodeToString(assertionElement);
 	}
 }
