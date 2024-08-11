@@ -64,6 +64,7 @@ import com.tremolosecurity.proxy.filters.WebAuthnRegistration;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
+import com.tremolosecurity.util.JsonTools;
 import com.webauthn4j.WebAuthnManager;
 import com.webauthn4j.authenticator.Authenticator;
 import com.webauthn4j.converter.exception.DataConversionException;
@@ -184,22 +185,7 @@ public class WebAuthn implements AuthMechanism {
 				ServerProperty serverProperty = new ServerProperty(new Origin(request.getRequestURL().toString()),
 						WebAuthnRegistration.getRpId(request), challenge, null);
 
-				ByteArrayOutputStream bos = new ByteArrayOutputStream();
-				ObjectOutputStream out = null;
-				byte[] yourBytes = null;
-				try {
-					out = new ObjectOutputStream(bos);
-					out.writeObject(serverProperty);
-					out.flush();
-					yourBytes = bos.toByteArray();
-
-				} finally {
-					try {
-						bos.close();
-					} catch (IOException ex) {
-						// ignore close exception
-					}
-				}
+				byte[] yourBytes = JsonTools.writeObjectToJson(serverProperty).getBytes("UTF-8");
 
 				resp.put("serverProperty", java.util.Base64.getUrlEncoder().encodeToString(yourBytes));
 
@@ -280,15 +266,9 @@ public class WebAuthn implements AuthMechanism {
 			webauthnResp = (JSONObject) authResponse.get("webauthnResponse");
 			
 			
-			ByteArrayInputStream bais = new ByteArrayInputStream(
-					Base64UrlUtil.decode((String) authResponse.get("serverProperty")));
-			ObjectInputStream ois = new ObjectInputStream(bais);
-			ServerProperty serverProperty = null;
-			try {
-				serverProperty = (ServerProperty) ois.readObject();
-			} catch (ClassNotFoundException | IOException e) {
-				throw new ServletException(e);
-			}
+			String jsonServerProperty = new String(Base64UrlUtil.decode((String) authResponse.get("serverProperty")));
+			ServerProperty serverProperty = (ServerProperty) JsonTools.readObjectFromJson(jsonServerProperty);
+			
 			
 			
 			
@@ -594,15 +574,12 @@ public class WebAuthn implements AuthMechanism {
 			}
 		} else {
 
-			ByteArrayInputStream bais = new ByteArrayInputStream(
-					Base64UrlUtil.decode((String) request.getParameter("serverProperty")));
-			ObjectInputStream ois = new ObjectInputStream(bais);
-			ServerProperty serverProperty = null;
-			try {
-				serverProperty = (ServerProperty) ois.readObject();
-			} catch (ClassNotFoundException | IOException e) {
-				throw new ServletException(e);
-			}
+			
+			
+		
+			
+			ServerProperty serverProperty = (ServerProperty) JsonTools.readObjectFromJson(new String(Base64UrlUtil.decode((String) request.getParameter("serverProperty"))));
+			
 
 			String attributeName = authParams.get("attribute").getValues().get(0);
 			String encryptionKeyName = authParams.get("encryptionKeyName").getValues().get(0);

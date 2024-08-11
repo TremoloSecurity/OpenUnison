@@ -63,6 +63,7 @@ import com.tremolosecurity.proxy.filter.HttpFilterResponse;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
+import com.tremolosecurity.util.JsonTools;
 import com.webauthn4j.WebAuthnManager;
 import com.webauthn4j.authenticator.Authenticator;
 import com.webauthn4j.authenticator.AuthenticatorImpl;
@@ -155,22 +156,14 @@ public class WebAuthnRegistration implements HttpFilter {
 		        
 		        ServerProperty serverProperty = new ServerProperty(new Origin(request.getRequestURL().toString()), rpId, challenge, webAuthnUserData.getId());
 		        
-		        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		        ObjectOutputStream out = null;
-		        byte[] yourBytes = null;
-		        try {
-		          out = new ObjectOutputStream(bos);   
-		          out.writeObject(serverProperty);
-		          out.flush();
-		          yourBytes = bos.toByteArray();
-		          
-		        } finally {
-		          try {
-		            bos.close();
-		          } catch (IOException ex) {
-		            // ignore close exception
-		          }
-		        }
+		        
+		        
+		        
+		        
+		        byte[] yourBytes = JsonTools.writeObjectToJson(serverProperty).getBytes("UTF-8");
+		        
+		        
+		        
 		        
 		        request.getSession().setAttribute("tremolo.io/webauthn/serverProperty", serverProperty);
 		        
@@ -263,9 +256,10 @@ public class WebAuthnRegistration implements HttpFilter {
 			throw new WebAuthnException("Label required");
 		}
 		
-		ByteArrayInputStream bais = new ByteArrayInputStream(Base64.getUrlDecoder().decode((String) root.get("serverProperty")));
-		ObjectInputStream ois = new ObjectInputStream(bais);
-		ServerProperty serverProperty = (ServerProperty) ois.readObject();
+		
+		String jsonServerProperty = new String(Base64.getUrlDecoder().decode((String) root.get("serverProperty")));
+		
+		ServerProperty serverProperty = (ServerProperty) JsonTools.readObjectFromJson(jsonServerProperty);
 		
 		
 		byte[] attestationObject = Base64.getUrlDecoder().decode((String) root.get("attestationObject"));

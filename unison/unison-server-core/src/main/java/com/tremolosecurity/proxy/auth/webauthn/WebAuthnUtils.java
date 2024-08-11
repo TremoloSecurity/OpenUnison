@@ -61,8 +61,6 @@ public class WebAuthnUtils {
 	
 	public static void storeWebAuthnUserData(WebAuthnUserData webAuthnUserData,String encryptionKeyName,AuthInfo userData,String workflowName,String uidAttributeName,String challengeStoreAttribute,String credentialIdAttribute,OpenUnisonAuthenticator newAuthentictor) throws Exception {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ObjectOutputStream oos = new ObjectOutputStream(baos);
-		oos.writeObject(webAuthnUserData);
 		
 		
 		
