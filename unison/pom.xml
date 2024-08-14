@@ -85,7 +85,7 @@
 	  	<snakeyaml.version>2.2</snakeyaml.version>
 	  	<prometheus.version>0.16.0</prometheus.version>
 	  	<ibm-mq.version>9.4.0.0</ibm-mq.version>
-	  	<okta.version>18.0.0</okta.version>
+	  	<okta.version>17.0.0</okta.version>
 	  	<azure-auth.version>1.16.2</azure-auth.version>
 	  	<cryptacular.version>1.2.6</cryptacular.version>
 	  	<santuario-xmlsec.version>4.0.2</santuario-xmlsec.version>
