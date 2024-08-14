@@ -247,6 +247,18 @@
 			<groupId>org.apache.qpid</groupId>
 			<artifactId>qpid-jms-client</artifactId>
 			<version>${qpid.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-codec-http</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-codec-http</artifactId>
+			<version>${netty-common.version}</version>
 		</dependency>
 		
 		<dependency>
