@@ -22,12 +22,12 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashMap;
 
-import javax.jms.Connection;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.Queue;
-import javax.jms.Session;
+import jakarta.jms.Connection;
+import jakarta.jms.Message;
+import jakarta.jms.MessageConsumer;
+import jakarta.jms.MessageProducer;
+import jakarta.jms.Queue;
+import jakarta.jms.Session;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
@@ -144,7 +144,7 @@ public class BrokerHolder {
 	private void initDLQ() throws Exception {
 		if (this.qs == null) { 
 			try {
-				javax.jms.Connection con;
+				jakarta.jms.Connection con;
 				
 				if (this.cfgMgr.getProvisioningEngine() == null || this.cfgMgr.getProvisioningEngine().isInternalQueue()) {
 					ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("vm://localhost/localhost");

@@ -24,9 +24,9 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.Stack;
 
-import javax.jms.JMSException;
-import javax.jms.MessageProducer;
-import javax.jms.TextMessage;
+import jakarta.jms.JMSException;
+import jakarta.jms.MessageProducer;
+import jakarta.jms.TextMessage;
 
 import org.hibernate.SessionFactory;
 import org.quartz.JobKey;
@@ -125,7 +125,7 @@ public interface ProvisioningEngine {
 	
 	
 	
-	public abstract void returnQueueConnection(javax.jms.Connection con);
+	public abstract void returnQueueConnection(jakarta.jms.Connection con);
 	
 	public abstract boolean isInternalQueue();
 
@@ -175,7 +175,7 @@ public interface ProvisioningEngine {
 
 	void removeMessageListener(String name);
 
-	void dlqMessage(javax.jms.TextMessage m);
+	void dlqMessage(jakarta.jms.TextMessage m);
 
 	void reEnQueue(TextMessage tm, int numOfTries,JMSSessionHolder session);
 	

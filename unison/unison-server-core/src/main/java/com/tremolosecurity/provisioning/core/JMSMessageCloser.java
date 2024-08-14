@@ -17,10 +17,10 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.core;
 
-import javax.jms.Connection;
-import javax.jms.JMSException;
-import javax.jms.MessageConsumer;
-import javax.jms.Session;
+import jakarta.jms.Connection;
+import jakarta.jms.JMSException;
+import jakarta.jms.MessageConsumer;
+import jakarta.jms.Session;
 
 import org.apache.logging.log4j.Logger;
 

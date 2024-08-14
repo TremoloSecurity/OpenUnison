@@ -71,13 +71,13 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageListener;
-import javax.jms.MessageProducer;
-import javax.jms.ObjectMessage;
-import javax.jms.TextMessage;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.JMSException;
+import jakarta.jms.MessageConsumer;
+import jakarta.jms.MessageListener;
+import jakarta.jms.MessageProducer;
+import jakarta.jms.ObjectMessage;
+import jakarta.jms.TextMessage;
 import javax.mail.Authenticator;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -246,19 +246,19 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 
 
 
-	private javax.jms.Connection qcon;
+	private jakarta.jms.Connection qcon;
 
 
 
 
 
-	private javax.jms.Session taskSession;
+	private jakarta.jms.Session taskSession;
 
 
 
 
 
-	private javax.jms.Queue taskQueue;
+	private jakarta.jms.Queue taskQueue;
 
 
 
@@ -1699,7 +1699,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	}
 	
 	@Override
-	public void dlqMessage(javax.jms.TextMessage m) {
+	public void dlqMessage(jakarta.jms.TextMessage m) {
 		TextMessage newMessage = null;
 		try {
 			synchronized (this.dlqProducer.getSession()) {
@@ -1737,7 +1737,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		if (this.isInternalQueue()) {
 			if (this.qcon != null) {
 				try {
-					javax.jms.Connection con = qcon;
+					jakarta.jms.Connection con = qcon;
 					this.qcon = null;
 					con.close();
 				} catch (JMSException e) {
@@ -1823,7 +1823,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	}
 
 	@Override
-	public void returnQueueConnection(javax.jms.Connection con) {
+	public void returnQueueConnection(jakarta.jms.Connection con) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -2565,7 +2565,7 @@ class SendMessageThread implements MessageListener {
 
 
 	@Override
-	public void onMessage(javax.jms.Message msg) {
+	public void onMessage(jakarta.jms.Message msg) {
 		TextMessage fromq = (TextMessage) msg;
 		
 		

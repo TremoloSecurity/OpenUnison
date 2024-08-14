@@ -20,7 +20,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 
-import javax.jms.*;
+import jakarta.jms.*;
 
 import com.tremolosecurity.provisioning.scheduler.jobs.util.DisposeConnection;
 import org.apache.logging.log4j.Logger;

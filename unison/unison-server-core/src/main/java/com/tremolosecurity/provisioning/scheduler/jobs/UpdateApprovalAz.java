@@ -36,7 +36,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import javax.jms.*;
+import jakarta.jms.*;
 
 import com.tremolosecurity.provisioning.scheduler.jobs.util.DisposeConnection;
 import org.hibernate.query.Query;

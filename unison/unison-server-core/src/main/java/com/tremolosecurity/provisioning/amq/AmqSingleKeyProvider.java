@@ -22,8 +22,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 
-import javax.jms.JMSContext;
-import javax.jms.JMSException;
+import jakarta.jms.JMSContext;
+import jakarta.jms.JMSException;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;

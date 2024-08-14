@@ -35,8 +35,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
+import jakarta.jms.JMSException;
+import jakarta.jms.TextMessage;
 
 import org.apache.commons.net.util.Base64;
 import org.apache.http.Consts;

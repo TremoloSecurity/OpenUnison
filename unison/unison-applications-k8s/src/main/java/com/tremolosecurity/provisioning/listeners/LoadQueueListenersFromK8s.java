@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import javax.jms.JMSException;
+import jakarta.jms.JMSException;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;

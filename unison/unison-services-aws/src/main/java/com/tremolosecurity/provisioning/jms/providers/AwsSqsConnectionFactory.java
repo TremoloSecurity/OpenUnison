@@ -17,22 +17,28 @@ limitations under the License.
 
 package com.tremolosecurity.provisioning.jms.providers;
 
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSContext;
-import javax.jms.JMSException;
+import jakarta.jms.Connection;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.JMSContext;
+import jakarta.jms.JMSException;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.SqsClientBuilder;
 
+import com.amazon.sqs.javamessaging.ProviderConfiguration;
 import com.amazon.sqs.javamessaging.SQSConnectionFactory;
-import com.amazon.sqs.javamessaging.SQSConnectionFactory.Builder;
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.internal.StaticCredentialsProvider;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 
 
 
 public class AwsSqsConnectionFactory implements ConnectionFactory {
 
-	private SQSConnectionFactory factory;
+	
 	
 	
 	String secretKey;
@@ -48,19 +54,29 @@ public class AwsSqsConnectionFactory implements ConnectionFactory {
 	
 	@Override
 	public Connection createConnection() throws JMSException {
-		Builder builder = null;
+		SQSConnectionFactory factory;
+		
+		
+		
+		SqsClientBuilder builder = SqsClient.builder();
+		
+		
 		
 		if (this.accessKey == null || this.accessKey.isEmpty()) {
-			builder = SQSConnectionFactory.builder();
+			
 		} else {
-			builder = SQSConnectionFactory.builder().withAWSCredentialsProvider(new StaticCredentialsProvider(new BasicAWSCredentials(this.accessKey,this.secretKey)));
+			
+			builder = builder.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(this.accessKey,this.secretKey)));
+			
 		}
 		
 		if (this.regionName != null && ! this.regionName.isEmpty()) {
-			builder = builder.withRegionName(regionName);
+			builder = builder.region(software.amazon.awssdk.regions.Region.of(this.regionName)); 
+					
+					
 		}
 		
-		this.factory = builder.build();
+		factory = new SQSConnectionFactory(new ProviderConfiguration(),builder.build());
 		
 		return factory.createConnection();
 	}

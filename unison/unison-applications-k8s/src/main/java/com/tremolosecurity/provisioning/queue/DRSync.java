@@ -19,7 +19,7 @@ package com.tremolosecurity.provisioning.queue;
 import java.io.IOException;
 import java.util.HashMap;
 
-import javax.jms.Message;
+import jakarta.jms.Message;
 
 import org.apache.log4j.Logger;
 

@@ -20,15 +20,15 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.UUID;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.Queue;
-import javax.jms.Session;
-import javax.jms.TextMessage;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Destination;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.MessageConsumer;
+import jakarta.jms.MessageProducer;
+import jakarta.jms.Queue;
+import jakarta.jms.Session;
+import jakarta.jms.TextMessage;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.qpid.jms.message.JmsMessage;
@@ -67,7 +67,7 @@ public class QueUtils {
 				m.invoke(cf, pt.getValue());
 			}
 
-			javax.jms.Connection con = cf.createConnection();
+			jakarta.jms.Connection con = cf.createConnection();
 			con.start();
 
 			logger.info("Connected");

@@ -18,7 +18,7 @@ package com.tremolosecurity.provisioning.listeners;
 
 import java.util.HashMap;
 
-import javax.jms.Message;
+import jakarta.jms.Message;
 
 import org.apache.log4j.Logger;
 import org.graalvm.polyglot.Context;

@@ -20,14 +20,14 @@ package com.tremolosecurity.provisioning.scheduler.jobs.util;
 import com.tremolosecurity.server.StopableThread;
 import org.apache.logging.log4j.Logger;
 
-import javax.jms.Connection;
-import javax.jms.JMSException;
+import jakarta.jms.Connection;
+import jakarta.jms.JMSException;
 
 public class DisposeConnection implements StopableThread {
 
     static Logger logger = org.apache.logging.log4j.LogManager.getLogger(DisposeConnection.class.getName());
 
-    javax.jms.Connection connection;
+    jakarta.jms.Connection connection;
 
     public DisposeConnection(Connection con) {
         this.connection = con;

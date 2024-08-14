@@ -18,7 +18,7 @@ package com.tremolosecurity.provisioning.listeners;
 
 import java.util.HashMap;
 
-import javax.jms.Message;
+import jakarta.jms.Message;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;

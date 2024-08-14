@@ -20,12 +20,12 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
+import jakarta.jms.Connection;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.JMSException;
+import jakarta.jms.MessageProducer;
+import jakarta.jms.Session;
+import jakarta.jms.TextMessage;
 
 import org.apache.logging.log4j.Logger;
 
@@ -58,9 +58,9 @@ public class JMSConnection {
 		}
 		
 		if (cf.getClass().getName().equalsIgnoreCase(JMSConnection.QPID_CON_FACTORY)) {
-			this.achknowledgementMode = javax.jms.Session.CLIENT_ACKNOWLEDGE;
+			this.achknowledgementMode = jakarta.jms.Session.CLIENT_ACKNOWLEDGE;
 		} else {
-			this.achknowledgementMode = javax.jms.Session.AUTO_ACKNOWLEDGE;
+			this.achknowledgementMode = jakarta.jms.Session.AUTO_ACKNOWLEDGE;
 		}
 		
 		

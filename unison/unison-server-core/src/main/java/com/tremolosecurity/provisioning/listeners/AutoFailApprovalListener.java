@@ -20,7 +20,7 @@ import java.util.HashMap;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import javax.jms.Message;
+import jakarta.jms.Message;
 
 import com.google.gson.Gson;
 import com.tremolosecurity.config.util.ConfigManager;

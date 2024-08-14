@@ -50,7 +50,7 @@
 		<httpcore.version>4.4.16</httpcore.version>
 		<httpmime.version>4.5.14</httpmime.version>
 		<commons-fileupload.version>2.0.0-M1-SNAPSHOT</commons-fileupload.version>
-		<javax.jms-api.version>2.0.1</javax.jms-api.version>
+		<jakarta.jms-api.version>2.0.1</jakarta.jms-api.version>
 		<quartz.version>2.3.2</quartz.version>
 		<quartz-jobs.version>2.3.2</quartz-jobs.version>
 		<json-io.version>4.26.0</json-io.version>
@@ -63,10 +63,10 @@
 		<reflections.version>0.10.2</reflections.version>
 		<apache-log4j-extras.version>1.2.17</apache-log4j-extras.version>
 		<googleauth.version>1.5.0</googleauth.version>
-		<activemq.version>5.18.3</activemq.version>
+		<activemq.version>6.1.3</activemq.version>
 		<commons-pool2.version>2.12.0</commons-pool2.version>
-		<aws-java-sdk.version>1.12.767</aws-java-sdk.version>
-		<amazon-sqs-java-messaging-lib.version>1.1.3</amazon-sqs-java-messaging-lib.version>
+		<aws-java-sdk.version>1.12.768</aws-java-sdk.version>
+		<amazon-sqs-java-messaging-lib.version>2.1.3</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.3.4</stringtemplate.version>
 		<hibernate.version>6.5.2.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
@@ -85,7 +85,7 @@
 	  	<snakeyaml.version>2.2</snakeyaml.version>
 	  	<prometheus.version>0.16.0</prometheus.version>
 	  	<ibm-mq.version>9.4.0.0</ibm-mq.version>
-	  	<okta.version>17.0.0</okta.version>
+	  	<okta.version>18.0.0</okta.version>
 	  	<azure-auth.version>1.16.2</azure-auth.version>
 	  	<cryptacular.version>1.2.6</cryptacular.version>
 	  	<santuario-xmlsec.version>4.0.2</santuario-xmlsec.version>
@@ -109,13 +109,13 @@
 		<activation.version>1.2.0</activation.version>
 		<velocity.version>2.3</velocity.version>
 		<nimbusds.version>11.14</nimbusds.version>
-		<pdfbox.version>3.0.2</pdfbox.version>
+		<pdfbox.version>3.0.3</pdfbox.version>
 		<ws.rs-api.version>2.1.1</ws.rs-api.version>
-		<qpid.version>1.11.0</qpid.version>
+		<qpid.version>2.5.0</qpid.version>
 		<commons-io.version>2.16.1</commons-io.version>
 		<graaljs.version>23.0.5</graaljs.version>
-		<commons-compress.version>1.26.2</commons-compress.version>
-		<webauthn4j.version>0.25.0.RELEASE</webauthn4j.version>
+		<commons-compress.version>1.27.0</commons-compress.version>
+		<webauthn4j.version>0.25.1.RELEASE</webauthn4j.version>
 		<githubapi.version>1.323</githubapi.version>
 		<json-path.version>2.9.0</json-path.version>
 		<lazysodium.version>5.1.4</lazysodium.version>
@@ -125,7 +125,7 @@
 		<!-- last version that supports java 11 -->
 		<ecj.version>3.38.0</ecj.version>
 		<jakarta-jsp.version>3.1.1</jakarta-jsp.version>
-		<org-json-json.version>20240205</org-json-json.version>
+		<org-json-json.version>20240303</org-json-json.version>
 		<jakarta-jaxb.version>3.0.1</jakarta-jaxb.version>
 	</properties>
 

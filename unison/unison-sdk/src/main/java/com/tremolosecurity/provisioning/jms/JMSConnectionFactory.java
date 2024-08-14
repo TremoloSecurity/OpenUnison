@@ -21,8 +21,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.JMSException;
 
 import org.apache.logging.log4j.Logger;
 
