@@ -40,7 +40,11 @@ public class DRSync extends UnisonMessageListener {
 	public void onMessage(ConfigManager cfg, Object payload, Message msg) throws ProvisioningException {
 		DisasterRecoveryAction drAction = (DisasterRecoveryAction) payload;
 		
-		logger.info("dr action : " + drAction.toString());
+		logger.info("dr action : " + drAction.getUrl());
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("full object : " + drAction.toString()) ;
+		}
 		
 		
 		OpenShiftTarget k8s = (OpenShiftTarget) cfg.getProvisioningEngine().getTarget(target).getProvider();

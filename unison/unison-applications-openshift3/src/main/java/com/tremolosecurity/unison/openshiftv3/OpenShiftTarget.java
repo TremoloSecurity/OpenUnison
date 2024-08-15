@@ -801,14 +801,17 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 			dr.setJson(json);
 			dr.setContentType(contentType);
 			
-			logger.info("Encrypting and enqueueing " + dr.toString());
+			logger.info("Encrypting and enqueueing " + dr.getUrl());
+			if (logger.isDebugEnabled()) {
+				logger.info("Full object " + dr);
+			}
 			
 			Gson gson = new Gson();
 			
 			EncryptedMessage encJson = this.cfgMgr.getProvisioningEngine().encryptObject(dr);
 			for (JMSSessionHolder session : this.drQueues) {
 				synchronized (session) {
-					logger.info("Sending to " + session.getQueueName());
+					if (logger.isDebugEnabled()) logger.debug("Sending to " + session.getQueueName());
 					TextMessage tm = session.getSession().createTextMessage(gson.toJson(encJson));
 					tm.setStringProperty("JMSXGroupID", "unison-kubernetes");
 					session.getMessageProduceer().send(tm);
