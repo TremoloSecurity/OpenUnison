@@ -1,3 +1,52 @@
+# 1.0.41-2024081401
+
+**bugs:**
+ - Omitting state parameter causes NullPointerException [\#900](https://github.com/TremoloSecurity/OpenUnison/issues/900)
+ - AzureAD Target - Chunk exception if exception occurrs [\#918](https://github.com/TremoloSecurity/OpenUnison/issues/918)
+ - AzureAD Target - Issues when there are more then 99 groups [\#917](https://github.com/TremoloSecurity/OpenUnison/issues/917)
+ - Kube Token no longer auto retrieving certs for oidc integrated clusters [\#888](https://github.com/TremoloSecurity/OpenUnison/issues/888)
+ - javascript task: No exception in logs [\#909](https://github.com/TremoloSecurity/OpenUnison/issues/909)
+ - If Kube API doesn't exist, NPE [\#907](https://github.com/TremoloSecurity/OpenUnison/issues/907)
+ - Okta groups not loading properly [\#906](https://github.com/TremoloSecurity/OpenUnison/issues/906)
+ - Workflows continuing after waitfor, splitting paths [\#905](https://github.com/TremoloSecurity/OpenUnison/issues/905)
+
+**Tasks:**
+ - 1.0.41 build [\#891](https://github.com/TremoloSecurity/OpenUnison/issues/891)
+ - Remove all U2F code [\#904](https://github.com/TremoloSecurity/OpenUnison/issues/904)
+ - 1.0.40 build [\#845](https://github.com/TremoloSecurity/OpenUnison/issues/845)
+
+**enhancements:**
+ - Move login screens to Material UI [\#773](https://github.com/TremoloSecurity/OpenUnison/issues/773)
+ - Enable a local scheduler [\#913](https://github.com/TremoloSecurity/OpenUnison/issues/913)
+ - WaitFor - Better logging [\#914](https://github.com/TremoloSecurity/OpenUnison/issues/914)
+ - enable HA AMQ [\#910](https://github.com/TremoloSecurity/OpenUnison/issues/910)
+ - Add load secret to k8s utils [\#908](https://github.com/TremoloSecurity/OpenUnison/issues/908)
+ - oidc auth - store id_token in session along with the access token [\#893](https://github.com/TremoloSecurity/OpenUnison/issues/893)
+
+(ihatepython) ➜  OpenUnison git:(1.0.41) ✗ python3 GenGitChangeLog.py 2024-03-10  d9bbb835d05184180591bee2af95c4ede26374a2
+**bugs:**
+ - Omitting state parameter causes NullPointerException [\#900](https://github.com/TremoloSecurity/OpenUnison/issues/900)
+ - AzureAD Target - Chunk exception if exception occurrs [\#918](https://github.com/TremoloSecurity/OpenUnison/issues/918)
+ - AzureAD Target - Issues when there are more then 99 groups [\#917](https://github.com/TremoloSecurity/OpenUnison/issues/917)
+ - Kube Token no longer auto retrieving certs for oidc integrated clusters [\#888](https://github.com/TremoloSecurity/OpenUnison/issues/888)
+ - javascript task: No exception in logs [\#909](https://github.com/TremoloSecurity/OpenUnison/issues/909)
+ - If Kube API doesn't exist, NPE [\#907](https://github.com/TremoloSecurity/OpenUnison/issues/907)
+ - Okta groups not loading properly [\#906](https://github.com/TremoloSecurity/OpenUnison/issues/906)
+ - Workflows continuing after waitfor, splitting paths [\#905](https://github.com/TremoloSecurity/OpenUnison/issues/905)
+
+**Tasks:**
+ - 1.0.41 build [\#891](https://github.com/TremoloSecurity/OpenUnison/issues/891)
+ - Remove all U2F code [\#904](https://github.com/TremoloSecurity/OpenUnison/issues/904)
+
+**enhancements:**
+ - Move login screens to Material UI [\#773](https://github.com/TremoloSecurity/OpenUnison/issues/773)
+ - Enable a local scheduler [\#913](https://github.com/TremoloSecurity/OpenUnison/issues/913)
+ - WaitFor - Better logging [\#914](https://github.com/TremoloSecurity/OpenUnison/issues/914)
+ - enable HA AMQ [\#910](https://github.com/TremoloSecurity/OpenUnison/issues/910)
+ - Add load secret to k8s utils [\#908](https://github.com/TremoloSecurity/OpenUnison/issues/908)
+ - oidc auth - store id_token in session along with the access token [\#893](https://github.com/TremoloSecurity/OpenUnison/issues/893)
+
+
 # 1.0.40-2024030801
 
 **Tasks:**
