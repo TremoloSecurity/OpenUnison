@@ -23,7 +23,6 @@
  - Add load secret to k8s utils [\#908](https://github.com/TremoloSecurity/OpenUnison/issues/908)
  - oidc auth - store id_token in session along with the access token [\#893](https://github.com/TremoloSecurity/OpenUnison/issues/893)
 
-(ihatepython) ➜  OpenUnison git:(1.0.41) ✗ python3 GenGitChangeLog.py 2024-03-10  d9bbb835d05184180591bee2af95c4ede26374a2
 **bugs:**
  - Omitting state parameter causes NullPointerException [\#900](https://github.com/TremoloSecurity/OpenUnison/issues/900)
  - AzureAD Target - Chunk exception if exception occurrs [\#918](https://github.com/TremoloSecurity/OpenUnison/issues/918)
