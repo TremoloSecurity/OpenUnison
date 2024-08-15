@@ -1,4 +1,4 @@
-# 1.0.41-2024081401
+# 1.0.41-2024081501
 
 **bugs:**
  - Omitting state parameter causes NullPointerException [\#900](https://github.com/TremoloSecurity/OpenUnison/issues/900)

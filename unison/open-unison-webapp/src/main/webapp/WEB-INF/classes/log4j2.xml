@@ -22,10 +22,17 @@
     </Console>
   </Appenders>
   <Loggers>
+  	<Logger name="org.apache.http" level="DEBUG">
+      <AppenderRef ref="STDOUT"/>
+    </Logger>
+    <Logger name="org.apache.http.wire" level="DEBUG">
+      <AppenderRef ref="STDOUT"/>
+    </Logger>
     
     <Root level="info">
       <AppenderRef ref="STDOUT"/>
     </Root>
+    
     
   </Loggers>
 </Configuration>
