@@ -150,7 +150,15 @@ public class LoadFromLDAP implements SourceList {
 		ArrayList<String> ldapAttrs = new ArrayList<String>();
 		ldapAttrs.add("*");
 		ldapAttrs.add("+");
-		LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),equal(this.valueField,value)).toString(), ldapAttrs);
+		LDAPSearchResults res = null;
+		
+		if (this.valueField.equalsIgnoreCase("distinguishedName")) {
+			res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(value, 0,equal("objectClass",this.objectClass).toString(), ldapAttrs);
+		} else {
+			res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),equal(this.valueField,value)).toString(), ldapAttrs);
+		}
+		
+		
 		if (res.hasMore()) {
 			res.next();
 			while (res.hasMore()) res.next();
