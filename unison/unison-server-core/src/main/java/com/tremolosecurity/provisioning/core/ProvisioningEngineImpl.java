@@ -2003,12 +2003,13 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			scheduleProps.setProperty("org.quartz.dataSource.scheduleDB.URL", sct.getScheduleDB().getUrl());
 			scheduleProps.setProperty("org.quartz.dataSource.scheduleDB.user", sct.getScheduleDB().getUser());
 			scheduleProps.setProperty("org.quartz.dataSource.scheduleDB.password", sct.getScheduleDB().getPassword());
+			scheduleProps.setProperty("org.quartz.dataSource.scheduleDB.maxCachedStatementsPerConnection", "0");
 			scheduleProps.setProperty("org.quartz.dataSource.scheduleDB.maxConnections", Integer.toString(sct.getScheduleDB().getMaxConnections()));
 			scheduleProps.setProperty("org.quartz.dataSource.scheduleDB.validationQuery", sct.getScheduleDB().getValidationQuery());
 			scheduleProps.setProperty("org.quartz.jobStore.useProperties", "true");
 			scheduleProps.setProperty("org.quartz.jobStore.isClustered", "true");
 			
-			
+
 			
 		} else {
 			scheduleProps.setProperty("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
@@ -2030,6 +2031,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			localScheduleProps.setProperty("org.quartz.dataSource.scheduleDB.URL", sct.getScheduleDB().getUrl());
 			localScheduleProps.setProperty("org.quartz.dataSource.scheduleDB.user", sct.getScheduleDB().getUser());
 			localScheduleProps.setProperty("org.quartz.dataSource.scheduleDB.password", sct.getScheduleDB().getPassword());
+			localScheduleProps.setProperty("org.quartz.dataSource.scheduleDB.maxCachedStatementsPerConnection", "0");
 			localScheduleProps.setProperty("org.quartz.dataSource.scheduleDB.maxConnections", Integer.toString(sct.getScheduleDB().getMaxConnections()));
 			localScheduleProps.setProperty("org.quartz.dataSource.scheduleDB.validationQuery", sct.getScheduleDB().getValidationQuery());
 			localScheduleProps.setProperty("org.quartz.jobStore.useProperties", "true");
