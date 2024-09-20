@@ -109,8 +109,6 @@ public class JMSConnection {
 				
 				
 				
-				
-				
 				boolean keepRunning = true;
 				
 				
@@ -126,12 +124,13 @@ public class JMSConnection {
 						long now = System.currentTimeMillis();
 						if (lastCheck == 0 || (now-lastCheck >= timeToWait)) {
 							
+							ArrayList<JMSSessionHolder> sessionsToCheck = new ArrayList<JMSSessionHolder>();
+							sessionsToCheck.addAll(sessions);
 							
-							for (JMSSessionHolder session : sessions) {
-								synchronized (session.getSession()) {
+							for (JMSSessionHolder session : sessionsToCheck) {
 									sendKeepAliveMessage(session);
-								}
 							}
+							
 							
 							
 							lastCheck = now;
