@@ -111,7 +111,7 @@
 		<nimbusds.version>11.14</nimbusds.version>
 		<pdfbox.version>3.0.3</pdfbox.version>
 		<ws.rs-api.version>2.1.1</ws.rs-api.version>
-		<qpid.version>2.5.0</qpid.version>
+		<qpid.version>2.6.0</qpid.version>
 		<commons-io.version>2.16.1</commons-io.version>
 		<graaljs.version>23.0.5</graaljs.version>
 		<commons-compress.version>1.27.0</commons-compress.version>
