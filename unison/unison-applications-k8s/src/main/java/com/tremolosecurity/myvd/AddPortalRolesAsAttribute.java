@@ -20,9 +20,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.apache.log4j.Logger;
@@ -342,6 +344,8 @@ public class AddPortalRolesAsAttribute implements Insert {
 			LDAPAttribute portalGroups = new LDAPAttribute("portalGroups");
 			JSONArray portalGroupVals = new JSONArray();
 			List<RoleInfo> sortedRoles = new ArrayList<RoleInfo>();
+			Set<RoleInfo> addedRoles = new HashSet<RoleInfo>();
+			
 			String[] vals = groups.getStringValueArray();
 			for (String group : vals) {
 				RoleInfo ri = this.roles.get(group);
@@ -353,8 +357,11 @@ public class AddPortalRolesAsAttribute implements Insert {
 					}
 				}
 				
+				if (! addedRoles.contains(ri)) {
+					sortedRoles.add(ri);
+					addedRoles.add(ri);
+				}
 				
-				sortedRoles.add(ri);
 			}
 			
 			try {
