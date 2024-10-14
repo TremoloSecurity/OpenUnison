@@ -637,8 +637,34 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 
 	@Override
 	public boolean isGroupExists(String name, User user, Map<String, Object> request) throws ProvisioningException {
-		// TODO Auto-generated method stub
-		return false;
+		List<String> groups = new ArrayList<String>();
+		HttpCon con = null;
+		try {
+			con = this.createClient();
+			String uri = String.format("/groups?$select=displayName,id&$filter=displayName%%20eq%%20'%s'" ,name);
+			
+			
+			
+			
+			String json = this.callWS(con, uri);
+			
+			JSONObject root = (JSONObject) new JSONParser().parse(json);
+			if (root.get("value") != null) {
+				JSONArray values = (JSONArray)root.get("value");
+				return values.size() == 1;
+			} else {
+				return false;
+			}
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not search for groups",e);
+		} finally {
+			try {
+				con.getHttp().close();
+			} catch (IOException e) {
+				
+			}
+			con.getBcm().close();
+		}
 	}
 
 	public HttpCon createClient() throws Exception {
@@ -922,6 +948,65 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 		}
 		
 		
+	}
+	
+	private void loadGroupNames(List<String> groups, JSONObject root) {
+		JSONArray value = (JSONArray) root.get("value");
+		if (value == null) {
+			return;
+		}
+		for (Object o : value) {
+			JSONObject group = (JSONObject) o;
+			String id = (String) group.get("id");
+			String name = (String) group.get("displayName");
+			groups.add(name);
+		}
+	}
+	
+	public List<String> searchGroups(String name, int count) throws ProvisioningException {
+		List<String> groups = new ArrayList<String>();
+		HttpCon con = null;
+		try {
+			con = this.createClient();
+			String uri = "";
+			
+			if (name.isBlank()) {
+				uri = String.format("/groups?$select=displayName,id&$top=%s" ,count);
+			} else {
+				uri = String.format("/groups?$select=displayName,id&$filter=startsWith(displayName,'%s')&$top=%s" ,name,count);
+			}
+			
+			
+			String json = this.callWS(con, uri);
+			
+			JSONObject root = (JSONObject) new JSONParser().parse(json);
+			loadGroupNames(groups, root);
+			
+			while (root.get("@odata.nextLink") != null) {
+				if (groups.size() >= count) {
+					break;
+				}
+				String nextUrl = (String) root.get("@odata.nextLink");
+				URL url = new URL(nextUrl);
+				uri = new StringBuilder().append(url.getPath()).append("?").append(url.getQuery()).toString();
+				uri = uri.substring(5);
+				json = this.callWS(con, uri);
+				root = (JSONObject) new JSONParser().parse(json);
+				loadGroupNames(groups, root);
+			}
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not search for groups",e);
+		} finally {
+			try {
+				con.getHttp().close();
+			} catch (IOException e) {
+				
+			}
+			con.getBcm().close();
+		}
+			
+		
+		return groups;
 	}
 	
 	/*public void callWSDelete(HttpCon con,String uri) throws IOException, ClientProtocolException {
