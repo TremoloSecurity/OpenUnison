@@ -67,6 +67,20 @@ public class RoleInfo {
 		
 		return obj;
 	}
+	
+	@Override
+	public int hashCode() {
+		return this.toJSON().hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object ri) {
+		if (! (ri instanceof RoleInfo)) {
+			return false;
+		}
+		
+		return this.toJSON().equals(((RoleInfo)ri).toJSON());
+	}
 
 	
 	
