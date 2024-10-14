@@ -1818,6 +1818,13 @@ public class ScaleMain implements HttpFilter {
 			this.scaleConfig.setGroupsAreJson(val.equalsIgnoreCase("true"));
 		}
 		
+		val = this.loadOptionalAttributeValue("headerTitle", "headerTitle", config);
+		if (val != null) {
+			this.scaleConfig.setHeaderTitle(val);
+		} else {
+			this.scaleConfig.setHeaderTitle("OpenUnison");
+		}
+		
 		if (this.scaleConfig.isGroupsAreJson()) {
 			Attribute groupsHeaders = config.getAttribute("groupFields");
 			if (groupsHeaders == null) {

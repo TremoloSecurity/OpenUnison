@@ -71,6 +71,8 @@ public class ScaleConfig {
 	String themeSecondaryDark;
 	String themeSecondaryLight;
 	
+	String headerTitle;
+	
 	String errorColor;
 	
 	boolean groupsAreJson;
@@ -125,6 +127,8 @@ public class ScaleConfig {
 		if (from.groupsFields != null) {
 			this.groupsFields.addAll(from.groupsFields);
 		}
+		
+		this.headerTitle = from.headerTitle;
 	}
 	
 	public ScaleConfig() {
@@ -138,6 +142,7 @@ public class ScaleConfig {
 		this.hidePages = new ArrayList<String>();
 		this.groupsAreJson = false;
 		this.groupsFields = new ArrayList<String>();
+		this.headerTitle = "OpenUnison";
 	}
 
 	
@@ -372,6 +377,14 @@ public class ScaleConfig {
 
 	public List<String> getGroupsFields() {
 		return groupsFields;
+	}
+
+	public String getHeaderTitle() {
+		return headerTitle;
+	}
+
+	public void setHeaderTitle(String headerTitle) {
+		this.headerTitle = headerTitle;
 	}
 	
 	
