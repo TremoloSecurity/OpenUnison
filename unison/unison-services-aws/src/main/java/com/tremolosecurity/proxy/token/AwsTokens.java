@@ -23,15 +23,7 @@ import jakarta.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.internal.StaticCredentialsProvider;
 
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
-import com.amazonaws.services.securitytoken.model.AssumeRoleWithSAMLRequest;
-import com.amazonaws.services.securitytoken.model.AssumeRoleWithSAMLResult;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;
 import com.tremolosecurity.saml.Attribute;
@@ -39,6 +31,13 @@ import com.tremolosecurity.saml.Saml2Assertion;
 import com.tremolosecurity.scalejs.token.cfg.ScaleTokenConfig;
 import com.tremolosecurity.scalejs.token.sdk.TokenLoader;
 import com.tremolosecurity.server.GlobalEntries;
+
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.model.AssumeRoleWithSamlRequest;
+import software.amazon.awssdk.services.sts.model.AssumeRoleWithSamlResponse;
+import software.amazon.awssdk.services.sts.model.Credentials;
+import java.time.Instant;
 
 
 /**
@@ -130,32 +129,30 @@ public class AwsTokens implements TokenLoader {
 
         String samlResp = assertion.generateSaml2Response();
         String base64SamlResp = java.util.Base64.getEncoder().encodeToString(samlResp.getBytes("UTF-8"));
-
-        AssumeRoleWithSAMLRequest assumeRoleRequest = new AssumeRoleWithSAMLRequest();
-        assumeRoleRequest.setDurationSeconds(this.minAlive * 60);
-        assumeRoleRequest.setSAMLAssertion(base64SamlResp);
-        assumeRoleRequest.setPrincipalArn(this.idpName);
-        assumeRoleRequest.setRoleArn(this.roleName);
         
-
-        //AWSSecurityTokenService aws = AWSSecurityTokenServiceClient.builder().withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(this.awsKey,this.awsSecret))).build();
-        BasicAWSCredentials awsCreds = new BasicAWSCredentials("", "");
-        AWSSecurityTokenService aws = AWSSecurityTokenServiceClient.builder().withCredentials(new AWSStaticCredentialsProvider(awsCreds)).build();
-        		
-        		
-        		//new AWSSecurityTokenServiceClient(awsCreds);// AWSSecurityTokenServiceClient.builder().setCredentials(awsCreds).build();
-
-        AssumeRoleWithSAMLResult res = aws.assumeRoleWithSAML(assumeRoleRequest);
+        StsClient stsClient = StsClient.builder().build();
+        
+        // Create AssumeRoleWithSAML request
+        AssumeRoleWithSamlRequest assumeRoleWithSamlRequest = AssumeRoleWithSamlRequest.builder()
+                .roleArn(this.roleName)
+                .principalArn(this.idpName)
+                .samlAssertion(base64SamlResp)
+                .durationSeconds(3600) // Set session duration (in seconds)
+                .build();
+        
+        AssumeRoleWithSamlResponse response = stsClient.assumeRoleWithSAML(assumeRoleWithSamlRequest);
+        Credentials credentials = response.credentials();
+       
         
         HashMap<String,String> resp = new HashMap<String,String>();
 
-        resp.put("AWS Key", res.getCredentials().getAccessKeyId());
-        resp.put("AWS Secret", res.getCredentials().getSecretAccessKey());
-        resp.put("AWS Session", res.getCredentials().getSessionToken());
+        resp.put("AWS Key", credentials.accessKeyId());
+        resp.put("AWS Secret", credentials.secretAccessKey());
+        resp.put("AWS Session", credentials.sessionToken());
         resp.put("Set Environment Variables",
-                                                new StringBuilder().append("export AWS_ACCESS_KEY_ID='").append(res.getCredentials().getAccessKeyId()).append("';")
-                                                                   .append("export AWS_SECRET_ACCESS_KEY='").append(res.getCredentials().getSecretAccessKey()).append("';")
-                                                                   .append("export AWS_SESSION_TOKEN='").append(res.getCredentials().getSessionToken()).append("'").toString()
+                                                new StringBuilder().append("export AWS_ACCESS_KEY_ID='").append(credentials.accessKeyId()).append("';")
+                                                                   .append("export AWS_SECRET_ACCESS_KEY='").append(credentials.secretAccessKey()).append("';")
+                                                                   .append("export AWS_SESSION_TOKEN='").append(credentials.sessionToken()).append("'").toString()
         );
 
         return resp;

@@ -23,12 +23,39 @@ limitations under the License.
   </parent>
   <artifactId>unison-services-aws</artifactId>
   <name>unison-services-aws</name>
+  <dependencyManagement>
+  	<dependencies>
+  		<dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>${aws-java-sdk.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+  	</dependencies>
+  
+  </dependencyManagement>
     <dependencies>
+	    <!-- <dependency>
+	      <groupId>software.amazon.awssdk</groupId>
+	      <artifactId>aws-sdk-java</artifactId>
+	      <version>2.28.21</version>
+	    </dependency> -->
 	    <dependency>
-		    <groupId>com.amazonaws</groupId>
-		    <artifactId>aws-java-sdk</artifactId>
-		    <version>${aws-java-sdk.version}</version>
+		    <groupId>software.amazon.awssdk</groupId>
+		    <artifactId>sqs</artifactId>
 		</dependency>
+		
+		<dependency>
+		    <groupId>software.amazon.awssdk</groupId>
+		    <artifactId>s3</artifactId>
+		</dependency>
+		
+		<dependency>
+		    <groupId>software.amazon.awssdk</groupId>
+		    <artifactId>sts</artifactId>
+		</dependency>
+	    
   		<dependency>
 	  		<groupId>com.tremolosecurity.unison</groupId>
 	  		<artifactId>unison-sdk</artifactId>
@@ -84,6 +111,11 @@ limitations under the License.
 			<artifactId>netty-codec-http2</artifactId>
 			<version>${netty-https2.version}</version>
 		</dependency>
+<!--		<dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sts</artifactId>
+            <version>2.28.20</version>
+        </dependency> -->
 
     </dependencies>
 </project>

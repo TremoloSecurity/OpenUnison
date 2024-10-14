@@ -28,12 +28,6 @@ import software.amazon.awssdk.services.sqs.SqsClientBuilder;
 
 import com.amazon.sqs.javamessaging.ProviderConfiguration;
 import com.amazon.sqs.javamessaging.SQSConnectionFactory;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
-
 
 
 public class AwsSqsConnectionFactory implements ConnectionFactory {
@@ -45,7 +39,7 @@ public class AwsSqsConnectionFactory implements ConnectionFactory {
 	String accessKey;
 	String regionName;
 	
-	ClientConfiguration clientConfig;
+	
 	
 	public AwsSqsConnectionFactory() {
 		

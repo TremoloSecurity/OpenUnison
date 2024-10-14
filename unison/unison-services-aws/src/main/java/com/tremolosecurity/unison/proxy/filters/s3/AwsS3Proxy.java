@@ -17,11 +17,7 @@ package com.tremolosecurity.unison.proxy.filters.s3;
 
 import org.apache.logging.log4j.Logger;
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
+
 import com.tremolosecurity.proxy.filter.HttpFilter;
 import com.tremolosecurity.proxy.filter.HttpFilterChain;
 import com.tremolosecurity.proxy.filter.HttpFilterConfig;
@@ -29,13 +25,22 @@ import com.tremolosecurity.proxy.filter.HttpFilterRequest;
 import com.tremolosecurity.proxy.filter.HttpFilterResponse;
 import com.tremolosecurity.saml.Attribute;
 
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.ResponseInputStream;
+
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.S3Object;
+
 public class AwsS3Proxy implements HttpFilter {
 
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AwsS3Proxy.class);
 	
 	String accessKey;
 	String secretKey;
-	AmazonS3 s3Client;
+	S3Client s3Client;
 	String topBucket;
 	
 	@Override
@@ -60,9 +65,9 @@ public class AwsS3Proxy implements HttpFilter {
 				logger.debug("Bucket - '" + bucket + "', Key - '" + key + "'");
 			}
 			
-			S3Object object = s3Client.getObject(new GetObjectRequest(bucket,key));
-			chain.setIns(object.getObjectContent());
-			resp.setContentType(object.getObjectMetadata().getContentType());
+			ResponseInputStream<GetObjectResponse> response = s3Client.getObject(GetObjectRequest.builder().key(key).bucket(bucket).build());
+			chain.setIns(response);
+			resp.setContentType(response.response().contentType());
 		}
 
 	}
@@ -94,7 +99,20 @@ public class AwsS3Proxy implements HttpFilter {
 		
 		
 		
-		this.s3Client = new AmazonS3Client(new BasicAWSCredentials(this.accessKey,this.secretKey));
+		this.s3Client = S3Client.builder().credentialsProvider(StaticCredentialsProvider.create(new AwsCredentials() {
+
+			@Override
+			public String accessKeyId() {
+				return accessKey;
+			}
+
+			@Override
+			public String secretAccessKey() {
+				return secretKey;
+			}})).build();
+				
+				
+				
 	}
 	
 	private String getConfigAttr(HttpFilterConfig config,String name) throws Exception {
