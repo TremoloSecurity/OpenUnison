@@ -105,7 +105,7 @@
 		<xnio-api.version>3.8.16.Final</xnio-api.version>
 		<jersey.version>2.44</jersey.version>
 		<woodstox.version>7.0.0</woodstox.version>
-		<spring.version>5.3.32</spring.version>
+		<spring.version>6.1.14</spring.version>
 		<activation.version>1.2.0</activation.version>
 		<velocity.version>2.3</velocity.version>
 		<nimbusds.version>11.14</nimbusds.version>
