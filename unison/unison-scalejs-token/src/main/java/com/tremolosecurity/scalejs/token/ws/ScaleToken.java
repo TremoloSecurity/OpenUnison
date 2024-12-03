@@ -125,7 +125,63 @@ public class ScaleToken implements HttpFilter {
 		this.tokenLoader = (TokenLoader) Class.forName(tokenClassName).newInstance();
 		this.tokenLoader.init(config,scaleConfig);
 		
+		String val = null;
 		
+		val = this.loadOptionalAttributeValue("themePrimaryMain", "themePrimaryMain", config);
+		if (val != null) {
+			this.scaleConfig.setThemePrimaryMain(val);
+		} else {
+			this.scaleConfig.setThemePrimaryMain("#AC1622");
+		}
+		
+		val = this.loadOptionalAttributeValue("themePrimaryDark", "themePrimaryDark", config);
+		if (val != null) {
+			this.scaleConfig.setThemePrimaryDark(val);
+		} else {
+			this.scaleConfig.setThemePrimaryDark("#780f17");
+		}
+		
+		val = this.loadOptionalAttributeValue("themePrimaryLight", "themePrimaryLight", config);
+		if (val != null) {
+			this.scaleConfig.setThemePrimaryLight(val);
+		} else {
+			this.scaleConfig.setThemePrimaryLight("#bc444e");
+		}
+		
+		val = this.loadOptionalAttributeValue("themeSecondaryMain", "themeSecondaryMain", config);
+		if (val != null) {
+			this.scaleConfig.setThemeSecondaryMain(val);
+		} else {
+			this.scaleConfig.setThemeSecondaryMain("#16aca0");
+		}
+		
+		val = this.loadOptionalAttributeValue("themeSecondaryDark", "themeSecondaryDark", config);
+		if (val != null) {
+			this.scaleConfig.setThemeSecondaryDark(val);
+		} else {
+			this.scaleConfig.setThemeSecondaryDark("#0f7870");
+		}
+		
+		val = this.loadOptionalAttributeValue("themeSecondaryLight", "themeSecondaryLight", config);
+		if (val != null) {
+			this.scaleConfig.setThemeSecondaryLight(val);
+		} else {
+			this.scaleConfig.setThemeSecondaryLight("#44bcb3");
+		}
+		
+		val = this.loadOptionalAttributeValue("errorColor", "errorColor", config);
+		if (val != null) {
+			this.scaleConfig.setErrorColor(val);
+		} else {
+			this.scaleConfig.setErrorColor("#ff1744");
+		}
+		
+		val = this.loadOptionalAttributeValue("headerTitle", "headerTitle", config);
+		if (val != null) {
+			this.scaleConfig.setHeaderTitle(val);
+		} else {
+			this.scaleConfig.setHeaderTitle("OpenUnison");
+		}
 		
 
 	}

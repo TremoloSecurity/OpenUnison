@@ -28,6 +28,21 @@ public class ScaleTokenConfig {
 	String qrCodeAttribute;
 	int warnMinutesLeft;
 	
+	
+
+	
+	String themePrimaryMain;
+	String themePrimaryDark;
+	String themePrimaryLight;
+	
+	String themeSecondaryMain;
+	String themeSecondaryDark;
+	String themeSecondaryLight;
+	
+	String headerTitle;
+	
+	String errorColor;
+	
 	public ScaleTokenConfig() {
 		this.frontPage = new ScaleFrontPage();
 	}
@@ -89,6 +104,102 @@ public class ScaleTokenConfig {
 
 	public void setWarnMinutesLeft(int warnMinutesLeft) {
 		this.warnMinutesLeft = warnMinutesLeft;
+	}
+
+
+
+	public String getThemePrimaryMain() {
+		return themePrimaryMain;
+	}
+
+
+
+	public void setThemePrimaryMain(String themePrimaryMain) {
+		this.themePrimaryMain = themePrimaryMain;
+	}
+
+
+
+	public String getThemePrimaryDark() {
+		return themePrimaryDark;
+	}
+
+
+
+	public void setThemePrimaryDark(String themePrimaryDark) {
+		this.themePrimaryDark = themePrimaryDark;
+	}
+
+
+
+	public String getThemePrimaryLight() {
+		return themePrimaryLight;
+	}
+
+
+
+	public void setThemePrimaryLight(String themePrimaryLight) {
+		this.themePrimaryLight = themePrimaryLight;
+	}
+
+
+
+	public String getThemeSecondaryMain() {
+		return themeSecondaryMain;
+	}
+
+
+
+	public void setThemeSecondaryMain(String themeSecondaryMain) {
+		this.themeSecondaryMain = themeSecondaryMain;
+	}
+
+
+
+	public String getThemeSecondaryDark() {
+		return themeSecondaryDark;
+	}
+
+
+
+	public void setThemeSecondaryDark(String themeSecondaryDark) {
+		this.themeSecondaryDark = themeSecondaryDark;
+	}
+
+
+
+	public String getThemeSecondaryLight() {
+		return themeSecondaryLight;
+	}
+
+
+
+	public void setThemeSecondaryLight(String themeSecondaryLight) {
+		this.themeSecondaryLight = themeSecondaryLight;
+	}
+
+
+
+	public String getHeaderTitle() {
+		return headerTitle;
+	}
+
+
+
+	public void setHeaderTitle(String headerTitle) {
+		this.headerTitle = headerTitle;
+	}
+
+
+
+	public String getErrorColor() {
+		return errorColor;
+	}
+
+
+
+	public void setErrorColor(String errorColor) {
+		this.errorColor = errorColor;
 	}
 	
 	
