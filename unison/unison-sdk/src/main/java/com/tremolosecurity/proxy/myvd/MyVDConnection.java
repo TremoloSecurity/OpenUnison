@@ -71,6 +71,10 @@ public class MyVDConnection  {
 	}
 	
 	public LDAPSearchResults search(String base,int scope,String filter,ArrayList<String> attributes) throws LDAPException {
+		return this.search(base, scope, filter, attributes, 0);
+	}
+	
+	public LDAPSearchResults search(String base,int scope,String filter,ArrayList<String> attributes, int maxResults) throws LDAPException {
 		HashMap<Object,Object> request = new HashMap<Object,Object>();
 		HashMap<Object,Object> session = new HashMap<Object,Object>();
 		
@@ -96,7 +100,12 @@ public class MyVDConnection  {
 		
 		Results res = new Results(core.getGlobalChain(),0);
 		
-		chain.nextSearch(baseDN, new Int(scope), searchFilter, lattribs, new Bool(false), res, new LDAPSearchConstraints());
+		LDAPSearchConstraints constraints = new LDAPSearchConstraints();
+		if (maxResults > 0) {
+			constraints.setMaxResults(maxResults);
+		}
+		
+		chain.nextSearch(baseDN, new Int(scope), searchFilter, lattribs, new Bool(false), res, constraints);
 		
 		return new EntrySetSearchResults(res);
 	}

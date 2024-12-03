@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.novell.ldap.LDAPEntry;
+import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 import com.tremolosecurity.provisioning.core.providers.ADProvider;
 import com.tremolosecurity.proxy.filter.HttpFilterRequest;
@@ -82,7 +83,9 @@ public class LoadFromLDAP implements SourceList {
 			ldapAttrs.add("*");
 			ldapAttrs.add("+");
 			
-			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),present(this.searchAttribute)).toString(), ldapAttrs);
+			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),present(this.searchAttribute)).toString(), ldapAttrs, maxEntries);
+			
+			
 			int num = 0;
 			while (res.hasMore()) {
 				if ((this.dynSearch && num < this.maxEntries) || ! this.dynSearch) {
@@ -118,7 +121,10 @@ public class LoadFromLDAP implements SourceList {
 			ldapAttrs.add("*");
 			ldapAttrs.add("+");
 			
-			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),contains(this.searchAttribute,request.getParameter("search").getValues().get(0))).toString(), ldapAttrs);
+			
+			
+			LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),contains(this.searchAttribute,request.getParameter("search").getValues().get(0))).toString(), ldapAttrs,this.maxEntries);
+						
 			int num = 0;
 			while (res.hasMore() && num < this.maxEntries) {
 				LDAPEntry entry = res.next();
@@ -153,7 +159,13 @@ public class LoadFromLDAP implements SourceList {
 		LDAPSearchResults res = null;
 		
 		if (this.valueField.equalsIgnoreCase("distinguishedName")) {
-			res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(value, 0,equal("objectClass",this.objectClass).toString(), ldapAttrs);
+			try {
+				res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(value, 0,equal("objectClass",this.objectClass).toString(), ldapAttrs);
+			} catch (LDAPException le) {
+				if (le.getResultCode() == LDAPException.NO_SUCH_OBJECT) {
+					res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),equal(this.valueField,value)).toString(), ldapAttrs);
+				}
+			}
 		} else {
 			res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2,and(equal("objectClass",this.objectClass),equal(this.valueField,value)).toString(), ldapAttrs);
 		}
