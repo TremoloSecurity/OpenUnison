@@ -117,28 +117,32 @@ public class LoadGroups implements CustomTask {
 
 				while (res.hasMore()) {
 					entry = res.next();
-					LDAPAttribute cn = entry.getAttribute("cn");
-					if (cn != null) {
-						String name = entry.getAttribute("cn").getStringValue();
-						if (logger.isDebugEnabled()) {
-							logger.debug("Group - " + name);
-						}
-	
-						if (inverse) {
-							if (!currentGroups.contains(name)) {
+					if (entry != null) {
+						LDAPAttribute cn = entry.getAttribute("cn");
+						if (cn != null) {
+							String name = entry.getAttribute("cn").getStringValue();
+							if (logger.isDebugEnabled()) {
+								logger.debug("Group - " + name);
+							}
+
+							if (inverse) {
+								if (!currentGroups.contains(name)) {
+									if (logger.isDebugEnabled()) {
+										logger.debug("Adding " + name);
+									}
+									user.getGroups().add(name);
+								}
+							} else {
 								if (logger.isDebugEnabled()) {
 									logger.debug("Adding " + name);
 								}
 								user.getGroups().add(name);
 							}
 						} else {
-							if (logger.isDebugEnabled()) {
-								logger.debug("Adding " + name);
-							}
-							user.getGroups().add(name);
+							logger.warn(String.format("LDAP Group '%s' does not contain a cn", entry.getDN()));
 						}
 					} else {
-						logger.warn(String.format("LDAP Group '%s' does not contain a cn", entry.getDN()));
+						logger.warn(String.format("LDAP Search for base %s with filter %s returned a null entry",this.base,filter));
 					}
 
 				}
