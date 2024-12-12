@@ -319,7 +319,13 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			String codeChallenge = request.getParameter("code_challenge");
 			String codeChallengeType = request.getParameter("code_challenge_method");
 			
-			
+			if (state == null || state.isBlank()) {
+				StringBuffer b = new StringBuffer();
+				b.append(redirectURI).append("?error=state_missing");
+				logger.warn("State for request to '" + clientID + "' missing");
+				response.sendRedirect(b.toString());
+				return;
+			}
 			
 			OpenIDConnectTransaction transaction = new OpenIDConnectTransaction();
 			transaction.setClientID(clientID);

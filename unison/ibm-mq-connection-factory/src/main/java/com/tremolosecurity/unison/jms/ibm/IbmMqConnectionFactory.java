@@ -36,7 +36,7 @@ public class IbmMqConnectionFactory implements ConnectionFactory {
     String password;
 
     public IbmMqConnectionFactory() throws JMSException {
-        JmsFactoryFactory ff = JmsFactoryFactory.getInstance(WMQConstants.WMQ_PROVIDER);
+        JmsFactoryFactory ff = JmsFactoryFactory.getInstance(WMQConstants.JAKARTA_WMQ_PROVIDER);
         mqConnectionFactory = ff.createConnectionFactory();
         this.mqConnectionFactory.setIntProperty(WMQConstants.WMQ_CONNECTION_MODE, WMQConstants.WMQ_CM_CLIENT);
         this.mqConnectionFactory.setBooleanProperty(WMQConstants.USER_AUTHENTICATION_MQCSP, true);

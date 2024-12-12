@@ -24,10 +24,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.Deflater;
@@ -167,6 +169,11 @@ public class WebAuthnRegistration implements HttpFilter {
 		        
 		        request.getSession().setAttribute("tremolo.io/webauthn/serverProperty", serverProperty);
 		        
+		        List<PublicKeyCredentialParameters> pkcp = new ArrayList<PublicKeyCredentialParameters>();
+		        pkcp.add(new PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256));
+		        pkcp.add(new PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.RS256));
+		        
+		        
 		        PublicKeyCredentialUserEntity publicKeyCredentialUserEntity = new PublicKeyCredentialUserEntity(webAuthnUserData.getId(), webAuthnUserData.getDisplayName() , webAuthnUserData.getDisplayName());
 		
 		        AuthenticationExtensionsClientInputs<RegistrationExtensionClientInput> extensions = new AuthenticationExtensionsClientInputs<>();
@@ -175,7 +182,7 @@ public class WebAuthnRegistration implements HttpFilter {
 		                new PublicKeyCredentialRpEntity(rpId, rpId),
 		                publicKeyCredentialUserEntity,
 		                challenge,
-		                Collections.singletonList(publicKeyCredentialParameters),
+		                pkcp,
 		                null,
 		                Collections.emptyList(),
 		                authenticatorSelectionCriteria,
@@ -272,8 +279,12 @@ public class WebAuthnRegistration implements HttpFilter {
 		boolean userVerificationRequired = false;
 		boolean userPresenceRequired = true;
 		
+		List<PublicKeyCredentialParameters> pkcp = new ArrayList<PublicKeyCredentialParameters>();
+        pkcp.add(new PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256));
+        pkcp.add(new PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.RS256));
+		
 		RegistrationRequest registrationRequest = new RegistrationRequest(attestationObject, clientDataJSON, clientExtensionJSON, transports);
-		RegistrationParameters registrationParameters = new RegistrationParameters(serverProperty, userVerificationRequired, userPresenceRequired);
+		RegistrationParameters registrationParameters = new RegistrationParameters(serverProperty, pkcp,userVerificationRequired, userPresenceRequired);
 		RegistrationData registrationData;
 		WebAuthnManager webAuthnManager = WebAuthnManager.createNonStrictWebAuthnManager();
 		try {
