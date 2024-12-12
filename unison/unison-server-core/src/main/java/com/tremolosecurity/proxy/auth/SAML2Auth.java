@@ -678,7 +678,7 @@ public class SAML2Auth implements AuthMechanism {
 					
 					LDAPSearchResults res = cfgMgr.getMyVD().search(dn, 2, equal("issuer",samlResponse.getIssuer().getValue()).toString() , new ArrayList<String>());
 					if (! res.hasMore()) {
-						throw new ServletException("No IdP found");
+						throw new ServletException(String.format("No IdP found: %s",samlResponse.getIssuer().getValue()));
 					}
 					
 					LDAPEntry entry = res.next();
