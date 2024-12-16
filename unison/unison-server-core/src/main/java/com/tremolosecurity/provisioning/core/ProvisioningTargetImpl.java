@@ -86,6 +86,17 @@ public class ProvisioningTargetImpl implements ProvisioningTarget  {
 	@Override
 	public void createUser(User user,Map<String,Object> request) throws ProvisioningException {
 		User localUser = mapper.mapUser(user,false);
+
+		HashSet<String> groups = new HashSet<String>();
+		for (String groupName : localUser.getGroups()) {
+			if (!groups.contains(groupName)) {
+				groups.add(groupName);
+			}
+		}
+
+		localUser.getGroups().clear();
+		localUser.getGroups().addAll(groups);
+
 		this.provider.createUser(localUser, this.buildAttributeList(localUser, request),request);
 		
 	}
@@ -101,6 +112,16 @@ public class ProvisioningTargetImpl implements ProvisioningTarget  {
 		//System.out.print("pre-map\n" + user.toString());
 		
 		User localUser = mapper.mapUser(user,false);
+
+		HashSet<String> groups = new HashSet<String>();
+		for (String groupName : localUser.getGroups()) {
+			if (!groups.contains(groupName)) {
+				groups.add(groupName);
+			}
+		}
+
+		localUser.getGroups().clear();
+		localUser.getGroups().addAll(groups);
 		
 		//System.out.print("post-map\n" + localUser.toString());
 		

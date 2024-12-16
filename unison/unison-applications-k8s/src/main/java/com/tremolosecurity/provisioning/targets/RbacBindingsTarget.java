@@ -46,9 +46,24 @@ public class RbacBindingsTarget implements UserStoreProvider {
 
 	String targetName;
 
+	boolean forSa;
+
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
+
+		String userID = user.getUserID();
+
+		String saName;
+		String saNs;
+
+		if (this.forSa) {
+			saName = userID.substring(0,userID.indexOf(':'));
+			saNs = userID.substring(userID.indexOf(':')+1);
+		} else {
+			saName = "";
+			saNs = "";
+		}
 
 		int approvalID = 0;
 		if (request.containsKey("APPROVAL_ID")) {
@@ -88,11 +103,22 @@ public class RbacBindingsTarget implements UserStoreProvider {
 							for (Object oo : subjects) {
 								JSONObject subject = (JSONObject) oo;
 								kind = (String) subject.get("kind");
-								if (kind.equalsIgnoreCase("User")) {
-									String userName = (String) subject.get("name");
-									if (userName != null && userName.equals(user.getUserID())) {
-										found = true;
-										break;
+								if (this.forSa) {
+									if (kind.equalsIgnoreCase("ServiceAccount")) {
+										String userName = (String) subject.get("name");
+										String ns = (String) subject.get("namespace");
+										if (userName != null && userName.equals(saName) && ns != null && ns.equals(saNs)) {
+											found = true;
+											break;
+										}
+									}
+								} else {
+									if (kind.equalsIgnoreCase("User")) {
+										String userName = (String) subject.get("name");
+										if (userName != null && userName.equals(user.getUserID())) {
+											found = true;
+											break;
+										}
 									}
 								}
 							}
@@ -102,16 +128,31 @@ public class RbacBindingsTarget implements UserStoreProvider {
 
 						if (!found) {
 							if (hasUsers) {
+								String patch = "";
 
-								String patch = String.format("[\n" + "                        {\n"
-										+ "                          \"op\":\"add\",\n"
-										+ "                          \"path\":\"/subjects/-\",\n"
-										+ "                          \"value\": {\"kind\":\"User\",\"name\":\"%s\"}\n"
-										+ "                        }\n" + "                      ]", user.getUserID());
+								if (this.forSa) {
+									patch = String.format("[\n" + "                        {\n"
+											+ "                          \"op\":\"add\",\n"
+											+ "                          \"path\":\"/subjects/-\",\n"
+											+ "                          \"value\": {\"kind\":\"ServiceAccount\",\"name\":\"%s\",\"namespace\":\"%s\"}\n"
+											+ "                        }\n" + "                      ]", saName,saNs);
+								} else {
+									patch = String.format("[\n" + "                        {\n"
+											+ "                          \"op\":\"add\",\n"
+											+ "                          \"path\":\"/subjects/-\",\n"
+											+ "                          \"value\": {\"kind\":\"User\",\"name\":\"%s\"}\n"
+											+ "                        }\n" + "                      ]", user.getUserID());
+								}
 								k8s.callWSPatchJson(k8s.getAuthToken(), con, uri, patch, "application/json-patch+json");
 							} else {
-								String patch = String.format("{\"subjects\":[{\"kind\":\"User\",\"name\":\"%s\"}]}",
-										user.getUserID());
+								String patch = "";
+								if (this.forSa) {
+									patch = String.format("{\"subjects\":[{\"kind\":\"ServiceAccount\",\"name\":\"%s\",\"namespace\":\"%s\"}]}",
+											saName, saNs);
+								} else {
+									patch = String.format("{\"subjects\":[{\"kind\":\"User\",\"name\":\"%s\"}]}",
+											user.getUserID());
+								}
 								k8s.callWSPatchJson(k8s.getAuthToken(), con, uri, patch,
 										"application/strategic-merge-patch+json");
 							}
@@ -143,11 +184,22 @@ public class RbacBindingsTarget implements UserStoreProvider {
 							for (Object oo : subjects) {
 								JSONObject subject = (JSONObject) oo;
 								kind = (String) subject.get("kind");
-								if (kind.equalsIgnoreCase("User")) {
-									String userName = (String) subject.get("name");
-									if (userName != null && userName.equals(user.getUserID())) {
-										found = true;
-										break;
+								if (this.forSa) {
+									if (kind.equalsIgnoreCase("ServiceAccount")) {
+										String userName = (String) subject.get("name");
+										String ns = (String) subject.get("namespace");
+										if (userName != null && userName.equals(saName) && ns != null && ns.equals(saNs)) {
+											found = true;
+											break;
+										}
+									}
+								} else {
+									if (kind.equalsIgnoreCase("User")) {
+										String userName = (String) subject.get("name");
+										if (userName != null && userName.equals(user.getUserID())) {
+											found = true;
+											break;
+										}
 									}
 								}
 							}
@@ -158,16 +210,30 @@ public class RbacBindingsTarget implements UserStoreProvider {
 						if (!found) {
 							logger.info("has subjects: " + hasUsers);
 							if (hasUsers) {
-								String patch = String.format("[\n" + "                        {\n"
-										+ "                          \"op\":\"add\",\n"
-										+ "                          \"path\":\"/subjects/-\",\n"
-										+ "                          \"value\": {\"kind\":\"User\",\"name\":\"%s\"}\n"
-										+ "                        }\n" + "                      ]", user.getUserID());
+								String patch = "";
+								if (this.forSa) {
+									patch = String.format("[\n" + "                        {\n"
+											+ "                          \"op\":\"add\",\n"
+											+ "                          \"path\":\"/subjects/-\",\n"
+											+ "                          \"value\": {\"kind\":\"ServiceAccount\",\"name\":\"%s\",\"namespace\":\"%s\"}\n"
+											+ "                        }\n" + "                      ]", saName,saNs);
+								} else {
+									patch = String.format("[\n" + "                        {\n"
+											+ "                          \"op\":\"add\",\n"
+											+ "                          \"path\":\"/subjects/-\",\n"
+											+ "                          \"value\": {\"kind\":\"User\",\"name\":\"%s\"}\n"
+											+ "                        }\n" + "                      ]", user.getUserID());
+								}
 								k8s.callWSPatchJson(k8s.getAuthToken(), con, uri, patch, "application/json-patch+json");
 							} else {
-								String patch = String.format("{\"subjects\":[{\"kind\":\"User\",\"name\":\"%s\"}]}",
-										user.getUserID());
-
+								String patch = "";
+								if (this.forSa) {
+									patch = String.format("{\"subjects\":[{\"kind\":\"ServiceAccount\",\"name\":\"%s\",\"namespace\":\"%s\"}]}",
+											saName, saNs);
+								} else {
+									patch = String.format("{\"subjects\":[{\"kind\":\"User\",\"name\":\"%s\"}]}",
+											user.getUserID());
+								}
 								k8s.callWSPatchJson(k8s.getAuthToken(), con, uri, patch,
 										"application/strategic-merge-patch+json");
 							}
@@ -201,7 +267,7 @@ public class RbacBindingsTarget implements UserStoreProvider {
 
 	@Override
 	public void setUserPassword(User user, Map<String, Object> request) throws ProvisioningException {
-		// TODO Auto-generated method stub
+
 
 	}
 
@@ -228,6 +294,19 @@ public class RbacBindingsTarget implements UserStoreProvider {
 
 	private void deleteBindings(User user, Map<String, Object> request, HashSet<String> groupsToKeep)
 			throws ProvisioningException {
+		String userID = user.getUserID();
+
+		String saName;
+		String saNs;
+
+		if (this.forSa) {
+			saName = userID.substring(0,userID.indexOf(':'));
+			saNs = userID.substring(userID.indexOf(':')+1);
+		} else {
+			saName = "";
+			saNs = "";
+		}
+
 		int approvalID = 0;
 		if (request.containsKey("APPROVAL_ID")) {
 			approvalID = (Integer) request.get("APPROVAL_ID");
@@ -267,13 +346,27 @@ public class RbacBindingsTarget implements UserStoreProvider {
 						for (Object oo : subjects) {
 							JSONObject subject = (JSONObject) oo;
 							String kind = (String) subject.get("kind");
-							if (kind.equalsIgnoreCase("User")) {
-								String userName = (String) subject.get("name");
-								if (userName == null || !userName.equals(user.getUserID())) {
+							if (this.forSa) {
+								if (kind.equalsIgnoreCase("ServiceAccount")) {
+									String userName = (String) subject.get("name");
+									String ns = (String) subject.get("namespace");
+									if (userName == null || !userName.equals(saName) || ns == null || !ns.equals(saNs)) {
+										newSubjects.add(subject);
+									}
+								} else {
 									newSubjects.add(subject);
 								}
 							} else {
-								newSubjects.add(subject);
+
+
+								if (kind.equalsIgnoreCase("User")) {
+									String userName = (String) subject.get("name");
+									if (userName == null || !userName.equals(user.getUserID())) {
+										newSubjects.add(subject);
+									}
+								} else {
+									newSubjects.add(subject);
+								}
 							}
 						}
 
@@ -316,13 +409,25 @@ public class RbacBindingsTarget implements UserStoreProvider {
 						for (Object oo : subjects) {
 							JSONObject subject = (JSONObject) oo;
 							String kind = (String) subject.get("kind");
-							if (kind.equalsIgnoreCase("User")) {
-								String userName = (String) subject.get("name");
-								if (userName == null || !userName.equals(user.getUserID())) {
+							if (this.forSa) {
+								if (kind.equalsIgnoreCase("ServiceAccount")) {
+									String userName = (String) subject.get("name");
+									String ns = (String) subject.get("namespace");
+									if (userName == null || !userName.equals(saName) || ns == null || !ns.equals(saNs)) {
+										newSubjects.add(subject);
+									}
+								} else {
 									newSubjects.add(subject);
 								}
 							} else {
-								newSubjects.add(subject);
+								if (kind.equalsIgnoreCase("User")) {
+									String userName = (String) subject.get("name");
+									if (userName == null || !userName.equals(user.getUserID())) {
+										newSubjects.add(subject);
+									}
+								} else {
+									newSubjects.add(subject);
+								}
 							}
 						}
 
@@ -366,6 +471,18 @@ public class RbacBindingsTarget implements UserStoreProvider {
 	public User findUser(String userID, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
 		User user = new User(userID);
+
+		String saName;
+		String saNs;
+
+		if (this.forSa) {
+			saName = userID.substring(0,userID.indexOf(':'));
+			saNs = userID.substring(userID.indexOf(':')+1);
+		} else {
+			saName = "";
+			saNs = "";
+		}
+
 		Map<String, Binding> bindings = new HashMap<String, Binding>();
 
 		ProvisioningTarget target = GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine()
@@ -396,15 +513,30 @@ public class RbacBindingsTarget implements UserStoreProvider {
 					for (Object oo : subjects) {
 						JSONObject subject = (JSONObject) oo;
 						String kind = (String) subject.get("kind");
-						if (kind.equalsIgnoreCase("User")) {
-							String userName = (String) subject.get("name");
-							if (userName != null && userName.equals(user.getUserID())) {
-								String groupName = new StringBuilder().append("crb:").append(name).toString();
-								user.getGroups().add(groupName);
-								JSONObject roleRef = (JSONObject) binding.get("roleRef");
+						if (this.forSa) {
+							if (kind.equalsIgnoreCase("ServiceAccount")) {
+								String userName = (String) subject.get("name");
+								String namespace = (String) subject.get("namespace");
+								if (userName != null && userName.equals(saName)  && namespace != null && namespace.equals(saNs)  ) {
+									String groupName = new StringBuilder().append("crb:").append(name).toString();
+									user.getGroups().add(groupName);
+									JSONObject roleRef = (JSONObject) binding.get("roleRef");
 
-								bindings.put(groupName, this.createBindingObj(roleRef, null, name));
+									bindings.put(groupName, this.createBindingObj(roleRef, null, name));
 
+								}
+							}
+						} else {
+							if (kind.equalsIgnoreCase("User")) {
+								String userName = (String) subject.get("name");
+								if (userName != null && userName.equals(user.getUserID())) {
+									String groupName = new StringBuilder().append("crb:").append(name).toString();
+									user.getGroups().add(groupName);
+									JSONObject roleRef = (JSONObject) binding.get("roleRef");
+
+									bindings.put(groupName, this.createBindingObj(roleRef, null, name));
+
+								}
 							}
 						}
 					}
@@ -429,15 +561,31 @@ public class RbacBindingsTarget implements UserStoreProvider {
 					for (Object oo : subjects) {
 						JSONObject subject = (JSONObject) oo;
 						String kind = (String) subject.get("kind");
-						if (kind.equalsIgnoreCase("User")) {
-							String userName = (String) subject.get("name");
-							if (userName != null && userName.equals(user.getUserID())) {
-								String groupName = new StringBuilder().append("rb:").append(namespace).append(':')
-										.append(name).toString();
-								JSONObject roleRef = (JSONObject) binding.get("roleRef");
+						if (this.forSa) {
+							if (kind.equalsIgnoreCase("ServiceAccount")) {
+								String userName = (String) subject.get("name");
+								String ns = (String) subject.get("namespace");
+								if (userName != null && userName.equals(saName)  && ns != null && ns.equals(saNs)  ) {
+									String groupName = new StringBuilder().append("rb:").append(namespace).append(':')
+											.append(name).toString();
+									JSONObject roleRef = (JSONObject) binding.get("roleRef");
 
-								bindings.put(groupName, this.createBindingObj(roleRef, namespace, name));
-								user.getGroups().add(groupName);
+									bindings.put(groupName, this.createBindingObj(roleRef, namespace, name));
+									user.getGroups().add(groupName);
+
+								}
+							}
+						} else {
+							if (kind.equalsIgnoreCase("User")) {
+								String userName = (String) subject.get("name");
+								if (userName != null && userName.equals(user.getUserID())) {
+									String groupName = new StringBuilder().append("rb:").append(namespace).append(':')
+											.append(name).toString();
+									JSONObject roleRef = (JSONObject) binding.get("roleRef");
+
+									bindings.put(groupName, this.createBindingObj(roleRef, namespace, name));
+									user.getGroups().add(groupName);
+								}
 							}
 						}
 					}
@@ -470,6 +618,13 @@ public class RbacBindingsTarget implements UserStoreProvider {
 		}
 
 		this.targetName = targetName.getValues().get(0);
+
+		Attribute forSa = cfg.get("forSa");
+		if (forSa != null) {
+			this.forSa = forSa.getValues().get(0).equalsIgnoreCase("true");
+		} else {
+			this.forSa = false;
+		}
 
 	}
 

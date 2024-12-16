@@ -406,6 +406,16 @@ public class BasicDB implements BasicDBInterface {
 			logger.warn("Readonly set, exiting from syncUser");
 			return;
 		}
+
+		HashSet<String> groups = new HashSet<String>();
+		for (String groupName : user.getGroups()) {
+			if (!groups.contains(groupName)) {
+				groups.add(groupName);
+			}
+		}
+
+		user.getGroups().clear();
+		user.getGroups().addAll(groups);
 		
 		User foundUser = null;
 		
