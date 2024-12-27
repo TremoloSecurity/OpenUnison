@@ -1,4 +1,4 @@
-# 1.0.42-2024022701
+# 1.0.42-2024022702
 
 **enhancements:**
  - RbacBindingsTarget: Support ServiceAccounts [\#941](https://github.com/TremoloSecurity/OpenUnison/issues/941)
