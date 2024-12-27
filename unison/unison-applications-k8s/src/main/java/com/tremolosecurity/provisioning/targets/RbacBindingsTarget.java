@@ -14,10 +14,7 @@
 package com.tremolosecurity.provisioning.targets;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.json.simple.JSONObject;
 import org.apache.log4j.Logger;
@@ -82,6 +79,8 @@ public class RbacBindingsTarget implements UserStoreProvider {
 		// load all cluster roles
 		HttpCon con = null;
 		JSONParser parser = new JSONParser();
+		List<String> notFoundBindings = new ArrayList<String>();
+		request.put("tremolo.io/rbacbindingstargets", notFoundBindings);
 		try {
 			con = k8s.createClient();
 
@@ -208,7 +207,7 @@ public class RbacBindingsTarget implements UserStoreProvider {
 						}
 
 						if (!found) {
-							logger.info("has subjects: " + hasUsers);
+							if (logger.isDebugEnabled()) logger.debug("has subjects: " + hasUsers);
 							if (hasUsers) {
 								String patch = "";
 								if (this.forSa) {
@@ -657,7 +656,7 @@ public class RbacBindingsTarget implements UserStoreProvider {
 
 				String uri = String.format("/apis/openunison.tremolo.io/v1/namespaces/%s/targets", sourceNamespace);
 
-				logger.info("Searching uri " + uri);
+				if (logger.isDebugEnabled()) logger.debug("Searching uri " + uri);
 				HttpCon con = null;
 				con = k8s.createClient();
 
@@ -671,18 +670,18 @@ public class RbacBindingsTarget implements UserStoreProvider {
 					}
 
 					for (Object o : items) {
-						logger.info("Target: " + o.toString());
+						if (logger.isDebugEnabled()) logger.debug("Target: " + o.toString());
 						JSONObject target = (JSONObject) o;
 						JSONObject metadata = (JSONObject) target.get("metadata");
 						JSONObject spec = (JSONObject) target.get("spec");
 
 						String className = (String) spec.get("className");
 						if (className.equals("com.tremolosecurity.provisioning.targets.RbacBindingsTarget")) {
-							logger.info("found rbac target");
+							if (logger.isDebugEnabled()) logger.debug("found rbac target");
 							String labelFromObj = (String) metadata.get("name");
 							JSONObject annotations = (JSONObject) metadata.get("annotations");
 							if (annotations != null) {
-								logger.info("found annotations");
+								if (logger.isDebugEnabled()) logger.debug("found annotations");
 								String localLabel = (String) annotations.get(labelAnnotation);
 								if (localLabel != null && localLabel.equals(label)) {
 									String name = (String) metadata.get("name");

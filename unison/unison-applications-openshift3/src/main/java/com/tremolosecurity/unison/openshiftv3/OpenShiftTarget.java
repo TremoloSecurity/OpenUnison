@@ -766,7 +766,9 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 		put.setEntity(str);
 		
 		HttpResponse resp = con.getHttp().execute(put);
-		
+
+		json = EntityUtils.toString(resp.getEntity());
+
 		if (resp.getStatusLine().getStatusCode() >= 200 && resp.getStatusLine().getStatusCode() < 300) {
 			
 			try {
@@ -779,9 +781,11 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 			} catch (ProvisioningException | JMSException | ParseException e) {
 				throw new IOException("Could not send to dr queues",e);
 			}
+		} else {
+			logger.warn(String.format("Could not patch %s: %s / %s",uri,resp.getStatusLine().getStatusCode(),json));
 		}
 		
-		json = EntityUtils.toString(resp.getEntity());
+
 		return json;
 	}
 	
