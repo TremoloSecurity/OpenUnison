@@ -1,3 +1,25 @@
+# 1.0.42-2024022701
+
+**enhancements:**
+ - RbacBindingsTarget: Support ServiceAccounts [\#941](https://github.com/TremoloSecurity/OpenUnison/issues/941)
+ - ScaleJS Register - Load Groups from LDAP maximum enforcement [\#939](https://github.com/TremoloSecurity/OpenUnison/issues/939)
+ - ScaleJS Password & Token them customization [\#926](https://github.com/TremoloSecurity/OpenUnison/issues/926)
+ - ScaleJS Register - Add scalejs customizations APIs [\#925](https://github.com/TremoloSecurity/OpenUnison/issues/925)
+ - ScaleJS - Add header customization [\#924](https://github.com/TremoloSecurity/OpenUnison/issues/924)
+ - Upgrade AWS SDK from 1.x --> 2.x [\#929](https://github.com/TremoloSecurity/OpenUnison/issues/929)
+ - ScaleJS Register - Add AzureAD/EntraID support for group picker [\#931](https://github.com/TremoloSecurity/OpenUnison/issues/931)
+
+**Tasks:**
+ - 1.0.42 [\#920](https://github.com/TremoloSecurity/OpenUnison/issues/920)
+
+**bugs:**
+ - Listing a user multiple times in the same group from the virtual directory causes havoc [\#940](https://github.com/TremoloSecurity/OpenUnison/issues/940)
+ - ScaleJS - Repeated portal roles [\#932](https://github.com/TremoloSecurity/OpenUnison/issues/932)
+ - Remove Java 11 code generation [\#930](https://github.com/TremoloSecurity/OpenUnison/issues/930)
+ - JMS concurrent modification [\#922](https://github.com/TremoloSecurity/OpenUnison/issues/922)
+ - Quartz fails to start with SQL Server [\#921](https://github.com/TremoloSecurity/OpenUnison/issues/921)
+
+
 # 1.0.41-2024081501
 
 **bugs:**

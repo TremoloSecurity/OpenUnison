@@ -255,6 +255,26 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.11.2</version>
+				<configuration>
+					<failOnError>false</failOnError>
+					<aggregate>true</aggregate>
+					<additionalOptions>
+						<additionalOption>-Xdoclint:none</additionalOption> <!-- Disable warnings -->
+						<additionalOption>-quiet</additionalOption> <!-- Reduce verbosity -->
+					</additionalOptions>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>aggregate</goal> <!-- Aggregate Javadoc from submodules -->
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 
 	</build>
