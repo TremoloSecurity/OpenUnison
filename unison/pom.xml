@@ -21,7 +21,7 @@
 		<jakarta-api.version>6.1.0</jakarta-api.version>
 		<commons-collections.version>3.2.2</commons-collections.version>
 		<commons-cli.version>1.9.0</commons-cli.version>
-		<commons-codec.version>1.17.1</commons-codec.version>
+		<commons-codec.version>1.17.2</commons-codec.version>
 		<opensaml.version>5.1.3</opensaml.version>
 		<xerces.version>2.12.2</xerces.version>
 		<alfresco-client.version>5.0.a</alfresco-client.version>
@@ -30,7 +30,8 @@
 		<c3p0.version>0.10.1</c3p0.version>
 		<google-api-services-plus.version>v1-rev20190328-1.30.10</google-api-services-plus.version>
 		<google-api-services-oauth2.version>v2-rev20200213-2.0.0</google-api-services-oauth2.version>
-		<google-api-services-admin-directory.version>directory_v1-rev20241126-2.0.0</google-api-services-admin-directory.version>
+		<google-api-services-admin-directory.version>directory_v1-rev20241210-2.0.0</google-api-services-admin-directory.version>
+		<json-simple.version>1.1.1</json-simple.version>
 		<json-simple.version>1.1.1</json-simple.version>
 		<twilio-java-sdk.version>10.6.4</twilio-java-sdk.version>
 		<restfb.version>3.18.0</restfb.version>
@@ -65,10 +66,10 @@
 		<googleauth.version>1.5.0</googleauth.version>
 		<activemq.version>6.1.4</activemq.version>
 		<commons-pool2.version>2.12.0</commons-pool2.version>
-		<aws-java-sdk.version>2.29.32</aws-java-sdk.version>
+		<aws-java-sdk.version>2.29.46</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>2.1.4</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.3.4</stringtemplate.version>
-		<hibernate.version>6.6.3.Final</hibernate.version>
+		<hibernate.version>6.6.4.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
 		<org.apache.poi.version>5.3.0</org.apache.poi.version>
 		<jose4j.version>0.9.6</jose4j.version>
@@ -77,7 +78,7 @@
 		<jackson.version>2.18.2</jackson.version>
 		<jackson-core.version>2.18.2</jackson-core.version>
 		<slf4j.version>2.0.16</slf4j.version>
-		<guava.version>33.3.1-jre</guava.version>
+		<guava.version>33.4.0-jre</guava.version>
 		<undertow.version>2.3.18.Final</undertow.version>
 	  	<jastow.version>2.2.8.Final</jastow.version>
 	  	<jboss-jstl-api_1.2_spec.version>1.1.4.Final</jboss-jstl-api_1.2_spec.version>
@@ -86,14 +87,14 @@
 	  	<prometheus.version>0.16.0</prometheus.version>
 	  	<ibm-mq.version>9.4.0.0</ibm-mq.version>
 	  	<okta.version>17.0.0</okta.version>
-	  	<azure-auth.version>1.17.3</azure-auth.version>
+	  	<azure-auth.version>1.18.0</azure-auth.version>
 	  	<cryptacular.version>1.2.7</cryptacular.version>
 	  	<santuario-xmlsec.version>4.0.3</santuario-xmlsec.version>
-		<netty-codec.version>4.1.115.Final</netty-codec.version>
-		<netty-common.version>4.1.115.Final</netty-common.version>
-		<netty-https2.version>4.1.115.Final</netty-https2.version>
+		<netty-codec.version>4.1.116.Final</netty-codec.version>
+		<netty-common.version>4.1.116.Final</netty-common.version>
+		<netty-https2.version>4.1.116.Final</netty-https2.version>
 		<dom4j.version>2.1.4</dom4j.version>  
-		<gitlab.version>5.5.0</gitlab.version>
+		<gitlab.version>5.8.0</gitlab.version>
 		<commons-beanutils.version>1.9.4</commons-beanutils.version>
 		<swagger-core.version>2.1.5</swagger-core.version>
 		<k8sapi.version>10.0.0</k8sapi.version>
@@ -115,11 +116,11 @@
 		<commons-io.version>2.18.0</commons-io.version>
 		<graaljs.version>24.1.1</graaljs.version>
 		<commons-compress.version>1.27.1</commons-compress.version>
-		<webauthn4j.version>0.28.3.RELEASE</webauthn4j.version>
+		<webauthn4j.version>0.28.4.RELEASE</webauthn4j.version>
 		<githubapi.version>1.326</githubapi.version>
 		<json-path.version>2.9.0</json-path.version>
 		<lazysodium.version>5.1.4</lazysodium.version>
-		<jna.version>5.15.0</jna.version>
+		<jna.version>5.16.0</jna.version>
 		<expressly.version>5.0.0</expressly.version>
 		<el-api.version>6.0.1</el-api.version>
 		<ecj.version>3.40.0</ecj.version>
