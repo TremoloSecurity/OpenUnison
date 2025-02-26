@@ -1194,7 +1194,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		
 		String jwt = null;
-		
+		final String contentHeader;
 		if (trust.isSignedUserInfo()) {
 			jws = new JsonWebSignature();	
 	 		jws.setPayload(claims.toJson());	
@@ -1202,8 +1202,10 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	 		jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
 	 		
 			jwt = jws.getCompactSerialization();
+			contentHeader = "application/jwt";
 		} else {
 			jwt = claims.toJson();
+			contentHeader = "application/json";
 		}
 		
 		final String jwtToSend = jwt;
@@ -1213,7 +1215,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			@Override
 			public void postProcess(HttpFilterRequest req, HttpFilterResponse resp, UrlHolder holder,
 					HttpFilterChain httpFilterChain) throws Exception {
-				resp.setContentType("application/jwt");
+				resp.setContentType(contentHeader);
 				((ProxyResponse) resp.getServletResponse()).pushHeadersAndCookies(null);
 				
 				
