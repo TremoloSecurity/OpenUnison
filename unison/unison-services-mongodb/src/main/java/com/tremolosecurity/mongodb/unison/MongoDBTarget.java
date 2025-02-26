@@ -454,28 +454,28 @@ public class MongoDBTarget implements UserStoreProvider {
 		for (String collection : collections) {
 			Document deleted = mongo.getDatabase(this.database).getCollection(collection).findOneAndDelete(and(eq("objectClass",this.userObjectClass),eq(this.userIdAttribute,user.getUserID())));
 			if (deleted != null) {
-				break;
-			}
-			
-			//check to see if any groups references this object
-			FindIterable<Document> groups = mongo.getDatabase(this.database).getCollection(collection).find(and(eq("objectClass",this.groupObjectClass),eq(this.groupMemberAttribute,groupMemberID)));
-			for (Document group : groups) {
-				Object o = group.get(this.groupMemberAttribute);
-				if (o instanceof String) {
-					//one value, not mine
-					Document newVals = new Document();
-					newVals.append(this.groupMemberAttribute, "");
-					Document setGroup = new Document("$unset",newVals);
-					mongo.getDatabase(database).getCollection(collection).updateOne(eq("_id",group.getObjectId("_id")), setGroup);
-					this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Delete,  approvalID, workflow, "group", group.getString(this.groupIdAttribute));
-				} else {
-					List<String> members = (List<String>) o;
-					members.remove(groupMemberID);
-					Document newVals = new Document();
-					newVals.append(this.groupMemberAttribute, members);
-					Document setGroup = new Document("$set",newVals);
-					mongo.getDatabase(database).getCollection(collection).updateOne(eq("_id",group.getObjectId("_id")), setGroup);
-					this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Delete,  approvalID, workflow, "group", group.getString(this.groupIdAttribute));
+				this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Delete,  approvalID, workflow, "_id", deleted.get("_id").toString());
+			} else {
+				//check to see if any groups references this object
+				FindIterable<Document> groups = mongo.getDatabase(this.database).getCollection(collection).find(and(eq("objectClass", this.groupObjectClass), eq(this.groupMemberAttribute, groupMemberID)));
+				for (Document group : groups) {
+					Object o = group.get(this.groupMemberAttribute);
+					if (o instanceof String) {
+						//one value, not mine
+						Document newVals = new Document();
+						newVals.append(this.groupMemberAttribute, "");
+						Document setGroup = new Document("$unset", newVals);
+						mongo.getDatabase(database).getCollection(collection).updateOne(eq("_id", group.getObjectId("_id")), setGroup);
+						this.cfgMgr.getProvisioningEngine().logAction(name, false, ActionType.Delete, approvalID, workflow, "group", group.getString(this.groupIdAttribute));
+					} else {
+						List<String> members = (List<String>) o;
+						members.remove(groupMemberID);
+						Document newVals = new Document();
+						newVals.append(this.groupMemberAttribute, members);
+						Document setGroup = new Document("$set", newVals);
+						mongo.getDatabase(database).getCollection(collection).updateOne(eq("_id", group.getObjectId("_id")), setGroup);
+						this.cfgMgr.getProvisioningEngine().logAction(name, false, ActionType.Delete, approvalID, workflow, "group", group.getString(this.groupIdAttribute));
+					}
 				}
 			}
 			
