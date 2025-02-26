@@ -25,7 +25,7 @@ governing permissions and
 	<parent>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison</artifactId>
-		<version>1.0.42</version>
+		<version>1.0.43</version>
 	</parent>
 	<artifactId>openunison-on-undertow</artifactId>
 
