@@ -748,7 +748,7 @@ public class FreeIPATarget implements UserStoreProviderWithAddGroup{
 			CloseableHttpClient http) throws UnsupportedEncodingException,
 			IOException, ClientProtocolException {
 		HttpPost httppost = new HttpPost(this.url + "/ipa/session/login_password");
-		
+		httppost.addHeader("Referer", this.url + "/ipa/ui");
 		List<NameValuePair> formparams = new ArrayList<NameValuePair>();
 		formparams.add(new BasicNameValuePair("user", lusername));
 		formparams.add(new BasicNameValuePair("password", lpassword));
