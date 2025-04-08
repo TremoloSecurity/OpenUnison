@@ -20,6 +20,7 @@ package com.tremolosecurity.proxy.auth.util;
 import java.io.IOException;
 import java.security.Principal;
 
+import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
@@ -122,7 +123,7 @@ public class HttpBasicAuth implements BasicAuthImpl {
 					AuthInfo authInfo = gson.fromJson(json, AuthInfo.class);
 					StringBuffer b = new StringBuffer();
 					b.append("uid=").append(userName).append(",").append(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot());
-					authInfo.setUserDN(b.toString());
+					authInfo.setUserDN(b.toString(), (TremoloHttpSession) session);
 					authInfo.setAuthChain(act.getName());
 					authInfo.setAuthLevel(act.getLevel());
 

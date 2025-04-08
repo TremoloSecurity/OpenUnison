@@ -22,6 +22,7 @@ import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
@@ -72,7 +73,7 @@ public class LDAPBasicAuth implements BasicAuthImpl {
 			}
 			
 			Iterator<LDAPAttribute> it = entry.getAttributeSet().iterator();
-			AuthInfo authInfo = new AuthInfo(entry.getDN(),(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),act.getName(),act.getLevel());
+			AuthInfo authInfo = new AuthInfo(entry.getDN(),(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),act.getName(),act.getLevel(),(TremoloHttpSession) session);
 			
 			AuthController actl = (AuthController) session.getAttribute(ProxyConstants.AUTH_CTL);
 			if (actl == null) {

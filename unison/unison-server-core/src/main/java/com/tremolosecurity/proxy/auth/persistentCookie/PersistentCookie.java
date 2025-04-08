@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.crypto.SecretKey;
+
+import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -212,7 +214,7 @@ public class PersistentCookie implements AuthMechanism {
 					while (res.hasMore()) res.next();
 					
 					Iterator<LDAPAttribute> it = entry.getAttributeSet().iterator();
-					AuthInfo authInfo = new AuthInfo(entry.getDN(),(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),act.getName(),act.getLevel());
+					AuthInfo authInfo = new AuthInfo(entry.getDN(),(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),act.getName(),act.getLevel(),(TremoloHttpSession) session);
 					((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).setAuthInfo(authInfo);
 					
 					while (it.hasNext()) {

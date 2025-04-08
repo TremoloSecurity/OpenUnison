@@ -26,10 +26,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.GZIPOutputStream;
 
@@ -76,6 +73,7 @@ public class SessionManagerImpl implements SessionManager {
 
 	public static final String TREMOLO_SESSION_LAST_ACCESSED = "TREMOLO_SESSION_LAST_ACCESSED";
 	public static final String TREMOLO_EXTERNAL_SESSION = "TREMOLO_EXTERNAL_SESSION";
+	private final SessionByUserChecker sessionByUSerChacker;
 
 	SecureRandom random;
 
@@ -90,6 +88,8 @@ public class SessionManagerImpl implements SessionManager {
 	
 
 	private ConcurrentHashMap<String, TremoloHttpSession> sessions;
+	private ConcurrentHashMap<String, ConcurrentHashMap<String, TremoloHttpSession>> sessionsByUserDN;
+
 
 	private SessionTimeoutChecker checker;
 
@@ -105,9 +105,15 @@ public class SessionManagerImpl implements SessionManager {
 	 */
 	@Override
 	public void invalidateSession(TremoloHttpSession tsession) {
+
+		String userdn = tsession.getUserDN();
+
 		if (logger.isDebugEnabled()) {
 			logger.debug("Invalidating Session : " + tsession.getId());
 		}
+
+		this.removeUserSession(userdn, tsession);
+
 		shutdownSession(tsession);
 		
 		sessions.remove(tsession.getId());
@@ -127,7 +133,56 @@ public class SessionManagerImpl implements SessionManager {
 			}
 		}
 	}
-	
+
+	@Override
+	public void addUserSession(String userDN, TremoloHttpSession session) {
+		synchronized (this.sessionsByUserDN) {
+			ConcurrentHashMap<String,TremoloHttpSession> sessions = this.sessionsByUserDN.get(userDN);
+			if (sessions == null) {
+				sessions = new ConcurrentHashMap<String,TremoloHttpSession>();
+				this.sessionsByUserDN.put(userDN, sessions);
+			}
+			sessions.put(session.getId(), session);
+		}
+
+	}
+
+	@Override
+	public void removeUserSession(String dn, TremoloHttpSession session) {
+		synchronized (this.sessionsByUserDN) {
+			ConcurrentHashMap<String, TremoloHttpSession> sessions = this.sessionsByUserDN.get(dn);
+			if (sessions != null) {
+				sessions.remove(session.getId());
+				if (sessions.isEmpty()) {
+					this.sessionsByUserDN.remove(dn);
+				}
+			}
+			this.sessions.remove(session.getId());
+
+		}
+
+
+	}
+
+	@Override
+	public void logoutAll(String userdn) {
+		final ConcurrentHashMap<String, TremoloHttpSession> sessions;
+		synchronized (this.sessionsByUserDN) {
+			sessions = this.sessionsByUserDN.get(userdn);
+			if (sessions != null) {
+				this.sessionsByUserDN.remove(userdn);
+			}
+		}
+
+		if (sessions != null) {
+			sessions.keySet().forEach(sessionid -> {
+				TremoloHttpSession session = sessions.get(sessionid);
+				session.invalidate();
+				this.sessions.remove(sessionid);
+			});
+		}
+	}
+
 	@Override
 	public void removeSessionFromCache(TremoloHttpSession tsession) {
 		if (logger.isDebugEnabled()) {
@@ -141,6 +196,8 @@ public class SessionManagerImpl implements SessionManager {
 
 	public SessionManagerImpl(ConfigManager cfg, ServletContext ctx) {
 		sessions = new ConcurrentHashMap<String, TremoloHttpSession>();
+		sessionsByUserDN = new ConcurrentHashMap<String, ConcurrentHashMap<String, TremoloHttpSession>>();
+
 		this.ctx = ctx;
 		try {
 			this.random = SecureRandom.getInstance("SHA1PRNG");
@@ -172,6 +229,10 @@ public class SessionManagerImpl implements SessionManager {
 
 		checker = new SessionTimeoutChecker(this.cfg,this);
 		checker.start();
+
+		this.sessionByUSerChacker = new SessionByUserChecker(this.cfg,this,this.sessionsByUserDN);
+		this.sessionByUSerChacker.start();
+
 
 		if (cfg.getCfg().getApplications().getOpenSessionCookieName() == null) {
 			cfg.getCfg().getApplications()
@@ -701,6 +762,78 @@ public class SessionManagerImpl implements SessionManager {
 		
 	}
 
+}
+
+class SessionByUserChecker extends Thread {
+	private final ConcurrentHashMap<String, ConcurrentHashMap<String, TremoloHttpSession>> sessionsByUser;
+	boolean stillRun;
+	SessionManager sessionMgr;
+	ConfigManager cfg;
+
+	public SessionByUserChecker(ConfigManager cfg,SessionManager sessionManager,ConcurrentHashMap<String, ConcurrentHashMap<String, TremoloHttpSession>> sessionsByUser) {
+		this.sessionMgr = sessionManager;
+		this.cfg = cfg;
+		this.stillRun = true;
+		this.sessionsByUser = sessionsByUser;
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+
+			@Override
+			public void run() {
+				stillRun = false;
+			}
+		});
+	}
+
+
+	public void stopChecker() {
+		this.stillRun = false;
+		this.interrupt();
+	}
+
+	@Override
+	public void run() {
+		while (stillRun) {
+			try {
+
+				for (String userDN : this.sessionsByUser.keySet()) {
+					ConcurrentHashMap<String, TremoloHttpSession> sessions = this.sessionsByUser.get(userDN);
+					synchronized (this.sessionsByUser) {
+						if (sessions.isEmpty()) {
+							this.sessionsByUser.remove(userDN);
+						} else {
+							List<String> sessionsToRemove = new ArrayList<String>();
+							for (String sessionID : sessions.keySet()) {
+								TremoloHttpSession session = sessions.get(sessionID);
+								if (! sessions.containsKey(session.getId())) {
+									sessionsToRemove.add(sessionID);
+								}
+							}
+
+							sessionsToRemove.forEach(sessionID -> {sessions.remove(sessionID);});
+							if (sessions.isEmpty()) {
+								this.sessionsByUser.remove(userDN);
+							}
+						}
+					}
+				}
+
+				try {
+					Thread.sleep(60000);
+				} catch (InterruptedException e) {
+
+				}
+			} catch (Throwable t) {
+				SessionManagerImpl.logger.warn(
+						"Exception while processing expired sessions", t);
+
+				try {
+					Thread.sleep(60000);
+				} catch (InterruptedException e) {
+
+				}
+			}
+		}
+	}
 }
 
 class SessionTimeoutChecker extends Thread {

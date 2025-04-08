@@ -138,7 +138,7 @@ public class UserOnlyAuthMech implements AuthMechanism {
 				while (res.hasMore()) res.next();
 				
 				Iterator<LDAPAttribute> it = entry.getAttributeSet().iterator();
-				AuthInfo authInfo = new AuthInfo(entry.getDN(),(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),act.getName(),act.getLevel());
+				AuthInfo authInfo = new AuthInfo(entry.getDN(),(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),act.getName(),act.getLevel(),(TremoloHttpSession) session);
 				((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).setAuthInfo(authInfo);
 				
 				while (it.hasNext()) {

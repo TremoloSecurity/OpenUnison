@@ -20,6 +20,10 @@ package com.tremolosecurity.proxy.auth;
 import java.io.Serializable;
 import java.util.HashMap;
 
+import com.tremolosecurity.proxy.SessionManager;
+import com.tremolosecurity.proxy.TremoloHttpSession;
+import com.tremolosecurity.proxy.util.ProxyConstants;
+import com.tremolosecurity.server.GlobalEntries;
 import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
@@ -39,7 +43,7 @@ public class AuthInfo implements Serializable {
 	private static final long serialVersionUID = 1938906765816583538L;
 
 
-	
+
 
 
 
@@ -51,7 +55,7 @@ public class AuthInfo implements Serializable {
 	String authChain;
 	
 	boolean authComplete;
-	
+	TremoloHttpSession session;
 	
 
 
@@ -63,14 +67,25 @@ public class AuthInfo implements Serializable {
 	public AuthInfo() {
 		this.attribs = new HashMap<String,Attribute>();
 		this.authComplete = false;
+
+
 	}
-	
-	public AuthInfo(String userDN,String authMethod,String authChain,int authLevel) {
+//	public AuthInfo(String userDN, String authMethod, String authChain, int authLevel) {
+//		this(userDN, authMethod, authChain, authLevel, null);
+//	}
+	public AuthInfo(String userDN, String authMethod, String authChain, int authLevel, TremoloHttpSession session) {
 		this.userDN = userDN;
 		this.authMethod = authMethod;
 		this.authChain = authChain;
 		this.authLevel = authLevel;
 		this.attribs = new HashMap<String,Attribute>();
+		if (session != null && authLevel != 0) {
+			SessionManager sessionManager = (SessionManager) GlobalEntries.getGlobalEntries().get(ProxyConstants.TREMOLO_SESSION_MANAGER);
+			this.session = session;
+			this.session.setUserDN(userDN);
+			sessionManager.addUserSession(userDN,session);
+		}
+
 	}
 	
 	
@@ -95,9 +110,14 @@ public class AuthInfo implements Serializable {
 
 
 
-	public void setUserDN(String dn) {
+	public void setUserDN(String dn,TremoloHttpSession session) {
 		this.userDN = dn;
-		
+		session.setUserDN(dn);
+		if (session != null) {
+			SessionManager sessionManager = (SessionManager) GlobalEntries.getGlobalEntries().get(ProxyConstants.TREMOLO_SESSION_MANAGER);
+			sessionManager.addUserSession(dn, session);
+			sessionManager.removeUserSession(dn, session);
+		}
 	}
 
 	public void setAuthMethod(String authMethod) {

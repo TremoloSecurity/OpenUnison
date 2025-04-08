@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.crypto.SecretKey;
+
+import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -129,7 +131,7 @@ public class OAuth2BearerLastMile extends OAuth2Bearer {
 				while (res.hasMore()) res.next();
 				
 				Iterator<LDAPAttribute> it = entry.getAttributeSet().iterator();
-				AuthInfo authInfo = new AuthInfo(entry.getDN(),(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),act.getName(),act.getLevel());
+				AuthInfo authInfo = new AuthInfo(entry.getDN(),(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),act.getName(),act.getLevel(),(TremoloHttpSession) session);
 				
 				AuthController actl = (AuthController) session.getAttribute(ProxyConstants.AUTH_CTL);
 				if (actl == null) {

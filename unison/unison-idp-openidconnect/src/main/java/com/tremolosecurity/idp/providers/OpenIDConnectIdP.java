@@ -50,6 +50,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+
+import com.tremolosecurity.proxy.*;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -116,9 +118,6 @@ import com.tremolosecurity.openunison.OpenUnisonConstants;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
-import com.tremolosecurity.proxy.ProcessAfterFilterChain;
-import com.tremolosecurity.proxy.ProxyResponse;
-import com.tremolosecurity.proxy.SessionManagerImpl;
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.auth.AzSys;
@@ -138,7 +137,6 @@ import com.tremolosecurity.proxy.logout.LogoutUtil;
 import com.tremolosecurity.proxy.util.NextSys;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.proxy.util.ProxyTools;
-import com.tremolosecurity.proxy.InternalNextSys;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.server.StopableThread;
@@ -950,7 +948,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				while (res.hasMore()) res.next();
 				
 				
-				AuthInfo authInfo = new AuthInfo(entry.getDN(),null,actForSubject != null ? actForSubject.getName() : null,actForSubject != null ? actForSubject.getLevel() : 0);
+				AuthInfo authInfo = new AuthInfo(entry.getDN(),null,actForSubject != null ? actForSubject.getName() : null,actForSubject != null ? actForSubject.getLevel() : 0,null);
 				User user = new User(entry);
 				user = this.getMapper().mapUser(user);
 				
@@ -964,7 +962,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				return authInfo;
 			}  else {
 				String dn = new StringBuilder().append(uidAttr).append("=").append(td.subjectUid).append(",ou=oauth2,").append(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot()).toString();
-				AuthInfo authInfo = new AuthInfo(dn,null,actForSubject != null ? actForSubject.getName() : null,actForSubject != null ? actForSubject.getLevel() : 0);
+				AuthInfo authInfo = new AuthInfo(dn,null,actForSubject != null ? actForSubject.getName() : null,actForSubject != null ? actForSubject.getLevel() : 0,null);
 				
 				for (Object key : td.root.keySet()) {
 					Attribute attr = new Attribute(key.toString());
@@ -1075,7 +1073,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 					HttpSession session = request.getSession();
 					
 					AuthInfo authData = new AuthInfo();
-					authData.setUserDN(new StringBuilder().append("uid=").append(clientID).append(",ou=oauth2,").append(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot()).toString());
+					authData.setUserDN(new StringBuilder().append("uid=").append(clientID).append(",ou=oauth2,").append(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getLdapRoot()).toString(),(TremoloHttpSession) session);
 					authData.setAuthLevel(0);
 					authData.setAuthChain("anonymous");
 					authData.getAttribs().put("uid", new Attribute("uid",clientID));
@@ -1227,7 +1225,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		this.addCorsHeaders(response,request,proc);
 		
 		AuthInfo remUser = new AuthInfo();
-		remUser.setUserDN(dbSession.getUserDN());
+		remUser.setUserDN(dbSession.getUserDN(),null);
 		AccessLog.log(AccessEvent.AuSuccess, holder.getApp(), (HttpServletRequest) request, remUser ,  "NONE");
 		AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, remUser ,  "NONE");
 		
@@ -1334,7 +1332,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 						
 						
 						AuthInfo remUser = new AuthInfo();
-						remUser.setUserDN(session.getUserDN());
+						remUser.setUserDN(session.getUserDN(),null);
 						
 						
 						AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, remUser ,  "NONE");
@@ -1482,7 +1480,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		
 		AuthInfo remUser = new AuthInfo();
-		remUser.setUserDN(session.getUserDN());
+		remUser.setUserDN(session.getUserDN(),null);
 		
 		
 		AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), (HttpServletRequest) request, remUser ,  "NONE");
@@ -1676,7 +1674,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		
 		AuthInfo remUser = new AuthInfo();
-		remUser.setUserDN(dn.getValues().get(0));
+		remUser.setUserDN(dn.getValues().get(0),null);
 		
 		
 		request.getSession().setAttribute(new StringBuilder().append("OIDC_SESSION_ID_").append(this.idpName).toString(), oidcSession.getSessionID());

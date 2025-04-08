@@ -1148,7 +1148,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			while (res.hasMore()) res.next();
 			
 			AuthInfo auinfo = new AuthInfo();
-			auinfo.setUserDN(approver.getDN());
+			auinfo.setUserDN(approver.getDN(),null);
 			LDAPAttributeSet attrs = approver.getAttributeSet();
 			for (Object obj : attrs) {
 				LDAPAttribute attr = (LDAPAttribute) obj;

@@ -32,6 +32,8 @@ import java.util.zip.InflaterOutputStream;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+
+import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -739,7 +741,7 @@ public class WebAuthn implements AuthMechanism {
 					res.next();
 
 				Iterator<LDAPAttribute> it = entry.getAttributeSet().iterator();
-				authInfo = new AuthInfo(entry.getDN(), authMechName, act.getName(), act.getLevel());
+				authInfo = new AuthInfo(entry.getDN(), authMechName, act.getName(), act.getLevel(),(TremoloHttpSession) req.getSession());
 
 				while (it.hasNext()) {
 					LDAPAttribute attrib = it.next();
@@ -783,7 +785,7 @@ public class WebAuthn implements AuthMechanism {
 					res.next();
 
 				Iterator<LDAPAttribute> it = entry.getAttributeSet().iterator();
-				authInfo = new AuthInfo(entry.getDN(), authMechName, act.getName(), act.getLevel());
+				authInfo = new AuthInfo(entry.getDN(), authMechName, act.getName(), act.getLevel(),(TremoloHttpSession) req.getSession());
 
 				while (it.hasNext()) {
 					LDAPAttribute attrib = it.next();

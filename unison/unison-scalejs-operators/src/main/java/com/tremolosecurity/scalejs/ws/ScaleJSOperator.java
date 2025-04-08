@@ -132,7 +132,7 @@ public class ScaleJSOperator implements HttpFilter {
 				while (res.hasMore()) res.next();
 				
 				AuthInfo userData = new AuthInfo();
-				userData.setUserDN(entry.getDN());
+				userData.setUserDN(entry.getDN(),null);
 				LDAPAttributeSet attrs = entry.getAttributeSet();
 				for (Object obj : attrs) {
 					LDAPAttribute attr = (LDAPAttribute) obj;
@@ -302,7 +302,7 @@ public class ScaleJSOperator implements HttpFilter {
 		while (res.hasMore()) res.next();
 		
 		AuthInfo userData = new AuthInfo();
-		userData.setUserDN(entry.getDN());
+		userData.setUserDN(entry.getDN(),null);
 		LDAPAttributeSet attrs = entry.getAttributeSet();
 		for (Object obj : attrs) {
 			LDAPAttribute attr = (LDAPAttribute) obj;

@@ -22,6 +22,7 @@ import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -76,7 +77,7 @@ public class ListPortalURLs extends HttpServlet {
 			while (res.hasMore()) res.next();
 			
 			AuthInfo auinfo = new AuthInfo();
-			auinfo.setUserDN(entry.getDN());
+			auinfo.setUserDN(entry.getDN(),(TremoloHttpSession) req.getSession());
 			LDAPAttributeSet attrs = entry.getAttributeSet();
 			for (Object obj : attrs) {
 				LDAPAttribute attr = (LDAPAttribute) obj;

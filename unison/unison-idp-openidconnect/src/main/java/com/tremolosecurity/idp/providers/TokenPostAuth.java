@@ -301,7 +301,7 @@ public class TokenPostAuth implements PostAuthSuccess {
 					logger.warn(new StringBuilder("No authentication chain named '").append(subjectAuthMethod).append("'"));
 				}
 				
-				AuthInfo authInfo = new AuthInfo(entry.getDN(),(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),actForSubject.getName(),actForSubject.getLevel());
+				AuthInfo authInfo = new AuthInfo(entry.getDN(),(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),actForSubject.getName(),actForSubject.getLevel(),null);
 				User user = new User(entry);
 				user = idp.getMapper().mapUser(user);
 				

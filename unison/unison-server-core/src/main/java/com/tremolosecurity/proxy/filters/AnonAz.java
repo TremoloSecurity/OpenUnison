@@ -17,6 +17,7 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.filters;
 
+import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.http.HttpSession;
 
 import org.apache.logging.log4j.Logger;
@@ -62,7 +63,7 @@ public class AnonAz implements HttpFilter {
 		
 		
 		if (actl.getAuthInfo() == null) {
-			AuthInfo authInfo = new AuthInfo(this.rdn,(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),"anonymous",0);
+			AuthInfo authInfo = new AuthInfo(this.rdn,(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),"anonymous",0,(TremoloHttpSession) session);
 			((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL)).setAuthInfo(authInfo);
 			
 			authInfo.getAttribs().put(this.uidAttr, new Attribute(this.uidAttr,this.uidVal));

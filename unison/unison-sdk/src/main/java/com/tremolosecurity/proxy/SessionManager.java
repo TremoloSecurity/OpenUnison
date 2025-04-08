@@ -58,4 +58,9 @@ public interface SessionManager {
 
 	public abstract void shutdownSession(TremoloHttpSession tsession);
 
+	public abstract void addUserSession(String userDN, TremoloHttpSession session);
+
+	public abstract void removeUserSession(String dn, TremoloHttpSession session);
+
+	public abstract void logoutAll(String userdn);
 }

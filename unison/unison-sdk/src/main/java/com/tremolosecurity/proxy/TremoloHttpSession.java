@@ -59,9 +59,9 @@ public class TremoloHttpSession implements HttpSession, Serializable {
 	 */
 	
 	HashMap<String,Object> data;
-	
-	
-	
+	private String userDN;
+
+
 	public TremoloHttpSession(String id) {
 		
 		this.data = new HashMap<String,Object>();
@@ -213,7 +213,13 @@ public class TremoloHttpSession implements HttpSession, Serializable {
 	public void setAppName(String appName) {
 		this.appName = appName;
 	}
-	
-	
 
+
+	public void setUserDN(String dn) {
+		this.userDN = dn;
+	}
+
+	public String getUserDN() {
+		return userDN;
+	}
 }

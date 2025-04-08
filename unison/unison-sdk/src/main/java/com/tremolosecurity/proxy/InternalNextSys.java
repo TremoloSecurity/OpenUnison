@@ -56,13 +56,13 @@ public class InternalNextSys implements NextSys {
 		}
 		
 		if (ac.getAuthInfo() == null) {
-			AuthInfo authInfo = new AuthInfo("cn=Anonymous","anonymous","anonymous",0);
+			AuthInfo authInfo = new AuthInfo("cn=Anonymous","anonymous","anonymous",0,null);
 			ac.setAuthInfo(new AuthInfo());
 			
 		}
 		
 		if (ac.getAuthInfo().getUserDN() == null) {
-			ac.getAuthInfo().setUserDN("cn=Anonymous");
+			ac.getAuthInfo().setUserDN("cn=Anonymous",null);
 		}
 		
 		

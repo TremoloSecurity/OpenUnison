@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -77,7 +78,7 @@ public class AnonAuth implements AuthMechanism {
 	}
 
 	public void createSession(HttpSession session, AuthChainType act) {
-		AuthInfo authInfo = new AuthInfo(this.rdn,(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),act.getName(),act.getLevel());
+		AuthInfo authInfo = new AuthInfo(this.rdn,(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),act.getName(),act.getLevel(), (TremoloHttpSession) session);
 		
 		
 		authInfo.getAttribs().put(this.uidAttr, new Attribute(this.uidAttr,this.uidVal));

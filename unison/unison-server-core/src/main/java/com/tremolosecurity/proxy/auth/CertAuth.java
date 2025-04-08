@@ -36,6 +36,8 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import javax.security.auth.x500.X500Principal;
+
+import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -418,7 +420,7 @@ public class CertAuth implements AuthMechanism {
 		Iterator<LDAPAttribute> it = entry.getAttributeSet().iterator();
 		AuthInfo authInfo = new AuthInfo(entry.getDN(),
 				(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),
-				act.getName(), act.getLevel());
+				act.getName(), act.getLevel(),(TremoloHttpSession) session);
 		
 		((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).setAuthInfo(authInfo);
 
@@ -455,7 +457,7 @@ public class CertAuth implements AuthMechanism {
 		String dn = b.toString();
 		AuthInfo authInfo = new AuthInfo(dn,
 				(String) session.getAttribute(ProxyConstants.AUTH_MECH_NAME),
-				act.getName(), act.getLevel());
+				act.getName(), act.getLevel(),(TremoloHttpSession) session);
 		
 		((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).setAuthInfo(authInfo);
 

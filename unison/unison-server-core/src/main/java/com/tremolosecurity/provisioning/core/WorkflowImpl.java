@@ -593,7 +593,7 @@ public class WorkflowImpl implements  Workflow {
 					
 					LDAPEntry entry = res.next();
 					while (res.hasMore()) res.next();
-					authInfo.setUserDN(entry.getDN());
+					authInfo.setUserDN(entry.getDN(),null);
 					
 					Iterator<LDAPAttribute> it = entry.getAttributeSet().iterator();
 					
