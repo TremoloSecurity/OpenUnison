@@ -149,6 +149,9 @@ public class SessionManagerImpl implements SessionManager {
 
 	@Override
 	public void removeUserSession(String dn, TremoloHttpSession session) {
+		if (dn == null) {
+			return;
+		}
 		synchronized (this.sessionsByUserDN) {
 			ConcurrentHashMap<String, TremoloHttpSession> sessions = this.sessionsByUserDN.get(dn);
 			if (sessions != null) {

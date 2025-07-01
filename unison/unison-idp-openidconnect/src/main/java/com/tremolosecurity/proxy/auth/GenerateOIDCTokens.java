@@ -86,6 +86,13 @@ public class GenerateOIDCTokens implements AuthMechanism {
 		
 		String idpName = authParams.get("idpName").getValues().get(0);
 		String trustName = authParams.get("trustName").getValues().get(0);
+
+		if (authParams.get("doNotTieSession") != null) {
+			if (authParams.get("doNotTieSession").getValues().get(0).equals("true")) {
+				request.getSession().setAttribute(OpenIDConnectIdP.DO_NOT_TIE_SESSION,OpenIDConnectIdP.DO_NOT_TIE_SESSION);
+			}
+		}
+
 		String overrideURL = request.getRequestURL().toString();
 		
 		if (authParams.get("overrideURL") != null) {

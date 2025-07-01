@@ -144,6 +144,7 @@ import com.tremolosecurity.server.StopableThread;
 public class OpenIDConnectIdP implements IdentityProvider {
 
 	public static final String UNISON_OPENIDCONNECT_IDPS = "unison.openidconnectidps";
+	public static final String DO_NOT_TIE_SESSION = "tremolo.io/do-not-tie-session";
 
 	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(OpenIDConnectIdP.class.getName());
 	
@@ -1736,7 +1737,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		try {			
 			oidcSession = this.storeSession(access, holder.getApp(), trust.getCodeLastmileKeyName(), clientID,dn,sessionID);
-			if (! (this.sessionStore instanceof NoneBackend)) {
+			if ((! (this.sessionStore instanceof NoneBackend)) && request.getSession().getAttribute(OpenIDConnectIdP.DO_NOT_TIE_SESSION) != null ) {
 				request.getSession().setAttribute(SessionManagerImpl.TREMOLO_EXTERNAL_SESSION, new OidcSessionExpires(oidcSession.getSessionID(),this.sessionStore));
 			}
 		} catch (Exception e) {

@@ -112,8 +112,9 @@ public class AuthInfo implements Serializable {
 
 	public void setUserDN(String dn,TremoloHttpSession session) {
 		this.userDN = dn;
-		session.setUserDN(dn);
+
 		if (session != null) {
+			session.setUserDN(dn);
 			SessionManager sessionManager = (SessionManager) GlobalEntries.getGlobalEntries().get(ProxyConstants.TREMOLO_SESSION_MANAGER);
 			sessionManager.addUserSession(dn, session);
 			sessionManager.removeUserSession(dn, session);
