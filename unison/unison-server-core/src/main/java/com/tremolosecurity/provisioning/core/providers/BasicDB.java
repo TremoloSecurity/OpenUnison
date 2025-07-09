@@ -179,7 +179,7 @@ public class BasicDB implements BasicDBInterface {
 			// determine if we're going to enable transactions
 			disableTransactions = request.get(BasicDB.DISABLE_TRANSACTIONS) != null && request.get(BasicDB.DISABLE_TRANSACTIONS).equals("true");
 			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("Diable transaction: %s", disableTransactions));
+				logger.debug(String.format("Disable transaction: %s", disableTransactions));
 			}
 			con.setAutoCommit(disableTransactions);
 			
@@ -490,7 +490,7 @@ public class BasicDB implements BasicDBInterface {
 
 		try {
 			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("Diable transaction: %s", disableTransactions));
+				logger.debug(String.format("Disable transaction: %s", disableTransactions));
 			}
 			con.setAutoCommit(disableTransactions);
 
@@ -800,7 +800,7 @@ public class BasicDB implements BasicDBInterface {
 			ps.close();
 
 			if (logger.isDebugEnabled())  {
-				logger.debug(String.format("Diable transaction: %s",disableTransactions));
+				logger.debug(String.format("Disable transaction: %s",disableTransactions));
 			}
 			con.setAutoCommit(disableTransactions);
 
