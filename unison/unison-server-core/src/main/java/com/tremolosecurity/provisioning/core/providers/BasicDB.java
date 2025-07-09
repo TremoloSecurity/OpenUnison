@@ -63,6 +63,8 @@ import net.sourceforge.myvd.inserts.jdbc.JdbcPoolHolder;
 public class BasicDB implements BasicDBInterface {
 
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(BasicDB.class.getName());
+
+	public static final String DISABLE_TRANSACTIONS = "tremolo.io/db/disable_transactions";
 	
 	String driver;
 	String url;
@@ -164,8 +166,8 @@ public class BasicDB implements BasicDBInterface {
 			attrs.remove("userid");
 			attrs.put(this.userName, new Attribute(this.userName,user.getUserID()));
 		}
-		
-		
+
+		boolean disableTransactions = false;
 		Connection con = null;
 		try {
 		
@@ -173,7 +175,13 @@ public class BasicDB implements BasicDBInterface {
 			
 			
 			con = this.ds.getConnection();
-			con.setAutoCommit(false);
+
+			// determine if we're going to enable transactions
+			disableTransactions = request.get(BasicDB.DISABLE_TRANSACTIONS) != null && request.get(BasicDB.DISABLE_TRANSACTIONS).equals("true");
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("Diable transaction: %s", disableTransactions));
+			}
+			con.setAutoCommit(disableTransactions);
 			
 			
 			int userid = -1;
@@ -195,10 +203,16 @@ public class BasicDB implements BasicDBInterface {
 			
 				insertCreate(user, attributes, attrs, con,request);
 			}
-			con.commit();
+
+			if (! disableTransactions) {
+				con.commit();
+			}
+
 		} catch (Exception e) {
 			try {
-				if (con != null) con.rollback();
+				if (! disableTransactions) {
+					if (con != null) con.rollback();
+				}
 			} catch (SQLException e1) {
 				
 			}
@@ -471,9 +485,15 @@ public class BasicDB implements BasicDBInterface {
 		} catch (SQLException e) {
 			throw new ProvisioningException("Could not obtain connection",e);
 		}
-		
+
+		boolean disableTransactions = false;
+
 		try {
-			con.setAutoCommit(false);
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("Diable transaction: %s", disableTransactions));
+			}
+			con.setAutoCommit(disableTransactions);
+
 			Map<String,Object> request = new HashMap<String,Object>();
 			if (this.customDBProvider != null) {
 				this.customDBProvider.beginUpdate(con, userIDnum, request);
@@ -576,15 +596,18 @@ public class BasicDB implements BasicDBInterface {
 					}
 			}
 			
-			
-			con.commit();
+			if (! disableTransactions) {
+				con.commit();
+			}
 			
 		} catch (Throwable t) {
 			if (con != null) {
-				try {
-					con.rollback();
-				} catch (SQLException e1) {
-					//do nothing
+				if (! disableTransactions) {
+					try {
+						con.rollback();
+					} catch (SQLException e1) {
+						//do nothing
+					}
 				}
 			}
 			
@@ -748,7 +771,7 @@ public class BasicDB implements BasicDBInterface {
 			approvalID = (Integer) request.get("APPROVAL_ID");
 		}
 		
-		
+		boolean disableTransactions = false;
 		
 		try {
 			con = this.ds.getConnection();
@@ -775,8 +798,12 @@ public class BasicDB implements BasicDBInterface {
 			
 			rs.close();
 			ps.close();
-			
-			con.setAutoCommit(false);
+
+			if (logger.isDebugEnabled())  {
+				logger.debug(String.format("Diable transaction: %s",disableTransactions));
+			}
+			con.setAutoCommit(disableTransactions);
+
 			
 			if (this.customDBProvider != null) {
 				this.customDBProvider.deleteUser(con, id,request);
@@ -805,15 +832,18 @@ public class BasicDB implements BasicDBInterface {
 			
 			
 			
-			
-			con.commit();
+			if (! disableTransactions) {
+				con.commit();
+			}
 			
 			this.cfgMgr.getProvisioningEngine().logAction(this.name,true, ActionType.Delete, approvalID, workflow, "userName", user.getUserID());
 		} catch (Exception e) {
-			try {
-				con.rollback();
-			} catch (SQLException e1) {
-				
+			if (! disableTransactions) {
+				try {
+					con.rollback();
+				} catch (SQLException e1) {
+
+				}
 			}
 			
 			throw new ProvisioningException("Could not delete user " + user.getUserID(),e);
