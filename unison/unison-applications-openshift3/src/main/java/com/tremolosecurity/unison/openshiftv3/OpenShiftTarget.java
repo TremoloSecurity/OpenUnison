@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.concurrent.ThreadLocalRandom;
 
 import jakarta.jms.JMSException;
 import jakarta.jms.TextMessage;
@@ -540,7 +541,17 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 		
 		if (resp.getStatusLine().getStatusCode() >= 200 && resp.getStatusLine().getStatusCode() <= 299 ) {
 			return json;
-		} else if (resp.getStatusLine().getStatusCode() != 404) {
+		} else if (resp.getStatusLine().getStatusCode() == 429) {
+			int randomSeconds = ThreadLocalRandom.current().nextInt(1, 6);
+			logger.warn(String.format("Received too many requests.  Waiting for %s seconds...",randomSeconds));
+            try {
+                Thread.sleep(randomSeconds * 1000L);
+            } catch (InterruptedException e) {
+                logger.warn("Sleep interrupted",e);
+            }
+
+			return this.callWS(token, con, uri);
+        } else if (resp.getStatusLine().getStatusCode() != 404) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("Unexpected result calling '").append(get.getURI()).append("' - ").append(resp.getStatusLine().getStatusCode()).append(" / ").append(json);
 			throw new IOException(sb.toString());
