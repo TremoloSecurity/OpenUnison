@@ -30,16 +30,11 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.UUID;
 import java.util.regex.Matcher;
 
+import com.tremolosecurity.scalejs.sdk.LoadPortalGroups;
 import jakarta.servlet.http.HttpSession;
 
 import org.apache.logging.log4j.Logger;
@@ -133,7 +128,8 @@ public class ScaleMain implements HttpFilter {
 	
 	ScaleConfig scaleConfig;
 	ApplicationType appType;
-	
+
+	LoadPortalGroups loadPortalGroups;
 	
 	@Override
 	public void doFilter(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain)
@@ -876,14 +872,25 @@ public class ScaleMain implements HttpFilter {
 						details.getUserObj().getAttribs().put(scaleConfig.getApprovalAttributes().get(attrName).getDisplayName(), new Attribute(scaleConfig.getApprovalAttributes().get(attrName).getDisplayName(),attr.getStringValue()));
 					}
 				}
-				
-				if (this.scaleConfig.getRoleAttribute() != null && ! this.scaleConfig.getRoleAttribute().isEmpty()) {
+
+
+				if (this.loadPortalGroups != null) {
+					List<String> groups = this.loadPortalGroups.loadGroups(entry);
+					details.getUserObj().getGroups().clear();
+					details.getUserObj().getGroups().addAll(groups);
+				} else if (this.scaleConfig.getRoleAttribute() != null && ! this.scaleConfig.getRoleAttribute().isEmpty()) {
 					LDAPAttribute attr = entry.getAttribute(this.scaleConfig.getRoleAttribute());
+
+
+
 					if (attr != null) {
 						details.getUserObj().getGroups().clear();
-						for (String val : attr.getStringValueArray()) {
-							details.getUserObj().getGroups().add(val);
+
+						Enumeration enumer = attr.getStringValues();
+						while (enumer.hasMoreElements()) {
+							details.getUserObj().getGroups().add(enumer.nextElement().toString());
 						}
+
 					}
 				} else {
 					details.getUserObj().getGroups().clear();
@@ -1588,7 +1595,12 @@ public class ScaleMain implements HttpFilter {
 		scaleConfig.setShowPortalOrgs(this.loadAttributeValue("showPortalOrgs", "Show Portal Orgs", config).equalsIgnoreCase("true"));
 		scaleConfig.setLogoutURL(this.loadAttributeValue("logoutURL", "Logout URL", config));
 		scaleConfig.setWarnMinutesLeft(Integer.parseInt(this.loadAttributeValue("warnMinutesLeft", "Warn when number of minutes left in the user's session", config)));
-		
+
+		String loadPortalGroupsClassName = this.loadOptionalAttributeValue("loadPortalGroupsClassName", "loadPortalGroupsClassName", config);
+		if (loadPortalGroupsClassName != null) {
+			this.loadPortalGroups = (LoadPortalGroups) Class.forName(loadPortalGroupsClassName).newInstance();
+		}
+
 		String requireReason = this.loadOptionalAttributeValue("requireReason", "requireReason", config);
 		if (requireReason == null) {
 			requireReason = "true";

@@ -890,19 +890,22 @@ class SessionTimeoutChecker extends Thread {
 					
 					ApplicationType app = cfg.getApp(session.getAppName());
 
-
-					SessionManagerImpl.logger.info(String.format("Application %s",app.getName()));
+					if (SessionManagerImpl.logger.isDebugEnabled()) {
+						SessionManagerImpl.logger.debug(String.format("Application %s", app.getName()));
+					}
 					
 					if (session.isOpen()) {
-						SessionManagerImpl.logger.info("Session open");
+
+						SessionManagerImpl.logger.debug("Session open");
+
 						if (cfg.getCfg().getApplications()
 								.getOpenSessionTimeout() > 0) {
-							SessionManagerImpl.logger.info("session timeout is more then 0");
+							SessionManagerImpl.logger.debug("session timeout is more then 0");
 							
 							ExternalSessionExpires extSession = (ExternalSessionExpires) session.getAttribute(SessionManagerImpl.TREMOLO_EXTERNAL_SESSION);
 							
 							if (extSession != null) {
-								SessionManagerImpl.logger.info("has an external session");
+								SessionManagerImpl.logger.debug("has an external session");
 								if (extSession.getExpires() < System.currentTimeMillis()) {
 									session.invalidate();
 									toremove.add(key);

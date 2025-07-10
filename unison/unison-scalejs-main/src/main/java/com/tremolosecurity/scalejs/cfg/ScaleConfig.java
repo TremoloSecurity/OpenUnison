@@ -77,6 +77,8 @@ public class ScaleConfig {
 	
 	boolean groupsAreJson;
 	List<String> groupsFields;
+
+	transient String loadPortalGroupsClass;
 	
 	
  	
@@ -129,6 +131,7 @@ public class ScaleConfig {
 		}
 		
 		this.headerTitle = from.headerTitle;
+		this.loadPortalGroupsClass = from.loadPortalGroupsClass;
 	}
 	
 	public ScaleConfig() {
@@ -386,9 +389,12 @@ public class ScaleConfig {
 	public void setHeaderTitle(String headerTitle) {
 		this.headerTitle = headerTitle;
 	}
-	
-	
-	
 
-	
+	public String getLoadPortalGroupsClass() {
+		return loadPortalGroupsClass;
+	}
+
+	public void setLoadPortalGroupsClass(String loadPortalGroupsClass) {
+		this.loadPortalGroupsClass = loadPortalGroupsClass;
+	}
 }
