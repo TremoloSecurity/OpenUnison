@@ -655,7 +655,22 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 	}
 	
 	public String callWSDelete(String token, HttpCon con,String uri) throws IOException, ClientProtocolException {
-		String objToDeleteJson = "";
+		if (uri.endsWith("/")) {
+			throw new IOException(String.format("%s has a trailing slash, would result in multiple objects being deleted",uri));
+		}
+
+		// check if this is a collection
+		String toCheck = this.callWS(token, con, uri);
+        try {
+            JSONObject jsonResp = (JSONObject) new JSONParser().parse(toCheck);
+			if (jsonResp.containsKey("items") ) {
+				throw new IOException(String.format("%s is a collection of objects, each one must be deleted individually",uri));
+			}
+        } catch (ParseException e) {
+            throw new IOException(e);
+        }
+
+        String objToDeleteJson = "";
 		if (this.drQueues.size() > 0) {
 			try {
 				if (this.isObjectExistsByPath(token, con, uri)) {
