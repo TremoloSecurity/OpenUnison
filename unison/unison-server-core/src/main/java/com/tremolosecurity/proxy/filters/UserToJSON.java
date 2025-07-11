@@ -17,6 +17,7 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.filters;
 
+import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.http.HttpSession;
 
 import com.google.gson.Gson;
@@ -30,12 +31,15 @@ import com.tremolosecurity.proxy.filter.HttpFilterResponse;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
 
+import java.util.HashMap;
+import java.util.List;
 
 
 public class UserToJSON implements HttpFilter {
 
 	boolean doProxy = true;
-	
+	List<String> attributesToIgnore;
+
 	@Override
 	public void doFilter(HttpFilterRequest request,
 			HttpFilterResponse response, HttpFilterChain chain)
@@ -56,14 +60,36 @@ public class UserToJSON implements HttpFilter {
 		
 		if (actl.getAuthInfo() != null) {
 			AuthInfo authInfo = actl.getAuthInfo();
-			
+
+			AuthInfo forParse = new AuthInfo();
+			forParse.setUserDN(authInfo.getUserDN(), new TremoloHttpSession(""));
+			forParse.setAuthChain(authInfo.getAuthChain());
+			forParse.setAuthLevel(authInfo.getAuthLevel());
+			forParse.setAuthComplete(authInfo.isAuthComplete());
+			HashMap<String,Attribute> attrs = new HashMap<String,Attribute>();
+			attrs.putAll(authInfo.getAttribs());
+			forParse.setAttribs(attrs);
+
+
 			if (authInfo.getAttribs().containsKey("UserJSON")) {
 				authInfo.getAttribs().remove("UserJSON");
 			}
-		
+
+
+			if (this.attributesToIgnore != null) {
+
+				for (String attr : this.attributesToIgnore) {
+					forParse.getAttribs().remove(attr);
+				}
+			}
+
+
+
+
 			Gson gson = new Gson();
-			String ret = gson.toJson(authInfo);
-			
+			String ret = gson.toJson(forParse);
+
+
 			
 			
 			if (doProxy) {
@@ -101,6 +127,10 @@ public class UserToJSON implements HttpFilter {
 		//System.out.println("doproxty : " + config.getAttribute("doProxy"));
 		this.doProxy = config.getAttribute("doProxy") != null && config.getAttribute("doProxy").getValues().get(0).equalsIgnoreCase("true"); 
 
+		Attribute toIgnore = config.getAttribute("attributesToIgnore");
+		if (toIgnore != null) {
+			this.attributesToIgnore = (List<String>) toIgnore.getValues();
+		}
 	}
 
 }
