@@ -16,6 +16,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -26,14 +27,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 import jakarta.jms.JMSException;
@@ -659,16 +653,33 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 			throw new IOException(String.format("%s has a trailing slash, would result in multiple objects being deleted",uri));
 		}
 
+		boolean checkForCollection = false;
+		int indexOfQ = uri.indexOf('?');
+		if (indexOfQ != -1) {
+			String query = uri.substring(indexOfQ+1);
+			boolean hasLabelSelector = query != null &&
+					Arrays.stream(query.split("&"))
+							.anyMatch(param -> param.startsWith("labelSelector=") || param.equals("labelSelector"));
+
+			checkForCollection = !hasLabelSelector;
+
+		} else {
+			checkForCollection = true;
+		}
+
+
 		// check if this is a collection
-		String toCheck = this.callWS(token, con, uri);
-        try {
-            JSONObject jsonResp = (JSONObject) new JSONParser().parse(toCheck);
-			if (jsonResp.containsKey("items") ) {
-				throw new IOException(String.format("%s is a collection of objects, each one must be deleted individually",uri));
+		if (checkForCollection) {
+			String toCheck = this.callWS(token, con, uri);
+			try {
+				JSONObject jsonResp = (JSONObject) new JSONParser().parse(toCheck);
+				if (jsonResp.containsKey("items")) {
+					throw new IOException(String.format("%s is a collection of objects, each one must be deleted individually", uri));
+				}
+			} catch (ParseException e) {
+				throw new IOException(e);
 			}
-        } catch (ParseException e) {
-            throw new IOException(e);
-        }
+		}
 
         String objToDeleteJson = "";
 		if (this.drQueues.size() > 0) {
