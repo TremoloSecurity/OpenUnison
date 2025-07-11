@@ -19,10 +19,7 @@ import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 
 import com.google.gson.Gson;
@@ -54,6 +51,7 @@ import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.scalejs.cfg.ScaleConfig;
 import com.tremolosecurity.scalejs.data.ScaleError;
+import com.tremolosecurity.scalejs.sdk.LoadPortalGroups;
 import com.tremolosecurity.scalejs.sdk.UiDecisions;
 import com.tremolosecurity.scalejs.util.ScaleJSUtils;
 import com.tremolosecurity.scalejs.ws.ScaleMain;
@@ -85,6 +83,8 @@ public class ScaleJSOperator implements HttpFilter {
 	private String scalejsAppName;
 	private String scaleMainURL;
 	private ScaleConfig scaleMainConfig;
+
+	LoadPortalGroups loadPortalGroups;
 	
 
 	@Override
@@ -310,10 +310,13 @@ public class ScaleJSOperator implements HttpFilter {
 		
 			
 			Attribute attrib = new Attribute(attr.getName());
-			String[] vals = attr.getStringValueArray();
-			for (String val : vals) {
-				attrib.getValues().add(val);
+
+			Enumeration enumer = attr.getStringValues();
+			while (enumer.hasMoreElements()) {
+				attrib.getValues().add(enumer.nextElement().toString());
 			}
+
+
 			
 			userData.getAttribs().put(attrib.getName(), attrib);
 		}
@@ -345,9 +348,13 @@ public class ScaleJSOperator implements HttpFilter {
 				userToSend.getAttributes().add(attr);
 			}
 		}
-		
-		
-		if (this.scaleMainConfig.getRoleAttribute() != null && ! this.scaleMainConfig.getRoleAttribute().isEmpty()) {
+
+
+		if (this.loadPortalGroups != null) {
+			List<String> groups = this.loadPortalGroups.loadGroups(entry);
+			userToSend.getGroups().clear();
+			userToSend.getGroups().addAll(groups);
+		} else if (this.scaleMainConfig.getRoleAttribute() != null && ! this.scaleMainConfig.getRoleAttribute().isEmpty()) {
 			Attribute fromUser = userData.getAttribs().get(this.scaleMainConfig.getRoleAttribute());
 			Attribute attr = new Attribute(this.scaleMainConfig.getRoleAttribute());
 			if (fromUser != null) {
@@ -566,6 +573,8 @@ public class ScaleJSOperator implements HttpFilter {
 							decCfg.put(name, param);
 						}
 						param.getValues().add(value);
+					} else if (pt.getName().equalsIgnoreCase("loadPortalGroupsClassName")) {
+						this.loadPortalGroups = (LoadPortalGroups) Class.forName(pt.getValue()).newInstance();
 					}
 				}
 			}
