@@ -124,7 +124,7 @@
 		<expressly.version>6.0.0</expressly.version>
 		<el-api.version>6.0.1</el-api.version>
 		<ecj.version>3.42.0</ecj.version>
-		<jakarta-jsp.version>4.0.0</jakarta-jsp.version>
+		<jakarta-jsp.version>3.1.1</jakarta-jsp.version>
 		<org-json-json.version>20250517</org-json-json.version>
 		<jakarta-jaxb.version>3.0.1</jakarta-jaxb.version>
 		<!-- Last version that supports Java 21 -->
