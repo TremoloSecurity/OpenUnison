@@ -233,9 +233,9 @@
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
 			<version>${jackson-core.version}</version>
-		</dependency> 
-		
-		
+		</dependency>
+
+
 		
 		<dependency>
 		  <groupId>com.nimbusds</groupId>
@@ -311,7 +311,7 @@
 			<artifactId>json-smart</artifactId>
 			<version>${json-smart.version}</version>
 		</dependency>
-	</dependencies>
+    </dependencies>
 	<build>
 
 		<pluginManagement>
