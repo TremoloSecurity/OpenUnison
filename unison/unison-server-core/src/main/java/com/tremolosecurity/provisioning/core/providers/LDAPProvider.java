@@ -352,7 +352,7 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 					case (LDAPModification.DELETE) : at = ActionType.Delete; break;
 				}
 
-				LinkedList<ByteArray> vals = mod.getAllValues();
+				LinkedList<ByteArray> vals = mod.getAttribute().getAllValues();
 				for (ByteArray ba : vals) {
 					this.cfgMgr.getProvisioningEngine().logAction(this.name,false, at, approvalID, workflow, mod.getAttribute().getBaseName(), new String(ba.getValue()));
 				}
