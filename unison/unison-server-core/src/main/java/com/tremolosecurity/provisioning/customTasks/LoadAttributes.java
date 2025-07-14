@@ -20,6 +20,7 @@ package com.tremolosecurity.provisioning.customTasks;
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.HashSet;
 
@@ -28,6 +29,7 @@ import com.novell.ldap.LDAPAttributeSet;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
+import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
@@ -95,9 +97,9 @@ public class LoadAttributes implements CustomTask {
 				for (Object obj : attrs) {
 					LDAPAttribute attr = (LDAPAttribute) obj;
 					Attribute userAttr = new Attribute(attr.getName());
-					
-					for (String val : attr.getStringValueArray()) {
-						userAttr.getValues().add(val);
+					LinkedList<ByteArray> vals = attr.getAllValues();
+					for (ByteArray val: vals) {
+						userAttr.getValues().add(new String(val.getValue()));
 					}
 					
 					user.getAttribs().put(attr.getName(), userAttr);

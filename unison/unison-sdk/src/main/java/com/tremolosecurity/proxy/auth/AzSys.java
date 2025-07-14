@@ -21,13 +21,9 @@ import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
+import com.novell.ldap.util.ByteArray;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
@@ -257,9 +253,9 @@ public class AzSys {
 						LDAPEntry entry = rs.next();
 						while (rs.hasMore()) rs.next();
 						
-						String[] urls = entry.getAttribute("memberURL").getStringValueArray();
-						for (int i=0;i<urls.length;i++) {
-							String url = urls[i];
+						LinkedList<ByteArray> urls = entry.getAttribute("memberURL").getAllValues();
+						for (ByteArray ba : urls) {
+							String url = new String(ba.getValue());
 							LDAPUrl ldapUrl = new LDAPUrl(url);
 							if (ldapUrl.getScope() == 0) {
 								if (! authData.getUserDN().equalsIgnoreCase(ldapUrl.getDN())) {

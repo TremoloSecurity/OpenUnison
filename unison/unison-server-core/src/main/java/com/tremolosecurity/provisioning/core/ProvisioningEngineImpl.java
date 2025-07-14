@@ -46,21 +46,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-import java.util.Queue;
-import java.util.Set;
-import java.util.Stack;
-import java.util.StringTokenizer;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -71,6 +57,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+
+import com.novell.ldap.util.ByteArray;
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.JMSException;
 import jakarta.jms.MessageConsumer;
@@ -1156,9 +1144,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 				
 				Attribute attrib = new Attribute(attr.getName());
-				String[] vals = attr.getStringValueArray();
-				for (String val : vals) {
-					attrib.getValues().add(val);
+				LinkedList<ByteArray> vals = attr.getAllValues();
+				for (ByteArray val: vals) {
+					attrib.getValues().add(new String(val.getValue()));
 				}
 				
 				auinfo.getAttribs().put(attrib.getName(), attrib);

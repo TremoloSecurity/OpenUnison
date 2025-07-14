@@ -27,11 +27,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -39,6 +35,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+
+import com.novell.ldap.util.ByteArray;
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.ObjectMessage;
@@ -253,8 +251,9 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 				LDAPAttributeSet attrsx = entry.getAttributeSet();
 				for (Object o : attrsx) {
 					LDAPAttribute attrx = (LDAPAttribute) o;
-					for (String val : attrx.getStringValueArray()) {
-						logger.debug("Approver Attribute '" + attrx.getName() + "'='" + val + "'");
+					LinkedList<ByteArray> vals = attrx.getAllValues();
+					for (ByteArray ba : vals) {
+						logger.debug("Approver Attribute '" + attrx.getName() + "'='" + new String(ba.getValue()) + "'");
 					}
 				}
 			}

@@ -26,12 +26,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
+import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
@@ -546,9 +543,9 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 				while (it.hasNext()) {
 					LDAPAttribute attrib = it.next();
 					Attribute attr = new Attribute(attrib.getName());
-					String[] vals = attrib.getStringValueArray();
-					for (int i=0;i<vals.length;i++) {
-						attr.getValues().add(vals[i]);
+					LinkedList<ByteArray> vals = attrib.getAllValues();
+					for (ByteArray val: vals) {
+						attr.getValues().add(new String(val.getValue()));
 					}
 					authInfo.getAttribs().put(attr.getName(), attr);
 				}

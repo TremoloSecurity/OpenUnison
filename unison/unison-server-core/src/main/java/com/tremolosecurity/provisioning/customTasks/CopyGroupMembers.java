@@ -15,11 +15,13 @@
 package com.tremolosecurity.provisioning.customTasks;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Map;
 
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
+import com.novell.ldap.util.ByteArray;
 import com.octetstring.jdbcLdap.sql.LdapResultSet;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.ProvisioningParams;
@@ -57,7 +59,7 @@ public class CopyGroupMembers implements CustomTask {
         String localCopyTo = task.renderTemplate(this.copyTo, request);
 
         String memberAttr = task.getConfigManager().getCfg().getGroupMemberAttribute();
-        String[] members = null;
+        LinkedList<ByteArray> members = null;
 
         try {
             LDAPSearchResults rs = task.getConfigManager().getMyVD().search(localCopyFrom, 0, "(objectClass=*)",
@@ -67,13 +69,14 @@ public class CopyGroupMembers implements CustomTask {
             LDAPEntry group = rs.next();
             while (rs.hasMore()) rs.next();
 
-            members = group.getAttribute(memberAttr).getStringValueArray();
+            members = group.getAttribute(memberAttr).getAllValues();
         } catch (LDAPException e) {
             throw new ProvisioningException("Could not load from group",e);
         }
         
 
-        for (String member : members) {
+        for (ByteArray ba : members) {
+            String member = new String(ba.getValue());
             try {
                 LDAPSearchResults rs = task.getConfigManager().getMyVD().search(member, 0, "(objectClass=*)",
                         new ArrayList<String>());

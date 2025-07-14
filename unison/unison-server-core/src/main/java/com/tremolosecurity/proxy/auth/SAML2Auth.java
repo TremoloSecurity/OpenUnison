@@ -36,12 +36,7 @@ import java.security.SecureRandom;
 import java.security.SignatureException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
@@ -50,6 +45,7 @@ import java.util.zip.InflaterInputStream;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 
+import com.novell.ldap.util.ByteArray;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -969,9 +965,10 @@ public class SAML2Auth implements AuthMechanism {
 		while (it.hasNext()) {
 			LDAPAttribute ldapAttr = it.next();
 			Attribute attr = new Attribute(ldapAttr.getName());
-			String[] vals = ldapAttr.getStringValueArray();
-			for (int i = 0; i < vals.length; i++) {
-				attr.getValues().add(vals[i]);
+
+			LinkedList<ByteArray> vals = ldapAttr.getAllValues();
+			for (ByteArray val: vals) {
+				attr.getValues().add(new String(val.getValue()));
 			}
 			authInfo.getAttribs().put(attr.getName(), attr);
 		}

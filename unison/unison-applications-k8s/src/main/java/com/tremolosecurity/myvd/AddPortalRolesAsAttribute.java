@@ -26,7 +26,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.LinkedList;
 
+import com.novell.ldap.util.ByteArray;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -346,8 +348,10 @@ public class AddPortalRolesAsAttribute implements Insert {
 			List<RoleInfo> sortedRoles = new ArrayList<RoleInfo>();
 			Set<RoleInfo> addedRoles = new HashSet<RoleInfo>();
 			
-			String[] vals = groups.getStringValueArray();
-			for (String group : vals) {
+
+			LinkedList<ByteArray> vals = groups.getAllValues();
+			for (ByteArray ba : vals) {
+				String group = new String(ba.getValue());
 				RoleInfo ri = this.roles.get(group);
 				if (ri == null) {
 					try {

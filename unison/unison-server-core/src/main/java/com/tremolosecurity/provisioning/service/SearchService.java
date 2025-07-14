@@ -21,7 +21,9 @@ import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
+import com.novell.ldap.util.ByteArray;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -132,9 +134,10 @@ public class SearchService extends HttpServlet {
 						continue;
 					}
 				}
-				
-				for (String val : attribute.getStringValueArray()) {
-					usrAttr.getValues().add(val);
+
+				LinkedList<ByteArray> vals = attribute.getAllValues();
+				for (ByteArray ba: vals) {
+					usrAttr.getValues().add(new String(ba.getValue()));
 				}
 				
 				user.getAttributes().add(usrAttr);
@@ -153,8 +156,9 @@ public class SearchService extends HttpServlet {
 				
 				entry = res.next();
 				LDAPAttribute groups = entry.getAttribute("cn");
-				for (String val : groups.getStringValueArray()) {
-					user.getGroups().add(val);
+				LinkedList<ByteArray> vals = groups.getAllValues();
+				for (ByteArray ba: vals) {
+					user.getGroups().add(new String(ba.getValue()));
 				}
 			}
 			

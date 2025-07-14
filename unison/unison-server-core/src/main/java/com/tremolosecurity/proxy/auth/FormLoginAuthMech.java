@@ -23,7 +23,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 
+import com.novell.ldap.util.ByteArray;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequestWrapper;
@@ -178,9 +180,9 @@ public class FormLoginAuthMech implements AuthMechanism {
 				while (it.hasNext()) {
 					LDAPAttribute attrib = it.next();
 					Attribute attr = new Attribute(attrib.getName());
-					String[] vals = attrib.getStringValueArray();
-					for (int i=0;i<vals.length;i++) {
-						attr.getValues().add(vals[i]);
+					LinkedList<ByteArray> vals = attrib.getAllValues();
+					for (ByteArray val: vals) {
+						attr.getValues().add(new String(val.getValue()));
 					}
 					authInfo.getAttribs().put(attr.getName(), attr);
 				}

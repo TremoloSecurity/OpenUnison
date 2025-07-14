@@ -26,13 +26,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
 
+import com.novell.ldap.util.ByteArray;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.query.Query;
@@ -600,9 +596,10 @@ public class WorkflowImpl implements  Workflow {
 					while (it.hasNext()) {
 						LDAPAttribute attrib = it.next();
 						Attribute attr = new Attribute(attrib.getName());
-						String[] vals = attrib.getStringValueArray();
-						for (int i=0;i<vals.length;i++) {
-							attr.getValues().add(vals[i]);
+
+						LinkedList<ByteArray> vals = attrib.getAllValues();
+						for (ByteArray val: vals) {
+							attr.getValues().add(new String(val.getValue()));
 						}
 						authInfo.getAttribs().put(attr.getName(), attr);
 					}

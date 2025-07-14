@@ -61,7 +61,7 @@ public class User implements Serializable {
 		
 		for (Object o : entry.getAttributeSet()) {
 			LDAPAttribute attr = (LDAPAttribute) o;
-			String[] vals = attr.getStringValueArray();
+
 			
 			
 			LinkedList<ByteArray> rawVals = attr.getAllValues();

@@ -15,11 +15,13 @@
 package com.tremolosecurity.provisioning.customTasks;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Map;
 
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
+import com.novell.ldap.util.ByteArray;
 import com.octetstring.jdbcLdap.sql.LdapResultSet;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.ProvisioningParams;
@@ -58,7 +60,7 @@ public class DeleteGroupMembers implements CustomTask {
         
 
         String memberAttr = task.getConfigManager().getCfg().getGroupMemberAttribute();
-        String[] members = null;
+        LinkedList<ByteArray> members = null;
         String groupName = null;
 
         try {
@@ -76,9 +78,10 @@ public class DeleteGroupMembers implements CustomTask {
 	            
 	            
 	            if (group.getAttribute(memberAttr) != null) {
-	            	members = group.getAttribute(memberAttr).getStringValueArray();
+	            	members = group.getAttribute(memberAttr).getAllValues();
+
 	            } else {
-	            	members = new String[] {};
+	            	members = new LinkedList<>();
 	            }
 	            
 	            if (group.getAttribute(localGroupNameAttribute) != null) {
@@ -93,7 +96,8 @@ public class DeleteGroupMembers implements CustomTask {
         }
         
         if (members != null) {
-	        for (String member : members) {
+	        for (ByteArray ba : members) {
+				String member = new String(ba.getValue());
 	            try {
 	                LDAPSearchResults rs = task.getConfigManager().getMyVD().search(member, 0, "(objectClass=*)",
 	                        new ArrayList<String>());

@@ -21,6 +21,7 @@ import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
+import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.ldapJson.LdapJsonBindRequest;
 import com.tremolosecurity.ldapJson.LdapJsonEntry;
@@ -38,6 +39,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 public class LdapOnJson implements HttpFilter {
@@ -130,7 +132,14 @@ public class LdapOnJson implements HttpFilter {
 
             for (Object o : entry.getAttributeSet()) {
                 LDAPAttribute attr = (LDAPAttribute) o;
-                jsonEntry.getAttrs().put(attr.getName(), Arrays.asList(attr.getStringValueArray()));
+
+                LinkedList<ByteArray> vals = attr.getAllValues();
+                List<String> forjson = new ArrayList<>();
+                for (ByteArray val: vals) {
+                    forjson.add(new String(val.getValue()));
+                }
+
+                jsonEntry.getAttrs().put(attr.getName(), forjson);
             }
 
             entries.add(jsonEntry);

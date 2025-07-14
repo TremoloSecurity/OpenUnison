@@ -24,19 +24,11 @@ import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.StringTokenizer;
-import java.util.Vector;
+import java.util.*;
 
 import javax.security.auth.x500.X500Principal;
 
+import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
@@ -429,9 +421,10 @@ public class CertAuth implements AuthMechanism {
 		while (it.hasNext()) {
 			LDAPAttribute ldapAttr = it.next();
 			Attribute attr = new Attribute(ldapAttr.getName());
-			String[] vals = ldapAttr.getStringValueArray();
-			for (int i = 0; i < vals.length; i++) {
-				attr.getValues().add(vals[i]);
+
+			LinkedList<ByteArray> vals = ldapAttr.getAllValues();
+			for (ByteArray ba : vals) {
+				attr.getValues().add(new String(ba.getValue()));
 			}
 			authInfo.getAttribs().put(attr.getName(), attr);
 		}

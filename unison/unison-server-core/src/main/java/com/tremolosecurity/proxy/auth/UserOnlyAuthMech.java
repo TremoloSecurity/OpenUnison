@@ -21,7 +21,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 
+import com.novell.ldap.util.ByteArray;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -144,9 +146,10 @@ public class UserOnlyAuthMech implements AuthMechanism {
 				while (it.hasNext()) {
 					LDAPAttribute attrib = it.next();
 					Attribute attr = new Attribute(attrib.getName());
-					String[] vals = attrib.getStringValueArray();
-					for (int i=0;i<vals.length;i++) {
-						attr.getValues().add(vals[i]);
+					LinkedList<ByteArray> vals = attrib.getAllValues();
+					for (ByteArray ba : vals) {
+						String val = new String(ba.getValue());
+						attr.getValues().add(val);
 					}
 					authInfo.getAttribs().put(attr.getName(), attr);
 				}

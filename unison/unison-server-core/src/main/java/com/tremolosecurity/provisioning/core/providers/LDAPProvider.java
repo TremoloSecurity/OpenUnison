@@ -19,15 +19,10 @@ package com.tremolosecurity.provisioning.core.providers;
 
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.Set;
 
+import com.novell.ldap.util.ByteArray;
 import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
@@ -279,11 +274,12 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 					Set<String> vals = new HashSet<String>();
 					vals.addAll(userAttr.getValues());
 					
-					String[] ldapVals = ldapAttr.getStringValueArray();
+
+					LinkedList<ByteArray> ldapVals = ldapAttr.getAllValues();
 					
 					
-					for (int i=0;i<ldapVals.length;i++) {
-						String val = ldapVals[i];
+					for (ByteArray ba : ldapVals) {
+						String val = new String(ba.getValue());
 						boolean found = false;
 						for (String v : vals) {
 							if (v.equalsIgnoreCase(val)) {
@@ -355,10 +351,10 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 					case (LDAPModification.REPLACE) : at = ActionType.Replace; break;
 					case (LDAPModification.DELETE) : at = ActionType.Delete; break;
 				}
-				
-				String[] vals = mod.getAttribute().getStringValueArray();
-				for (String val : vals) {
-					this.cfgMgr.getProvisioningEngine().logAction(this.name,false, at, approvalID, workflow, mod.getAttribute().getBaseName(), val);
+
+				LinkedList<ByteArray> vals = mod.getAllValues();
+				for (ByteArray ba : vals) {
+					this.cfgMgr.getProvisioningEngine().logAction(this.name,false, at, approvalID, workflow, mod.getAttribute().getBaseName(), new String(ba.getValue()));
 				}
 			}
 		}
@@ -532,9 +528,9 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 		while (it.hasNext()) {
 			LDAPAttribute attr  =  it.next();
 			Attribute userAttr = new Attribute(attr.getName());
-			String[] vals = attr.getStringValueArray();
-			for (int i=0;i<vals.length;i++) {
-				userAttr.getValues().add(vals[i]);
+			LinkedList<ByteArray> vals = attr.getAllValues();
+			for (ByteArray val: vals) {
+				userAttr.getValues().add(new String(val.getValue()));
 			}
 			user.getAttribs().put(userAttr.getName(), userAttr);
 		}

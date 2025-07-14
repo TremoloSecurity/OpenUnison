@@ -17,10 +17,7 @@ limitations under the License.
 
 package com.tremolosecurity.proxy.myvd.inserts.ad;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Properties;
+import java.util.*;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
@@ -28,6 +25,7 @@ import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
+import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.server.GlobalEntries;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
@@ -221,9 +219,10 @@ public class ExternalGroupMembers implements Insert {
 				goun = new LDAPAttribute(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute());
 				entry.getEntry().getAttributeSet().add(goun);
 			}
-			
-			for (String um : extern.getStringValueArray()) {
-				goun.addValue(um);
+
+			LinkedList<ByteArray> vals = extern.getAllValues();
+			for (ByteArray val: vals) {
+				goun.addValue(new String(val.getValue()));
 			}
 			
 			entry.getEntry().getAttributeSet().remove(this.externalGroupAttrName);

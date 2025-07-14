@@ -22,7 +22,9 @@ import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
+import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -85,9 +87,9 @@ public class ListOrgs extends HttpServlet {
 			
 				
 				Attribute attrib = new Attribute(attr.getName());
-				String[] vals = attr.getStringValueArray();
-				for (String val : vals) {
-					attrib.getValues().add(val);
+				LinkedList<ByteArray> vals = attr.getAllValues();
+				for (ByteArray val: vals) {
+					attrib.getValues().add(new String(val.getValue()));
 				}
 				
 				auinfo.getAttribs().put(attrib.getName(), attrib);

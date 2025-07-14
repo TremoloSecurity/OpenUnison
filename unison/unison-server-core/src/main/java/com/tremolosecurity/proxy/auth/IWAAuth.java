@@ -31,10 +31,12 @@ import java.security.PrivilegedActionException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 import javax.security.auth.kerberos.KerberosKey;
 import javax.security.auth.login.LoginException;
 
+import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
@@ -162,9 +164,10 @@ MyVDConnection myvd = cfgMgr.getMyVD();
 				while (it.hasNext()) {
 					LDAPAttribute attrib = it.next();
 					Attribute attr = new Attribute(attrib.getName());
-					String[] vals = attrib.getStringValueArray();
-					for (int i=0;i<vals.length;i++) {
-						attr.getValues().add(vals[i]);
+
+					LinkedList<ByteArray> vals = attrib.getAllValues();
+					for (ByteArray val: vals) {
+						attr.getValues().add(new String(val.getValue()));
 					}
 					authInfo.getAttribs().put(attr.getName(), attr);
 				}

@@ -18,11 +18,9 @@ package com.tremolosecurity.proxy.auth;
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
+import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -98,9 +96,9 @@ public class OAuth2K8sServiceAccount extends OAuth2Bearer {
 			con = target.createClient();
 			String respJSON = target.callWSPost(target.getAuthToken(), con, "/apis/authentication.k8s.io/v1/tokenreviews", json);
 			
-			if (logger.isDebugEnabled()) {
-				logger.debug("JSON - " + respJSON);
-			}
+			//if (logger.isDebugEnabled()) {
+				logger.info("JSON - " + respJSON);
+			//}
 			
 			JSONParser parser = new JSONParser();
 			JSONObject resp = (JSONObject) parser.parse(respJSON);
@@ -212,9 +210,9 @@ public class OAuth2K8sServiceAccount extends OAuth2Bearer {
 				while (it.hasNext()) {
 					LDAPAttribute attrib = it.next();
 					Attribute attr = new Attribute(attrib.getName());
-					String[] vals = attrib.getStringValueArray();
-					for (int i=0;i<vals.length;i++) {
-						attr.getValues().add(vals[i]);
+					LinkedList<ByteArray> vals = attrib.getAllValues();
+					for (ByteArray val: vals) {
+						attr.getValues().add(new String(val.getValue()));
 					}
 					authInfo.getAttribs().put(attr.getName(), attr);
 				}

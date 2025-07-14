@@ -25,13 +25,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-import java.util.Queue;
+import java.util.*;
 
 import javax.mail.Authenticator;
 import javax.mail.Message;
@@ -42,6 +36,7 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
@@ -387,9 +382,9 @@ public class PasswordReset implements AuthMechanism {
 					while (it.hasNext()) {
 						LDAPAttribute attrib = it.next();
 						Attribute attr = new Attribute(attrib.getName());
-						String[] vals = attrib.getStringValueArray();
-						for (int i=0;i<vals.length;i++) {
-							attr.getValues().add(vals[i]);
+						LinkedList<ByteArray> vals = attrib.getAllValues();
+						for (ByteArray val: vals) {
+							attr.getValues().add(new String(val.getValue()));
 						}
 						authInfo.getAttribs().put(attr.getName(), attr);
 					}

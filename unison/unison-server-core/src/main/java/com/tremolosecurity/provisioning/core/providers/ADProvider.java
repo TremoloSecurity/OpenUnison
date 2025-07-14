@@ -20,14 +20,9 @@ package com.tremolosecurity.provisioning.core.providers;
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import com.novell.ldap.util.ByteArray;
 import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
@@ -168,9 +163,10 @@ public class ADProvider implements UserStoreProviderWithAddGroup {
 			
 			for (Object obj : attrs) {
 				LDAPAttribute attr = (LDAPAttribute) obj;
-				String[] vals = attr.getStringValueArray();
-				for (String val : vals) {
-					this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Add, approvalID, workflow,attr.getName(),val);
+
+				LinkedList<ByteArray> vals = attr.getAllValues();
+				for (ByteArray val: vals) {
+					this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Add, approvalID, workflow,attr.getName(),new String(val.getValue()));
 				}
 			}
 			
@@ -584,11 +580,12 @@ public class ADProvider implements UserStoreProviderWithAddGroup {
 				
 				
 				
-				String[] ldapVals = ldapAttr.getStringValueArray();
+
+				LinkedList<ByteArray> ldapVals = ldapAttr.getAllValues();
 				
 				
-				for (int i=0;i<ldapVals.length;i++) {
-					String ldapVal = ldapVals[i];
+				for (ByteArray ba : ldapVals) {
+					String ldapVal = new String(ba.getValue());
 					boolean found = false;
 					for (String objVal : vals) {
 						if (logger.isDebugEnabled()) {
@@ -679,9 +676,10 @@ public class ADProvider implements UserStoreProviderWithAddGroup {
 				case (LDAPModification.DELETE) : at = ActionType.Delete; break;
 			}
 			
-			String[] vals = mod.getAttribute().getStringValueArray();
-			for (String val : vals) {
-				this.cfgMgr.getProvisioningEngine().logAction(name,false, at, approvalID, workflow, mod.getAttribute().getBaseName(), val);
+
+			LinkedList<ByteArray> vals = mod.getAttribute().getAllValues();
+			for (ByteArray ba : vals) {
+				this.cfgMgr.getProvisioningEngine().logAction(name,false, at, approvalID, workflow, mod.getAttribute().getBaseName(), new String(ba.getValue()));
 			}
 		}
 	}
@@ -886,9 +884,9 @@ public class ADProvider implements UserStoreProviderWithAddGroup {
 		while (it.hasNext()) {
 			LDAPAttribute attr  =  it.next();
 			Attribute userAttr = new Attribute(attr.getName());
-			String[] vals = attr.getStringValueArray();
-			for (int i=0;i<vals.length;i++) {
-				userAttr.getValues().add(vals[i]);
+			LinkedList<ByteArray> vals = attr.getAllValues();
+			for (ByteArray val: vals) {
+				userAttr.getValues().add(new String(val.getValue()));
 			}
 			user.getAttribs().put(userAttr.getName(), userAttr);
 		}

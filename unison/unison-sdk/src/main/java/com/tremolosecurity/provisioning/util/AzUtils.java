@@ -24,8 +24,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
+import com.novell.ldap.util.ByteArray;
 import org.apache.logging.log4j.Logger;
 
 import org.hibernate.Session;
@@ -192,9 +194,9 @@ public class AzUtils {
 		
 		if (entry != null) {
 			LDAPAttribute members = entry.getAttribute(cfg.getCfg().getGroupMemberAttribute());
-			String[] dns = members != null ? members.getStringValueArray() : new String[0];
+			LinkedList<ByteArray> dns = members != null ? members.getAllValues() : new LinkedList<>();
 			
-			if (dns.length == 0) {
+			if (dns.size() == 0) {
 				StringBuffer b = new StringBuffer();
 				b.append(constraint).append(" does not have any members");
 				logger.warn(b.toString());
@@ -203,8 +205,8 @@ public class AzUtils {
 			try {
 				
 				
-				for (String dn : dns) {
-					
+				for (ByteArray ba : dns) {
+					String dn = new String(ba.getValue());
 					Approvers approver = getApproverByDN(approval,emailTemplate,cfg,session,dn,sendNotification,objToSave);
 					if (approver == null) {
 						continue;
@@ -265,8 +267,9 @@ public class AzUtils {
 				LDAPAttributeSet attrsx = entry.getAttributeSet();
 				for (Object o : attrsx) {
 					LDAPAttribute attrx = (LDAPAttribute) o;
-					for (String val : attrx.getStringValueArray()) {
-						logger.debug("Approver Attribute '" + attrx.getName() + "'='" + val + "'");
+					LinkedList<ByteArray> vals = attrx.getAllValues();
+					for (ByteArray ba : vals) {
+						logger.debug("Approver Attribute '" + attrx.getName() + "'='" + new String(ba.getValue()) + "'");
 					}
 				}
 			}

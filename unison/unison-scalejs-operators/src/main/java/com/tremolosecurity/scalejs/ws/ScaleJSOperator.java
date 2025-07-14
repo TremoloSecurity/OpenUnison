@@ -30,6 +30,7 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResult;
 import com.novell.ldap.LDAPSearchResults;
+import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.config.xml.ApplicationType;
@@ -140,9 +141,9 @@ public class ScaleJSOperator implements HttpFilter {
 				
 					
 					Attribute attrib = new Attribute(attr.getName());
-					String[] vals = attr.getStringValueArray();
-					for (String val : vals) {
-						attrib.getValues().add(val);
+					LinkedList<ByteArray> vals = attr.getAllValues();
+					for (ByteArray val: vals) {
+						attrib.getValues().add(new String(val.getValue()));
 					}
 					
 					userData.getAttribs().put(attrib.getName(), attrib);

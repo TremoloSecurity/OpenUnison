@@ -21,9 +21,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 import javax.crypto.SecretKey;
 
+import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
@@ -220,9 +222,10 @@ public class PersistentCookie implements AuthMechanism {
 					while (it.hasNext()) {
 						LDAPAttribute ldapattr = it.next();
 						attr = new Attribute(ldapattr.getName());
-						String[] vals = ldapattr.getStringValueArray();
-						for (int i=0;i<vals.length;i++) {
-							attr.getValues().add(vals[i]);
+
+						LinkedList<ByteArray> vals = ldapattr.getAllValues();
+						for (ByteArray val: vals) {
+							attr.getValues().add(new String(val.getValue()));
 						}
 						authInfo.getAttribs().put(attr.getName(), attr);
 					}
