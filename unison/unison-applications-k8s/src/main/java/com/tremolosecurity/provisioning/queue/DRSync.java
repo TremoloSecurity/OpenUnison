@@ -30,6 +30,8 @@ import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.unison.openshiftv3.OpenShiftTarget;
 import com.tremolosecurity.unison.openshiftv3.dr.DisasterRecoveryAction;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 public class DRSync extends UnisonMessageListener {
 	String target;
@@ -60,6 +62,32 @@ public class DRSync extends UnisonMessageListener {
 			} else if (drAction.getMethod().equalsIgnoreCase("PATCH")) {
 				logger.info(k8s.callWSPatchJson(k8s.getAuthToken(), http, drAction.getUrl(), drAction.getJson(), drAction.getContentType()));
 			} else if (drAction.getMethod().equalsIgnoreCase("PUT")) {
+
+				JSONObject jsonToPut = (JSONObject) new JSONParser().parse(drAction.getJson());
+				JSONObject metadata = (JSONObject) jsonToPut.get("metadata");
+				if (metadata != null) {
+					String resourceVersion = (String) metadata.get("resourceVersion");
+					if (resourceVersion != null) {
+						// There's a resource version, must be removed
+						metadata.remove("resourceVersion");
+
+					}
+				}
+
+				// now add the latest resourceVersion
+
+				String jsonFromAPI = k8s.callWS(k8s.getAuthToken(), http, drAction.getUrl());
+				JSONObject fromApi = (JSONObject) new JSONParser().parse(jsonFromAPI);
+				JSONObject fromApiMetadata = (JSONObject) fromApi.get("metadata");
+				if (fromApiMetadata != null) {
+					String resourceVersion = (String) fromApiMetadata.get("resourceVersion");
+					if (resourceVersion != null) {
+						metadata.put("resourceVersion", resourceVersion);
+					}
+				}
+
+				drAction.setJson(jsonToPut.toString());
+
 				logger.info(k8s.callWSPut(k8s.getAuthToken(), http, drAction.getUrl(),drAction.getJson()));
 			}
 		} catch (Exception e) {
