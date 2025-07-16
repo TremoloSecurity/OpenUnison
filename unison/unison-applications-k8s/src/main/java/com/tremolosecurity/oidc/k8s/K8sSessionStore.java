@@ -12,10 +12,7 @@
  *******************************************************************************/
 package com.tremolosecurity.oidc.k8s;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -585,6 +582,9 @@ public class K8sSessionStore implements OidcSessionStore {
 
 	@Override
 	public void deleteAllSessions(String sessionId) throws Exception {
+
+
+
 		String sessionIdName = new StringBuilder().append("x").append(sessionId).append("x").toString();
 		
 		OpenShiftTarget k8s = null;

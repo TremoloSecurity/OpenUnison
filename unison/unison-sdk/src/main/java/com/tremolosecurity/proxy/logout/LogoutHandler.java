@@ -29,7 +29,8 @@ public interface LogoutHandler extends Serializable {
 	 * Executed when the user logs out
 	 * @param request
 	 * @param response
+	 * @param activeLogout
 	 * @throws ServletException
 	 */
-	public void handleLogout(HttpServletRequest request, HttpServletResponse response) throws ServletException;
+	public void handleLogout(HttpServletRequest request, HttpServletResponse response, boolean activeLogout) throws ServletException;
 }

@@ -100,7 +100,7 @@ public class Saml2SingleLogout implements LogoutHandler {
 	
 	@Override
 	public void handleLogout(HttpServletRequest request,
-			HttpServletResponse response) throws ServletException {
+			HttpServletResponse response, boolean activeLogout) throws ServletException {
 		
 		if (request == null || response == null) {
 			//do nothing

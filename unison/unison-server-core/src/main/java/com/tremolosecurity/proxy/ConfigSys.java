@@ -315,7 +315,7 @@ public class ConfigSys  {
 						 		ArrayList<LogoutHandler> logoutHandlers = (ArrayList<LogoutHandler>) sharedSession.getAttribute(LogoutUtil.LOGOUT_HANDLERS);
 						 		if (logoutHandlers != null) {
 						 			for (LogoutHandler h : logoutHandlers) {
-						 				h.handleLogout(req, presp);
+						 				h.handleLogout(req, presp,true);
 						 			}
 						 		}
 						 				

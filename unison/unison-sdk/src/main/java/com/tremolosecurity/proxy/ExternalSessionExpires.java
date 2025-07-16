@@ -22,10 +22,10 @@ package com.tremolosecurity.proxy;
  */
 public interface ExternalSessionExpires {
 	
-	/**
-	 *  
-	 * @return The expiration date/time in standard java form (milliseconds since epoch)
-	 */
-	public long getExpires();
+	public boolean isExpired(long timeout,long lastAccessed);
+
+	public boolean isExpired();
+
+	public long getEstimatedExpires();
 
 }

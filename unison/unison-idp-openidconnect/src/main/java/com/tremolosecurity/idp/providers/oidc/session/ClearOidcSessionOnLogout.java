@@ -36,12 +36,13 @@ public class ClearOidcSessionOnLogout implements LogoutHandler {
 	}
 	
 	@Override
-	public void handleLogout(HttpServletRequest request, HttpServletResponse response) throws ServletException {
-		
-		try {
-			idp.removeAllSessions(session);
-		} catch (Exception e) {
-			logger.warn(new StringBuilder().append("Could not delete session ").append(session.getSessionID()).toString(),e);
+	public void handleLogout(HttpServletRequest request, HttpServletResponse response, boolean activeLogout) throws ServletException {
+		if (activeLogout) {
+			try {
+				idp.removeAllSessions(session);
+			} catch (Exception e) {
+				logger.warn(new StringBuilder().append("Could not delete session ").append(session.getSessionID()).toString(), e);
+			}
 		}
 		
 	}

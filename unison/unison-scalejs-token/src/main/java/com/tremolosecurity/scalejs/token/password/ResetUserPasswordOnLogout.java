@@ -42,7 +42,7 @@ public class ResetUserPasswordOnLogout implements LogoutHandler {
 	}
 	
 	@Override
-	public void handleLogout(HttpServletRequest request, HttpServletResponse response) throws ServletException {
+	public void handleLogout(HttpServletRequest request, HttpServletResponse response, boolean activeLogout) throws ServletException {
 		WFCall wfCall = new WFCall();
 		wfCall.setName(this.workflow);
 		wfCall.setReason("Logout");

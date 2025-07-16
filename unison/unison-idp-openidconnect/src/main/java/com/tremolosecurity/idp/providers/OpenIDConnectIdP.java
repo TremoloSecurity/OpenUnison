@@ -1737,7 +1737,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		
 		try {			
 			oidcSession = this.storeSession(access, holder.getApp(), trust.getCodeLastmileKeyName(), clientID,dn,sessionID);
-			if ((! (this.sessionStore instanceof NoneBackend)) && request.getSession().getAttribute(OpenIDConnectIdP.DO_NOT_TIE_SESSION) != null ) {
+			if ((! (this.sessionStore instanceof NoneBackend)) && request.getSession().getAttribute(OpenIDConnectIdP.DO_NOT_TIE_SESSION) == null ) {
 				request.getSession().setAttribute(SessionManagerImpl.TREMOLO_EXTERNAL_SESSION, new OidcSessionExpires(oidcSession.getSessionID(),this.sessionStore));
 			}
 		} catch (Exception e) {

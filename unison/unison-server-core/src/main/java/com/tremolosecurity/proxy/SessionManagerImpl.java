@@ -126,7 +126,7 @@ public class SessionManagerImpl implements SessionManager {
 		if (handlers != null) {
 			for (LogoutHandler handler : handlers) {
 				try {
-					handler.handleLogout(null, null);
+					handler.handleLogout(null, null,false);
 				} catch (ServletException e) {
 					logger.warn("Could not run logout handler",e);
 				}
@@ -387,12 +387,12 @@ public class SessionManagerImpl implements SessionManager {
 									.getAttribute(SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED);
 							
 							if (logger.isDebugEnabled()) {
-								logger.debug("Application - '" + tsession.getAppName() + "' - now='" + now + "' ext expires='" + extSession.getExpires() + "' expired='" + (extSession.getExpires() < now.getMillis()) + "'");
+								logger.debug("Application - '" + tsession.getAppName() + "' - now='" + now + "' ext expired='" + extSession.isExpired() + "'");
 								logger.debug("Application - '" + tsession.getAppName() + "' - now='" + now + "' expires='" + lastAccessed + "' expired='" + (now.minusSeconds(app.getCookieConfig().getTimeout())
 										.isAfter(lastAccessed)) + "'");
 							}
-							if ((extSession.getExpires() < now.getMillis()) &&  (now.minusSeconds(app.getCookieConfig().getTimeout())
-									.isAfter(lastAccessed))) {
+
+							if (extSession.isExpired(app.getCookieConfig().getTimeout(),lastAccessed.getMillis())) {
 								if (logger.isDebugEnabled()) {
 									logger.debug("Application - '" + tsession.getAppName() + "' - Invalidating and creating");
 								}
@@ -906,7 +906,7 @@ class SessionTimeoutChecker extends Thread {
 							
 							if (extSession != null) {
 								SessionManagerImpl.logger.debug("has an external session");
-								if (extSession.getExpires() < System.currentTimeMillis()) {
+								if (extSession.isExpired()) {
 									session.invalidate();
 									toremove.add(key);
 								}
@@ -950,10 +950,10 @@ class SessionTimeoutChecker extends Thread {
 									DateTime lastAccessed = (DateTime) session
 											.getAttribute(SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED);
 									DateTime now = new DateTime();
-									
-									if ((extSession.getExpires() < System.currentTimeMillis()) && (now.minusSeconds(
-											app.getCookieConfig().getTimeout())
-											.isAfter(lastAccessed))) {
+
+
+
+									if (extSession.isExpired(app.getCookieConfig().getTimeout(),lastAccessed.getMillis())) {
 										session.invalidate();
 										toremove.add(key);
 									}

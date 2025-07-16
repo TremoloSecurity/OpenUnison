@@ -32,20 +32,44 @@ public class OidcSessionExpires implements ExternalSessionExpires {
 		this.sessions = sessions;
 	}
 
+//	@Override
+//	public long getExpires() {
+//		try {
+//			OidcSessionState session = sessions.getSession(this.sessionid);
+//			if (session != null) {
+//				return session.getExpires().getMillis();
+//			} else {
+//				return 0;
+//			}
+//		} catch (Exception e) {
+//			logger.warn("Could not load session",e);
+//			return 0;
+//		}
+//
+//	}
+
 	@Override
-	public long getExpires() {
+	public boolean isExpired(long timeout, long lastAccessed) {
+		return this.isExpired();
+	}
+
+	@Override
+	public boolean isExpired() {
 		try {
 			OidcSessionState session = sessions.getSession(this.sessionid);
 			if (session != null) {
-				return session.getExpires().getMillis();
+				return session.getExpires().getMillis() < System.currentTimeMillis();
 			} else {
-				return 0;
+				return true;
 			}
 		} catch (Exception e) {
 			logger.warn("Could not load session",e);
-			return 0;
+			return true;
 		}
-		
 	}
 
+	@Override
+	public long getEstimatedExpires() {
+		return 0;
+	}
 }

@@ -88,7 +88,7 @@ public class CheckSession implements HttpFilter {
 							int stdMinLeft = -1;
 							
 							if (extSession != null) {
-								long expires = extSession.getExpires();
+								long expires = extSession.getEstimatedExpires();
 								
 								
 								

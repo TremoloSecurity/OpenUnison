@@ -91,6 +91,9 @@ public class GenerateOIDCTokens implements AuthMechanism {
 			if (authParams.get("doNotTieSession").getValues().get(0).equals("true")) {
 				request.getSession().setAttribute(OpenIDConnectIdP.DO_NOT_TIE_SESSION,OpenIDConnectIdP.DO_NOT_TIE_SESSION);
 			}
+		} else {
+			// make this the default, tieing sessions causes havoc.
+			request.getSession().setAttribute(OpenIDConnectIdP.DO_NOT_TIE_SESSION,OpenIDConnectIdP.DO_NOT_TIE_SESSION);
 		}
 
 		String overrideURL = request.getRequestURL().toString();
