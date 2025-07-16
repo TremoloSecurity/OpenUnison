@@ -38,4 +38,5 @@ public class ProxyConstants {
 	public static final String TREMOLO_FILTER_CHAIN = "TREMOLO_FILTER_CHAIN";
 	public static final String AUTH_FAILED_USER_DN = "TREMOLO_AUTH_FAILED_USER_DN";
 
+	public static final String TREMOLO_SESSION_DN = "tremolo.io/session_dn";
 }

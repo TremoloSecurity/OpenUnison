@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.tremolosecurity.proxy.util.ProxyConstants;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -78,6 +79,18 @@ public class K8sCrdUserProvider implements UserStoreProvider {
 		createObject.put("kind","User");
 		HashMap<String,Object> metaData = new HashMap<String,Object>();
 		createObject.put("metadata", metaData);
+
+		String sessionDN = (String) request.get(ProxyConstants.TREMOLO_SESSION_DN);
+
+
+
+		if (sessionDN != null) {
+			HashMap<String,String> annotations = new HashMap<>();
+			metaData.put("annotations", annotations);
+			annotations.put("tremolo.io/session-dn",sessionDN);
+		}
+
+
 		metaData.put("name", k8sUserId);
 		metaData.put("namespace",this.nameSpace);
 		

@@ -1107,6 +1107,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		wf = (WorkflowImpl) JsonTools.readObjectFromJson(json);
 		
 		wf.reInit(this.cfgMgr);
+
 		return wf;
 	}
 

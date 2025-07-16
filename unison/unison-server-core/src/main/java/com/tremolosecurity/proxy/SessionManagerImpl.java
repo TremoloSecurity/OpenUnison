@@ -145,6 +145,8 @@ public class SessionManagerImpl implements SessionManager {
 			sessions.put(session.getId(), session);
 		}
 
+		session.putValue(ProxyConstants.TREMOLO_SESSION_DN,userDN);
+
 	}
 
 	@Override
@@ -169,8 +171,10 @@ public class SessionManagerImpl implements SessionManager {
 
 	@Override
 	public void logoutAll(String userdn) {
+		logger.info("Logging out user '" + userdn + "'");
 		final ConcurrentHashMap<String, TremoloHttpSession> sessions;
 		synchronized (this.sessionsByUserDN) {
+			logger.info(this.sessionsByUserDN.keySet());
 			sessions = this.sessionsByUserDN.get(userdn);
 			if (sessions != null) {
 				this.sessionsByUserDN.remove(userdn);

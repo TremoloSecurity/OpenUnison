@@ -539,11 +539,18 @@ public class WorkflowImpl implements  Workflow {
 		return id;
 	}
 
+	@Override
+	public Map<String,Object> executeWorkflow(AuthInfo authInfo,String uidAttr) throws ProvisioningException {
+		this.request = request;
+		return this.executeWorkflow(authInfo,uidAttr,null);
+
+	}
+
 	/* (non-Javadoc)
 	 * @see com.tremolosecurity.provisioning.core.Workflow#executeWorkflow(com.tremolosecurity.proxy.auth.AuthInfo, java.lang.String)
 	 */
 	@Override
-	public Map<String,Object> executeWorkflow(AuthInfo authInfo,String uidAttr) throws ProvisioningException {
+	public Map<String,Object> executeWorkflow(AuthInfo authInfo,String uidAttr,Map<String,Object> request) throws ProvisioningException {
 		Attribute uid = authInfo.getAttribs().get(uidAttr);
 		if (uid == null) {
 			throw new ProvisioningException("No uid attribute " + uidAttr);
@@ -553,7 +560,14 @@ public class WorkflowImpl implements  Workflow {
 		user.getAttribs().putAll(authInfo.getAttribs());
 		
 		Map<String,Object> params = new HashMap<String,Object>();
+
+		if (request != null) {
+			params.putAll(request);
+		}
+
 		params.put(ProvisioningParams.UNISON_EXEC_TYPE, ProvisioningParams.UNISON_EXEC_SYNC);
+
+
 		
 		params = this.executeWorkflow(user,params);
 		

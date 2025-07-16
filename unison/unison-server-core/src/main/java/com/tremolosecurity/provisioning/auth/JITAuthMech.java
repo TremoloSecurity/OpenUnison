@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
@@ -120,10 +121,31 @@ public class JITAuthMech implements AuthMechanism {
 		AuthMechType amt = act.getAuthMech().get(as.getId());
 		
 		AuthInfo authInfo = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
-		
+
+		String sessionDN = (String) session.getAttribute(ProxyConstants.TREMOLO_SESSION_DN);
+
+
 		
 		try {
-			holder.getConfig().getProvisioningEngine().getWorkFlow(workflowName).executeWorkflow(authInfo, nameAttr);
+			com.tremolosecurity.provisioning.core.Workflow wf = holder.getConfig().getProvisioningEngine().getWorkFlow(workflowName);
+			Map<String,Object> request = wf.getRequest();
+			boolean reqNull = false;
+
+			if (request == null) {
+				request = new HashMap<>();
+				reqNull = true;
+			}
+
+			if (sessionDN != null) {
+				request.put(ProxyConstants.TREMOLO_SESSION_DN, sessionDN);
+			}
+
+			if (reqNull) {
+				wf.executeWorkflow(authInfo, nameAttr,request);
+			} else {
+				wf.executeWorkflow(authInfo, nameAttr);
+			}
+
 			as.setSuccess(true);
 		} catch (ProvisioningException e) {
 			StringBuffer b = new StringBuffer();
