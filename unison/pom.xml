@@ -109,7 +109,7 @@
 		<spring.version>5.3.39</spring.version>
 		<activation.version>1.2.0</activation.version>
 		<velocity.version>2.4.1</velocity.version>
-		<nimbusds.version>11.20.1</nimbusds.version>
+		<nimbusds.version>11.23.1</nimbusds.version>
 		<pdfbox.version>3.0.3</pdfbox.version>
 		<ws.rs-api.version>2.1.1</ws.rs-api.version>
 		<qpid.version>2.6.1</qpid.version>
