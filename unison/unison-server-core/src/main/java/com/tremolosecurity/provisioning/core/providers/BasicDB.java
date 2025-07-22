@@ -402,9 +402,12 @@ public class BasicDB implements BasicDBInterface {
 		while (rs.next()) {
 			psExec.setInt(1, rs.getInt(this.groupPrimaryKey));
 			psExec.setInt(2, id);
-			psExec.executeUpdate();
-			
-			this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add, approvalID, workflow, "group", rs.getString(this.groupName));
+
+			int result = psExec.executeUpdate();
+
+			if (result > 0) {
+				this.cfgMgr.getProvisioningEngine().logAction(this.name, false, ActionType.Add, approvalID, workflow, "group", rs.getString(this.groupName));
+			}
 		}
 	}
 
@@ -463,11 +466,7 @@ public class BasicDB implements BasicDBInterface {
 			}
 		} catch (Exception e) {
 			//logger.info("Creating new user",e);
-			if (logger.isDebugEnabled()) {
-				logger.debug("Could not create user",e);
-			}
-			this.createUser(user, attributes,wfrequest);
-			return;
+			throw new ProvisioningException("Could not load user",e);
 		}
 	
 		String userID = foundUser.getAttribs().get(this.userPrimaryKey).getValues().get(0);
@@ -551,9 +550,10 @@ public class BasicDB implements BasicDBInterface {
 					if (! foundUser.getGroups().contains(groupName)) {
 						ps.setString(1, groupName);
 						ps.setInt(2, userIDnum);
-						ps.executeUpdate();
-						
-						this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add, approvalID, workflow, "group", groupName);
+						int num = ps.executeUpdate();
+						if (num > 0) {
+							this.cfgMgr.getProvisioningEngine().logAction(this.name, false, ActionType.Add, approvalID, workflow, "group", groupName);
+						}
 					}
 				}
 				
@@ -569,8 +569,10 @@ public class BasicDB implements BasicDBInterface {
 						if (! user.getGroups().contains(groupName)) {
 							ps.setInt(1, userIDnum);
 							ps.setString(2, groupName);
-							ps.executeUpdate();
-							this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Delete, approvalID, workflow, "group", groupName);
+							int num = ps.executeUpdate();
+							if (num > 0) {
+								this.cfgMgr.getProvisioningEngine().logAction(this.name, false, ActionType.Delete, approvalID, workflow, "group", groupName);
+							}
 						}
 					}
 				}
@@ -673,8 +675,15 @@ public class BasicDB implements BasicDBInterface {
 				int groupID = rs.getInt(this.groupPrimaryKey);
 				addGroup.setInt(1, groupID);
 				addGroup.setInt(2, userIDnum);
-				addGroup.executeUpdate();
-				this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add, approvalID, workflow, "group", groupName);
+				try {
+					int num = addGroup.executeUpdate();
+					if (num > 0) {
+						this.cfgMgr.getProvisioningEngine().logAction(this.name, false, ActionType.Add, approvalID, workflow, "group", groupName);
+					}
+				} catch (SQLException e) {
+					// if there's a failure, it's likely because the relationship is already there
+					logger.warn("Could not create constraint - " + e.getMessage());
+				}
 			}
 		}
 		
@@ -690,8 +699,10 @@ public class BasicDB implements BasicDBInterface {
 					
 					delGroup.setInt(1, groupID);
 					delGroup.setInt(2, userIDnum);
-					delGroup.executeUpdate();
-					this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Delete, approvalID, workflow, "group", groupName);
+					int num = delGroup.executeUpdate();
+					if (num > 0) {
+						this.cfgMgr.getProvisioningEngine().logAction(this.name, false, ActionType.Delete, approvalID, workflow, "group", groupName);
+					}
 				}
 			}
 		}
