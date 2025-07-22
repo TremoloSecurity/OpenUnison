@@ -19,6 +19,7 @@ package com.tremolosecurity.k8s.util;
 import com.google.common.collect.ComparisonChain;
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
+import com.tremolosecurity.myvd.dataObj.ClusterInfo;
 import com.tremolosecurity.myvd.dataObj.RoleInfo;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.ProvisioningTarget;
@@ -73,7 +74,7 @@ public class PortalGroupMapper {
         this.roles = new HashMap<String,RoleInfo>();
     }
 
-    public JSONArray generateMappings(List<String> groups, HashMap<String,Map<String,Map<String,Integer>>> clusterAz) throws ServletException{
+    public JSONArray generateMappings(List<String> groups, HashMap<String, ClusterInfo> clusterAz) throws ServletException{
         JSONArray portalGroupVals = new JSONArray();
         List<RoleInfo> sortedRoles = new ArrayList<RoleInfo>();
         Set<RoleInfo> addedRoles = new HashSet<RoleInfo>();
@@ -96,16 +97,18 @@ public class PortalGroupMapper {
 
             if (clusterAz != null) {
 
-                Map<String, Map<String, Integer>> cluster = clusterAz.get(ri.getCluster());
+                ClusterInfo cluster = clusterAz.get(ri.getCluster());
                 if (cluster == null) {
-                    cluster = new HashMap<String, Map<String, Integer>>();
+                    cluster = new ClusterInfo(ri.getCluster());
                     clusterAz.put(ri.getCluster(), cluster);
                 }
 
-                Map<String, Integer> ns = cluster.get(ri.getNamespace());
+                cluster.getGroups().add(group);
+
+                Map<String, Integer> ns = cluster.getNamespaces().get(ri.getNamespace());
                 if (ns == null) {
                     ns = new HashMap<String, Integer>();
-                    cluster.put(ri.getNamespace(), ns);
+                    cluster.getNamespaces().put(ri.getNamespace(), ns);
                 }
                 ns.put(ri.getName(), 1);
             }

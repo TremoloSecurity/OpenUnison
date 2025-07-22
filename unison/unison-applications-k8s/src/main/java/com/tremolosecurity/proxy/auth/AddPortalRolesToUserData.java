@@ -20,6 +20,7 @@ import com.google.common.collect.ComparisonChain;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.util.UrlHolder;
 import com.tremolosecurity.k8s.util.PortalGroupMapper;
+import com.tremolosecurity.myvd.dataObj.ClusterInfo;
 import com.tremolosecurity.myvd.dataObj.RoleInfo;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.ProvisioningTarget;
@@ -68,7 +69,7 @@ public class AddPortalRolesToUserData implements AuthMechanism{
         ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
 
         List<String> groups = user.getAttribs().get("groups").getValues();
-        HashMap<String,Map<String,Map<String,Integer>>> clusterAz = new HashMap<String,Map<String,Map<String,Integer>>>();
+        HashMap<String,ClusterInfo> clusterAz = new HashMap<>();
 
         JSONArray portalGroupVals = PortalGroupMapper.getInstance().generateMappings(groups,clusterAz);
 
