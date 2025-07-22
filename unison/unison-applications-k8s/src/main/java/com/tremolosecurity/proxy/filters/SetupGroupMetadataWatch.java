@@ -37,6 +37,8 @@ public class SetupGroupMetadataWatch implements HttpFilter {
 	
 	static Logger logger = Logger.getLogger(SetupGroupMetadataWatch.class);
 
+	static Map<String,GroupMetadata> metadatas;
+	static LoadGroupMetadataFromK8s lgm;
 	static Map<String,List<String>> ext2k8s;
 	static Map<String,String> k8s2ext;
 	
@@ -76,11 +78,14 @@ public class SetupGroupMetadataWatch implements HttpFilter {
 
 
 	@Override
-	public void initFilter(HttpFilterConfig config) throws Exception {
+	public synchronized void  initFilter(HttpFilterConfig config) throws Exception {
 		this.extIsDN = config.getAttribute("extIsDN").getValues().get(0).equalsIgnoreCase("true");
 		this.target = config.getAttribute("target").getValues().get(0);
 		this.namespace = config.getAttribute("namespace").getValues().get(0);
-		
+
+		if (this.metadatas == null) {
+			metadatas = new HashMap<String,GroupMetadata>();
+		}
 		
 		if (ext2k8s == null) {
 			ext2k8s = new HashMap<String, List<String>>();
@@ -90,8 +95,11 @@ public class SetupGroupMetadataWatch implements HttpFilter {
 			k8s2ext = new HashMap<String,String>();
 		}
 		
-		LoadGroupMetadataFromK8s lgm = new LoadGroupMetadataFromK8s();
-		lgm.loadGroupMetadatas(config.getConfigManager(),target,namespace,this);
+		if (lgm == null) {
+			lgm = new LoadGroupMetadataFromK8s();
+			lgm.loadGroupMetadatas(config.getConfigManager(),target,namespace,this);
+		}
+
 		
 	}
 	
@@ -104,85 +112,111 @@ public class SetupGroupMetadataWatch implements HttpFilter {
 	}
 	
 	
-	public synchronized void addMapping(String k8s,String ext) {
+	public synchronized void addMapping(String name,String k8s,String ext) {
 		synchronized (ext2k8s) {
-		synchronized (k8s2ext) {	
-		
-			ext = ext.toLowerCase();
-			k8s = k8s.toLowerCase();
-			
-			if (extIsDN) {
-				DN dn = new DN(ext);
-				ext = dn.toString();
+			synchronized (k8s2ext) {
+				synchronized (metadatas) {
+
+
+
+					ext = ext.toLowerCase();
+					k8s = k8s.toLowerCase();
+
+					metadatas.put(name,new GroupMetadata(name,k8s,ext));
+
+					if (extIsDN) {
+						DN dn = new DN(ext);
+						ext = dn.toString();
+					}
+
+					List<String> k8sFromExt = ext2k8s.get(ext);
+					if (k8sFromExt == null) {
+						k8sFromExt = new ArrayList<String>();
+						ext2k8s.put(ext, k8sFromExt);
+					}
+
+					k8sFromExt.add(k8s);
+
+
+					k8s2ext.put(k8s, ext);
+				}
 			}
-			
-			List<String> k8sFromExt = ext2k8s.get(ext);
-			if (k8sFromExt == null) {
-				k8sFromExt = new ArrayList<String>();
-				ext2k8s.put(ext, k8sFromExt);
-			}
-			
-			k8sFromExt.add(k8s);
-			
-			
-			k8s2ext.put(k8s, ext);
 		}
-		}
+
 	}
 	
 	
-	public synchronized void deleteMapping(String k8s,String ext) {
+	public synchronized void deleteMapping(String name) {
 		synchronized (ext2k8s) {
 		synchronized (k8s2ext) {
-			ext = ext.toLowerCase();
-			k8s = k8s.toLowerCase();
-			
-			if (extIsDN) {
-				DN dn = new DN(ext);
-				ext = dn.toString();
-			}
-			
-			String keyToDel = null;
-			String valToDel = null;
-			for (String key : ext2k8s.keySet()) {
-				if (ext2k8s.get(key) != null) {
-					for (String val : ext2k8s.get(key)) {
-						if (val.equalsIgnoreCase(k8s)) {
-							keyToDel = key;
-							valToDel = val;
-							break;
+			synchronized (metadatas) {
+
+				GroupMetadata gm = metadatas.remove(name);
+				if (gm == null) {
+					return;
+				}
+
+				String ext = gm.ext;
+				String k8s = gm.group;
+
+				if (extIsDN) {
+					DN dn = new DN(ext);
+					ext = dn.toString();
+				}
+
+				String keyToDel = null;
+				String valToDel = null;
+				for (String key : ext2k8s.keySet()) {
+					if (ext2k8s.get(key) != null) {
+						for (String val : ext2k8s.get(key)) {
+							if (val.equalsIgnoreCase(k8s)) {
+								keyToDel = key;
+								valToDel = val;
+								break;
+							}
 						}
 					}
+
+
 				}
-				
-				
-			}
-			
-			
-			
-			if (ext2k8s.get(keyToDel) != null) {
-				ext2k8s.get(keyToDel).remove(valToDel);
-				if (ext2k8s.get(keyToDel).size() == 0) {
-					ext2k8s.remove(keyToDel);
-					logger.info("deleting " + keyToDel);
+
+
+				if (ext2k8s.get(keyToDel) != null) {
+					ext2k8s.get(keyToDel).remove(valToDel);
+					if (ext2k8s.get(keyToDel).size() == 0) {
+						ext2k8s.remove(keyToDel);
+						logger.info("deleting " + keyToDel);
+					}
 				}
-			}
-			
-			keyToDel = null;
-			
-			for (String key : k8s2ext.keySet()) {
-				if (k8s2ext.get(key) != null && k8s2ext.get(key).equalsIgnoreCase(ext)) {
-					keyToDel = key;
-					break;
+
+				keyToDel = null;
+
+				for (String key : k8s2ext.keySet()) {
+					if (k8s2ext.get(key) != null && k8s2ext.get(key).equalsIgnoreCase(ext)) {
+						keyToDel = key;
+						break;
+					}
 				}
+
+
+				k8s2ext.remove(keyToDel);
 			}
-			
-			
-			k8s2ext.remove(keyToDel);
 		}
 		}
 	}
 	
 	
 	
+}
+
+class GroupMetadata {
+	public GroupMetadata(String name, String k8s, String ext) {
+		this.name = name;
+		this.ext = ext;
+		this.group = k8s;
+	}
+	String name;
+	String group;
+	String ext;
+	boolean enabled;
 }
