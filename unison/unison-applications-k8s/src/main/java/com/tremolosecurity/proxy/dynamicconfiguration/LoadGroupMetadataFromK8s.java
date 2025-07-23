@@ -150,7 +150,8 @@ public class LoadGroupMetadataFromK8s  implements  K8sWatchTarget {
 				String k8s = (String) spec.get("groupName");
 				String ext = (String) spec.get("externalName");
 				
-				logger.info("Deleting GroupMetadata " + name + " / " + k8s + " / " + ext);
+
+
 
 
 				this.md.deleteMapping(name);
