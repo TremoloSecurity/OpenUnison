@@ -19,6 +19,7 @@ package com.tremolosecurity.k8s.util;
 import com.google.common.collect.ComparisonChain;
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
+import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.myvd.dataObj.ClusterInfo;
 import com.tremolosecurity.myvd.dataObj.RoleInfo;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
@@ -140,6 +141,70 @@ public class PortalGroupMapper {
         }
 
         return portalGroupVals;
+    }
+
+    public List<String> getClusterGroups(List<ByteArray> groups,String clusterName) throws ProvisioningException {
+        HashMap<String, ClusterInfo> clusterAz = new HashMap<>();
+        List<String> clusterGroups = new ArrayList<String>();
+
+
+
+        for (ByteArray rawGroup : groups) {
+            String group = rawGroup.toString();
+            RoleInfo ri = this.roles.get(group);
+            if (ri == null) {
+
+                    ri = this.loadRoleInfo(group);
+
+
+
+
+
+
+            }
+
+
+
+            ClusterInfo cluster = clusterAz.get(ri.getCluster());
+            if (cluster == null) {
+                cluster = new ClusterInfo(ri.getCluster());
+                clusterAz.put(ri.getCluster(), cluster);
+            }
+
+            cluster.getGroups().add(group);
+
+            Map<String, Integer> ns = cluster.getNamespaces().get(ri.getNamespace());
+            if (ns == null) {
+                ns = new HashMap<String, Integer>();
+                cluster.getNamespaces().put(ri.getNamespace(), ns);
+            }
+            ns.put(ri.getName(), 1);
+
+
+
+
+            ClusterInfo clusterInfo = clusterAz.get("N/A");
+            logger.info("clusterInfo NA : " + clusterInfo);
+            if (clusterInfo != null) {
+
+                clusterGroups.addAll(clusterInfo.getGroups());
+            }
+
+            clusterInfo = clusterAz.get(clusterName);
+            logger.info("clusterInfo : " + clusterInfo);
+            if (clusterInfo != null) {
+                clusterGroups.addAll(clusterInfo.getGroups());
+            }
+
+
+
+        }
+
+
+
+
+
+        return clusterGroups;
     }
 
     public List<String> generateMappings(LDAPEntry entry) throws ProvisioningException {
