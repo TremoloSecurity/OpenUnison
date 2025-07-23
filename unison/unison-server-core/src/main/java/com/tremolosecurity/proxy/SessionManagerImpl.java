@@ -955,12 +955,20 @@ class SessionTimeoutChecker extends Thread {
 											.getAttribute(SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED);
 									DateTime now = new DateTime();
 
+									if (lastAccessed != null) {
+										if (extSession.isExpired(app.getCookieConfig().getTimeout(),lastAccessed.getMillis())) {
+											session.invalidate();
+											toremove.add(key);
+										}
+									} else {
+										if (extSession.isExpired()) {
+											session.invalidate();
+											toremove.add(key);
 
-
-									if (extSession.isExpired(app.getCookieConfig().getTimeout(),lastAccessed.getMillis())) {
-										session.invalidate();
-										toremove.add(key);
+										}
 									}
+
+
 								} else {
 									DateTime lastAccessed = (DateTime) session
 											.getAttribute(SessionManagerImpl.TREMOLO_SESSION_LAST_ACCESSED);
