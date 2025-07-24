@@ -21,11 +21,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
+import com.novell.ldap.util.ByteArray;
+import com.tremolosecurity.provisioning.core.ProvisioningParams;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -58,7 +57,7 @@ import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.proxy.util.ProxyTools;
 import com.tremolosecurity.saml.*;
 
-
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 
 
 public class JITAuthMech implements AuthMechanism {
@@ -105,7 +104,16 @@ public class JITAuthMech implements AuthMechanism {
 		workflowName = authParams.get("workflowName").getValues().get(0);
 		
 		
-		
+		long gracePeriod = 0;
+		String reloadBaseDN = null;
+		String lastUpdatedAttributeName = "";
+
+		if (authParams.get("gracePeriod") != null) {
+			gracePeriod = Long.parseLong(authParams.get("gracePeriod").getValues().get(0));
+			reloadBaseDN = authParams.get("reloadBaseDN").getValues().get(0);
+			lastUpdatedAttributeName = authParams.get("lastUpdatedAttributeName").getValues().get(0);
+		}
+
 		
 		
 		
@@ -124,30 +132,92 @@ public class JITAuthMech implements AuthMechanism {
 
 		String sessionDN = (String) session.getAttribute(ProxyConstants.TREMOLO_SESSION_DN);
 
+		boolean runJit = true;
 
-		
-		try {
-			com.tremolosecurity.provisioning.core.Workflow wf = holder.getConfig().getProvisioningEngine().getWorkFlow(workflowName);
-			Map<String,Object> request = wf.getRequest();
-			boolean reqNull = false;
+		if (gracePeriod > 0) {
+			Attribute lastAccessed = authInfo.getAttribs().get(lastUpdatedAttributeName);
+			if (lastAccessed != null) {
+				String lastAccessedValue = lastAccessed.getValues().get(0);
+				if (lastAccessedValue != null && ! lastAccessedValue.isBlank()) {
+					long lastAccessedTime = 0;
+					try {
+						lastAccessedTime = Long.parseLong(lastAccessedValue);
+					} catch (NumberFormatException e) {
 
-			if (request == null) {
-				request = new HashMap<>();
-				reqNull = true;
-			}
+					}
 
-			if (sessionDN != null) {
-				request.put(ProxyConstants.TREMOLO_SESSION_DN, sessionDN);
-			}
-
-			if (reqNull) {
-				wf.executeWorkflow(authInfo, nameAttr,request);
+					if ((System.currentTimeMillis() - gracePeriod) < lastAccessedTime) {
+						runJit = false;
+					}
+				}
 			} else {
-				wf.executeWorkflow(authInfo, nameAttr);
+				logger.warn(String.format("No last accessed attribute %s for user %s", lastUpdatedAttributeName, sessionDN));
+			}
+		}
+
+
+		try {
+			if (runJit) {
+				com.tremolosecurity.provisioning.core.Workflow wf = holder.getConfig().getProvisioningEngine().getWorkFlow(workflowName);
+				Map<String, Object> request = wf.getRequest();
+				boolean reqNull = false;
+
+				if (request == null) {
+					request = new HashMap<>();
+					reqNull = true;
+				}
+
+				if (sessionDN != null) {
+					request.put(ProxyConstants.TREMOLO_SESSION_DN, sessionDN);
+				}
+
+				if (reqNull) {
+					wf.executeWorkflow(authInfo, nameAttr, request);
+				} else {
+					wf.executeWorkflow(authInfo, nameAttr);
+				}
+			} else {
+
+
+				if (reloadBaseDN == null) {
+					if (act != null) {
+						reloadBaseDN = act.getRoot();
+					}
+					if (reloadBaseDN == null) {
+						reloadBaseDN = this.cfgMgr.getCfg().getLdapRoot();
+					}
+				}
+
+				Attribute userid = authInfo.getAttribs().get(nameAttr);
+				if (userid == null) {
+					throw new ServletException(String.format("No %s attribute found for user %s", nameAttr, sessionDN));
+				}
+
+				LDAPSearchResults res = this.cfgMgr.getMyVD().search(reloadBaseDN, 2, equal(nameAttr,userid.getValues().get(0)).toString(), new ArrayList<String>());
+				authInfo.getAttribs().clear();
+				if (res.hasMore()) {
+
+					LDAPEntry entry = res.next();
+					while (res.hasMore()) res.next();
+					authInfo.setUserDN(entry.getDN(), null);
+
+					Iterator<LDAPAttribute> it = entry.getAttributeSet().iterator();
+
+					while (it.hasNext()) {
+						LDAPAttribute attrib = it.next();
+						Attribute attr = new Attribute(attrib.getName());
+
+						LinkedList<ByteArray> vals = attrib.getAllValues();
+						for (ByteArray val : vals) {
+							attr.getValues().add(new String(val.getValue()));
+						}
+						authInfo.getAttribs().put(attr.getName(), attr);
+					}
+				}
 			}
 
 			as.setSuccess(true);
-		} catch (ProvisioningException e) {
+		} catch ( LDAPException | ProvisioningException e) {
 			StringBuffer b = new StringBuffer();
 			b.append("Could not execute workflow '").append(workflowName).append("' on '").append(authInfo.getUserDN()).append("'");
 			
