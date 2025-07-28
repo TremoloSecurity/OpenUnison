@@ -15,6 +15,8 @@
  *******************************************************************************/
 package com.tremolosecurity.proxy.token;
 
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -46,6 +48,7 @@ import java.time.Instant;
 public class AwsTokens implements TokenLoader {
 	
 	static Logger logger = Logger.getLogger(TokenLoader.class.getName());
+    public static final String ROLE_REQUEST_ATTRIBUTE = "tremolo.io/aws/token/role";
 
     String sigKeyName;
     String encKeyName;
@@ -63,6 +66,10 @@ public class AwsTokens implements TokenLoader {
     String idpName;
     String roleName;
 
+    int expiresSeconds;
+
+
+
     @Override
     public void init(HttpFilterConfig filterConfig, ScaleTokenConfig tokenConfig) throws Exception {
         this.sigKeyName = getCfgAttr("sigKeyName", filterConfig);
@@ -75,6 +82,13 @@ public class AwsTokens implements TokenLoader {
         if (nameIDFormat == null) {
             this.nameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified";
         }
+
+        String expiresSeconds = getCfgAttr("expiresSeconds", filterConfig);
+        if (expiresSeconds == null) {
+            expiresSeconds = "3600";
+        }
+
+        this.expiresSeconds = Integer.parseInt(expiresSeconds);
 
         this.authnContextRef = getCfgAttr("authnContextRef", filterConfig);
         if (this.authnContextRef == null) {
@@ -98,7 +112,7 @@ public class AwsTokens implements TokenLoader {
     }
 
     @Override
-    public Object loadToken(AuthInfo user, HttpSession session,HttpServletRequest arg2) throws Exception {
+    public Object loadToken(AuthInfo user, HttpSession session,HttpServletRequest request) throws Exception {
         
         Attribute uid = user.getAttribs().get(this.uidAttribute);
 
@@ -125,19 +139,32 @@ public class AwsTokens implements TokenLoader {
         String sessionName = UUID.randomUUID().toString();
         logger.info(String.format("Session %s for user %s", sessionName,uid));
         assertion.getAttribs().add(new Attribute("https://aws.amazon.com/SAML/Attributes/RoleSessionName",sessionName));
-        assertion.getAttribs().add(new Attribute("https://aws.amazon.com/SAML/Attributes/Role",new StringBuilder().append(this.roleName).append(",").append(this.idpName).toString()));
+
+        // if the role isn't hardcoded, get it from a request attribute
+        String localRoleName = this.roleName;
+        if (localRoleName == null || localRoleName.isEmpty()) {
+            localRoleName = (String) request.getAttribute(AwsTokens.ROLE_REQUEST_ATTRIBUTE);
+            if (localRoleName == null || localRoleName.isEmpty()) {
+                throw new Exception(String.format("No role name found for user token request %s",uid.getValues().get(0)));
+            }
+        }
+
+        assertion.getAttribs().add(new Attribute("https://aws.amazon.com/SAML/Attributes/Role",new StringBuilder().append(localRoleName).append(",").append(this.idpName).toString()));
 
         String samlResp = assertion.generateSaml2Response();
+
+
+
         String base64SamlResp = java.util.Base64.getEncoder().encodeToString(samlResp.getBytes("UTF-8"));
         
         StsClient stsClient = StsClient.builder().build();
         
         // Create AssumeRoleWithSAML request
         AssumeRoleWithSamlRequest assumeRoleWithSamlRequest = AssumeRoleWithSamlRequest.builder()
-                .roleArn(this.roleName)
+                .roleArn(localRoleName)
                 .principalArn(this.idpName)
                 .samlAssertion(base64SamlResp)
-                .durationSeconds(3600) // Set session duration (in seconds)
+                .durationSeconds(this.expiresSeconds) // Set session duration (in seconds)
                 .build();
         
         AssumeRoleWithSamlResponse response = stsClient.assumeRoleWithSAML(assumeRoleWithSamlRequest);
@@ -146,6 +173,7 @@ public class AwsTokens implements TokenLoader {
         
         HashMap<String,String> resp = new HashMap<String,String>();
 
+        resp.put("expires", credentials.expiration().atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
         resp.put("AWS Key", credentials.accessKeyId());
         resp.put("AWS Secret", credentials.secretAccessKey());
         resp.put("AWS Session", credentials.sessionToken());
