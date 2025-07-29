@@ -109,7 +109,7 @@ public class JITAuthMech implements AuthMechanism {
 		String lastUpdatedAttributeName = "";
 
 		if (authParams.get("gracePeriod") != null) {
-			gracePeriod = Long.parseLong(authParams.get("gracePeriod").getValues().get(0));
+			gracePeriod = Long.parseLong(authParams.get("gracePeriod").getValues().get(0)) * 1000;
 			reloadBaseDN = authParams.get("reloadBaseDN").getValues().get(0);
 			lastUpdatedAttributeName = authParams.get("lastUpdatedAttributeName").getValues().get(0);
 		}
