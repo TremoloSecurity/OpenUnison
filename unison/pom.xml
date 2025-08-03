@@ -115,7 +115,7 @@
 		<qpid.version>2.6.1</qpid.version>
 		<commons-io.version>2.18.0</commons-io.version>
 		<graaljs.version>24.1.1</graaljs.version>
-		<commons-compress.version>1.27.1</commons-compress.version>
+		<commons-compress.version>1.28.0</commons-compress.version>
 		<webauthn4j.version>0.28.4.RELEASE</webauthn4j.version>
 		<githubapi.version>1.326</githubapi.version>
 		<json-path.version>2.9.0</json-path.version>
