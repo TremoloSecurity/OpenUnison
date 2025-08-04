@@ -84,7 +84,9 @@ public class K8sWatcher implements StopableThread {
 	public void initalRun() throws ProvisioningException {
 		
 		OpenShiftTarget k8s = (OpenShiftTarget) provisioningEngine.getTarget(k8sTarget).getProvider();
-		
+
+
+
 		if (k8s == null) {
 			throw new ProvisioningException("Target " + k8sTarget + " does not exist");
 		}

@@ -62,5 +62,7 @@ public interface SessionManager {
 
 	public abstract void removeUserSession(String dn, TremoloHttpSession session);
 
-	public abstract void logoutAll(String userdn);
+    void moveSession(String currentDn, String newDn);
+
+    public abstract void logoutAll(String userdn);
 }

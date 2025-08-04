@@ -170,6 +170,16 @@ public class SessionManagerImpl implements SessionManager {
 	}
 
 	@Override
+	public void moveSession(String currentDn, String newDn) {
+		synchronized (this.sessionsByUserDN) {
+			ConcurrentHashMap<String, TremoloHttpSession> sessions = this.sessionsByUserDN.remove(currentDn);
+			if (sessions != null) {
+				this.sessionsByUserDN.put(newDn, sessions);
+			}
+		}
+	}
+
+	@Override
 	public void logoutAll(String userdn) {
 		logger.info("Logging out user '" + userdn + "'");
 		final ConcurrentHashMap<String, TremoloHttpSession> sessions;

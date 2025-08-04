@@ -29,6 +29,9 @@ import java.sql.Timestamp;
 import java.util.*;
 
 import com.novell.ldap.util.ByteArray;
+import com.tremolosecurity.proxy.SessionManager;
+import com.tremolosecurity.proxy.SessionManagerImpl;
+import com.tremolosecurity.proxy.util.ProxyConstants;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.query.Query;
@@ -582,7 +585,9 @@ public class WorkflowImpl implements  Workflow {
 				AuthChainType act = this.cfgMgr.getAuthChains().get(authInfo.getAuthChain()); 
 				
 				root = (String) params.get(ProvisioningParams.UNISON_RESYNC_ROOT);
-				
+
+				String currentDN = authInfo.getUserDN();
+
 				if (root == null) {
 					if (act != null) {
 						root = act.getRoot();
@@ -618,8 +623,12 @@ public class WorkflowImpl implements  Workflow {
 						authInfo.getAttribs().put(attr.getName(), attr);
 					}
 					
-					
-					
+					// check if the user's dn has changed
+					if (! currentDN.equalsIgnoreCase(authInfo.getUserDN())) {
+						// it has, need to update the session cache
+						SessionManager sessionManager = (SessionManager) GlobalEntries.getGlobalEntries().get(ProxyConstants.TREMOLO_SESSION_MANAGER);
+						sessionManager.moveSession(currentDN, authInfo.getUserDN());
+					}
 					
 					
 					
