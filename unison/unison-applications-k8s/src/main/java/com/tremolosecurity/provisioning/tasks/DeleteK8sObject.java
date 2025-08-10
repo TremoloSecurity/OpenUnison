@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -156,14 +157,25 @@ public class DeleteK8sObject implements CustomTask {
     			    JSONParser parser = new JSONParser();
     			    JSONObject resp = (JSONObject) parser.parse(respJSON);
     			    String kind = (String) resp.get("kind");
+					JSONArray items = (JSONArray) resp.get("items");
     			    String projectName = (String) ((JSONObject) resp.get("metadata")).get("name");
     			    
     			    
     			    if (logger.isDebugEnabled()) {
     			    	logger.debug("kind : '" + kind + "' / '" + this.kind + "'");
     			    }
-    			    
-    			    if (kind.equalsIgnoreCase(this.kind)) {
+
+					if (items != null) {
+						// deleted a collection
+						String trimmedUrl = localURL.indexOf('?') > 0 ? localURL.substring(0,localURL.lastIndexOf('?')) : localURL;
+						for (Object o : items) {
+							JSONObject item = (JSONObject) o;
+							JSONObject metadata = (JSONObject) item.get("metadata");
+							String name = metadata.get("name").toString();
+							String fullUrl = String.format("%s/%s", trimmedUrl, name);
+							this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Delete,  approvalID, this.task.getWorkflow(), label, fullUrl);
+						}
+					} else if (kind.equalsIgnoreCase(this.kind)) {
     			    	this.task.getConfigManager().getProvisioningEngine().logAction(localTarget,true, ProvisioningUtil.ActionType.Delete,  approvalID, this.task.getWorkflow(), label, localURL);
     			    } else if (resp.get("status") != null) {
     			    	String status = (String) resp.get("status");
