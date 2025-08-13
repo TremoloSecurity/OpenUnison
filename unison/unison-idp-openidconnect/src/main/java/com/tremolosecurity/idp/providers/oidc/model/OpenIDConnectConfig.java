@@ -47,7 +47,7 @@ public class OpenIDConnectConfig {
 		
 		
 		
-		ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
+
 		//issuer.append(holder.getUrl().getUri());
 		//b.append(cfg.getAuthIdPPath()).append(this.idpName);
 		b.append(authUrl);
