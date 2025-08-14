@@ -627,7 +627,10 @@ public class WorkflowImpl implements  Workflow {
 					if (! currentDN.equalsIgnoreCase(authInfo.getUserDN())) {
 						// it has, need to update the session cache
 						SessionManager sessionManager = (SessionManager) GlobalEntries.getGlobalEntries().get(ProxyConstants.TREMOLO_SESSION_MANAGER);
-						sessionManager.moveSession(currentDN, authInfo.getUserDN());
+						if (sessionManager != null) {
+							sessionManager.moveSession(currentDN, authInfo.getUserDN());
+						}
+
 					}
 					
 					
