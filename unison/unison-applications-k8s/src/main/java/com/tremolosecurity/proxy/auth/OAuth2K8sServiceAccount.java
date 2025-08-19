@@ -96,9 +96,9 @@ public class OAuth2K8sServiceAccount extends OAuth2Bearer {
 			con = target.createClient();
 			String respJSON = target.callWSPost(target.getAuthToken(), con, "/apis/authentication.k8s.io/v1/tokenreviews", json);
 			
-			//if (logger.isDebugEnabled()) {
-				logger.info("JSON - " + respJSON);
-			//}
+			if (logger.isDebugEnabled()) {
+				logger.debug("JSON - " + respJSON);
+			}
 			
 			JSONParser parser = new JSONParser();
 			JSONObject resp = (JSONObject) parser.parse(respJSON);
