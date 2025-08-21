@@ -117,7 +117,7 @@
 		<graaljs.version>24.1.1</graaljs.version>
 		<commons-compress.version>1.27.1</commons-compress.version>
 		<webauthn4j.version>0.28.4.RELEASE</webauthn4j.version>
-		<githubapi.version>1.326</githubapi.version>
+		<githubapi.version>1.329</githubapi.version>
 		<json-path.version>2.9.0</json-path.version>
 		<lazysodium.version>5.1.4</lazysodium.version>
 		<jna.version>5.16.0</jna.version>
