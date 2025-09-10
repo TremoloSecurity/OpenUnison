@@ -91,7 +91,7 @@
 	  	<cryptacular.version>1.2.7</cryptacular.version>
 	  	<santuario-xmlsec.version>4.0.3</santuario-xmlsec.version>
 		<netty-codec.version>4.1.116.Final</netty-codec.version>
-		<netty-common.version>4.1.116.Final</netty-common.version>
+		<netty-common.version>4.1.125.Final</netty-common.version>
 		<netty-https2.version>4.1.116.Final</netty-https2.version>
 		<dom4j.version>2.1.4</dom4j.version>  
 		<gitlab.version>5.8.0</gitlab.version>
