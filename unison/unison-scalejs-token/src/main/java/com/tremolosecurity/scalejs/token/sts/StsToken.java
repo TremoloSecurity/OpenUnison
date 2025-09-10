@@ -89,7 +89,7 @@ public class StsToken implements TokenLoader {
 
         JsonWebSignature jws = new JsonWebSignature();
         jws.setPayload(claims.toJson());
-        jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getPrivateKey("unison-saml2-rp-sig"));
+        jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getPrivateKey(keyName));
         jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
 
         String jwt = jws.getCompactSerialization();
