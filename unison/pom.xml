@@ -129,6 +129,7 @@
 		<jakarta-jaxb.version>3.0.1</jakarta-jaxb.version>
 		<!-- Last version that supports Java 21 -->
 		<checker.version>3.9.1</checker.version>
+		<dnsjava.version>3.6.3</dnsjava.version>
 	</properties>
 
 	<repositories>

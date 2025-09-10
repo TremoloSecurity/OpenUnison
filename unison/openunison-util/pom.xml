@@ -36,6 +36,11 @@ limitations under the License.
 
 
 		</dependency>
+		<dependency>
+			<groupId>dnsjava</groupId>
+			<artifactId>dnsjava</artifactId>
+			<version>${dnsjava.version}</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -49,13 +54,16 @@ limitations under the License.
   <plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.3</version>
+				<version>3.2.1</version>
 				<configuration>
 					<transformers>
 						<transformer
 							implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
 						<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <mainClass>com.tremolosecurity.openunison.util.OpenUnisonUtils</mainClass>
+							<manifestEntries>
+								<Multi-Release>true</Multi-Release>
+							</manifestEntries>
                 </transformer>
 					</transformers>
 					<createDependencyReducedPom>false</createDependencyReducedPom>
@@ -77,6 +85,7 @@ limitations under the License.
 						<goals>
 							<goal>shade</goal>
 						</goals>
+
 					</execution>
 				</executions>
 
