@@ -62,7 +62,7 @@ public class DbOidcSessionStore implements OidcSessionStore {
 			dbSession.setRefreshToken(session.getRefreshToken());
 			
 			db.beginTransaction();
-			db.save(dbSession);
+			db.persist(dbSession);
 			db.getTransaction().commit();
 			
 		} finally {
@@ -82,10 +82,10 @@ public class DbOidcSessionStore implements OidcSessionStore {
 		try {
 			db = this.sessionFactory.openSession();
 			
-			OidcDbSession dbSession = db.get(OidcDbSession.class, sessionId);
+			OidcDbSession dbSession = db.find(OidcDbSession.class, sessionId);
 			if (dbSession != null) {
 				db.beginTransaction();
-				db.delete(dbSession);
+				db.remove(dbSession);
 				db.getTransaction().commit();
 			}
 		} finally {
@@ -146,7 +146,7 @@ public class DbOidcSessionStore implements OidcSessionStore {
 			dbSession.setRefreshToken(session.getRefreshToken());
 			
 			db.beginTransaction();
-			db.save(dbSession);
+			db.persist(dbSession);
 			db.getTransaction().commit();
 			
 		} finally {

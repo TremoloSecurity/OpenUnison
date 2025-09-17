@@ -425,19 +425,19 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				session.beginTransaction();
 				AuditLogType alt = new AuditLogType();
 				alt.setName("Add");
-				session.save(alt);
+				session.persist(alt);
 				
 				this.auditLogTypes.put("add", alt);
 				
 				alt = new AuditLogType();
 				alt.setName("Delete");
-				session.save(alt);
+				session.persist(alt);
 				
 				this.auditLogTypes.put("delete", alt);
 				
 				alt = new AuditLogType();
 				alt.setName("Replace");
-				session.save(alt);
+				session.persist(alt);
 				
 				this.auditLogTypes.put("replace", alt);
 				
@@ -574,7 +574,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		        	if (! this.targetIDs.containsKey(targetCfg.getName())) {
 						Targets target = new Targets();
 						target.setName(targetCfg.getName());
-						session.save(target);
+						session.persist(target);
 						this.targetIDs.put(target.getName(), target);
 					}
 		        }
@@ -964,7 +964,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	        	if (! this.targetIDs.containsKey(targetCfg.getName())) {
 					Targets target = new Targets();
 					target.setName(targetCfg.getName());
-					session.save(target);
+					session.persist(target);
 					this.targetIDs.put(target.getName(), target);
 				}
 		        
@@ -1066,7 +1066,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				workflow.setName(wf.getName());
 				workflow.setStartTs(new Timestamp(now.getMillis()));
 				
-				session.save(workflow);
+				session.persist(workflow);
 				
 				
 				wf.setId(workflow.getId());
@@ -1179,7 +1179,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				
 				approverObj = new Approvers();
 				approverObj.setUserKey(userID);
-				session.save(approverObj);
+				session.persist(approverObj);
 				
 				
 				approverID = approverObj.getId();
@@ -1208,7 +1208,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 						if (approverAttr != null) {
 							if (! approverAttr.getStringValue().equals(appAttr.getValue())) {
 								appAttr.setValue(approverAttr.getStringValue());
-								session.save(appAttr);
+								session.persist(appAttr);
 							}
 						}
 						
@@ -1224,7 +1224,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 					}
 					attr.setApprovers(approverObj);
 					approverObj.getApproverAttributeses().add(attr);
-					session.save(attr);
+					session.persist(attr);
 					changed = true;
 				}
 				
@@ -1236,7 +1236,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			
 			
-			Approvals approvals = session.load(Approvals.class, id);
+			Approvals approvals = session.find(Approvals.class, id);
 			
 			
 			
@@ -1297,7 +1297,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			approvals.setApproved(approved ? 1 : 0);
 			approvals.setReason(reason);
 			
-			session.save(approvals);
+			session.persist(approvals);
 			
 			
 			
@@ -1446,9 +1446,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 					case Replace : auditLog.setAuditLogType(this.auditLogTypes.get("replace")); break;
 				}
 				
-				auditLog.setUser(session.load(Users.class,wf.getUserNum()));
+				auditLog.setUser(session.find(Users.class,wf.getUserNum()));
 				if (approval > 0) {
-					auditLog.setApprovals(session.load(Approvals.class, approval));
+					auditLog.setApprovals(session.find(Approvals.class, approval));
 				} else {
 					auditLog.setApprovals(null);
 				}
@@ -1456,10 +1456,10 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				auditLog.setAttribute(attribute);
 				auditLog.setVal(val);
 				
-				auditLog.setWorkflows(session.load(Workflows.class, wf.getId()));
+				auditLog.setWorkflows(session.find(Workflows.class, wf.getId()));
 				auditLog.setTargets(this.targetIDs.get(target));
 				
-				session.save(auditLog);
+				session.persist(auditLog);
 			} catch (Exception e) {
 				logger.error("Could not create audit record",e);
 			} finally {

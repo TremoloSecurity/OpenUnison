@@ -31,6 +31,7 @@ import com.tremolosecurity.provisioning.util.CustomTask;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.unison.gitlab.provisioning.targets.GitlabUserProvider;
+import org.gitlab4j.api.models.RepositoryFileResponse;
 
 public class CreateGitFile implements CustomTask {
 	
@@ -91,11 +92,11 @@ public class CreateGitFile implements CustomTask {
 			RepositoryFile rf = new RepositoryFile();
 			rf.setFilePath(localPath);
 			rf.setContent(localContent);
-			RepositoryFile result = api.getRepositoryFileApi().createFile(existingProject, rf, localBranch, localCommit);
+			RepositoryFileResponse result = api.getRepositoryFileApi().createFile(existingProject, rf, localBranch, localCommit);
 		
 			GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().logAction(gitlab.getName(),
 					false, ActionType.Add, approvalID, workflow,
-					"gitlab-file-" + existingProject.getNameWithNamespace() + "-file", localPath + " / " + result.getCommitId());
+					"gitlab-file-" + existingProject.getNameWithNamespace() + "-file", localPath + " / " + result.getBranch());
 			
 		} catch (GitLabApiException e) {
 			throw new ProvisioningException("Error looking up project " + localNamespace + "/" + localProjectName,e);

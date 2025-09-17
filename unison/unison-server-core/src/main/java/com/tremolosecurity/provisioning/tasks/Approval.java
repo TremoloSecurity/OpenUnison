@@ -382,10 +382,10 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				
 				session.beginTransaction();
 				approval.setWorkflowObj(null);
-				session.save(approval);
-				
+				session.persist(approval);
+
 				for (Object o : objToSave) {
-					session.save(o);
+					session.persist(o);
 				}
 				
 				
@@ -413,7 +413,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 				//String base64 = new String(org.bouncycastle.util.encoders.Base64.encode(baos.toByteArray()));
 				
 				approval.setWorkflowObj(gson.toJson(token));
-				session.save(approval);
+				session.persist(approval);
 				
 				//request.put("APPROVAL_ID", Integer.toString(this.id));
 				request.put("APPROVAL_ID", this.id);
@@ -520,7 +520,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 		boolean updateObj = false;
 		boolean localFail = false;
 		
-		Approvals approvalObj = session.load(Approvals.class, this.id);
+		Approvals approvalObj = session.find(Approvals.class, this.id);
 		
 		if (! this.failed && this.escalationRules != null && ! this.escalationRules.isEmpty()) {
 			boolean continueLooking = true;
@@ -622,7 +622,7 @@ public class Approval extends WorkflowTaskImpl implements Serializable {
 		
 		boolean foundApprovers = false;
 		
-		Approvals approval = session.load(Approvals.class, this.id);
+		Approvals approval = session.find(Approvals.class, this.id);
 		
 		for (Approver approver : this.approvers) {
 			String constraintRendered = this.renderTemplate(approver.constraint, request);

@@ -200,9 +200,9 @@ public class WorkflowImpl implements  Workflow {
 				
 				
 				
-				Workflows workflow = session.load(Workflows.class, this.getId());
-				workflow.setUsers(session.load(Users.class, this.userNum));
-				workflow.setRequester(session.load(Users.class, this.requesterNum));
+				Workflows workflow = session.find(Workflows.class, this.getId());
+				workflow.setUsers(session.find(Users.class, this.userNum));
+				workflow.setRequester(session.find(Users.class, this.requesterNum));
 				workflow.setRequestReason(user.getRequestReason());
 				
 				
@@ -228,7 +228,7 @@ public class WorkflowImpl implements  Workflow {
 				
 				session.beginTransaction();
 				
-				session.save(workflow);
+				session.persist(workflow);
 				
 				for (String paramName : params.keySet()) {
 					WorkflowParameters param = new WorkflowParameters();
@@ -240,7 +240,7 @@ public class WorkflowImpl implements  Workflow {
 						param.setValue("");
 					}
 					param.setWorkflows(workflow);
-					session.save(param);
+					session.persist(param);
 				}
 				
 				
@@ -332,7 +332,7 @@ public class WorkflowImpl implements  Workflow {
 			
 			userObj = new Users();
 			userObj.setUserKey(requestor.getUserID());
-			session.save(userObj);
+			session.persist(userObj);
 			id = userObj.getId();
 			
 			if (fromLDAP != null) {
@@ -346,7 +346,7 @@ public class WorkflowImpl implements  Workflow {
 						nattr.setUsers(userObj);
 						userObj.getUserAttributeses().add(nattr);
 						
-						session.save(nattr);
+						session.persist(nattr);
 					}
 					
 					
@@ -415,7 +415,7 @@ public class WorkflowImpl implements  Workflow {
 			
 			
 			
-			session.save(userObj);
+			session.persist(userObj);
 			
 			id = userObj.getId();
 			if (fromLDAP != null) {
@@ -426,7 +426,7 @@ public class WorkflowImpl implements  Workflow {
 					if (userAttrFromLDAP != null) {
 						nattr.setValue(userAttrFromLDAP.getStringValue());
 						nattr.setUsers(userObj);
-						session.save(nattr);
+						session.persist(nattr);
 					} else {
 						logger.warn("No value for attribute '" + attr + "'");
 					}
@@ -447,7 +447,7 @@ public class WorkflowImpl implements  Workflow {
 					}
 					nattr.setUsers(userObj);
 					
-					session.save(nattr);
+					session.persist(nattr);
 					
 				}
 			}
@@ -480,7 +480,7 @@ public class WorkflowImpl implements  Workflow {
 									changed = true;
 									userAttr.setValue(userAttrFromLDAP.getStringValue());
 									
-									session.save(userAttr);
+									session.persist(userAttr);
 								}
 							}
 						} 
@@ -510,7 +510,7 @@ public class WorkflowImpl implements  Workflow {
 					
 					nattr.setUsers(userObj);
 					userObj.getUserAttributeses().add(nattr);
-					session.save(nattr);
+					session.persist(nattr);
 					changed = true;
 				}
 			
@@ -755,9 +755,9 @@ public class WorkflowImpl implements  Workflow {
 				session = this.cfgMgr.getProvisioningEngine().getHibernateSessionFactory().openSession();
 				session.beginTransaction();
 				DateTime now = new DateTime();
-				Workflows wf = session.load(Workflows.class, this.id);
+				Workflows wf = session.find(Workflows.class, this.id);
 				wf.setCompleteTs(new Timestamp(now.getMillis()));
-				session.save(wf);
+				session.persist(wf);
 				session.getTransaction().commit();
 				
 			}
@@ -857,7 +857,7 @@ public class WorkflowImpl implements  Workflow {
 	public Workflows getFromDB(Session session) throws HibernateException, ProvisioningException {
 		if (fromDB == null) {
 			
-			this.fromDB = session.load(Workflows.class,this.id);
+			this.fromDB = session.find(Workflows.class,this.id);
 		}
 		
 		return this.fromDB;

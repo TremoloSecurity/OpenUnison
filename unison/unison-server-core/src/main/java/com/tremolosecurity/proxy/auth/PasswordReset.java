@@ -408,9 +408,9 @@ public class PasswordReset implements AuthMechanism {
 			con.beginTransaction();
 			req.setNumRequests(req.getNumRequests() + 1);
 			if (req.getNumRequests() < maxChecks) {
-				con.save(req);
+				con.persist(req);
 			} else {
-				con.delete(req);
+				con.remove(req);
 			}
 			con.getTransaction().commit();
 			
@@ -585,7 +585,7 @@ public class PasswordReset implements AuthMechanism {
 		req.setTs(new Timestamp(now.getMillis()));
 		
 		con.beginTransaction();
-		con.save(req);
+		con.persist(req);
 		con.getTransaction().commit();
 		
 		this.sendEmail(emailAddress, key);

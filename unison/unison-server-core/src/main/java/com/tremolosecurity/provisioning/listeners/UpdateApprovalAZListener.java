@@ -137,7 +137,7 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 		
 		Session session = cfg.getProvisioningEngine().getHibernateSessionFactory().openSession();
 		try {
-		Approvals approvalObj = session.load(Approvals.class, approval.getId());
+		Approvals approvalObj = session.find(Approvals.class, approval.getId());
 				
 		
 		for (AllowedApprovers approver : approvalObj.getAllowedApproverses()) {
@@ -184,20 +184,20 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 		
 		
 		for (AllowedApprovers approver : todel) {
-			session.delete(approver);
+			session.remove(approver);
 		}
 		
-		session.save(approvalObj);
+		session.persist(approvalObj);
 		
 		for (Object o : objToSave) {
-			session.save(o);
+			session.persist(o);
 		}
 		
 		
 		
 		session.getTransaction().commit();
 		
-		approvalObj = session.load(Approvals.class, approvalObj.getId());
+		approvalObj = session.find(Approvals.class, approvalObj.getId());
 		
 		
 		for (AllowedApprovers approver : approvalObj.getAllowedApproverses()) {
