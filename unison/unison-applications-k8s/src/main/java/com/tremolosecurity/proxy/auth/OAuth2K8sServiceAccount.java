@@ -102,7 +102,21 @@ public class OAuth2K8sServiceAccount extends OAuth2Bearer {
 			
 			JSONParser parser = new JSONParser();
 			JSONObject resp = (JSONObject) parser.parse(respJSON);
-			JSONObject status = (JSONObject) resp.get("status");
+			Object rawStatus = resp.get("status");
+			//JSONObject status = (JSONObject) resp.get("status");
+			JSONObject status = null;
+
+			if (rawStatus instanceof String) {
+				logger.error("Could not validate token : " + rawStatus);
+				as.setExecuted(true);
+				as.setSuccess(false);
+
+				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
+				super.sendFail(response, realmName, scope, null, null);
+				return;
+			} else {
+				status = (JSONObject) rawStatus;
+			}
 			
 			if (status.get("error") != null) {
 				logger.error("Could not validate token : " + status.get("error"));
