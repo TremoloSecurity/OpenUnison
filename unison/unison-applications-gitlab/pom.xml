@@ -69,16 +69,16 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.core</groupId>
-			<artifactId>jersey-common</artifactId>
-			<version>${jersey.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.core</groupId>
-			<artifactId>jersey-client</artifactId>
-			<version>${jersey.version}</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.glassfish.jersey.core</groupId>-->
+<!--			<artifactId>jersey-common</artifactId>-->
+<!--			<version>${jersey.version}</version>-->
+<!--		</dependency>-->
+<!--		<dependency>-->
+<!--			<groupId>org.glassfish.jersey.core</groupId>-->
+<!--			<artifactId>jersey-client</artifactId>-->
+<!--			<version>${jersey.version}</version>-->
+<!--		</dependency>-->
 		
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -94,11 +94,12 @@
 		
 
 
-	<dependency>
-	  <groupId>javax.ws.rs</groupId>
-	  <artifactId>javax.ws.rs-api</artifactId>
-	  <version>${ws.rs-api.version}</version>
-	</dependency>
+<!--	<dependency>-->
+<!--	  <groupId>javax.ws.rs</groupId>-->
+<!--	  <artifactId>javax.ws.rs-api</artifactId>-->
+<!--	  <version>${ws.rs-api.version}</version>-->
+<!--		<scope>provided</scope>-->
+<!--	</dependency>-->
 
 
 	</dependencies>

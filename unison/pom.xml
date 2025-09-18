@@ -54,7 +54,9 @@
 		<jakarta.jms-api.version>2.0.1</jakarta.jms-api.version>
 		<quartz.version>2.5.0</quartz.version>
 		<quartz-jobs.version>2.5.0</quartz-jobs.version>
-		<json-io.version>4.61.0</json-io.version>
+
+		<json-io.version>4.54.0</json-io.version>
+<!--		<json-io.version>4.61.0</json-io.version>-->
 		<log4j.version>2.25.1</log4j.version>
 		<joda-time.version>2.14.0</joda-time.version>
 		<javax.mail-api.version>1.6.2</javax.mail-api.version>
@@ -111,7 +113,7 @@
 		<velocity.version>2.4.1</velocity.version>
 		<nimbusds.version>11.28</nimbusds.version>
 		<pdfbox.version>3.0.5</pdfbox.version>
-		<ws.rs-api.version>2.1.1</ws.rs-api.version>
+		<ws.rs-api.version>3.1.0</ws.rs-api.version>
 		<qpid.version>2.9.0</qpid.version>
 		<commons-io.version>2.19.0</commons-io.version>
 		<graaljs.version>24.2.1</graaljs.version>
@@ -123,7 +125,7 @@
 		<jna.version>5.17.0</jna.version>
 		<expressly.version>6.0.0</expressly.version>
 		<el-api.version>6.0.1</el-api.version>
-		<ecj.version>3.43.0</ecj.version>
+		<ecj.version>3.40.0</ecj.version>
 		<jakarta-jsp.version>3.1.1</jakarta-jsp.version>
 		<org-json-json.version>20250517</org-json-json.version>
 		<jakarta-jaxb.version>3.0.1</jakarta-jaxb.version>
