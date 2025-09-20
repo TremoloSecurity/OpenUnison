@@ -25,7 +25,7 @@ import org.joda.time.DateTime;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.springframework.util.Base64Utils;
+
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webauthn4j.authenticator.AuthenticatorImpl;
@@ -131,7 +131,7 @@ public class OpenUnisonAuthenticator extends AuthenticatorImpl {
 		ObjectConverter objConverter = new ObjectConverter();
 		AttestationStatementEnvelope envelope = new AttestationStatementEnvelope(this.getAttestationStatement());
 		bytes = objConverter.getCborConverter().writeValueAsBytes(envelope);
-		serialized.put("attestationStatement", Base64Utils.encodeToString(bytes));
+		serialized.put("attestationStatement", Base64Util.encodeToString(bytes));
 		
 		return serialized;
 		
