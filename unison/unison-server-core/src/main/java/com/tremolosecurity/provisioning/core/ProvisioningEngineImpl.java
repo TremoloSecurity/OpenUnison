@@ -1174,11 +1174,16 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			
 			int approverID;
-			
+
+			session.beginTransaction();
+
 			if (approvers.size() == 0) {
-				
+
+
+
 				approverObj = new Approvers();
 				approverObj.setUserKey(userID);
+
 				session.persist(approverObj);
 				
 				
@@ -1192,7 +1197,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			
 			
-			session.beginTransaction();
+
 			
 			
 			boolean changed = false;
@@ -1208,7 +1213,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 						if (approverAttr != null) {
 							if (! approverAttr.getStringValue().equals(appAttr.getValue())) {
 								appAttr.setValue(approverAttr.getStringValue());
-								session.persist(appAttr);
+								//session.persist(appAttr);
 							}
 						}
 						
@@ -1224,10 +1229,14 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 					}
 					attr.setApprovers(approverObj);
 					approverObj.getApproverAttributeses().add(attr);
-					session.persist(attr);
+					//session.persist(attr);
 					changed = true;
 				}
 				
+			}
+
+			if (changed) {
+				session.persist(approverObj);
 			}
 			
 			session.getTransaction().commit();

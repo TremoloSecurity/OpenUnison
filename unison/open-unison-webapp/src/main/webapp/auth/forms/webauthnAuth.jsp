@@ -101,7 +101,7 @@ if (reqHolder != null) {
 
 
 function doAuthentication() {
-	document.getElementById('login').disabled = true;
+	//document.getElementById('login').disabled = true;
 	var xhr = new XMLHttpRequest();
     xhr.open('GET', "<%= session.getAttribute("TREMOLO_AUTH_URI") %>?requestOptions=true", true);
     xhr.responseType = 'json';

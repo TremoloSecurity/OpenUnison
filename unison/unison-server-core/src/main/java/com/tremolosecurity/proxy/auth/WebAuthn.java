@@ -36,6 +36,7 @@ import javax.crypto.spec.IvParameterSpec;
 
 import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.proxy.TremoloHttpSession;
+import com.tremolosecurity.proxy.auth.webauthn.ServerPropertyHolder;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -188,8 +189,9 @@ public class WebAuthn implements AuthMechanism {
 				
 				ServerProperty serverProperty = new ServerProperty(new Origin(request.getRequestURL().toString()),
 						WebAuthnRegistration.getRpId(request), challenge, null);
-
-				byte[] yourBytes = JsonTools.writeObjectToJson(serverProperty).getBytes("UTF-8");
+				ServerPropertyHolder serverPropertyHolder = new ServerPropertyHolder();
+				serverPropertyHolder.loadFromServerProperty(serverProperty);
+				byte[] yourBytes = JsonTools.writeObjectToJson(serverPropertyHolder).getBytes("UTF-8");
 
 				resp.put("serverProperty", java.util.Base64.getUrlEncoder().encodeToString(yourBytes));
 
@@ -271,7 +273,8 @@ public class WebAuthn implements AuthMechanism {
 			
 			
 			String jsonServerProperty = new String(Base64UrlUtil.decode((String) authResponse.get("serverProperty")));
-			ServerProperty serverProperty = (ServerProperty) JsonTools.readObjectFromJson(jsonServerProperty);
+			ServerPropertyHolder serverPropertyHolder = (ServerPropertyHolder) JsonTools.readObjectFromJson(jsonServerProperty);
+			ServerProperty serverProperty = serverPropertyHolder.getServerProperty();
 			
 			
 			
@@ -581,8 +584,8 @@ public class WebAuthn implements AuthMechanism {
 			
 			
 		
-			
-			ServerProperty serverProperty = (ServerProperty) JsonTools.readObjectFromJson(new String(Base64UrlUtil.decode((String) request.getParameter("serverProperty"))));
+			ServerPropertyHolder serverPropertyHolder = (ServerPropertyHolder) JsonTools.readObjectFromJson(new String(Base64UrlUtil.decode((String) request.getParameter("serverProperty"))));
+			ServerProperty serverProperty = serverPropertyHolder.getServerProperty();
 			
 
 			String attributeName = authParams.get("attribute").getValues().get(0);

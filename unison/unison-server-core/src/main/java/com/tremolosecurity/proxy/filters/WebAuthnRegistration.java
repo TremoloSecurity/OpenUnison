@@ -37,6 +37,8 @@ import java.util.zip.DeflaterOutputStream;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+
+import com.tremolosecurity.proxy.auth.webauthn.ServerPropertyHolder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -157,12 +159,13 @@ public class WebAuthnRegistration implements HttpFilter {
 		        String b64UrlId = Base64.getUrlEncoder().encodeToString(webAuthnUserData.getId());
 		        
 		        ServerProperty serverProperty = new ServerProperty(new Origin(request.getRequestURL().toString()), rpId, challenge, webAuthnUserData.getId());
+				ServerPropertyHolder serverPropertyHolder = new ServerPropertyHolder();
+				serverPropertyHolder.loadFromServerProperty(serverProperty);
 		        
 		        
 		        
 		        
-		        
-		        byte[] yourBytes = JsonTools.writeObjectToJson(serverProperty).getBytes("UTF-8");
+		        byte[] yourBytes = JsonTools.writeObjectToJson(serverPropertyHolder).getBytes("UTF-8");
 		        
 		        
 		        
@@ -265,8 +268,13 @@ public class WebAuthnRegistration implements HttpFilter {
 		
 		
 		String jsonServerProperty = new String(Base64.getUrlDecoder().decode((String) root.get("serverProperty")));
-		
-		ServerProperty serverProperty = (ServerProperty) JsonTools.readObjectFromJson(jsonServerProperty);
+
+
+		ServerPropertyHolder serverPropertyHolder = (ServerPropertyHolder) JsonTools.readObjectFromJson(jsonServerProperty);
+		ServerProperty serverProperty = serverPropertyHolder.getServerProperty();
+
+		//ServerProperty serverProperty = (ServerProperty) JsonTools.readObjectFromJson(jsonServerProperty);
+
 		
 		
 		byte[] attestationObject = Base64.getUrlDecoder().decode((String) root.get("attestationObject"));

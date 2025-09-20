@@ -139,73 +139,74 @@ public class UpdateApprovalAZListener extends UnisonMessageListener {
 		try {
 		Approvals approvalObj = session.find(Approvals.class, approval.getId());
 				
-		
-		for (AllowedApprovers approver : approvalObj.getAllowedApproverses()) {
-			currentApprovers.add(approver.getApprovers().getId());
-		}
-		
-		
-		// i don't think i need this
+		if (approvalObj != null) {
+
+			for (AllowedApprovers approver : approvalObj.getAllowedApproverses()) {
+				currentApprovers.add(approver.getApprovers().getId());
+			}
+
+
+			// i don't think i need this
 		/*for (AllowedApprovers approver : approvalObj.getAllowedApproverses()) {
 			session.delete(approver);
 		}*/
-		
-		List<AllowedApprovers> todel = new ArrayList<AllowedApprovers>();
-		todel.addAll(approvalObj.getAllowedApproverses());
-		
-		approvalObj.getAllowedApproverses().clear();
-		
-		List<Object> objToSave = new ArrayList<Object>();
-		
-		approval.updateAllowedApprovals(session,cfg,wf.getRequest(),objToSave);
-		
-		//need to write the approval back to the db
-		json = JsonTools.writeObjectToJson(wf);
-		
-		
-		cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-		cipher.init(Cipher.ENCRYPT_MODE, decryptionKey);
-		
-		
-		byte[] encJson = cipher.doFinal(json.getBytes("UTF-8"));
-		String base64d = new String(org.bouncycastle.util.encoders.Base64.encode(encJson));
-		
-		token = new Token();
-		token.setEncryptedRequest(base64d);
-		token.setIv(new String(org.bouncycastle.util.encoders.Base64.encode(cipher.getIV())));
-		
-		//String base64 = new String(org.bouncycastle.util.encoders.Base64.encode(baos.toByteArray()));
-		
-		
-		approvalObj.setWorkflowObj(gson.toJson(token));
-		if (! session.isJoinedToTransaction()) {
-			session.beginTransaction();
-		}
-		
-		
-		for (AllowedApprovers approver : todel) {
-			session.remove(approver);
-		}
-		
-		session.persist(approvalObj);
-		
-		for (Object o : objToSave) {
-			session.persist(o);
-		}
-		
-		
-		
-		session.getTransaction().commit();
-		
-		approvalObj = session.find(Approvals.class, approvalObj.getId());
-		
-		
-		for (AllowedApprovers approver : approvalObj.getAllowedApproverses()) {
-			
-			if (! currentApprovers.contains(approver.getApprovers().getId())) {
-				
-				
-				this.sendNotification(approval.getEmailTemplate(), cfg, session, approver.getApprovers().getUserKey());
+
+			List<AllowedApprovers> todel = new ArrayList<AllowedApprovers>();
+			todel.addAll(approvalObj.getAllowedApproverses());
+
+			approvalObj.getAllowedApproverses().clear();
+
+			List<Object> objToSave = new ArrayList<Object>();
+
+			approval.updateAllowedApprovals(session, cfg, wf.getRequest(), objToSave);
+
+			//need to write the approval back to the db
+			json = JsonTools.writeObjectToJson(wf);
+
+
+			cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+			cipher.init(Cipher.ENCRYPT_MODE, decryptionKey);
+
+
+			byte[] encJson = cipher.doFinal(json.getBytes("UTF-8"));
+			String base64d = new String(org.bouncycastle.util.encoders.Base64.encode(encJson));
+
+			token = new Token();
+			token.setEncryptedRequest(base64d);
+			token.setIv(new String(org.bouncycastle.util.encoders.Base64.encode(cipher.getIV())));
+
+			//String base64 = new String(org.bouncycastle.util.encoders.Base64.encode(baos.toByteArray()));
+
+
+			approvalObj.setWorkflowObj(gson.toJson(token));
+			if (!session.isJoinedToTransaction()) {
+				session.beginTransaction();
+			}
+
+
+			for (AllowedApprovers approver : todel) {
+				session.remove(approver);
+			}
+
+			session.persist(approvalObj);
+
+			for (Object o : objToSave) {
+				session.persist(o);
+			}
+
+
+			session.getTransaction().commit();
+
+			approvalObj = session.find(Approvals.class, approvalObj.getId());
+
+
+			for (AllowedApprovers approver : approvalObj.getAllowedApproverses()) {
+
+				if (!currentApprovers.contains(approver.getApprovers().getId())) {
+
+
+					this.sendNotification(approval.getEmailTemplate(), cfg, session, approver.getApprovers().getUserKey());
+				}
 			}
 		}
 		
