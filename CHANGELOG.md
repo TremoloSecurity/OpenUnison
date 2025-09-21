@@ -1,3 +1,35 @@
+# 1.0.43-2025092001
+
+**Tasks:**
+ - 1.0.43 build [\#957](https://github.com/TremoloSecurity/OpenUnison/issues/957)
+
+**bugs:**
+ - Excess logging [\#997](https://github.com/TremoloSecurity/OpenUnison/issues/997)
+ - Accessibility - default red used in login forms not distinct enough from the background [\#1002](https://github.com/TremoloSecurity/OpenUnison/issues/1002)
+ - Kubernetes Dashboard getting logged out if no kubectl session created [\#962](https://github.com/TremoloSecurity/OpenUnison/issues/962)
+ - GroupMetadata Watch not removing or modifying on change [\#986](https://github.com/TremoloSecurity/OpenUnison/issues/986)
+ - BasicDB Many2Many Concurrent just-in-time leads to index constraints [\#984](https://github.com/TremoloSecurity/OpenUnison/issues/984)
+ - BasicDB - connection failure leads to an attempt to reprovision [\#985](https://github.com/TremoloSecurity/OpenUnison/issues/985)
+ - Kubernetes CreateK8sObject PUT includes the resourceVersion [\#980](https://github.com/TremoloSecurity/OpenUnison/issues/980)
+ - UserTOJSON -stack overflow [\#978](https://github.com/TremoloSecurity/OpenUnison/issues/978)
+ - mongodb - delete user doesn't work [\#949](https://github.com/TremoloSecurity/OpenUnison/issues/949)
+ - openid connect idp - userinfo endpoint is hardcoded to application/jwt [\#953](https://github.com/TremoloSecurity/OpenUnison/issues/953)
+ - IPA - Login to target fails [\#956](https://github.com/TremoloSecurity/OpenUnison/issues/956)
+
+**enhancements:**
+ - STS - support simple token exchange [\#994](https://github.com/TremoloSecurity/OpenUnison/issues/994)
+ - Kubernetes - Add protection against deleting collections of objects [\#977](https://github.com/TremoloSecurity/OpenUnison/issues/977)
+ - JIT Provisioning - Add grace period [\#987](https://github.com/TremoloSecurity/OpenUnison/issues/987)
+ - AWS Token - Make expiration configurable, add expiration to the response [\#989](https://github.com/TremoloSecurity/OpenUnison/issues/989)
+ - AWS Token service - make the role and session name configurable [\#990](https://github.com/TremoloSecurity/OpenUnison/issues/990)
+ - Oidc Idp - Add mechanism to filter groups to remote clusters [\#961](https://github.com/TremoloSecurity/OpenUnison/issues/961)
+ - Remove LDAPAttribute.toStringValueArray() [\#981](https://github.com/TremoloSecurity/OpenUnison/issues/981)
+ - scale main - add custom add attribute mechanism [\#974](https://github.com/TremoloSecurity/OpenUnison/issues/974)
+ - Kubernetes NaaS - Simplify translation of group names to cluster authorization [\#976](https://github.com/TremoloSecurity/OpenUnison/issues/976)
+ - database target - provide flag to disable transactions [\#975](https://github.com/TremoloSecurity/OpenUnison/issues/975)
+ - Kubernetes - support 429 responses [\#972](https://github.com/TremoloSecurity/OpenUnison/issues/972)
+
+
 # 1.0.42-2024022702
 
 **enhancements:**
