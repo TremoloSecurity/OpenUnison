@@ -100,7 +100,10 @@ public class OAuth2JWT extends OAuth2Bearer {
 	public void processToken(HttpServletRequest request, HttpServletResponse response, AuthStep as, HttpSession session,
 			HashMap<String, Attribute> authParams, AuthChainType act, String realmName, String scope, ConfigManager cfg,
 			String lmToken) throws ServletException, IOException {
-		
+
+		boolean sendError = !request.getMethod().equalsIgnoreCase("OPTIONS");
+		List<Header> corsHeaders = (List<Header>) request.getAttribute(OAuth2Bearer.CORS_HEADERS);
+
 		String issuer = authParams.get("issuer").getValues().get(0);
 		HashSet<String> audiences = new HashSet<String>();
 		if (authParams.get("audience") == null) {
@@ -219,7 +222,7 @@ public class OAuth2JWT extends OAuth2Bearer {
 				logger.warn("Could not verify signature");
 				
 				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
-				super.sendFail(response, realmName, scope, null, null);
+				super.sendFail(response, realmName, scope, null, null,sendError,corsHeaders);
 				return;
 			}
 			
@@ -235,7 +238,7 @@ public class OAuth2JWT extends OAuth2Bearer {
 				logger.warn("JWT not yet valid");
 				
 				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
-				super.sendFail(response, realmName, scope, null, null);
+				super.sendFail(response, realmName, scope, null, null,sendError,corsHeaders);
 				return;
 			}
 			
@@ -246,7 +249,7 @@ public class OAuth2JWT extends OAuth2Bearer {
 				logger.warn("JWT expired");
 				
 				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
-				super.sendFail(response, realmName, scope, null, null);
+				super.sendFail(response, realmName, scope, null, null,sendError,corsHeaders);
 				return;
 			}
 			
@@ -257,7 +260,7 @@ public class OAuth2JWT extends OAuth2Bearer {
 				logger.warn("JWT invalid issuer");
 				
 				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
-				super.sendFail(response, realmName, scope, null, null);
+				super.sendFail(response, realmName, scope, null, null,sendError,corsHeaders);
 				return;
 			}
 			
@@ -268,7 +271,7 @@ public class OAuth2JWT extends OAuth2Bearer {
 				as.setExecuted(true);
 				as.setSuccess(false);
 				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
-				super.sendFail(response, realmName, scope, null, null);
+				super.sendFail(response, realmName, scope, null, null,sendError,corsHeaders);
 				return;
 			} else if (aud instanceof JSONArray) {
 				JSONArray auds = (JSONArray) aud;
@@ -283,7 +286,7 @@ public class OAuth2JWT extends OAuth2Bearer {
 					as.setSuccess(false);
 					logger.warn("Invalid audience");
 					cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
-					super.sendFail(response, realmName, scope, null, null);
+					super.sendFail(response, realmName, scope, null, null,sendError,corsHeaders);
 					return;
 				}
 			} else {
@@ -294,7 +297,7 @@ public class OAuth2JWT extends OAuth2Bearer {
 					logger.warn("Invalid audience");
 					
 					cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
-					super.sendFail(response, realmName, scope, null, null);
+					super.sendFail(response, realmName, scope, null, null,sendError,corsHeaders);
 					return;
 				}
 			}

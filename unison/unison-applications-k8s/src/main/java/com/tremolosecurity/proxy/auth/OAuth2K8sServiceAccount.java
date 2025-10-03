@@ -112,7 +112,7 @@ public class OAuth2K8sServiceAccount extends OAuth2Bearer {
 				as.setSuccess(false);
 
 				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
-				super.sendFail(response, realmName, scope, null, null);
+				super.sendFail(response, realmName, scope, null, null,true,null);
 				return;
 			} else {
 				status = (JSONObject) rawStatus;
@@ -124,7 +124,7 @@ public class OAuth2K8sServiceAccount extends OAuth2Bearer {
 				as.setSuccess(false);
 				
 				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
-				super.sendFail(response, realmName, scope, null, null);
+				super.sendFail(response, realmName, scope, null, null,true,null);
 				return;
 			} else {
 				Boolean authenticated = (Boolean) status.get("authenticated");
@@ -157,7 +157,7 @@ public class OAuth2K8sServiceAccount extends OAuth2Bearer {
 					as.setSuccess(false);
 					
 					cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
-					super.sendFail(response, realmName, scope, null, null);
+					super.sendFail(response, realmName, scope, null, null,true,null);
 					return;
 				}
 			}

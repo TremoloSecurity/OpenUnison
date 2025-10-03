@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.crypto.SecretKey;
 import jakarta.servlet.ServletContext;
@@ -43,10 +44,12 @@ import com.tremolosecurity.proxy.auth.AuthMechanism;
 import com.tremolosecurity.proxy.auth.util.AuthStep;
 import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 
 public abstract class OAuth2Bearer implements AuthMechanism {
 
-	
+	public static final String CORS_HEADERS = "tremolo.io/oauth2/cords-headers";
 	private ConfigManager cfgManager;
 	
 	public ConfigManager getConfigManager() {
@@ -68,7 +71,7 @@ public abstract class OAuth2Bearer implements AuthMechanism {
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response,
 			AuthStep as) throws IOException, ServletException {
-		
+		boolean sendError = !request.getMethod().equalsIgnoreCase("OPTIONS");
 		String basicHdr = request.getHeader("Authorization");
 		boolean fromHeader = true;
 		
@@ -90,14 +93,32 @@ public abstract class OAuth2Bearer implements AuthMechanism {
 		if (authParams.get("scope") != null) {
 			scope = authParams.get("scope").getValues().get(0);
 		}
-		
+
+		List<Header> corsHeaders = new ArrayList<Header>();
+
+		Attribute cors = authParams.get("cors-headers");
+
+		if (!sendError) {
+			if (cors != null) {
+				for (String value : cors.getValues()) {
+					String headerName = value.substring(0, value.indexOf("="));
+					String headerValue = value.substring(value.indexOf("=") + 1);
+					corsHeaders.add(new BasicHeader(headerName, headerValue));
+				}
+
+				request.setAttribute(CORS_HEADERS, corsHeaders);
+			} else {
+				// if no CORS headers are to be added, assume we won't send local response to an OPTIONS request
+				sendError = true;
+			}
+		}
 		
 		ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
 		String accessToken = null;
 		
 		if (basicHdr == null) {
 			as.setExecuted(false);
-			sendFail(response, realmName,scope,null,null);
+			sendFail(response, realmName,scope,null,null,sendError,corsHeaders);
 			return;
 		} else {
 			if (fromHeader) {
@@ -118,7 +139,7 @@ public abstract class OAuth2Bearer implements AuthMechanism {
 			String realmName, String scope, ConfigManager cfg, String lmToken)
 			throws ServletException, IOException;
 
-	protected void sendFail(HttpServletResponse response, String realmName, String scope,String error,String errorDesc)
+	protected void sendFail(HttpServletResponse response, String realmName, String scope,String error,String errorDesc,boolean sendFail,List<Header> corsHeaders)
 			throws IOException {
 		StringBuffer realm = new StringBuffer();
 		realm.append("Bearer realm=\"").append(realmName).append('"');
@@ -135,7 +156,19 @@ public abstract class OAuth2Bearer implements AuthMechanism {
 		}
 		
 		response.addHeader("WWW-Authenticate", realm.toString());
-		response.sendError(401);
+
+		if (!sendFail) {
+			corsHeaders.forEach(header -> response.addHeader(header.getName(), header.getValue()));
+		}
+
+
+
+		if (sendFail) {
+			response.sendError(401);
+		} else {
+			response.sendError(200);
+		}
+
 	}
 	
 	@Override

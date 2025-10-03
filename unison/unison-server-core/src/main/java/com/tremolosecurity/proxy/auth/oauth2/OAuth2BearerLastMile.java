@@ -108,7 +108,7 @@ public class OAuth2BearerLastMile extends OAuth2Bearer {
 				
 				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
 				
-				sendFail(response, realmName,scope,"invalid_token","the token is invalid");
+				sendFail(response, realmName,scope,"invalid_token","the token is invalid",true,null);
 				return;
 			}
 		} catch (Exception e) {
@@ -168,7 +168,7 @@ public class OAuth2BearerLastMile extends OAuth2Bearer {
 				
 				cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
 				
-				sendFail(response, realmName,scope,null,null);
+				sendFail(response, realmName,scope,null,null,true,null);
 				 
 			}
 		} catch (LDAPException e) {
