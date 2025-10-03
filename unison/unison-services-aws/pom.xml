@@ -18,7 +18,7 @@ limitations under the License.
   <parent>
     <groupId>com.tremolosecurity.unison</groupId>
     <artifactId>unison</artifactId>
-    <version>1.0.43</version>
+    <version>1.0.44</version>
     
   </parent>
   <artifactId>unison-services-aws</artifactId>
@@ -59,7 +59,7 @@ limitations under the License.
   		<dependency>
 	  		<groupId>com.tremolosecurity.unison</groupId>
 	  		<artifactId>unison-sdk</artifactId>
-	  		<version>1.0.43</version>
+	  		<version>1.0.44</version>
   		</dependency>
   		<dependency>
 	  		<groupId>io.netty</groupId>
@@ -103,7 +103,7 @@ limitations under the License.
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-scalejs-token</artifactId>
-			<version>1.0.43</version>
+			<version>1.0.44</version>
 		</dependency>
 		
 		<dependency>

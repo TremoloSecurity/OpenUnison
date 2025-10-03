@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>com.tremolosecurity.unison</groupId>
 		<artifactId>unison</artifactId>
-		<version>1.0.43</version>
+		<version>1.0.44</version>
 	</parent>
 	<artifactId>unison-lastmile-sdk</artifactId>
 	<name>unison-lastmile-sdk</name>
