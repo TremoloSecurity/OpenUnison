@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.UUID;
 
+import com.tremolosecurity.proxy.ProxyResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -70,11 +71,18 @@ public class ClientCredentialsGrantPostAuth implements PostAuthSuccess {
 	public void runAfterSuccessfulAuthentication(HttpServletRequest req, HttpServletResponse resp, UrlHolder holder,
 			AuthChainType act, RequestHolder reqHolder, AuthController actl, NextSys next)
 			throws IOException, ServletException {
-		
+
+		if (idp.getCorsHeaders() != null) {
+			idp.getCorsHeaders().forEach(header -> {
+				resp.addHeader(header.getName(), header.getValue());
+			});
+		}
+
 		HttpSession session = req.getSession();
 		AuthInfo authData = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
-		
-		if (! azSys.checkRules(authData, GlobalEntries.getGlobalEntries().getConfigManager(), trust.getClientAzRules(), new HashMap<String,Object>())) {
+
+		//only check az rules if we're doing delegation, otherwise rely on the authchain if you want AZ for the client
+		if (trust.isStsDelegation() &&  ! azSys.checkRules(authData, GlobalEntries.getGlobalEntries().getConfigManager(), trust.getClientAzRules(), new HashMap<String,Object>())) {
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), req, authData, new StringBuilder().append("client not authorized for client_credentials grant on trust '").append(trust.getClientID()).append("'").toString());
 			resp.sendError(403);
 			return;
@@ -99,6 +107,7 @@ public class ClientCredentialsGrantPostAuth implements PostAuthSuccess {
 		String json = gson.toJson(access);
 		
 		resp.setContentType("application/json");
+		((ProxyResponse) resp).pushHeadersAndCookies(null);
 		resp.getOutputStream().write(json.getBytes("UTF-8"));
 		resp.getOutputStream().flush();
 		

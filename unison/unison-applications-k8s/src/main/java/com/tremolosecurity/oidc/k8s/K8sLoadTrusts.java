@@ -18,9 +18,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.StringTokenizer;
 
+import com.tremolosecurity.proxy.az.AzRule;
 import jakarta.servlet.ServletContext;
 
+import jakarta.servlet.ServletException;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpResponseException;
@@ -111,8 +114,10 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,K8sWatchTarget {
 		}
 		
 		JSONArray redirects = (JSONArray) spec.get("redirectURI");
-		
-		trust.getRedirectURI().addAll(redirects);
+		if (redirects != null) {
+			trust.getRedirectURI().addAll(redirects);
+		}
+
 		trust.setCodeLastmileKeyName(spec.get("codeLastMileKeyName").toString());
 		trust.setAuthChain(spec.get("authChainName").toString());
 		trust.setCodeTokenTimeToLive((Long) spec.get("codeTokenSkewMilis"));
@@ -125,6 +130,86 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,K8sWatchTarget {
 		
 		
 		trust.setTrustName(metadata.get("name").toString());
+
+		// supports client credentials?
+		Object val = spec.get("enableClientCredentialsGrant");
+		if (val != null && val instanceof Boolean) {
+			trust.setEnableClientCredentialGrant((Boolean) val);
+		}
+
+		// check for sts
+		val = spec.get("isSts");
+		if (val != null && val instanceof Boolean) {
+			trust.setSts((Boolean) val);
+
+			if (trust.isSts()) {
+				val = spec.get("stsImpersonation");
+				if (val != null && val instanceof Boolean) {
+					trust.setStsImpersonation((Boolean) val);
+				}
+
+				val = spec.get("stsDelegation");
+				if (val != null && val instanceof Boolean) {
+					trust.setStsDelegation((Boolean) val);
+				}
+
+				val = spec.get("clientAzRules");
+				if (val != null && val instanceof JSONArray) {
+					JSONArray rules = (JSONArray) val;
+					rules.forEach(ruleVal ->{
+						String ruleCfg = (String) ruleVal;
+
+						StringTokenizer toker = new StringTokenizer(ruleCfg,";",false);
+						toker.hasMoreTokens();
+						String scope = toker.nextToken();
+						toker.hasMoreTokens();
+						String constraint = toker.nextToken();
+
+						try {
+							AzRule rule = new AzRule(scope,constraint,null,GlobalEntries.getGlobalEntries().getConfigManager(),null);
+							trust.getClientAzRules().add(rule);
+						} catch (ProvisioningException e) {
+							throw new RuntimeException(String.format("Could not create az rule '%s' for trust '%s'",ruleCfg,trust.getTrustName()),e);
+						}
+
+					});
+				}
+
+
+				val = spec.get("authorizedAudiences");
+				if (val != null && val instanceof JSONArray) {
+					JSONArray rules = (JSONArray) val;
+					rules.forEach(ruleVal ->{
+						trust.getAllowedAudiences().add(ruleVal.toString());
+					});
+				}
+
+				val = spec.get("subjectAzRules");
+				if (val != null && val instanceof JSONArray) {
+					JSONArray rules = (JSONArray) val;
+					rules.forEach(ruleVal ->{
+						String ruleCfg = (String) ruleVal;
+
+						StringTokenizer toker = new StringTokenizer(ruleCfg,";",false);
+						toker.hasMoreTokens();
+						String scope = toker.nextToken();
+						toker.hasMoreTokens();
+						String constraint = toker.nextToken();
+
+						try {
+							AzRule rule = new AzRule(scope,constraint,null,GlobalEntries.getGlobalEntries().getConfigManager(),null);
+							trust.getSubjectAzRules().add(rule);
+						} catch (ProvisioningException e) {
+							throw new RuntimeException(String.format("Could not create az rule '%s' for trust '%s'",ruleCfg,trust.getTrustName()),e);
+						}
+
+					});
+				}
+
+
+
+			}
+		}
 		
 		synchronized(trusts) {
 			trusts.put(trust.getClientID(),trust);

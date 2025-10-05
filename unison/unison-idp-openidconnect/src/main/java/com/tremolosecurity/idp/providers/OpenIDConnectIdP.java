@@ -58,6 +58,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 import org.apache.log4j.Category;
 import org.apache.log4j.Logger;
 import org.apache.xml.security.utils.Base64;
@@ -195,6 +197,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 		
 	}
+
+	private List<Header> corsHeaders;
 	
 	
 	
@@ -203,6 +207,12 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		resp.addHeader("Access-Control-Allow-Origin","*");
         resp.addHeader("Access-Control-Allow-Methods","*");
         resp.addHeader("Access-Control-Allow-Headers","*");*/
+
+		if (corsHeaders != null) {
+			corsHeaders.forEach(header -> {
+				resp.addHeader(header.getName(), header.getValue());
+			});
+		}
 		
 		NextSys next = new InternalNextSys(postProcess);
 		next.nextSys(req, resp);
@@ -542,7 +552,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	}
 
 	public void doOptions(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-
+		this.sendErrorCode(request,response,200);
 
 	}
 
@@ -565,7 +575,12 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			String refreshToken = request.getParameter("refresh_token");
 			String codeVerifier = request.getParameter("code_verifier");
 			
-			
+			if (grantType == null) {
+				logger.warn("No grant type specified");
+				this.sendErrorCode(request,response,400);
+				return;
+			}
+
 			if (clientID == null) {
 				
 				//this means that the clientid is in the Authorization header
@@ -2187,6 +2202,18 @@ public class OpenIDConnectIdP implements IdentityProvider {
         	this.logTokenLifeCycle = false;
         }
 
+		if (init.get("cors-headers") != null) {
+			corsHeaders = new ArrayList<Header>();
+			Attribute cors = init.get("cors-headers");
+			for (String value : cors.getValues()) {
+				String headerName = value.substring(0, value.indexOf("="));
+				String headerValue = value.substring(value.indexOf("=") + 1);
+				corsHeaders.add(new BasicHeader(headerName, headerValue));
+			}
+		} else {
+			corsHeaders = null;
+		}
+
 	}
 
 	private void loadStaticTrusts(HashMap<String, HashMap<String, Attribute>> trustCfg) throws Exception {
@@ -2195,9 +2222,14 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			HashMap<String,Attribute> attrs = trustCfg.get(trustName);
 			OpenIDConnectTrust trust = new OpenIDConnectTrust();
 			trust.setClientID(attrs.get("clientID").getValues().get(0));
-			trust.setClientSecret(attrs.get("clientSecret").getValues().get(0));
-			
-			trust.getRedirectURI().addAll(attrs.get("redirectURI").getValues());
+			if (attrs.get("clientSecret") != null) {
+				trust.setClientSecret(attrs.get("clientSecret").getValues().get(0));
+			}
+
+			if (attrs.get("redirectURI") != null) {
+				trust.getRedirectURI().addAll(attrs.get("redirectURI").getValues());
+			}
+
 			
 			
 			trust.setCodeLastmileKeyName(attrs.get("codeLastMileKeyName").getValues().get(0));
@@ -2621,9 +2653,11 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		this.sessionStore.deleteAllSessions(session.getSessionID());
 		
 	}
-	
-	
-	
+
+
+	public List<Header> getCorsHeaders() {
+		return this.corsHeaders;
+	}
 }
 
 
