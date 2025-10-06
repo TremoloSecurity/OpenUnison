@@ -306,7 +306,11 @@ public class AuthMgrSys {
 		while (it.hasNext()) {
 			ResultType rt = it.next();
 			if (rt.getType().equals("redirect")) {
-				redir = rt.getValue();
+				if (request.getAttribute("tremolo.io/auth/api") != null) {
+					forceError = true;
+				} else {
+					redir = rt.getValue();
+				}
 			} else  if (rt.getType().equalsIgnoreCase("cookie")) {
 				String val = rt.getValue();
 				String name,value;

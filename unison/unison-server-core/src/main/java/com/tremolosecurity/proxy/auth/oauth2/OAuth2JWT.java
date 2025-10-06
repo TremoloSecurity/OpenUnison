@@ -301,6 +301,8 @@ public class OAuth2JWT extends OAuth2Bearer {
 					return;
 				}
 			}
+
+			request.setAttribute("tremolo.io/oauth2/jwt/id",obj.get("jti"));
 			
 			if (! linkToDirectory) {
 				loadUnlinkedUser(session, noMatchOU, uidAttr, act, obj,defaultObjectClass);

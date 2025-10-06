@@ -71,6 +71,8 @@ public abstract class OAuth2Bearer implements AuthMechanism {
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response,
 			AuthStep as) throws IOException, ServletException {
+
+		request.setAttribute("tremolo.io/auth/api","true");
 		boolean sendError = !request.getMethod().equalsIgnoreCase("OPTIONS");
 		String basicHdr = request.getHeader("Authorization");
 		boolean fromHeader = true;

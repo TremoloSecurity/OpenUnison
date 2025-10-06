@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import com.tremolosecurity.proxy.ProxyResponse;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -102,12 +103,22 @@ public class ClientCredentialsGrantPostAuth implements PostAuthSuccess {
 		
 		OpenIDConnectAccessToken access = new OpenIDConnectAccessToken();
 		OidcSessionState oidcSession = idp.createUserSession(req, trust.getClientID(), holder, trust, authData.getUserDN(), GlobalEntries.getGlobalEntries().getConfigManager(), access,UUID.randomUUID().toString(),authData.getAuthChain(),existingClaims,null);
-		
+
+		if (idp.getTokenCookieName() != null) {
+			// we're going to set a token cookie
+			Cookie tokenCookie = idp.generateTokenCookie(access.getAccessTokenId());
+			if (tokenCookie != null) {
+				resp.addCookie(tokenCookie);
+			}
+
+		}
+
+
 		Gson gson = new Gson();
 		String json = gson.toJson(access);
 		
 		resp.setContentType("application/json");
-		((ProxyResponse) resp).pushHeadersAndCookies(null);
+		((ProxyResponse) resp).pushHeadersAndCookies(holder);
 		resp.getOutputStream().write(json.getBytes("UTF-8"));
 		resp.getOutputStream().flush();
 		
