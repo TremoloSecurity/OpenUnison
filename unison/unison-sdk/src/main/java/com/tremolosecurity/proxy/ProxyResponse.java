@@ -356,6 +356,11 @@ public class ProxyResponse extends HttpServletResponseWrapper {
 		if (appConfig.getCookieConfig().getSameSite() != null && ! appConfig.getCookieConfig().getSameSite().equals("Ignore")) {
 			cookieVal.append(" SameSite=").append(appConfig.getCookieConfig().getSameSite()).append(";");
 		}
+
+
+		if (cookie.getAttribute("Partitioned") != null) {
+			cookieVal.append(" Partitioned;");
+		}
 		
 		resp.addHeader("Set-Cookie", cookieVal.toString());
 	}

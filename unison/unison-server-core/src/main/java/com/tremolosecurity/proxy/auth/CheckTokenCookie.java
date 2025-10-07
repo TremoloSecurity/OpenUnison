@@ -29,14 +29,22 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 import org.apache.log4j.Logger;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
 
 public class CheckTokenCookie implements AuthMechanism {
     static Logger logger = Logger.getLogger(CheckTokenCookie.class.getName());
@@ -64,8 +72,25 @@ public class CheckTokenCookie implements AuthMechanism {
 
         HashMap<String,Attribute> authParams = (HashMap<String,Attribute>) session.getAttribute(ProxyConstants.AUTH_MECH_PARAMS);
 
+        List<Header> corsHeaders = new ArrayList<Header>();
+        Attribute cors = authParams.get("cors-headers");
+
+
+        if (cors != null) {
+            for (String value : cors.getValues()) {
+                String headerName = value.substring(0, value.indexOf("="));
+                String headerValue = value.substring(value.indexOf("=") + 1);
+                corsHeaders.add(new BasicHeader(headerName, headerValue));
+            }
+
+
+        }
+
         String id = (String) request.getAttribute("tremolo.io/oauth2/jwt/id");
+
         if (id == null) {
+
+            corsHeaders.forEach(header -> response.addHeader(header.getName(), header.getValue()));
             as.setExecuted(true);
             as.setSuccess(false);
             holder.getConfig().getAuthManager().nextAuth(request, response,session,false);
@@ -76,6 +101,8 @@ public class CheckTokenCookie implements AuthMechanism {
         Cookie[] cookies = request.getCookies();
 
         if (cookies == null) {
+
+            corsHeaders.forEach(header -> response.addHeader(header.getName(), header.getValue()));
             as.setExecuted(true);
             as.setSuccess(false);
             holder.getConfig().getAuthManager().nextAuth(request, response,session,false);
@@ -83,13 +110,15 @@ public class CheckTokenCookie implements AuthMechanism {
         }
 
         for (Cookie cookie : cookies) {
+
             if (cookie.getName().equals(cookieName)) {
                 String value = cookie.getValue();
-                String json = new String(Base64.getDecoder().decode(value));
+                byte[] json = Base64.getDecoder().decode(value);
                 String keyName = authParams.get("keyName").getValues().get(0);
                 SecretKey key = GlobalEntries.getGlobalEntries().getConfigManager().getSecretKey(keyName);
                 if (key == null) {
                     logger.warn(String.format("Could not load key %s",keyName));
+                    corsHeaders.forEach(header -> response.addHeader(header.getName(), header.getValue()));
                     as.setExecuted(true);
                     as.setSuccess(false);
                     holder.getConfig().getAuthManager().nextAuth(request, response,session,false);
@@ -97,7 +126,32 @@ public class CheckTokenCookie implements AuthMechanism {
                 }
 
                 try {
-                    EncryptedMessage em = gson.fromJson(json, EncryptedMessage.class);
+
+
+                    ByteArrayInputStream bin = new ByteArrayInputStream(json);
+
+                    InflaterInputStream decompressor = new InflaterInputStream(bin, new Inflater(true));
+                    //decompressor.setInput(compressedData);
+
+                    // Create an expandable byte array to hold the decompressed data
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream(json.length);
+
+                    // Decompress the data
+                    byte[] buf = new byte[1024];
+                    int len;
+                    while ((len = decompressor.read(buf)) > 0) {
+
+
+                        bos.write(buf, 0, len);
+
+                    }
+                    try {
+                        bos.close();
+                    } catch (IOException e) {
+                    }
+
+
+                    EncryptedMessage em = gson.fromJson(new String(bos.toByteArray()), EncryptedMessage.class);
                     Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 
                     byte[] iv = em.getIv();
@@ -109,11 +163,17 @@ public class CheckTokenCookie implements AuthMechanism {
 
                     as.setExecuted(true);
                     as.setSuccess(id.equals(idFromCookie));
+
+                    if (!as.isSuccess()) {
+                        corsHeaders.forEach(header -> response.addHeader(header.getName(), header.getValue()));
+                    }
+
                     holder.getConfig().getAuthManager().nextAuth(request, response,session,false);
 
 
                 } catch (Exception e) {
                     logger.error("Could not decrypt key",e);
+                    corsHeaders.forEach(header -> response.addHeader(header.getName(), header.getValue()));
                     as.setExecuted(true);
                     as.setSuccess(false);
                     holder.getConfig().getAuthManager().nextAuth(request, response,session,false);
@@ -123,6 +183,8 @@ public class CheckTokenCookie implements AuthMechanism {
             }
         }
 
+
+        corsHeaders.forEach(header -> response.addHeader(header.getName(), header.getValue()));
         as.setExecuted(true);
         as.setSuccess(false);
         holder.getConfig().getAuthManager().nextAuth(request, response,session,false);

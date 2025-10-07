@@ -46,9 +46,10 @@ import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
+import org.apache.log4j.Logger;
 
 public abstract class OAuth2Bearer implements AuthMechanism {
-
+	static Logger logger = Logger.getLogger(OAuth2Bearer.class.getName());
 	public static final String CORS_HEADERS = "tremolo.io/oauth2/cords-headers";
 	private ConfigManager cfgManager;
 	
@@ -100,19 +101,18 @@ public abstract class OAuth2Bearer implements AuthMechanism {
 
 		Attribute cors = authParams.get("cors-headers");
 
-		if (!sendError) {
-			if (cors != null) {
-				for (String value : cors.getValues()) {
-					String headerName = value.substring(0, value.indexOf("="));
-					String headerValue = value.substring(value.indexOf("=") + 1);
-					corsHeaders.add(new BasicHeader(headerName, headerValue));
-				}
 
-				request.setAttribute(CORS_HEADERS, corsHeaders);
-			} else {
-				// if no CORS headers are to be added, assume we won't send local response to an OPTIONS request
-				sendError = true;
+		if (cors != null) {
+			for (String value : cors.getValues()) {
+				String headerName = value.substring(0, value.indexOf("="));
+				String headerValue = value.substring(value.indexOf("=") + 1);
+				corsHeaders.add(new BasicHeader(headerName, headerValue));
 			}
+
+			request.setAttribute(CORS_HEADERS, corsHeaders);
+		} else {
+			// if no CORS headers are to be added, assume we won't send local response to an OPTIONS request
+			sendError = true;
 		}
 		
 		ConfigManager cfg = (ConfigManager) request.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
@@ -158,8 +158,7 @@ public abstract class OAuth2Bearer implements AuthMechanism {
 		}
 		
 		response.addHeader("WWW-Authenticate", realm.toString());
-
-		if (!sendFail) {
+		if (corsHeaders != null) {
 			corsHeaders.forEach(header -> response.addHeader(header.getName(), header.getValue()));
 		}
 

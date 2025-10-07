@@ -49,13 +49,17 @@ public class OpenIDConnectTrust {
 	
 	boolean enableClientCredentialGrant;
 
+	String tokenCookieName;
+
 	public OpenIDConnectTrust() {
 		this.redirectURI = new HashSet<String>();
 		this.clientAzRules = new ArrayList<AzRule>();
 		this.allowedAudiences = new HashSet<String>();
 		this.subjectAzRules = new ArrayList<AzRule>();
 	}
-	
+
+
+
 	public boolean isVerifyRedirect() {
 		return this.verifyRedirect;
 	}
@@ -191,11 +195,12 @@ public class OpenIDConnectTrust {
 	public void setEnableClientCredentialGrant(boolean enableClientCredentialGrant) {
 		this.enableClientCredentialGrant = enableClientCredentialGrant;
 	}
-	
-	
-	
-	
-	
-	
-	
+
+	public String getTokenCookieName() {
+		return tokenCookieName;
+	}
+
+	public void setTokenCookieName(String tokenCookieName) {
+		this.tokenCookieName = tokenCookieName;
+	}
 }

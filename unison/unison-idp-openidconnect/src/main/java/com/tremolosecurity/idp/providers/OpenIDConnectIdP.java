@@ -197,7 +197,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 	private List<Header> corsHeaders;
 
-	String tokenCookieName;
+
 	ApplicationType applicationType;
 
 
@@ -1607,6 +1607,13 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 		OidcSessionState oidcSession = createUserSession(request, clientID, holder, trust, dn.getValues().get(0), cfgMgr, access, (nonce != null ? nonce.getValues().get(0) : UUID.randomUUID().toString()), authChainName.getValues().get(0));
 
+		if (trust.getTokenCookieName() != null) {
+			// create a token cookie
+			Cookie tokenCookie = generateTokenCookie(trust.getTokenCookieName(),access.getAccessTokenId());
+			if (tokenCookie != null) {
+				response.addCookie(tokenCookie);
+			}
+		}
 
 		access.setRefresh_token(oidcSession.getRefreshToken());
 
@@ -1626,7 +1633,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			public void postProcess(HttpFilterRequest req, HttpFilterResponse resp, UrlHolder holder,
 									HttpFilterChain httpFilterChain) throws Exception {
 				resp.setContentType("application/json");
-				((ProxyResponse) resp.getServletResponse()).pushHeadersAndCookies(null);
+				((ProxyResponse) resp.getServletResponse()).pushHeadersAndCookies(holder);
 
 
 				resp.getOutputStream().write(json.getBytes("UTF-8"));
@@ -2153,9 +2160,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			corsHeaders = null;
 		}
 
-		if (init.get("tokenCookieName") != null) {
-			this.tokenCookieName = init.get("tokenCookieName").getValues().get(0);
-		}
+
 
 		this.applicationType = GlobalEntries.getGlobalEntries().getConfigManager().getApp(idpName);
 
@@ -2254,6 +2259,10 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 			if (attrs.get("publicEndpoint") != null && attrs.get("publicEndpoint").getValues().get(0).equalsIgnoreCase("true")) {
 				trust.setPublicEndpoint(true);
+			}
+
+			if (attrs.get("tokenCookieName") != null) {
+				trust.setTokenCookieName(attrs.get("tokenCookieName").getValues().get(0));
 			}
 
 			trusts.put(trust.getClientID(), trust);
@@ -2580,11 +2589,9 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		return this.corsHeaders;
 	}
 
-	public String getTokenCookieName() {
-		return this.tokenCookieName;
-	}
 
-	public Cookie generateTokenCookie(String id) {
+
+	public Cookie generateTokenCookie(String name,String id) {
 		String keyName = this.applicationType.getCookieConfig().getKeyAlias();
 
 		SecretKey key = GlobalEntries.getGlobalEntries().getConfigManager().getSecretKey(keyName);
@@ -2603,8 +2610,25 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			msg.setIv(cipher.getIV());
 			Gson gson = new Gson();
 			String json = gson.toJson(msg);
-			String base64encoded = Base64.getEncoder().encodeToString(json.getBytes());
-			return new Cookie(this.getTokenCookieName(), base64encoded);
+
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+			DeflaterOutputStream compressor = new DeflaterOutputStream(baos, new Deflater(Deflater.BEST_COMPRESSION, true));
+
+			compressor.write(json.getBytes("UTF-8"));
+			compressor.flush();
+			compressor.close();
+
+
+
+
+
+
+			String base64encoded = Base64.getEncoder().encodeToString(baos.toByteArray());
+			Cookie c = new Cookie(name, base64encoded);
+			c.setPath("/");
+			c.setAttribute("Partitioned", "true");
+			return c;
 		} catch (Exception e) {
 			logger.warn("Could not encrypt cookie", e);
 			return null;

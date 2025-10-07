@@ -131,6 +131,10 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,K8sWatchTarget {
 		
 		trust.setTrustName(metadata.get("name").toString());
 
+		if (spec.get("tokenCookieName") != null) {
+			trust.setTokenCookieName(spec.get("tokenCookieName").toString());
+		}
+
 		// supports client credentials?
 		Object val = spec.get("enableClientCredentialsGrant");
 		if (val != null && val instanceof Boolean) {
