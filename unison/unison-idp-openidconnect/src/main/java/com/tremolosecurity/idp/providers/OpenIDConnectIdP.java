@@ -1406,6 +1406,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		claims.setNotBeforeMinutesInThePast(trusts.get(clientID).getAccessTokenSkewMillis() / 1000 / 60); // time before which the token is not yet valid (2 minutes ago)
 		claims.setExpirationTimeMinutesInTheFuture(trusts.get(clientID).getAccessTokenTimeToLive() / 1000 / 60); // time when the token will expire (10 minutes from now)
 
+		String accessTokenId = claims.getJwtId();
+
 		jws = new JsonWebSignature();
 		jws.setPayload(claims.toJson());
 		jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getPrivateKey(this.jwtSigningKeyName));
@@ -1436,13 +1438,26 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 		final String jsonToSend = json;
 
+
+
 		ProcessAfterFilterChain proc = new ProcessAfterFilterChain() {
 
 			@Override
 			public void postProcess(HttpFilterRequest req, HttpFilterResponse resp, UrlHolder holder,
 									HttpFilterChain httpFilterChain) throws Exception {
+
+
+				if (trust.getTokenCookieName() != null) {
+
+					Cookie tokenCookie = generateTokenCookie(trust.getTokenCookieName(),accessTokenId);
+					if (tokenCookie != null) {
+
+						response.addCookie(tokenCookie);
+					}
+				}
+
 				resp.setContentType("application/json");
-				((ProxyResponse) resp.getServletResponse()).pushHeadersAndCookies(null);
+				((ProxyResponse) resp.getServletResponse()).pushHeadersAndCookies(holder);
 
 
 				resp.getOutputStream().write(jsonToSend.getBytes());
