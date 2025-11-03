@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import com.novell.ldap.LDAPEntry;
 import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
@@ -75,6 +76,94 @@ public class MapIdentity implements Serializable {
 	public MapIdentity() {
 		
 	}
+
+	public MapIdentity(List<Map<String,String>> mappings,boolean strict) throws ProvisioningException {
+		this.strict = strict;
+		map = new HashMap<String,MappingEntry>();
+		this.attributes = new HashSet<String>();
+		for (Map<String,String> mapping : mappings) {
+
+			String name = mapping.get("name");
+			String source = mapping.get("source");
+			String sourceType = mapping.get("sourceType");
+
+			String targetType = "string";
+
+
+			if (mapping.get("targetType") != null) {
+				targetType = mapping.get("targetType");
+			}
+
+
+
+			MappingEntry entry = new MappingEntry();
+			if (sourceType.equalsIgnoreCase("static")) {
+				entry.type = MappingType.staticValue;
+				entry.staticValue = source;
+			} else if (sourceType.equalsIgnoreCase("user")) {
+				entry.type = MappingType.userAttr;
+				entry.userAttr = source;
+			} else if (sourceType.equalsIgnoreCase("custom")) {
+				entry.type = MappingType.custom;
+				try {
+
+
+					String className = source;
+					createCustomMapping(entry, className);
+				} catch (Exception e) {
+					throw new ProvisioningException("Could not load custom mapping",e);
+				}
+			} else if (sourceType.equalsIgnoreCase("composite")) {
+				entry.type = MappingType.composite;
+				entry.composite = new ArrayList<MappingPart>();
+				int lastIndex = 0;
+				int index = source.indexOf('$');
+				while (index >= 0) {
+					MappingPart mp = new MappingPart();
+					mp.isAttr = false;
+					mp.val = source.substring(lastIndex,index);
+					entry.composite.add(mp);
+
+					lastIndex = source.indexOf('}',index) + 1;
+					String reqName = source.substring(index + 2,lastIndex - 1);
+					mp = new MappingPart();
+					mp.isAttr = true;
+					mp.val = reqName;
+					entry.composite.add(mp);
+
+					index = source.indexOf('$',index+1);
+				}
+				MappingPart mp = new MappingPart();
+				mp.isAttr = false;
+				mp.val = source.substring(lastIndex);
+				entry.composite.add(mp);
+
+			} else {
+				throw new ProvisioningException("Invalid mapping type: " + sourceType + " from " + mapping);
+			}
+
+			if (targetType == null) {
+				entry.destType = Attribute.DataType.string;
+			} else if (targetType.equalsIgnoreCase("string")) {
+				entry.destType = Attribute.DataType.string;
+			} else if (targetType.equalsIgnoreCase("int")) {
+				entry.destType = Attribute.DataType.intNum;
+			} else if (targetType.equalsIgnoreCase("long")) {
+				entry.destType = Attribute.DataType.longNum;
+			} else if (targetType.equalsIgnoreCase("date")) {
+				entry.destType = Attribute.DataType.date;
+			} else if (targetType.equalsIgnoreCase("timestamp")) {
+				entry.destType = Attribute.DataType.timeStamp;
+			} else {
+				entry.destType = Attribute.DataType.string;
+			}
+
+			this.map.put(name, entry);
+			this.attributes.add(name);
+
+		}
+	}
+
 	public MapIdentity(TargetType mapping) throws ProvisioningException {
 		map = new HashMap<String,MappingEntry>();
 		Iterator<TargetAttributeType> it = mapping.getTargetAttribute().iterator();
@@ -282,9 +371,10 @@ public class MapIdentity implements Serializable {
 	public User mapUser(User userObj,boolean strict) throws ProvisioningException {
 		return this.mapUser(userObj,strict,null,null);
 	}
+
+
 	
-	
-	public void mapUser(PostSearchEntryInterceptorChain chain, Entry entry, DistinguishedName base, Int scope,
+	public void mapUser(PostSearchEntryInterceptorChain chain,Entry entry, DistinguishedName base, Int scope,
 			Filter filter, ArrayList<net.sourceforge.myvd.types.Attribute> attributes2, Bool typesOnly, LDAPSearchConstraints constraints) {
 		
 		for (String name : this.map.keySet()) {

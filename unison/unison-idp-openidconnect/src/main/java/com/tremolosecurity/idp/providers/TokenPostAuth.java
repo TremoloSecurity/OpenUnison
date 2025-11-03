@@ -129,6 +129,7 @@ public class TokenPostAuth implements PostAuthSuccess {
 		}
 		
 		JsonWebSignature jws = new JsonWebSignature();
+		JSONObject obj;
 		try {
 			jws.setCompactSerialization(stsRequest.getSubjectToken());
 			jws.setKey(sigCert.getPublicKey());
@@ -139,7 +140,7 @@ public class TokenPostAuth implements PostAuthSuccess {
 			}
 			
 			String json = jws.getPayload();
-			JSONObject obj = (JSONObject) new JSONParser().parse(json);
+			obj = (JSONObject) new JSONParser().parse(json);
 			long exp = ((Long)obj.get("exp")) * 1000L;
 			long nbf = ((Long)obj.get("nbf")) * 1000L;
 			
@@ -239,7 +240,7 @@ public class TokenPostAuth implements PostAuthSuccess {
 		
 		OpenIDConnectAccessToken access = new OpenIDConnectAccessToken();
 		
-		OidcSessionState oidcSession = idp.createUserSession(req, stsRequest.getAudience(), holder, targetTrust, subjectForAz.getUserDN(), GlobalEntries.getGlobalEntries().getConfigManager(), access,UUID.randomUUID().toString(),subjectForAz.getAuthChain()); 
+		OidcSessionState oidcSession = idp.createUserSession(req, stsRequest.getAudience(), holder, targetTrust, subjectForAz.getUserDN(), GlobalEntries.getGlobalEntries().getConfigManager(), access,UUID.randomUUID().toString(),subjectForAz.getAuthChain(),obj,null,null);
 		
 		
 		if (this.stsRequest.isImpersonation()) {

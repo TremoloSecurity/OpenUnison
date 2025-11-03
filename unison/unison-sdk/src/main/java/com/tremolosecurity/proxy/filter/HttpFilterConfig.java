@@ -21,29 +21,32 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.tremolosecurity.config.xml.*;
 import jakarta.servlet.ServletContext;
 
 import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.config.util.ConfigManager;
-import com.tremolosecurity.config.xml.FilterConfigType;
-import com.tremolosecurity.config.xml.ParamType;
-import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import com.tremolosecurity.saml.*;
 
 public class HttpFilterConfig {
 
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(HttpFilterConfig.class);
-	
+
+	ApplicationType appType;
+	UrlType urlType;
 	ConfigManager cfgMgr;
 	FilterConfigType cfg;
 	HashMap<String,Attribute> params;
 	
-	public HttpFilterConfig(FilterConfigType cfg,ConfigManager cfgMgr) {
+	public HttpFilterConfig(FilterConfigType cfg,ConfigManager cfgMgr,ApplicationType appType,UrlType urlType) {
 		this.cfg = cfg;
 		this.params = new HashMap<String,Attribute>();
 		this.cfgMgr = cfgMgr;
+
+		this.appType = appType;
+		this.urlType = urlType;
 		
 		Iterator<ParamWithValueType> params = cfg.getParam().iterator();
 		while (params.hasNext()) {
@@ -75,5 +78,13 @@ public class HttpFilterConfig {
 	
 	public Set<String> getAttributeNames() {
 		return params.keySet();
+	}
+
+	public ApplicationType getApplicationType() {
+		return appType;
+	}
+
+	public UrlType getUrlType() {
+		return urlType;
 	}
 }

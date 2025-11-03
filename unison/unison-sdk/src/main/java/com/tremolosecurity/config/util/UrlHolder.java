@@ -172,7 +172,7 @@ public class UrlHolder {
 					FilterConfigType cfg = it.next();
 					HttpFilter filter = (HttpFilter) Class.forName(cfg.getClazz()).newInstance();
 					this.filterChain.add(filter);
-					filter.initFilter(new HttpFilterConfig(cfg,this.cfg));
+					filter.initFilter(new HttpFilterConfig(cfg,this.cfg,app,url));
 				}
 			}
 			this.inited = true;

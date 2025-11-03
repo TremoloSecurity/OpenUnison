@@ -102,7 +102,7 @@ public class ClientCredentialsGrantPostAuth implements PostAuthSuccess {
 		}
 		
 		OpenIDConnectAccessToken access = new OpenIDConnectAccessToken();
-		OidcSessionState oidcSession = idp.createUserSession(req, trust.getClientID(), holder, trust, authData.getUserDN(), GlobalEntries.getGlobalEntries().getConfigManager(), access,UUID.randomUUID().toString(),authData.getAuthChain(),existingClaims,null);
+		OidcSessionState oidcSession = idp.createUserSession(req, trust.getClientID(), holder, trust, authData.getUserDN(), GlobalEntries.getGlobalEntries().getConfigManager(), access,UUID.randomUUID().toString(),authData.getAuthChain(),existingClaims,null,null);
 
 		if (trust.getTokenCookieName() != null) {
 			// we're going to set a token cookie

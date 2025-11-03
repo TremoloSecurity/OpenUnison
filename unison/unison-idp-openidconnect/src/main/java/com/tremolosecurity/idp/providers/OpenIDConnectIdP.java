@@ -199,6 +199,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 
 	ApplicationType applicationType;
+	private Set<String> carryOverClaims;
+	private Set<String> accessTokenIgnoreClaims;
 
 
 	private void addCorsHeaders(HttpServletResponse resp, HttpServletRequest req, ProcessAfterFilterChain postProcess) throws IOException, ServletException {
@@ -755,7 +757,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 						OpenIDConnectAccessToken access = new OpenIDConnectAccessToken();
 
-						OidcSessionState oidcSession = this.createUserSession(request, stsRequest.getAudience(), holder, targetTrust, subjectAuth.getUserDN(), GlobalEntries.getGlobalEntries().getConfigManager(), access, UUID.randomUUID().toString(), subjectAuth.getAuthChain(), subjectTokenData.root, actorTokenData.root);
+						OidcSessionState oidcSession = this.createUserSession(request, stsRequest.getAudience(), holder, targetTrust, subjectAuth.getUserDN(), GlobalEntries.getGlobalEntries().getConfigManager(), access, UUID.randomUUID().toString(), subjectAuth.getAuthChain(), subjectTokenData.root, actorTokenData.root,null);
 
 						AccessLog.log(AccessEvent.AzSuccess, holder.getApp(), request, actorAuth, new StringBuilder().append("client '").append(trust.getTrustName()).append("' delegated to by '").append(subjectTokenData.subjectUid).append("', jti : '").append(access.getIdTokenId()).append("'").toString());
 
@@ -1672,11 +1674,11 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	public OidcSessionState createUserSession(HttpServletRequest request, String clientID, UrlHolder holder,
 											  OpenIDConnectTrust trust, String dn, ConfigManager cfgMgr, OpenIDConnectAccessToken access, String nonce, String authChain)
 			throws UnsupportedEncodingException, IOException, ServletException, MalformedURLException {
-		return this.createUserSession(request, clientID, holder, trust, dn, cfgMgr, access, nonce, authChain, null, null);
+		return this.createUserSession(request, clientID, holder, trust, dn, cfgMgr, access, nonce, authChain, null, null,null);
 	}
 
 	public OidcSessionState createUserSession(HttpServletRequest request, String clientID, UrlHolder holder,
-											  OpenIDConnectTrust trust, String dn, ConfigManager cfgMgr, OpenIDConnectAccessToken access, String nonce, String authChain, JSONObject existingClaims, JSONObject actor)
+											  OpenIDConnectTrust trust, String dn, ConfigManager cfgMgr, OpenIDConnectAccessToken access, String nonce, String authChain, JSONObject existingClaims, JSONObject actor,List<String> scopes)
 			throws UnsupportedEncodingException, IOException, ServletException, MalformedURLException {
 
 
@@ -1695,7 +1697,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		extraAttribs.put("session_id", encryptedSessionID);
 		String accessToken = null;
 		try {
-			JwtClaims claims = this.generateClaims(dn, cfgMgr, new URL(request.getRequestURL().toString()), trust, nonce, extraAttribs, request, authChain, existingClaims, actor);
+			JwtClaims claims = this.generateClaims(dn, cfgMgr, new URL(request.getRequestURL().toString()), trust, nonce, extraAttribs, request, authChain, existingClaims, actor,scopes,this.accessTokenIgnoreClaims,this.carryOverClaims);
             try {
                 access.setAccessTokenId(claims.getJwtId());
             } catch (MalformedClaimException e) {
@@ -1713,7 +1715,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		access.setAccess_token(accessToken);
 		access.setExpires_in((int) (trust.getAccessTokenTimeToLive() / 1000));
 		try {
-			JwtClaims claims = this.generateClaims(dn, cfgMgr, new URL(request.getRequestURL().toString()), trust, nonce, null, request, authChain, existingClaims, actor);
+			JwtClaims claims = this.generateClaims(dn, cfgMgr, new URL(request.getRequestURL().toString()), trust, nonce, null, request, authChain, existingClaims, actor,null,null,this.carryOverClaims);
 			access.setIdTokenId(claims.getJwtId());
 			access.setId_token(this.produceJWT(claims, cfgMgr).getCompactSerialization());
 		} catch (Exception e) {
@@ -2178,6 +2180,20 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 
 		this.applicationType = GlobalEntries.getGlobalEntries().getConfigManager().getApp(idpName);
+		this.carryOverClaims = new HashSet<>();
+
+		Attribute attr = init.get("carryOverClaims");
+		if (attr != null) {
+			this.carryOverClaims.addAll(attr.getValues());
+		}
+
+		this.accessTokenIgnoreClaims = new HashSet<>();
+		attr = init.get("accessTokenIgnoreClaims");
+		if (attr != null) {
+			this.accessTokenIgnoreClaims.addAll(attr.getValues());
+		}
+
+
 
 
 	}
@@ -2342,10 +2358,10 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	}
 
 	private JwtClaims generateClaims(String dn, ConfigManager cfg, URL url, OpenIDConnectTrust trust, String nonce, HashMap<String, String> extraAttribs, HttpServletRequest request, String authChainName) throws LDAPException, ProvisioningException {
-		return this.generateClaims(dn, cfg, url, trust, nonce, extraAttribs, request, authChainName, null, null);
+		return this.generateClaims(dn, cfg, url, trust, nonce, extraAttribs, request, authChainName, null, null,null,null,null);
 	}
 
-	private JwtClaims generateClaims(String dn, ConfigManager cfg, URL url, OpenIDConnectTrust trust, String nonce, HashMap<String, String> extraAttribs, HttpServletRequest request, String authChainName, JSONObject existingClaims, JSONObject actor)
+	private JwtClaims generateClaims(String dn, ConfigManager cfg, URL url, OpenIDConnectTrust trust, String nonce, HashMap<String, String> extraAttribs, HttpServletRequest request, String authChainName, JSONObject existingClaims, JSONObject actor,List<String> scopes,Set<String> doNotInclude,Set<String> carryOver)
 			throws LDAPException, ProvisioningException {
 		StringBuffer issuer = new StringBuffer();
 
@@ -2368,6 +2384,10 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		//claims.setSubject(dn); // the subject/principal is whom the token is about
 		if (nonce != null) {
 			claims.setClaim("nonce", nonce);
+		}
+
+		if (scopes != null) {
+			claims.setStringListClaim("scope", scopes);
 		}
 
 
@@ -2403,6 +2423,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				LDAPAttributeSet atts = new LDAPAttributeSet();
 
 				for (Object key : existingClaims.keySet()) {
+
+
 					if (!ignoredClaims.contains((String) key)) {
 						LDAPAttribute attr = new LDAPAttribute((String) key);
 						atts.add(attr);
@@ -2443,6 +2465,10 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 		for (String attrName : user.getAttribs().keySet()) {
 			Attribute attr = user.getAttribs().get(attrName);
+			// check to see if an attribute should be ignored
+			if (doNotInclude != null && doNotInclude.contains(attr.getName())) {
+				continue;
+			}
 			if (attr != null) {
 				if (attr.getName().equalsIgnoreCase("sub")) {
 					claims.setSubject(attr.getValues().get(0));
@@ -2454,8 +2480,25 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			}
 		}
 
+		// if attributes from the existing claims should be carried over
+		if (carryOver != null && existingClaims != null) {
+			carryOver.forEach(key -> {
+				Object o = existingClaims.get(key);
+				if (o != null) {
+					if (o instanceof JSONArray) {
+						JSONArray vals = (JSONArray) o;
+						List<String> svals = new ArrayList<>();
+						svals.forEach(val -> svals.add(val.toString()));
+						claims.setStringListClaim(key, svals);
+					} else {
+						claims.setStringClaim(key, o.toString());
+					}
+				}
+			});
+		}
 
 		String amr = this.authChainToAmr.get(authChainName);
+
 		if (amr != null) {
 			claims.setClaim("amr", new String[]{amr});
 		}
