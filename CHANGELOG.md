@@ -1,3 +1,9 @@
+# 1.0.43.1-2025112401
+
+**bugs:**
+ - ProvisioningEngine - Auditlogs table not being populated [\#1023](https://github.com/TremoloSecurity/OpenUnison/issues/1023)
+
+
 # 1.0.43-2025092001
 
 **Tasks:**
