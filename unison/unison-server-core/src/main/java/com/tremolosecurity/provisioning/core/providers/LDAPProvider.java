@@ -788,7 +788,52 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 	@Override
 	public void addGroup(String name, Map<String, String> additionalAttributes, User user, Map<String, Object> request)
 			throws ProvisioningException {
-		// TODO Auto-generated method stub
+		int approvalID = 0;
+		if (request.containsKey("APPROVAL_ID")) {
+			approvalID = (Integer) request.get("APPROVAL_ID");
+		}
+
+		Workflow workflow = (Workflow) request.get("WORKFLOW");
+		String base = additionalAttributes.get("base");
+		additionalAttributes.remove("base");
+		String dn = new StringBuilder("cn=").append(name).append(",").append(base).toString();
+
+		String objectClass = additionalAttributes.get("objectClass");
+		if (objectClass == null) {
+			objectClass = "groupOfUniqueNames";
+			additionalAttributes.remove("objectClass");
+		}
+
+		LDAPEntry entry = new LDAPEntry(dn);
+		entry.getAttributeSet().add(new LDAPAttribute("objectClass",objectClass));
+		entry.getAttributeSet().add(new LDAPAttribute("cn",name));
+
+		additionalAttributes.keySet().forEach(attributeName -> {
+			entry.getAttributeSet().add(new LDAPAttribute(attributeName, additionalAttributes.get(attributeName)));
+		});
+
+		//entry.getAttributeSet().add(new LDAPAttribute("samAccountName",name));
+
+		try {
+
+			LdapConnection con;
+			try {
+				con = this.ldapPool.getConnection();
+			} catch (Exception e) {
+				throw new ProvisioningException("Could not get LDAP connection " + user.getUserID(),e);
+			}
+
+			try {
+				con.getConnection().add(entry);
+
+				this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Add,  approvalID, workflow, "domain-group", name);
+
+			} finally {
+				con.returnCon();
+			}
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not create group",e);
+		}
 		
 	}
 

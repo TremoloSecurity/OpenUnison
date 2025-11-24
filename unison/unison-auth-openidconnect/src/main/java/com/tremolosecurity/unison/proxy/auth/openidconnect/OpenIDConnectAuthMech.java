@@ -29,6 +29,7 @@ import java.security.SecureRandom;
 import java.util.*;
 
 import com.novell.ldap.util.ByteArray;
+import com.tremolosecurity.proxy.ProxyResponse;
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
@@ -77,10 +78,54 @@ import com.tremolosecurity.proxy.util.ProxyTools;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 import com.tremolosecurity.unison.proxy.auth.openidconnect.sdk.LoadUserData;
-
+import org.stringtemplate.v4.ST;
 
 
 public class OpenIDConnectAuthMech implements AuthMechanism {
+
+	public static String DEFAULT_OIDC_REDIRECT_TEMPLATE = "<head>\n"
+			+ "  <meta charset=\"UTF-8\" />\n"
+			+ "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\" />\n"
+			+ "  <meta http-equiv=\"x-ua-compatible\" content=\"ie=edge\" />\n"
+			+ "  <title>OpenUnison Login</title>\n"
+			+ "  <!-- MDB icon -->\n"
+			+ "  <link rel=\"icon\" href=\"$auth$img/mdb-favicon.ico\" type=\"image/x-icon\" />\n"
+			+ "  <!-- Font Awesome -->\n"
+			+ "  <link rel=\"stylesheet\" href=\"$auth$css-mdb/all.min.css\" />\n"
+			+ "  <!-- Google Fonts Roboto -->\n"
+			+ "  <link rel=\"stylesheet\" href=\"$auth$css-mdb/fonts.css\" />\n"
+			+ "  <!-- MDB -->\n"
+			+ "  <link rel=\"stylesheet\" href=\"$auth$css-mdb/mdb.min.css\" />\n"
+			+ "</head>\n"
+			+ "\n"
+			+ "<body >\n"
+			+ "  <div class=\"row\">\n"
+			+ "    <div class=\"col vh-100 d-none d-md-block col-md-5 col-lg-6 col-xl-8 d-inline-block\"\n"
+			+ "      style=\"background-color: #AC1622;\">\n"
+			+ "\n"
+			+ "    </div>\n"
+			+ "    <div class=\"col vh-100 col-md-7 col-lg-6 col-xl-4 d-inline-block d-flex align-items-center \">\n"
+			+ "      <div class=\"container\">\n"
+			+ "        <div class=\"row\">\n"
+			+ "          $redirecturl$\n"
+			+ "		    </div>\n"
+			+ "        <div class=\"row\">\n"
+			+ "          <a  id=\"finish-login\" href=\"$redirecturl$\">Login to OpenUnison</a>\n"
+			+ "		    </div>\n"
+			+ "      </div>\n"
+			+ "\n"
+			+ "    </div>\n"
+			+ "  </div>\n"
+			+ "\n"
+			+ "  <!-- End your project here-->\n"
+			+ "\n"
+			+ "  <!-- MDB -->\n"
+			+ "  <script type=\"text/javascript\" src=\"$auth$js-mdb/mdb.umd.min.js\"></script>\n"
+			+ "  <!-- Custom scripts -->\n"
+			+ "  <script type=\"text/javascript\"></script>\n"
+			+ "</body>\n"
+			+ "\n"
+			+ "</html>";
 
 	public static final String OIDC_IDP = "com.tremolosecurity.openunison.oidc.idp";
 
@@ -225,7 +270,12 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 		String uidAttr = authParams.get("uidAttr").getValues().get(0);
 		String lookupFilter = authParams.get("lookupFilter").getValues().get(0);
 		String userLookupClassName = authParams.get("userLookupClassName").getValues().get(0);
-		
+
+		Attribute useJs = authParams.get("useJsForRedirect");
+		boolean useJsForRedirect = false;
+		if (useJs != null) {
+			useJsForRedirect = useJs.getValues().get(0).equalsIgnoreCase("true");
+		}
 		
 		boolean enableLoginHint = authParams.get("loginHintEnabled") != null && authParams.get("loginHintEnabled").getValues().get(0).equals("true");
 		String loginHintAttribute;
@@ -338,8 +388,24 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			if (loginHint != null) {
 				redirToSend.append("&login_hint=").append(loginHint);
 			}
-			
-			response.sendRedirect(redirToSend.toString());
+
+			if (useJsForRedirect) {
+				HashMap<String,String> vars = new HashMap<String,String>();
+				vars.put("redirecturl", redirToSend.toString());
+
+				ST st = new ST(DEFAULT_OIDC_REDIRECT_TEMPLATE,'$','$');
+				st.add("redirecturl", redirToSend.toString());
+				st.add("auth", cfg.getAuthFormsPath());
+				response.setContentType("text/html");
+
+				((ProxyResponse) response).pushHeadersAndCookies(holder);
+
+				response.getWriter().write(st.render());
+
+			} else {
+				response.sendRedirect(redirToSend.toString());
+			}
+
 						
 		} else {
 			String stateFromURL = request.getParameter("state");

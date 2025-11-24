@@ -72,6 +72,7 @@
 			    <executions>
 			        <execution>
 			            <id>xjc</id>
+                        <phase>generate-sources</phase>
 			            <goals>
 			                <goal>xjc</goal>
 			            </goals>
@@ -90,28 +91,28 @@
 			        
 			    </configuration>
 			</plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cxf-xjc-plugin</artifactId>
-                <version>3.3.0</version>
-                <executions>
-                    <execution>
-                        <id>xjc</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>xsdtojava</goal>
-                        </goals>
-                        <configuration>
-                            <xsdOptions>
-                                <xsdOption>
-                                    <xsd>${basedir}/open-unison-webapp/src/main/webapp/WEB-INF/tremoloConfig.xsd</xsd>
-                                    <packagename>com.tremolosecurity.config.xml</packagename>
-                                </xsdOption>
-                            </xsdOptions>
-                        </configuration>
-                    </execution>
-                </executions>                    
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.codehaus.mojo</groupId>-->
+<!--                <artifactId>cxf-xjc-plugin</artifactId>-->
+<!--                <version>3.3.0</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>xjc</id>-->
+<!--                        <phase>generate-sources</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>xsdtojava</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <xsdOptions>-->
+<!--                                <xsdOption>-->
+<!--                                    <xsd>${basedir}/open-unison-webapp/src/main/webapp/WEB-INF/tremoloConfig.xsd</xsd>-->
+<!--                                    <packagename>com.tremolosecurity.config.xml</packagename>-->
+<!--                                </xsdOption>-->
+<!--                            </xsdOptions>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>                    -->
+<!--            </plugin>-->
         </plugins>
     </build>
 </project>

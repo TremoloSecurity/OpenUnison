@@ -518,8 +518,11 @@ public class MapIdentity implements Serializable {
 									newUser.setUserID(mapping.mapping.doMapping(userObj, name).getValues().get(0));
 								} else {
 									newAttrib = mapping.mapping.doMapping(userObj, name);
-									newAttrib.setDataType(mapping.destType);
-									newUser.getAttribs().put(name, newAttrib);
+									if (newAttrib != null) {
+										newAttrib.setDataType(mapping.destType);
+										newUser.getAttribs().put(name, newAttrib);
+									}
+
 								}
 					            
 				   				break;

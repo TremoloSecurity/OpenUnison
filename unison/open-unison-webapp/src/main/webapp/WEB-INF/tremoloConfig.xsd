@@ -1269,7 +1269,7 @@
 						</documentation>
 					</annotation>
 				</attribute>
-				<attribute name="remove" type="boolean" default="false">
+				<attribute name="remove" type="string" default="false">
 					<annotation>
 						<documentation>If true, removes the group</documentation>
 					</annotation>

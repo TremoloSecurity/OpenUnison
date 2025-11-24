@@ -20,15 +20,12 @@ package com.tremolosecurity.provisioning.tasks;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.tremolosecurity.provisioning.core.*;
 import org.stringtemplate.v4.ST;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.config.xml.AddGroupType;
 import com.tremolosecurity.config.xml.WorkflowTaskType;
-import com.tremolosecurity.provisioning.core.ProvisioningException;
-import com.tremolosecurity.provisioning.core.User;
-import com.tremolosecurity.provisioning.core.Workflow;
-import com.tremolosecurity.provisioning.core.WorkflowTaskImpl;
 
 public class AddGroup extends WorkflowTaskImpl {
 
@@ -37,8 +34,8 @@ public class AddGroup extends WorkflowTaskImpl {
 	 */
 	private static final long serialVersionUID = -4528632593490038311L;
 	String name;
-	boolean remove;
-	
+	String remove;
+
 	public AddGroup() {
 		
 	}
@@ -53,12 +50,16 @@ public class AddGroup extends WorkflowTaskImpl {
 	public void init(WorkflowTaskType taskConfig) throws ProvisioningException {
 		AddGroupType addGrpTpCfg = (AddGroupType) taskConfig;
 		this.name = addGrpTpCfg.getName();
-		this.remove = addGrpTpCfg.isRemove();
+		this.remove = addGrpTpCfg.getRemove();
+
 	}
+
+
 
 	@Override
 	public boolean doTask(User user,Map<String,Object> request) throws ProvisioningException {
-		if (this.remove) {
+		boolean localRemove =  this.renderTemplate(this.remove,request).equalsIgnoreCase("true");
+		if (localRemove) {
 			user.getGroups().remove(this.renderTemplate(name, request));
 		} else {
 			user.getGroups().add(this.renderTemplate(name, request));
