@@ -1440,7 +1440,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 			try {
 				
-				
+				session.beginTransaction();
 				AuditLogs auditLog = new AuditLogs();
 				
 				if (isEntry) {
@@ -1469,7 +1469,9 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 				auditLog.setTargets(this.targetIDs.get(target));
 				
 				session.persist(auditLog);
+				session.getTransaction().commit();
 			} catch (Exception e) {
+				session.getTransaction().rollback();
 				logger.error("Could not create audit record",e);
 			} finally {
 				session.close();
