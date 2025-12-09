@@ -252,7 +252,7 @@ public class SetupGroupMetadataWatch implements HttpFilter {
 	}
 
 	private void removeMapping(String ext, String k8s) {
-		if (extIsDN) {
+		if (extIsDN && ext != null) {
 			DN dn = new DN(ext);
 			ext = dn.toString();
 		}
