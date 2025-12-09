@@ -1387,12 +1387,14 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		jws = new JsonWebSignature();
 		jws.setPayload(claimsJson);
 		jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getPrivateKey(this.jwtSigningKeyName));
+		jws.setKeyIdHeaderValue(this.buildKID(GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.jwtSigningKeyName)));
 		jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
 		String newIdToken = jws.getCompactSerialization();
 		session.setEncryptedIdToken(this.encryptToken(this.trusts.get(session.getClientID()).getCodeLastmileKeyName(), gson, newIdToken));
 
 		jws = new JsonWebSignature();
 		jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.jwtSigningKeyName).getPublicKey());
+		jws.setKeyIdHeaderValue(this.buildKID(GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.jwtSigningKeyName)));
 		jws.setCompactSerialization(this.decryptToken(this.trusts.get(session.getClientID()).getCodeLastmileKeyName(), gson, session.getEncryptedAccessToken()));
 		if (!jws.verifySignature()) {
 			logger.warn("access_token tampered with");
