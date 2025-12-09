@@ -51,6 +51,8 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.security.auth.x500.X500Principal;
+import javax.xml.transform.stream.StreamSource;
+
 import jakarta.servlet.DispatcherType;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
@@ -250,9 +252,18 @@ public class OpenUnisonOnUndertow {
 
 
 		JAXBContext jc = JAXBContext.newInstance(TremoloType.class);
+//		Unmarshaller unmarshaller = jc.createUnmarshaller();
+//
+//		TremoloType unisonConfiguration = (TremoloType) unmarshaller.unmarshal(new ByteArrayInputStream(unisonXMLContent.getBytes("UTF-8")));
+
 		Unmarshaller unmarshaller = jc.createUnmarshaller();
-		
-		TremoloType unisonConfiguration = (TremoloType) unmarshaller.unmarshal(new ByteArrayInputStream(unisonXMLContent.getBytes("UTF-8")));
+
+		JAXBElement<TremoloType> root =
+				unmarshaller.unmarshal(
+						new StreamSource(new ByteArrayInputStream(unisonXMLContent.getBytes("UTF-8"))),
+						TremoloType.class);
+
+		TremoloType unisonConfiguration = root.getValue();
 		
 		 
 		

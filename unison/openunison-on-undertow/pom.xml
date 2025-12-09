@@ -42,25 +42,7 @@ governing permissions and
 
 			</exclusions>
 		</dependency>
-		<dependency>
-			<groupId>com.tremolosecurity.unison</groupId>
-			<artifactId>unison-service-undertow</artifactId>
-			<version>${openunison.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>com.tremolosecurity.myvd</groupId>
-					<artifactId>apacheds-service</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>net.sf.ehcache</groupId>
-					<artifactId>ehcache</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.novell.ldap</groupId>
-					<artifactId>jldap</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>openunison-util-classes</artifactId>
@@ -76,12 +58,7 @@ governing permissions and
 			<groupId>com.tremolosecurity.unison</groupId>
 			<artifactId>unison-server-core</artifactId>
 			<version>${openunison.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>*</groupId>
-					<artifactId>*</artifactId>
-				</exclusion>
-			</exclusions>
+
 		</dependency>
 		<dependency>
 			<groupId>com.tremolosecurity.unison</groupId>

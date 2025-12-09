@@ -17,21 +17,16 @@ limitations under the License.
 
 package com.tremolosecurity.config.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.security.Certificate;
 import java.security.Key;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -41,51 +36,33 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.UUID;
 
 import javax.crypto.SecretKey;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.*;
+
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpSession;
-import javax.sql.DataSource;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 
-import org.apache.http.HttpHost;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.params.ConnManagerParams;
-import org.apache.http.conn.params.ConnPerRouteBean;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContexts;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
 import org.apache.logging.log4j.Logger;
 
 
-import net.sourceforge.myvd.chain.InterceptorChain;
-import net.sourceforge.myvd.server.Server;
 import net.sourceforge.myvd.server.ServerCore;
 
 import com.novell.ldap.LDAPException;
-import com.tremolosecurity.config.ssl.TremoloX509KeyManager;
 import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.config.xml.AuthChainType;
 import com.tremolosecurity.config.xml.AuthMechParamType;
@@ -111,8 +88,6 @@ import com.tremolosecurity.openunison.notifications.NotificationsManager;
 import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningEngineImpl;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
-import com.tremolosecurity.provisioning.workflows.DynamicWorkflows;
-import com.tremolosecurity.proxy.HttpUpgradeRequestManager;
 import com.tremolosecurity.proxy.auth.AlwaysFail;
 import com.tremolosecurity.proxy.auth.AnonAuth;
 import com.tremolosecurity.proxy.auth.AuthMechanism;
@@ -127,7 +102,6 @@ import com.tremolosecurity.proxy.dynamicloaders.DynamicAuthMechs;
 import com.tremolosecurity.proxy.dynamicloaders.DynamicAuthorizations;
 import com.tremolosecurity.proxy.dynamicloaders.DynamicResultGroups;
 import com.tremolosecurity.proxy.myvd.MyVDConnection;
-import com.tremolosecurity.proxy.ssl.TremoloTrustManager;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.StopableThread;
 
@@ -202,7 +176,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	private Map<Integer, String> errorPages;
 	
 	
-	private HttpUpgradeRequestManager upgradeManager;
+
 
 	private SSLContext sslctx;
 
@@ -211,14 +185,9 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	private Map<String,List<UrlHolder>> appUrls;
 
 	private NotificationManagerImpl notificationManager;
+	private TrustManagerFactory trustManagerFactory;
 
-	
-	@Override
-	public HttpUpgradeRequestManager getUpgradeManager() {
-		return this.upgradeManager;
-	}
-	
-	
+
 	@Override
 	public  Map<Integer,String> getErrorPages() {
 		return this.errorPages;
@@ -271,6 +240,9 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 				}
 			}
 		}
+
+		this.trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		this.trustManagerFactory.init(this.ks);
 		
 		buildHttpConfig();
 		
@@ -402,7 +374,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		this.cache = new HashMap<String,UrlHolder>();
 		
 		
-		this.upgradeManager = (HttpUpgradeRequestManager) Class.forName(this.cfg.getUpgradeHandler()).newInstance();
+
 		
 		
 		
@@ -1331,7 +1303,12 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	public KeyManagerFactory getKeyManagerFactory() {
 		return this.kmf;
 	}
-	
+
+	@Override
+	public TrustManagerFactory getTrustManagerFactory() {
+		return this.trustManagerFactory;
+	}
+
 	/* (non-Javadoc)
 	 * @see com.tremolosecurity.config.util.ConfigManager#addThread(com.tremolosecurity.server.StopableThread)
 	 */

@@ -36,6 +36,8 @@ import java.util.Map;
 import javax.crypto.SecretKey;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpSession;
@@ -217,6 +219,8 @@ public interface ConfigManager {
 	 */
 	public abstract KeyManagerFactory getKeyManagerFactory();
 
+	TrustManagerFactory getTrustManagerFactory();
+
 	/**
 	 * Adds a thread to the managed list of threads.  Useful for "clean up" processes
 	 * @param r
@@ -364,11 +368,7 @@ public interface ConfigManager {
 	 */
 	public abstract Map<String,CustomAuthorization> getCustomAuthorizations();
 
-	/**
-	 * Returns an implementation of the upgrade manager
-	 * @return
-	 */
-	public abstract HttpUpgradeRequestManager getUpgradeManager();
+
 	
 	
 	/**

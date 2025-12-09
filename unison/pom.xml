@@ -221,7 +221,7 @@
 		<module>openunison-on-undertow</module>
 		<module>myvd-on-undertow</module>
 		<module>openunison-util-classes</module>
-		<module>unison-service-undertow</module>
+
 		<module>unison-applications-prometheus</module>
 		<module>ibm-mq-connection-factory</module>
 		<module>unison-scalejs-operators</module>
