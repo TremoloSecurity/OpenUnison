@@ -721,6 +721,8 @@ public class ParseWorkflow {
 			JSONObject params = (JSONObject) op;
 			
 			for (Object key : params.keySet()) {
+
+
 				if (! (key instanceof String)) {
 					pw.setError("parameter key must be a string");
 					pw.setErrorPath(path + ".params[" + ii + "]");
@@ -736,7 +738,15 @@ public class ParseWorkflow {
 					pt.setName(paramName);
 					pt.setValue((String) vals);
 					task.getParam().add(pt);
-				} else if (vals instanceof JSONArray) {
+				} else if (vals instanceof Boolean) {
+					ParamWithValueType pt = new ParamWithValueType();
+					pt.setName(paramName);
+					pt.setValue(Boolean.toString((Boolean) vals));
+					task.getParam().add(pt);
+				}
+
+
+				else if (vals instanceof JSONArray) {
 					JSONArray jsonVals = (JSONArray) vals;
 					int ll = 0;
 					
@@ -862,7 +872,7 @@ public class ParseWorkflow {
 		
 		OptionType[] options = new OptionType[] {
 			new OptionType("name",true,OptionType.OptionValueType.STRING),
-			new OptionType("remove",false,OptionType.OptionValueType.BOOLEAN)
+			new OptionType("remove",false,OptionType.OptionValueType.STRING)
 		};
 		
 		for (OptionType ot : options) {
@@ -966,7 +976,15 @@ public class ParseWorkflow {
 	}
 	
 	private void setAttributeLocal(JSONObject node,OptionType ot,Object wfTask,Class destType,ParsedWorkflow pw,String path,Object val,Class paramType) {
-		if (! (val.getClass() ==  paramType)) {
+		if (paramType == String.class) {
+			if (val instanceof Boolean) {
+				val = Boolean.valueOf(String.valueOf(val)) ? "true" : "false";
+			} else if (! (val instanceof String)) {
+				pw.setError("Attribute " + ot.getName() + " must be a " + paramType.getSimpleName().toLowerCase());
+				pw.setErrorPath(path);
+				return;
+			}
+		} else if (! (val.getClass() ==  paramType)) {
 			pw.setError("Attribute " + ot.getName() + " must be a " + paramType.getSimpleName().toLowerCase());
 			pw.setErrorPath(path);
 			return;
