@@ -539,26 +539,65 @@ public class K8sSessionStore implements OidcSessionStore {
 			throw new ProvisioningException("Could not connect to kubernetes",e1);
 		}
 		
-		String url = new StringBuilder().append("/apis/openunison.tremolo.io/").append(this.getApiVersion()).append("/namespaces/").append(this.nameSpace).append("/oidc-sessions").toString();
+		String url = new StringBuilder().append("/apis/openunison.tremolo.io/").append(this.getApiVersion()).append("/namespaces/").append(this.nameSpace).append("/oidc-sessions?limit=500").toString();
+		String continueToken = null;
+		int sessionsProcessed = 0;
 		
 		try {
 			HttpCon con = k8s.createClient();
 			
 			try {
-				
-				String jsonResp = k8s.callWS(k8s.getAuthToken(), con, url);
-				Map ret = gson.fromJson(jsonResp, Map.class);
-				List items = (List) ret.get("items");
-				for (Object o : items) {
-					Map session = (Map) o;
-					Map spec = (Map) session.get("spec");
-					String sessionid = (String) spec.get("session_id");
-					DateTime expires = ISODateTimeFormat.dateTime().parseDateTime((String) spec.get("expires"));
-					
-					if (expires.isBeforeNow()) {
-						this.deleteSession(sessionid);
+				boolean moreSessions = true;
+				while (moreSessions) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("More sessions " + moreSessions);
+					}
+
+					String sessionsListURL = url;
+					if (continueToken != null) {
+						sessionsListURL = String.format("%s&continue=%s", sessionsListURL, continueToken);
+					}
+
+					if (logger.isDebugEnabled()) {
+						logger.debug("session url " + sessionsListURL);
+					}
+
+					String jsonResp = k8s.callWS(k8s.getAuthToken(), con, sessionsListURL);
+					Map ret = gson.fromJson(jsonResp, Map.class);
+
+					Map metadata = (Map) ret.get("metadata");
+					if (logger.isDebugEnabled()) {
+						logger.debug("found metadata");
+					}
+					if (metadata != null) {
+						if (metadata.get("continue") != null && ! ((String) metadata.get("continue")).isBlank()) {
+							if (logger.isDebugEnabled()) {
+								logger.debug("found continue '" + metadata.get("continue") + "'");
+							}
+							continueToken = metadata.get("continue").toString();
+						} else {
+							continueToken = null;
+							moreSessions = false;
+						}
+					} else {
+						moreSessions = false;
+						continueToken = null;
+					}
+
+					List items = (List) ret.get("items");
+					for (Object o : items) {
+						Map session = (Map) o;
+						Map spec = (Map) session.get("spec");
+						String sessionid = (String) spec.get("session_id");
+						DateTime expires = ISODateTimeFormat.dateTime().parseDateTime((String) spec.get("expires"));
+						sessionsProcessed++;
+						if (expires.isBeforeNow()) {
+							this.deleteSession(sessionid);
+						}
 					}
 				}
+
+				logger.info(String.format("Processed %s sessions",sessionsProcessed));
 				
 				
 			} finally {
