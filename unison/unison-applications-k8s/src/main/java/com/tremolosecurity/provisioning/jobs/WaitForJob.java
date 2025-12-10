@@ -51,20 +51,22 @@ public class WaitForJob extends UnisonJob {
 
 	@Override
 	public void execute(ConfigManager configManager, JobExecutionContext context) throws ProvisioningException {
-		if (configManager == null || configManager.getProvisioningEngine() == null) {
-			logger.warn("System not fully initialized");
-			return;
-		}
-		
-		Gson gson = new Gson();
-		
-		String target = context.getJobDetail().getJobDataMap().getString("target");
-		String namespace = context.getJobDetail().getJobDataMap().getString("namespace");
-		
-		OpenShiftTarget os = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(target).getProvider();
+
 		HttpCon con = null;
 		
 		try {
+			if (configManager == null || configManager.getProvisioningEngine() == null) {
+				logger.warn("System not fully initialized");
+				return;
+			}
+
+			Gson gson = new Gson();
+
+			String target = context.getJobDetail().getJobDataMap().getString("target");
+			String namespace = context.getJobDetail().getJobDataMap().getString("namespace");
+
+			OpenShiftTarget os = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(target).getProvider();
+
 			con = os.createClient();
 			String token = os.getAuthToken();
 			
@@ -192,6 +194,8 @@ public class WaitForJob extends UnisonJob {
 								wf.restart();
 							}
 						}
+					} catch (Throwable t) {
+						logger.warn("Problem when checking " + wfs.getUri(), t);
 					} finally {
 						if (checkCon != null) {
 							try {
@@ -207,7 +211,7 @@ public class WaitForJob extends UnisonJob {
 				}
 			}
 			
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			throw new ProvisioningException("Could not clear object",e);
 		} finally {
 			if (con != null) {
