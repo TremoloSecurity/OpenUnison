@@ -79,6 +79,8 @@ public class Scim implements HttpFilter {
     private String groupMemberAttributeName;
     private String groupDeleteWorkflow;
 
+    private Map<String,String> scimFilterAttrib2Ldap;
+
     // splits the requested URI
     private String[] split(HttpFilterRequest req) {
 
@@ -159,6 +161,9 @@ public class Scim implements HttpFilter {
 
 
                 LDAPEntry entry = res.next();
+
+                while (res.hasMore()) res.next();
+
                 ObjectNode copy = M.createObjectNode();
                 ldap2scim(entry, copy);
 
@@ -185,6 +190,9 @@ public class Scim implements HttpFilter {
                 }
 
                 entry = res.next();
+
+                while (res.hasMore()) res.next();
+
                 LDAPAttribute displayNameAttribute = entry.getAttribute(this.groupLookupAttributeName);
                 if (displayNameAttribute == null) {
                     err(response, 400, "objectNotFound", "Group " + id + " does not have a " + this.groupLookupAttributeName + " attribute");
@@ -305,6 +313,9 @@ public class Scim implements HttpFilter {
                 }
 
                 LDAPEntry entry = res.next();
+
+                while (res.hasMore()) res.next();
+
                 LDAPAttribute displayNameAttribute = entry.getAttribute(this.groupLookupAttributeName);
 
                 if (displayNameAttribute == null) {
@@ -371,6 +382,9 @@ public class Scim implements HttpFilter {
 
 
                                     entry = res.next();
+
+                                    while (res.hasMore()) res.next();
+
                                     ObjectNode currentGroup = ldapGroup2Scim(entry);
                                     HashSet<String> currentMembers = new HashSet<String>();
 
@@ -414,6 +428,8 @@ public class Scim implements HttpFilter {
 
 
                 entry = res.next();
+                while (res.hasMore()) res.next();
+
                 ObjectNode copy = ldapGroup2Scim(entry);
 
                 ensureMeta(copy, base(request), p[0], id, 1);
@@ -440,6 +456,9 @@ public class Scim implements HttpFilter {
 
 
                 entry = res.next();
+
+                while (res.hasMore()) res.next();
+
                 copy = M.createObjectNode();
                 ldap2scim(entry, copy);
 
@@ -527,47 +546,122 @@ public class Scim implements HttpFilter {
             case "Users":
             case "Groups":
 
-                String id = p[1];
-                ObjectNode copy = M.createObjectNode();
+                if (p.length == 1) {
+                    // search
 
-                if (p[0].equalsIgnoreCase("Users")) {
+                    Attribute attr = request.getParameter("filter");
+                    if (attr != null) {
+                        String filter = attr.getValues().get(0);
+                        String scimFilter = toLdapFilter(filter);
+                        attr = request.getParameter("attributes");
+                        HashSet<String> attributesToReturn = new HashSet<>();
+                        if (attr != null) {
+                            String[] attrNames = attr.getValues().get(0).split(",");
+                            Arrays.stream(attrNames).forEach(name -> attributesToReturn.add(name.toLowerCase()));
 
-                    LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase,2,"(" + this.idAttributeName + "=" + id + ")",new ArrayList<String>());
-                    if (! res.hasMore()) {
-                        err(response, 404, "objectNotFound", "Could not find the  object");
-                        return;
+                        }
+                        String ldapFilter = null;
+                        if (p[0].equalsIgnoreCase("Users")) {
+                            ldapFilter = "(&(objectClass=" + GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getUserObjectClass() + ")" + scimFilter + ")";
+                        } else {
+                            ldapFilter = "(&(objectClass=" + GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupObjectClass() + ")" + scimFilter + ")";
+                        }
+
+
+                        LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase,2,ldapFilter,new ArrayList<>());
+
+                        ArrayNode resources = M.createArrayNode();
+                        int numRes = 0;
+
+                        while (res.hasMore()) {
+                            LDAPEntry entry = res.next();
+
+                            ObjectNode resp = M.createObjectNode();
+                            ldap2scim(entry, resp);
+
+
+                            if (! attributesToReturn.isEmpty()) {
+                                List<String> toremove = new ArrayList<>();
+                                resp.fieldNames().forEachRemaining(name -> {
+                                    if (! name.equalsIgnoreCase("id") && ! attributesToReturn.contains(name.toLowerCase())) {
+                                        toremove.add(name);
+                                    }
+                                });
+
+                                toremove.forEach(name -> resp.remove(name));
+                            }
+
+                            ensureMeta(resp, base(request), p[0], resp.get("id").textValue(), 1);
+
+                            resources.add(resp);
+                            numRes++;
+
+
+                        }
+
+                        ObjectNode allResults = M.createObjectNode();
+                        ArrayNode schemas = M.createArrayNode();
+                        schemas.add("urn:ietf:params:scim:api:messages:2.0:ListResponse");
+                        allResults.put("schemas", schemas);
+                        allResults.put("Resources", resources);
+                        allResults.put("totalResults", numRes);
+                        allResults.put("startIndex", 1);
+                        allResults.put("itemsPerPage", numRes);
+
+                        write(response, 200, allResults);
+                    } else {
+                        err(response, 400, "invalidRequest", "missing filter");
                     }
-
-
-                    LDAPEntry entry = res.next();
-                    ldap2scim(entry, copy);
-
-
 
                 } else {
-                    LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase,2,"(" + this.groupIdName + "=" + id + ")",new ArrayList<String>());
-                    if (! res.hasMore()) {
-                        err(response, 404, "objectNotFound", "Could not find the  object");
-                        return;
+
+                    // lookup
+                    String id = p[1];
+                    ObjectNode copy = M.createObjectNode();
+
+                    if (p[0].equalsIgnoreCase("Users")) {
+
+                        LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.idAttributeName + "=" + id + ")", new ArrayList<String>());
+                        if (!res.hasMore()) {
+                            err(response, 404, "objectNotFound", "Could not find the  object");
+                            return;
+                        }
+
+
+                        LDAPEntry entry = res.next();
+
+                        while (res.hasMore()) res.next();
+
+                        ldap2scim(entry, copy);
+
+
+                    } else {
+                        LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.groupIdName + "=" + id + ")", new ArrayList<String>());
+                        if (!res.hasMore()) {
+                            err(response, 404, "objectNotFound", "Could not find the  object");
+                            return;
+                        }
+
+
+                        LDAPEntry entry = res.next();
+                        while (res.hasMore()) res.next();
+                        copy = ldapGroup2Scim(entry);
                     }
 
+                    ensureMeta(copy, base(request), p[0], id, 1);
 
-                    LDAPEntry entry = res.next();
-                    copy = ldapGroup2Scim(entry);
+
+                    response.setStatus(200);
+                    response.setHeader("Location", loc(base(request), p[0], id));
+                    setEtag(response, copy);
+                    write(response, 200, copy);
+
+                    return;
                 }
-
-                ensureMeta(copy, base(request), p[0], id, 1);
-
-
-                response.setStatus(200);
-                response.setHeader("Location", loc(base(request), p[0], id));
-                setEtag(response, copy);
-                write(response, 200, copy);
-
-                return;
             default:
                 err(response, 404, "invalidPath", "Unknown endpoint"); return;
         }
+
 
 
     }
@@ -598,8 +692,15 @@ public class Scim implements HttpFilter {
 
 
                 }
+
+                while (memberSearch.hasMore()) memberSearch.next();
             } catch (LDAPException e) {
-                logger.warn("Could not load member",e);
+                if (e.getResultCode() == LDAPException.NO_SUCH_OBJECT) {
+                    logger.warn(String.format("User DN %s not found",memberDN));
+                } else {
+                    logger.warn("Could not load member",e);
+                }
+
             }
         });
 
@@ -701,6 +802,8 @@ public class Scim implements HttpFilter {
                         }
                         LDAPEntry entry = res.next();
 
+                        while (res.hasMore()) res.next();
+
 
                         ObjectNode copy = this.ldapGroup2Scim(entry);
 
@@ -724,6 +827,9 @@ public class Scim implements HttpFilter {
 
 
                     LDAPEntry entry = res.next();
+
+                    while (res.hasMore()) res.next();
+
                     ObjectNode currentGroup = ldapGroup2Scim(entry);
                     String displayName = currentGroup.get("displayName").asText();
                     HashSet<String> currentMembers = new HashSet<String>();
@@ -762,6 +868,9 @@ public class Scim implements HttpFilter {
 
 
                     entry = res.next();
+
+                    while (res.hasMore()) res.next();
+
                     ObjectNode copy = ldapGroup2Scim(entry);
 
                     ensureMeta(copy, base(request), p[0], id, 1);
@@ -803,6 +912,9 @@ public class Scim implements HttpFilter {
 
 
         LDAPEntry entry = res.next();
+
+        while (res.hasMore()) res.next();
+
         String userId = entry.getAttribute(this.lookupAttributeName).getStringValue();
 
         while (res.hasMore()) res.next();
@@ -852,6 +964,8 @@ public class Scim implements HttpFilter {
 
             ObjectNode copy = M.createObjectNode();
             LDAPEntry entry = res.next();
+
+            while (res.hasMore()) res.next();
 
             String id = ldap2scim(entry, copy);
             ensureMeta(copy, base(request), p[0], id, 1);
@@ -1022,9 +1136,19 @@ public class Scim implements HttpFilter {
         } else {
             logger.warn("No tremolo2scim mapping found");
         }
+
+        this.scimFilterAttrib2Ldap = new HashMap<>();
+        Attribute filterMap = config.getAttribute("filterScim2Ldap");
+        if (filterMap != null) {
+            filterMap.getValues().forEach(map -> {
+               String scim = map.substring(0,map.indexOf('='));
+               String ldap = map.substring(map.indexOf('=')+1);
+               this.scimFilterAttrib2Ldap.put(scim.toLowerCase(),ldap);
+            });
+        }
     }
 
-    public static String toLdapFilter(String scimFilter) {
+    public  String toLdapFilter(String scimFilter) {
         if (scimFilter == null || scimFilter.isBlank()) {
             throw new IllegalArgumentException("SCIM filter must not be null or blank");
         }
@@ -1174,7 +1298,7 @@ public class Scim implements HttpFilter {
 
     // ===== Parser (recursive descent) =====
 
-    private static final class Parser {
+    private  final class Parser {
         private final Tokenizer tokenizer;
 
         Parser(Tokenizer tokenizer) {
@@ -1285,11 +1409,15 @@ public class Scim implements HttpFilter {
 
     // ===== SCIM -> LDAP fragment builders =====
 
-    private static String buildPresent(String attr) {
+    private String buildPresent(String attr) {
         return "(" + attr + "=*)";
     }
 
-    private static String buildComparison(String attr, TokenType op, String value) {
+    private String buildComparison(String attr, TokenType op, String value) {
+        String ldapAttr = this.scimFilterAttrib2Ldap.get(attr.toLowerCase());
+        if (ldapAttr != null) {
+            attr = ldapAttr;
+        }
         String escaped = escapeLdap(value);
 
         return switch (op) {
@@ -1314,7 +1442,7 @@ public class Scim implements HttpFilter {
     }
 
     // Escape per RFC 4515:  *, (, ), \, NUL
-    private static String escapeLdap(String value) {
+    private String escapeLdap(String value) {
         StringBuilder sb = new StringBuilder(value.length());
         for (int i = 0; i < value.length(); i++) {
             char c = value.charAt(i);
