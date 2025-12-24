@@ -109,15 +109,34 @@ public class JMSPull implements HttpFilter {
             PullResponse pullResponse  = null;
             boolean found = false;
             while (! found) {
-                tm = (TextMessage) this.respSession.getMessageConsumer().receive(this.maxWaitTime);
-                if (tm == null) {
-                    throw new Exception("No response in time");
-                }
-                
-                
+                tm = loadResponse(5);
+                if (tm == null) return;
 
-                pullResponse = (PullResponse) JsonTools.readObjectFromJson(tm.getText());
-                found = pullResponse.getId().equals(pullRequest.getId());
+                try {
+                    pullResponse = (PullResponse) JsonTools.readObjectFromJson(tm.getText());
+                    found = pullResponse.getId().equals(pullRequest.getId());
+                } catch (Throwable t) {
+                    logger.warn("Could not load data from response: " + tm.getText(),t);
+                    Writer writer = response.getWriter();
+                    writer.write("# HELP remote_up Determines if the system is alive or not\n");
+                    writer.write("# TYPE remote_up gauge\n");
+                    writer.write("remote_up");
+                    writer.write("{");
+                    writer.write("remote_job");
+                    writer.write("=\"");
+                    writeEscapedLabelValue(writer, this.job);
+                    writer.write("\",");
+                    writer.write("remote_instance");
+                    writer.write("=\"");
+                    writeEscapedLabelValue(writer, this.instance);
+                    writer.write("\"} ");
+                    writer.write("0.0");
+                    writer.write('\n');
+
+                    response.getWriter().flush();
+                    return;
+                }
+
 
                 if (! found) {
                     logger.warn("Discarding response to request " + pullResponse.getId());
@@ -180,7 +199,29 @@ public class JMSPull implements HttpFilter {
         } 
 	}
 
-	@Override
+    private TextMessage loadResponse(int trysLeft) throws Exception {
+        TextMessage tm;
+        tm = (TextMessage) this.respSession.getMessageConsumer().receive(this.maxWaitTime);
+        if (tm == null) {
+            throw new Exception("No response in time");
+        }
+
+        if (tm.getBooleanProperty("unisonignore")) {
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("ignoring message");
+            }
+            tm.acknowledge();
+            if (trysLeft == 0) {
+                return null;
+            } else {
+                return loadResponse(trysLeft - 1);
+            }
+        }
+        return tm;
+    }
+
+    @Override
 	public void filterResponseBinary(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain, byte[] arg3,
 			int arg4) throws Exception {
 		
