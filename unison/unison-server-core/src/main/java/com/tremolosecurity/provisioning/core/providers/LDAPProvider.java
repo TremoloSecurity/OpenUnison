@@ -19,10 +19,17 @@ package com.tremolosecurity.provisioning.core.providers;
 
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.Set;
 
 import com.novell.ldap.util.ByteArray;
+import com.tremolosecurity.provisioning.UserStoreProviderLookups;
+import com.tremolosecurity.provisioning.core.*;
+import net.sourceforge.myvd.types.Filter;
+import net.sourceforge.myvd.types.FilterNode;
+import org.apache.directory.api.ldap.model.filter.FilterParser;
+import org.apache.directory.ldap.client.api.search.FilterBuilder;
 import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
@@ -36,11 +43,6 @@ import com.novell.ldap.LDAPReferralException;
 import com.novell.ldap.LDAPSearchResults;
 import com.novell.ldap.connectionpool.PoolManager;
 import com.tremolosecurity.config.util.ConfigManager;
-import com.tremolosecurity.provisioning.core.ProvisioningException;
-import com.tremolosecurity.provisioning.core.User;
-import com.tremolosecurity.provisioning.core.UserStoreProvider;
-import com.tremolosecurity.provisioning.core.UserStoreProviderWithAddGroup;
-import com.tremolosecurity.provisioning.core.Workflow;
 import com.tremolosecurity.provisioning.core.ProvisioningUtil.ActionType;
 import com.tremolosecurity.provisioning.util.ldap.pool.LdapConnection;
 import com.tremolosecurity.provisioning.util.ldap.pool.LdapPool;
@@ -50,7 +52,7 @@ import com.tremolosecurity.server.GlobalEntries;
 
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
-public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface {
+public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface, UserStoreProviderLookups {
 
 	
 	public static final String NEW_USER_DN = "com.tremolosecurity.unison.provisioning.ldap.newUserDN";
@@ -77,7 +79,9 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 	private HashMap<String,String> unison2ldap;
 
 	private boolean useSRV;
-	
+	private String uniqueIdAttribute;
+	private String groupIdAttribute;
+
 	@Override
 	public LdapConnection getLocalConnection() throws ProvisioningException {
 		return this.ldapPool.getConnection();
@@ -521,9 +525,17 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 			
 			
 		}
-		
+
+		User user = entry2user(userID, con, ldapUser, isExternal);
+
+
+		return user;
+	}
+
+	private User entry2user(String userID, LDAPConnection con, LDAPEntry ldapUser, boolean isExternal) throws LDAPException {
+		LDAPSearchResults res;
 		User user = new User(userID);
-		
+
 		Iterator<LDAPAttribute> it = ldapUser.getAttributeSet().iterator();
 		while (it.hasNext()) {
 			LDAPAttribute attr  =  it.next();
@@ -534,27 +546,23 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 			}
 			user.getAttribs().put(userAttr.getName(), userAttr);
 		}
-		
+
 		StringBuffer b = new StringBuffer();
-		
-		
-		
-		
+
+
 		//b.append("(uniqueMember=").append(ldapUser.getDN()).append(")");
-		
+
 		String userDN = ldapUser.getDN();
 		if (isExternal) {
 			userDN = this.mapUnison2Dir(userDN);
 		}
-		
-		
+
+
 		res = con.search(searchBase, 2, equal(GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute(),userDN).toString(), new String[] {"cn"}, false);
 		while (res.hasMore()) {
 			LDAPEntry group = res.next();
 			user.getGroups().add(group.getAttribute("cn").getStringValue());
 		}
-		
-		
 		return user;
 	}
 
@@ -646,6 +654,16 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 					this.ldapBase = cfg.get("externalUserMapInDir").getValues().get(0);
 					this.lcLDAPBase = ldapBase.toLowerCase();
 				}
+			}
+
+			Attribute attr = cfg.get("uniqueIdAttribute");
+			if (attr != null) {
+				this.uniqueIdAttribute = attr.getValues().get(0);
+			}
+
+			attr = cfg.get("groupIdAttribute");
+			if (attr != null) {
+				this.groupIdAttribute = attr.getValues().get(0);
 			}
 			
 		} catch (Exception e) {
@@ -901,5 +919,307 @@ public class LDAPProvider implements UserStoreProviderWithAddGroup,LDAPInterface
 		this.ldapPool.shutdown();
 		
 	}
+
+	@Override
+	public User lookupUserByLogin(String login) throws ProvisioningException {
+		String ldapSearch = FilterBuilder.equal(this.userIDAttribute,login).toString();
+
+		return this.findUser(login,new HashSet<String>(),new HashMap<>());
+
+	}
+
+	@Override
+	public User lookupUserById(String id) throws ProvisioningException {
+		String ldapSearch = FilterBuilder.equal(this.uniqueIdAttribute,id).toString();
+		LdapConnection con = null;
+		try {
+
+
+			try {
+				con = this.ldapPool.getConnection();
+			} catch (Exception e) {
+				throw new ProvisioningException("Could not get LDAP connection " + id,e);
+			}
+            User user = null;
+            try {
+                user = this.doFindUser(id,new HashSet<>(),new StringBuffer(ldapSearch),con.getConnection());
+            } catch (LDAPException e) {
+                throw new ProvisioningException("Could not find user " + id,e);
+            }
+            user.setUserID(user.getAttribs().get(this.userIDAttribute).getValues().get(0));
+
+			return user;
+		} finally {
+			if (con != null) {
+				con.returnCon();
+			}
+		}
+
+	}
+
+	private Group lookupGroup(String filter) throws ProvisioningException {
+		try {
+
+			LdapConnection con;
+			try {
+				con = this.ldapPool.getConnection();
+			} catch (Exception e) {
+				throw new ProvisioningException("Could not get LDAP connection " + filter,e);
+			}
+
+			try {
+				LDAPSearchResults res = con.getConnection().search(this.searchBase, 2, filter, new String[0] , false);
+				if (! res.hasMore()) {
+					return null;
+				}
+
+				LDAPEntry group = res.next();
+				Group tremoloGroup = entry2group(group, con);
+
+				return tremoloGroup;
+
+			} finally {
+				con.returnCon();
+			}
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not set user's password",e);
+		}
+	}
+
+	private Group entry2group(LDAPEntry group, LdapConnection con) throws UnsupportedEncodingException, LDAPException {
+		String cn = null;
+		String id = null;
+		String description = null;
+
+		if (group.getAttribute("cn") != null) {
+			cn = new String(group.getAttribute("cn").getByteValue(),"UTF-8");
+		}
+
+		if (group.getAttribute(this.groupIdAttribute) != null) {
+			id = new String(group.getAttribute(this.groupIdAttribute).getByteValue(),"UTF-8");
+		}
+
+		if (group.getAttribute("description") != null) {
+			description = new String(group.getAttribute("description").getByteValue(),"UTF-8");
+		}
+
+		Group tremoloGroup = new Group(cn,description,id);
+
+		LDAPAttribute members = group.getAttribute(this.cfgMgr.getCfg().getGroupMemberAttribute());
+		if (members != null) {
+			for (ByteArray memberBytes : members.getAllValues()) {
+				String memberDN = new String(memberBytes.getValue(), "UTF-8");
+				LDAPSearchResults gsearch = con.getConnection().search(memberDN, 0, equal("objectClass",this.cfgMgr.getCfg().getUserObjectClass()).toString(), new String[]{this.userIDAttribute,this.uniqueIdAttribute} , false);
+				if (gsearch.hasMore()) {
+					try {
+						LDAPEntry entry = gsearch.next();
+						while (gsearch.hasMore()) {gsearch.next();}
+						LDAPAttribute idAttribute = entry.getAttribute(this.uniqueIdAttribute);
+						if (idAttribute == null) {
+							logger.warn(String.format("Group member %s does not have a %s attribute",memberDN,this.uniqueIdAttribute));
+						} else {
+							tremoloGroup.getMembers().add(new String(idAttribute.getByteValue(),"UTF-8"));
+						}
+					} catch (LDAPException e) {
+						if (e.getResultCode() == LDAPException.NO_SUCH_OBJECT) {
+							// there's no object, warn and continue
+							logger.warn(String.format("Group member %s does not exist or is not a user",memberDN));
+							continue;
+						} else {
+							throw e;
+						}
+					}
+
+				} else {
+					logger.warn(String.format("Group member %s does not exist or is not a user",memberDN));
+				}
+			}
+		}
+
+		LDAPAttributeSet attrs = group.getAttributeSet();
+		attrs.keySet().forEach(attrName -> {
+			if (! attrName.equals(cfgMgr.getCfg().getGroupMemberAttribute()) && ! attrName.equals("objectClass")) {
+				Attribute groupAttr = new Attribute((String)attrName);
+				LDAPAttribute vals = attrs.getAttribute((String)attrName);
+				vals.getAllValues().forEach(val -> {
+try {
+groupAttr.getValues().add(new String(val.getValue(),"UTF-8"));
+} catch (UnsupportedEncodingException e) {
+// do nothing
+}
+});
+
+				tremoloGroup.getAttributes().put((String)attrName,groupAttr);
+			}
+		});
+		return tremoloGroup;
+	}
+
+	@Override
+	public Group lookupGroupById(String id) throws ProvisioningException {
+		String ldapFilter = and(equal("objectClass",this.cfgMgr.getCfg().getGroupObjectClass()),equal(this.groupIdAttribute,id)).toString();
+		return this.lookupGroup(ldapFilter);
+	}
+
+	@Override
+	public Group lookupGroupByName(String groupName) throws ProvisioningException {
+		String ldapFilter = and(equal("objectClass",this.cfgMgr.getCfg().getGroupObjectClass()),equal("cn",groupName)).toString();
+		return this.lookupGroup(ldapFilter);
+	}
+
+	@Override
+	public boolean isGroupMembersUniqueIds() {
+		return true;
+	}
+
+	@Override
+	public boolean isUniqueIdTremoloId() {
+		return false;
+	}
+
+	@Override
+	public boolean isGroupIdUniqueId() {
+		return false;
+	}
+
+	@Override
+	public List<User> searchUsers(String ldapFilter) throws ProvisioningException {
+		List<User> users = new ArrayList<>();
+		try {
+
+			LdapConnection con;
+			try {
+				con = this.ldapPool.getConnection();
+			} catch (Exception e) {
+				throw new ProvisioningException("Could not get LDAP connection " + ldapFilter,e);
+			}
+
+			try {
+				LDAPSearchResults res = con.getConnection().search(this.searchBase, 2, ldapFilter, new String[] {}, false);
+				while (res.hasMore()) {
+					LDAPEntry entry = res.next();
+					String uid = new String(entry.getAttribute(this.userIDAttribute).getByteValue(),"UTF-8");
+					users.add(this.entry2user(uid,con.getConnection(),entry,false));
+				}
+
+				return users;
+
+
+
+
+
+			} finally {
+				con.returnCon();
+			}
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not set user's password",e);
+		}
+	}
+
+	private String groupId2Dn(String memberid) throws LDAPException {
+		LdapConnection con = null;
+		try {
+			try {
+				con = this.ldapPool.getConnection();
+			} catch (Exception e) {
+				throw new LDAPException("Could not get LDAP connection " + memberid,LDAPException.OPERATIONS_ERROR,"Operations Error",e);
+			}
+
+			LDAPSearchResults res = con.getConnection().search(this.searchBase,2,"(" + this.uniqueIdAttribute + "=" + memberid + ")",new String[] {"1.1"}, false);
+			if (! res.hasMore()) {
+				return null;
+			}
+
+
+			LDAPEntry entry = res.next();
+
+			while (res.hasMore()) res.next();
+
+			return entry.getDN();
+
+
+
+
+		} finally {
+			if (con != null) {
+				con.returnCon();
+			}
+		}
+
+
+
+	}
+
+	private void replaceMembers(FilterNode root) throws LDAPException {
+		switch (root.getType()) {
+			case AND:
+			case OR:
+			case NOT:
+				root.getChildren().forEach(node -> {
+                    try {
+                        replaceMembers(node);
+                    } catch (LDAPException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+				break;
+
+			case EQUALS:
+				if (root.getName().equalsIgnoreCase(cfgMgr.getCfg().getGroupMemberAttribute())) {
+					// found a member search
+					String dn = this.groupId2Dn(root.getValue());
+					if (dn != null) {
+						root.setValue(dn);
+					}
+				}
+		}
+	}
+
+	@Override
+	public List<Group> searchGroups(String ldapFilter) throws ProvisioningException {
+
+        try {
+            Filter filter = new Filter(ldapFilter);
+			replaceMembers(filter.getRoot());
+			ldapFilter = filter.getRoot().toString();
+        } catch (LDAPException e) {
+            throw new ProvisioningException("Could not parse filter " + ldapFilter,e);
+        }
+
+        List<Group> groups = new ArrayList<>();
+		try {
+
+
+
+
+
+			LdapConnection con;
+			try {
+				con = this.ldapPool.getConnection();
+			} catch (Exception e) {
+				throw new ProvisioningException("Could not get LDAP connection " + ldapFilter,e);
+			}
+
+			try {
+				LDAPSearchResults res = con.getConnection().search(this.searchBase, 2, ldapFilter, new String[] {}, false);
+				while (res.hasMore()) {
+					LDAPEntry entry = res.next();
+					groups.add(entry2group(entry,con));
+				}
+
+				return groups;
+
+
+
+
+
+			} finally {
+				con.returnCon();
+			}
+		} catch (Exception e) {
+			throw new ProvisioningException("Could not set user's password",e);
+		}
+	}
+
 }
 

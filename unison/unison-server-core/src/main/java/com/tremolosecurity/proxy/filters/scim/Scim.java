@@ -28,10 +28,8 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.config.util.UrlHolder;
-import com.tremolosecurity.provisioning.core.ProvisioningException;
-import com.tremolosecurity.provisioning.core.ProvisioningParams;
-import com.tremolosecurity.provisioning.core.User;
-import com.tremolosecurity.provisioning.core.Workflow;
+import com.tremolosecurity.provisioning.UserStoreProviderLookups;
+import com.tremolosecurity.provisioning.core.*;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
 import com.tremolosecurity.provisioning.service.util.TremoloUser;
 import com.tremolosecurity.provisioning.service.util.WFCall;
@@ -84,6 +82,9 @@ public class Scim implements HttpFilter {
 
     private Map<String,String> scimFilterAttrib2Ldap;
     private HashMap<Object, String> scimGroupFilterAttrib2Ldap;
+
+    boolean lookupFromLDAP;
+    String lookupTarget;
 
     // splits the requested URI
     private String[] split(HttpFilterRequest req) {
@@ -159,6 +160,22 @@ public class Scim implements HttpFilter {
         }
     }
 
+    private UserStoreProviderLookups loadTarget(HttpFilterRequest request, HttpFilterResponse response) throws IOException,ProvisioningException {
+        ProvisioningTarget prov = GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(this.lookupTarget);
+        if (prov == null) {
+            err(request, response, 500, "error", "Target does not exist");
+            return null;
+        }
+
+        if (! (prov.getProvider() instanceof UserStoreProviderLookups)) {
+            err(request, response, 500, "error", "Provider does not support lookups");
+            return null;
+        }
+
+        UserStoreProviderLookups target = (UserStoreProviderLookups) prov.getProvider();
+        return target;
+
+    }
     private void doDelete(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain) throws Exception {
         String[] p = split(request);
         if (p == null || p.length == 0) { err(request,response, 404, "invalidPath", "Unknown"); return; }
@@ -168,21 +185,38 @@ public class Scim implements HttpFilter {
 
         switch (p[0]) {
             case "Users":
-                // load from MyVD - create a SCIM object
+                final ObjectNode copy = M.createObjectNode();
+                if (this.lookupFromLDAP) {
+                    // load from MyVD - create a SCIM object
 
-                LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase,2,"(" + this.idAttributeName + "=" + id + ")",new ArrayList<String>());
-                if (! res.hasMore()) {
-                    err(request,response, 404, "objectNotFound", "Could not find the created object");
-                    return;
+                    LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.idAttributeName + "=" + id + ")", new ArrayList<String>());
+                    if (!res.hasMore()) {
+                        err(request, response, 404, "objectNotFound", "Could not find the created object");
+                        return;
+                    }
+
+
+                    LDAPEntry entry = res.next();
+
+                    while (res.hasMore()) res.next();
+
+
+                    ldap2scim(entry, copy);
+                } else {
+
+                    UserStoreProviderLookups target = loadTarget(request, response);
+                    if (target == null) {
+                        return;
+                    }
+
+                    User user = target.lookupUserById(id);
+                    if (user == null) {
+                        err(request, response, 404, "objectNotFound", "Could not find the object");
+                        return;
+                    }
+
+                    user2scim(user,copy,target);
                 }
-
-
-                LDAPEntry entry = res.next();
-
-                while (res.hasMore()) res.next();
-
-                ObjectNode copy = M.createObjectNode();
-                ldap2scim(entry, copy);
 
                 // translate object to SCIM --> TremoloUser
                 // not very efficient, but consistent
@@ -199,28 +233,53 @@ public class Scim implements HttpFilter {
                 runWorkflow(request, response, scimUser, copy, uidAttr, p,this.deleteUserWorkflowName);
                 break;
             case "Groups":
-                res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase,2,"(" + this.groupIdName + "=" + id + ")",new ArrayList<String>());
+                String groupid = null;
+                if (this.lookupFromLDAP) {
+                    LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.groupIdName + "=" + id + ")", new ArrayList<String>());
 
-                if (! res.hasMore()) {
-                    err(request,response, 404, "objectNotFound", "Could not find the object");
-                    return;
+                    if (!res.hasMore()) {
+                        err(request, response, 404, "objectNotFound", "Could not find the object");
+                        return;
+                    }
+
+                    LDAPEntry entry = res.next();
+
+                    while (res.hasMore()) res.next();
+
+                    LDAPAttribute displayNameAttribute = entry.getAttribute(this.groupLookupAttributeName);
+                    if (displayNameAttribute == null) {
+                        err(request, response, 400, "objectNotFound", "Group " + id + " does not have a " + this.groupLookupAttributeName + " attribute");
+                        return;
+                    }
+
+                    scimUser = new User("sys");
+
+                    groupid = displayNameAttribute.getStringValue();
+
+
+                } else {
+                    UserStoreProviderLookups target = loadTarget(request, response);
+                    if (target == null) {
+                        return;
+                    }
+
+                    if (target.isGroupIdUniqueId()) {
+                        groupid = id;
+                    } else {
+                        Group group = target.lookupGroupById(id);
+
+                        if (group == null) {
+                            err(request, response, 404, "objectNotFound", "Could not find the object");
+                            return;
+                        }
+
+                        groupid = group.getName();
+                    }
+
                 }
 
-                entry = res.next();
+                deleteGroup(response, groupid , id);
 
-                while (res.hasMore()) res.next();
-
-                LDAPAttribute displayNameAttribute = entry.getAttribute(this.groupLookupAttributeName);
-                if (displayNameAttribute == null) {
-                    err(request,response, 400, "objectNotFound", "Group " + id + " does not have a " + this.groupLookupAttributeName + " attribute");
-                    return;
-                }
-
-                scimUser = new User("sys");
-
-
-
-                deleteGroup(response, displayNameAttribute.getStringValue(), id);
                 response.setStatus(201);
 
 
@@ -322,25 +381,47 @@ public class Scim implements HttpFilter {
 
         switch (p[0]) {
             case "Groups":
-                LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase,2,"(" + this.groupIdName + "=" + id + ")",new ArrayList<String>());
+                String displayName = null;
+                if (this.lookupFromLDAP) {
+                    LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.groupIdName + "=" + id + ")", new ArrayList<String>());
 
-                if (! res.hasMore()) {
-                    err(request,response, 404, "objectNotFound", "Could not find the object");
-                    return;
+                    if (!res.hasMore()) {
+                        err(request, response, 404, "objectNotFound", "Could not find the object");
+                        return;
+                    }
+
+                    LDAPEntry entry = res.next();
+
+                    while (res.hasMore()) res.next();
+
+                    LDAPAttribute displayNameAttribute = entry.getAttribute(this.groupLookupAttributeName);
+
+                    if (displayNameAttribute == null) {
+                        err(request, response, 400, "objectNotFound", "No " + this.groupLookupAttributeName + " attribute found");
+                        return;
+                    }
+
+                    displayName = displayNameAttribute.getStringValue();
+                } else {
+                    UserStoreProviderLookups target = loadTarget(request, response);
+                    if (target == null) {
+                        return;
+                    }
+
+                    if (target.isGroupIdUniqueId()) {
+                        displayName = id;
+                    } else {
+                        Group group = target.lookupGroupById(id);
+                        if (group == null) {
+                            err(request, response, 404, "objectNotFound", "Could not find the object");
+                            return;
+                        } else {
+                            displayName = group.getName();
+                        }
+                    }
+
+
                 }
-
-                LDAPEntry entry = res.next();
-
-                while (res.hasMore()) res.next();
-
-                LDAPAttribute displayNameAttribute = entry.getAttribute(this.groupLookupAttributeName);
-
-                if (displayNameAttribute == null) {
-                    err(request,response, 400, "objectNotFound", "No " + this.groupLookupAttributeName + " attribute found");
-                    return;
-                }
-
-                String displayName = displayNameAttribute.getStringValue();
 
                 ArrayNode ops = (ArrayNode) payload.get("Operations");
                 if (ops != null) {
@@ -390,19 +471,43 @@ public class Scim implements HttpFilter {
 
                                 case "replace":
                                     // need to get all the current members
+                                    ObjectNode currentGroup = null;
+                                    if (this.lookupFromLDAP) {
+                                        LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.groupIdName + "=" + id + ")", new ArrayList<String>());
+                                        if (!res.hasMore()) {
+                                            err(request, response, 404, "objectNotFound", "Could not find the  object");
+                                            return;
+                                        }
 
-                                    res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase,2,"(" + this.groupIdName + "=" + id + ")",new ArrayList<String>());
-                                    if (! res.hasMore()) {
-                                        err(request,response, 404, "objectNotFound", "Could not find the  object");
-                                        return;
+
+                                        LDAPEntry entry = res.next();
+
+                                        while (res.hasMore()) res.next();
+
+                                        currentGroup = ldapGroup2Scim(entry);
+                                    } else {
+                                        UserStoreProviderLookups target = loadTarget(request, response);
+                                        if (target == null) {
+                                            err(request, response, 500, "error", "Could not find the target");
+                                            return;
+
+                                        }
+
+                                        Group group = null;
+
+                                        if (target.isGroupIdUniqueId()) {
+                                            group = target.lookupGroupByName(id);
+                                        } else {
+                                            group = target.lookupGroupById(id);
+                                        }
+
+                                        if (group == null) {
+                                            err(request, response, 404, "objectNotFound", "Could not find the object");
+                                        }
+
+                                        currentGroup = tremoloGroup2Scim(group,target);
                                     }
 
-
-                                    entry = res.next();
-
-                                    while (res.hasMore()) res.next();
-
-                                    ObjectNode currentGroup = ldapGroup2Scim(entry);
                                     HashSet<String> currentMembers = new HashSet<String>();
 
                                     ArrayNode members = (ArrayNode) currentGroup.get("members");
@@ -437,17 +542,37 @@ public class Scim implements HttpFilter {
                     };
                 }
 
-                res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase,2,"(" + this.groupIdName + "=" + id + ")",new ArrayList<String>());
-                if (! res.hasMore()) {
-                    err(request,response, 404, "objectNotFound", "Could not find the  object");
-                    return;
+                ObjectNode copy = null;
+                if (this.lookupFromLDAP) {
+                    LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.groupIdName + "=" + id + ")", new ArrayList<String>());
+                    if (!res.hasMore()) {
+                        err(request, response, 404, "objectNotFound", "Could not find the  object");
+                        return;
+                    }
+
+
+                    LDAPEntry entry = res.next();
+                    while (res.hasMore()) res.next();
+
+                    copy = ldapGroup2Scim(entry);
+                } else {
+                    UserStoreProviderLookups target = loadTarget(request, response);
+                    if (target == null) {
+                        err(request, response, 500, "error", "Could not find the target");
+                        return;
+                    }
+
+                    Group group = null;
+
+                    group = target.lookupGroupById(id);
+
+                    if (group == null) {
+                        err(request, response, 404, "objectNotFound", "Could not find the object");
+                        return;
+                    }
+
+                    copy = tremoloGroup2Scim(group,target);
                 }
-
-
-                entry = res.next();
-                while (res.hasMore()) res.next();
-
-                ObjectNode copy = ldapGroup2Scim(entry);
 
                 ensureMeta(copy, base(request), p[0], id, 1);
 
@@ -460,31 +585,51 @@ public class Scim implements HttpFilter {
                 break;
             case "Users":
                 // load from MyVD - create a SCIM object
+                final ObjectNode copyuser = M.createObjectNode();
+                if (this.lookupFromLDAP) {
+                    LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.idAttributeName + "=" + id + ")", new ArrayList<String>());
 
-                res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase,2,"(" + this.idAttributeName + "=" + id + ")",new ArrayList<String>());
+
+                    if (!res.hasMore()) {
+                        err(request, response, 404, "objectNotFound", "Could not find the object");
+                        return;
+                    }
 
 
+                    LDAPEntry entry = res.next();
+
+                    while (res.hasMore()) res.next();
 
 
-                if (! res.hasMore()) {
-                    err(request,response, 404, "objectNotFound", "Could not find the object");
-                    return;
+                    ldap2scim(entry, copyuser);
+                } else {
+                    UserStoreProviderLookups target = loadTarget(request, response);
+                    if (target == null) {
+                        err(request, response, 500, "error", "Could not find the target");
+                        return;
+                    }
+
+                    User fromTarget = null;
+                    if (target.isUniqueIdTremoloId()) {
+                        fromTarget = target.lookupUserByLogin(id);
+                    } else {
+                        fromTarget = target.lookupUserById(id);
+                    }
+
+                    if (fromTarget == null) {
+                        err(request, response, 404, "objectNotFound", "Could not find the object");
+                        return;
+                    }
+
+                    tremolo2scim(fromTarget,target,copyuser);
                 }
-
-
-                entry = res.next();
-
-                while (res.hasMore()) res.next();
-
-                copy = M.createObjectNode();
-                ldap2scim(entry, copy);
 
                 // with the object loaded, apply the patch
                 ops = (ArrayNode) payload.get("Operations");
                 ops.forEach(op ->{
                     String opType = op.get("op").asText();
                     String path = op.get("path").asText();
-                    NodeSearch found = findObject(path, copy);
+                    NodeSearch found = findObject(path, copyuser);
                     switch (opType) {
                         case "add":
 
@@ -531,16 +676,16 @@ public class Scim implements HttpFilter {
                     }
                 });
 
-                logger.info("Updated: " + copy.toString());
+                logger.info("Updated: " + copyuser.toString());
                 // translate from a SCIM object to an OpenUnison user
-                String uidAttr = copy.get(this.uidAttributeName).asText();
+                String uidAttr = copyuser.get(this.uidAttributeName).asText();
                 User scimUser = new User(uidAttr);
-                copy.fieldNames().forEachRemaining(name -> {
-                    Attribute userAttr = new Attribute(name,copy.get(name).toString());
+                copyuser.fieldNames().forEachRemaining(name -> {
+                    Attribute userAttr = new Attribute(name,copyuser.get(name).toString());
                     scimUser.getAttribs().put(name, userAttr);
                 });
-                scimUser.getAttribs().put(this.idAttributeName,new Attribute(this.idAttributeName,copy.get("id").asText()));
-                runWorkflow(request, response, scimUser, copy, uidAttr, p,this.workflowName);
+                scimUser.getAttribs().put(this.idAttributeName,new Attribute(this.idAttributeName,copyuser.get("id").asText()));
+                runWorkflow(request, response, scimUser, copyuser, uidAttr, p,this.workflowName);
         }
     }
 
@@ -603,43 +748,60 @@ public class Scim implements HttpFilter {
 
                     }
 
-
-                    LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase,2,ldapFilter,new ArrayList<>());
-
                     ArrayNode resources = M.createArrayNode();
                     int numRes = 0;
+                    if (this.lookupFromLDAP) {
+                        LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, ldapFilter, new ArrayList<>());
 
-                    while (res.hasMore()) {
-                        LDAPEntry entry = res.next();
 
-                        ObjectNode resp = M.createObjectNode();
-                        if (isUser) {
-                            ldap2scim(entry, resp);
-                        } else {
-                            resp = ldapGroup2Scim(entry);
+
+
+                        while (res.hasMore()) {
+                            LDAPEntry entry = res.next();
+
+                            ObjectNode resp = M.createObjectNode();
+                            if (isUser) {
+                                ldap2scim(entry, resp);
+                            } else {
+                                resp = ldapGroup2Scim(entry);
+                            }
+
+
+                            filterAttributes(request, attributesToReturn, resp, p);
+
+                            resources.add(resp);
+                            numRes++;
+
+
+                        }
+                    } else {
+                        UserStoreProviderLookups target = this.loadTarget(request, response);
+                        if (target == null) {
+                            err(request,response, 500, "error", "Could not load target");
+                            return;
                         }
 
+                        if (isUser) {
+                            List<User> res = target.searchUsers(ldapFilter);
+                            for (User u : res) {
+                                ObjectNode resp = M.createObjectNode();
+                                tremolo2scim(u,target,resp);
+                                filterAttributes(request, attributesToReturn, resp, p);
 
+                                resources.add(resp);
+                                numRes++;
+                            }
+                        } else {
+                            List<Group> res = target.searchGroups(ldapFilter);
+                            for (Group g : res) {
+                                ObjectNode resp = tremoloGroup2Scim(g,target);
+                                filterAttributes(request, attributesToReturn, resp, p);
 
-                        if (! attributesToReturn.isEmpty()) {
-                            List<String> toremove = new ArrayList<>();
-                            resp.fieldNames().forEachRemaining(name -> {
-                                if (! name.equalsIgnoreCase("id") && ! attributesToReturn.contains(name.toLowerCase())) {
-                                    toremove.add(name);
-                                }
-                            });
-
-                            for (String name : toremove) {
-                                resp.remove(name);
+                                resources.add(resp);
+                                numRes++;
                             }
 
                         }
-
-                        ensureMeta(resp, base(request), p[0], resp.get("id").textValue(), 1);
-
-                        resources.add(resp);
-                        numRes++;
-
 
                     }
 
@@ -663,31 +825,64 @@ public class Scim implements HttpFilter {
 
                     if (p[0].equalsIgnoreCase("Users")) {
 
-                        LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.idAttributeName + "=" + id + ")", new ArrayList<String>());
-                        if (!res.hasMore()) {
-                            err(request,response, 404, "objectNotFound", "Could not find the  object");
-                            return;
+                        if (this.lookupFromLDAP) {
+                            LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.idAttributeName + "=" + id + ")", new ArrayList<String>());
+                            if (!res.hasMore()) {
+                                err(request, response, 404, "objectNotFound", "Could not find the  object");
+                                return;
+                            }
+
+
+                            LDAPEntry entry = res.next();
+
+                            while (res.hasMore()) res.next();
+
+                            ldap2scim(entry, copy);
+                        } else {
+                            UserStoreProviderLookups target = this.loadTarget(request, response);
+                            if (target == null) {
+                                err(request,response, 500, "error", "Could not load target");
+                                return;
+                            }
+
+                            User user = null;
+
+
+                            user = target.lookupUserById(id);
+
+
+                            tremolo2scim(user,target,copy);
                         }
-
-
-                        LDAPEntry entry = res.next();
-
-                        while (res.hasMore()) res.next();
-
-                        ldap2scim(entry, copy);
 
 
                     } else {
-                        LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.groupIdName + "=" + id + ")", new ArrayList<String>());
-                        if (!res.hasMore()) {
-                            err(request,response, 404, "objectNotFound", "Could not find the  object");
-                            return;
+                        if (this.lookupFromLDAP) {
+                            LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.groupIdName + "=" + id + ")", new ArrayList<String>());
+                            if (!res.hasMore()) {
+                                err(request, response, 404, "objectNotFound", "Could not find the  object");
+                                return;
+                            }
+
+
+                            LDAPEntry entry = res.next();
+                            while (res.hasMore()) res.next();
+                            copy = ldapGroup2Scim(entry);
+                        } else {
+                            UserStoreProviderLookups target = this.loadTarget(request, response);
+                            if (target == null) {
+                                err(request,response, 500, "error", "Could not load target");
+                                return;
+                            }
+
+                            Group group = null;
+                            if (target.isGroupIdUniqueId()) {
+                                group = target.lookupGroupByName(id);
+                            } else {
+                                group = target.lookupGroupById(id);
+                            }
+
+                            copy = tremoloGroup2Scim(group,target);
                         }
-
-
-                        LDAPEntry entry = res.next();
-                        while (res.hasMore()) res.next();
-                        copy = ldapGroup2Scim(entry);
                     }
 
                     ensureMeta(copy, base(request), p[0], id, 1);
@@ -708,68 +903,152 @@ public class Scim implements HttpFilter {
 
     }
 
-    ObjectNode ldapGroup2Scim(LDAPEntry group) throws ProvisioningException {
+    private void filterAttributes(HttpFilterRequest request, HashSet<String> attributesToReturn, ObjectNode resp, String[] p) {
+        if (!attributesToReturn.isEmpty()) {
+            List<String> toremove = new ArrayList<>();
+            resp.fieldNames().forEachRemaining(name -> {
+                if (!name.equalsIgnoreCase("id") && !attributesToReturn.contains(name.toLowerCase())) {
+                    toremove.add(name);
+                }
+            });
+
+            for (String name : toremove) {
+                resp.remove(name);
+            }
+
+        }
+
+        ensureMeta(resp, base(request), p[0], resp.get("id").textValue(), 1);
+    }
+
+    ObjectNode tremoloGroup2Scim(Group group,UserStoreProviderLookups target) throws ProvisioningException {
         ObjectNode copy = M.createObjectNode();
 
-
+        String groupid = null;
         ArrayNode groupMemberIds = M.createArrayNode();
 
-        LDAPAttribute groupLdapMembers = group.getAttribute(this.groupMemberAttributeName);
-        List<ByteArray> vals = groupLdapMembers.getAllValues();
-        vals.forEach(memberDNBytes -> {
-            String memberDN = new String(memberDNBytes.getValue());
-            try {
-                LDAPSearchResults memberSearch = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(memberDN,0,"(objectClass=*)",new ArrayList<String>());
-                if (memberSearch.hasMore()) {
-
-                    LDAPEntry memberEntry = memberSearch.next();
-                    LDAPAttribute userUUID = memberEntry.getAttribute(this.idAttributeName);
-                    if (userUUID != null) {
-                        String memberUUID = userUUID.getStringValue();
-                        ObjectNode memberNode = M.createObjectNode();
-                        memberNode.put("type","User");
-                        memberNode.put("value",memberUUID);
-                        groupMemberIds.add(memberNode);
+        if (target.isGroupMembersUniqueIds()) {
+            // the target is already unique ids, no need to translate
+            group.getMembers().forEach(member -> groupMemberIds.add(createGroupMember(member)));
+        } else {
+            // translate from names to unique ids
+            group.getMembers().forEach(member -> {
+                try {
+                    User fromTarget = target.lookupUserByLogin(member);
+                    if (fromTarget != null) {
+                        if (target.isUniqueIdTremoloId()) {
+                            groupMemberIds.add(createGroupMember(fromTarget.getUserID()));
+                        } else {
+                            groupMemberIds.add(createGroupMember(fromTarget.getAttribs().get(this.idAttributeName).getValues().get(0)));
+                        }
+                    } else {
+                        logger.warn(String.format("Could not find %s",member));
                     }
-
+                } catch (ProvisioningException e) {
+                    logger.warn(String.format("Could not load %s",member), e);
 
                 }
-
-                while (memberSearch.hasMore()) memberSearch.next();
-            } catch (LDAPException e) {
-                if (e.getResultCode() == LDAPException.NO_SUCH_OBJECT) {
-                    logger.warn(String.format("User DN %s not found",memberDN));
-                } else {
-                    logger.warn("Could not load member",e);
-                }
-
-            }
-        });
+            });
+        }
 
         if (groupMemberIds.size() > 0) {
             copy.put("members", groupMemberIds);
         }
 
-        LDAPAttribute displayNameAttribute = group.getAttribute(this.groupLookupAttributeName);
-        if (displayNameAttribute != null) {
-            copy.put("displayName", displayNameAttribute.getStringValue());
-        }
+
+        copy.put("displayName", group.getName());
+
 
         ArrayNode schemas = M.createArrayNode();
         schemas.add("urn:ietf:params:scim:schemas:core:2.0:Group");
         copy.put("schemas", schemas);
 
-        LDAPAttribute groupidAttribute = group.getAttribute(this.groupIdName);
-        String groupid = null;
-        if (groupidAttribute != null) {
-            groupid = groupidAttribute.getStringValue();
+
+        if (target.isGroupIdUniqueId()) {
+            groupid = group.getId();
         } else {
-            throw new ProvisioningException("No group id found for " + group.getDN());
+            Attribute groupidAttribute = group.getAttributes().get(this.groupIdName.toUpperCase());
+            if (groupidAttribute != null) {
+                groupid = groupidAttribute.getValues().get(0);
+            } else {
+                throw new ProvisioningException("No group id found for " + group.getId());
+            }
+        }
+
+        copy.put("id", groupid);
+        return copy;
+    }
+
+    ObjectNode ldapGroup2Scim(LDAPEntry group) throws ProvisioningException {
+        ObjectNode copy = M.createObjectNode();
+
+        String groupid = null;
+        ArrayNode groupMemberIds = M.createArrayNode();
+
+        if (this.lookupFromLDAP) {
+            LDAPAttribute groupLdapMembers = group.getAttribute(this.groupMemberAttributeName);
+            List<ByteArray> vals = groupLdapMembers.getAllValues();
+            vals.forEach(memberDNBytes -> {
+                String memberDN = new String(memberDNBytes.getValue());
+                try {
+                    LDAPSearchResults memberSearch = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(memberDN, 0, "(objectClass=*)", new ArrayList<String>());
+                    if (memberSearch.hasMore()) {
+
+                        LDAPEntry memberEntry = memberSearch.next();
+                        LDAPAttribute userUUID = memberEntry.getAttribute(this.idAttributeName);
+                        if (userUUID != null) {
+                            String memberUUID = userUUID.getStringValue();
+                            ObjectNode memberNode = createGroupMember(memberUUID);
+                            groupMemberIds.add(memberNode);
+                        }
+
+
+                    }
+
+                    while (memberSearch.hasMore()) memberSearch.next();
+                } catch (LDAPException e) {
+                    if (e.getResultCode() == LDAPException.NO_SUCH_OBJECT) {
+                        logger.warn(String.format("User DN %s not found", memberDN));
+                    } else {
+                        logger.warn("Could not load member", e);
+                    }
+
+                }
+            });
+
+
+            if (groupMemberIds.size() > 0) {
+                copy.put("members", groupMemberIds);
+            }
+
+            LDAPAttribute displayNameAttribute = group.getAttribute(this.groupLookupAttributeName);
+            if (displayNameAttribute != null) {
+                copy.put("displayName", displayNameAttribute.getStringValue());
+            }
+
+            ArrayNode schemas = M.createArrayNode();
+            schemas.add("urn:ietf:params:scim:schemas:core:2.0:Group");
+            copy.put("schemas", schemas);
+
+            LDAPAttribute groupidAttribute = group.getAttribute(this.groupIdName);
+
+            if (groupidAttribute != null) {
+                groupid = groupidAttribute.getStringValue();
+            } else {
+                throw new ProvisioningException("No group id found for " + group.getDN());
+            }
         }
 
         copy.put("id", groupid);
 
         return copy;
+    }
+
+    private static ObjectNode createGroupMember(String memberUUID) {
+        ObjectNode memberNode = M.createObjectNode();
+        memberNode.put("type", "User");
+        memberNode.put("value", memberUUID);
+        return memberNode;
     }
 
     private void doPost(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain) throws Exception {
@@ -837,17 +1116,41 @@ public class Scim implements HttpFilter {
                     if (request.getMethod().equalsIgnoreCase("DELETE")) {
                         response.setStatus(201);
                     } else {
-                        LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.groupLookupAttributeName + "=" + displayName + ")", new ArrayList<String>());
-                        if (!res.hasMore()) {
-                            err(request,response, 409, "objectNotFound", "Could not find the created object");
-                            return;
+                        ObjectNode copy = null;
+                        if (this.lookupFromLDAP) {
+                            LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.groupLookupAttributeName + "=" + displayName + ")", new ArrayList<String>());
+                            if (!res.hasMore()) {
+                                err(request, response, 409, "objectNotFound", "Could not find the created object");
+                                return;
+                            }
+                            LDAPEntry entry = res.next();
+
+                            while (res.hasMore()) res.next();
+
+                            copy = this.ldapGroup2Scim(entry);
+
+                        } else {
+                            UserStoreProviderLookups target = this.loadTarget(request,response);
+                            if (target == null) {
+                                err(request,response,500,"error","Could not load target");
+                                return;
+                            }
+
+                            Group group = null;
+
+                            group = target.lookupGroupByName(displayName);
+
+
+                            if (group == null) {
+                                err(request, response, 409, "objectNotFound", "Could not find the created object");
+                                return;
+                            }
+
+                            copy = tremoloGroup2Scim(group,target);
+
                         }
-                        LDAPEntry entry = res.next();
-
-                        while (res.hasMore()) res.next();
 
 
-                        ObjectNode copy = this.ldapGroup2Scim(entry);
 
                         String groupid = copy.get("id").asText();
                         ensureMeta(copy, base(request), p[0], groupid, 1);
@@ -855,24 +1158,45 @@ public class Scim implements HttpFilter {
 
                         response.setStatus(201);
                         response.setHeader("Location", loc(base(request), p[0], groupid));
+
                         setEtag(response, copy);
                         write(request,response, 201, copy);
 
                     }
                 } else if (request.getMethod().equalsIgnoreCase("PUT")) {
                     String id = payload.get("id").asText();
-                    LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase,2,"(" + this.groupIdName + "=" + id + ")",new ArrayList<String>());
-                    if (! res.hasMore()) {
-                        err(request,response, 404, "objectNotFound", "Could not find the  object");
-                        return;
+                    ObjectNode currentGroup = null;
+                    if (this.lookupFromLDAP) {
+                        LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.groupIdName + "=" + id + ")", new ArrayList<String>());
+                        if (!res.hasMore()) {
+                            err(request, response, 404, "objectNotFound", "Could not find the  object");
+                            return;
+                        }
+
+
+                        LDAPEntry entry = res.next();
+
+                        while (res.hasMore()) res.next();
+
+                        currentGroup = ldapGroup2Scim(entry);
+                    } else {
+                        UserStoreProviderLookups target = this.loadTarget(request,response);
+                        if (target == null) {
+                            err(request,response,500,"error","Could not load target");
+                        }
+
+                        Group group = null;
+
+                        group = target.lookupGroupById(id);
+
+                        if (group == null) {
+                            err(request, response, 409, "objectNotFound", "Could not find the  object");
+                            return;
+                        }
+
+                        currentGroup = tremoloGroup2Scim(group,target);
                     }
 
-
-                    LDAPEntry entry = res.next();
-
-                    while (res.hasMore()) res.next();
-
-                    ObjectNode currentGroup = ldapGroup2Scim(entry);
                     String displayName = currentGroup.get("displayName").asText();
                     HashSet<String> currentMembers = new HashSet<String>();
 
@@ -901,19 +1225,41 @@ public class Scim implements HttpFilter {
                         memberGroupUpdate(request,response, groupIdToRemove, displayName, false);
                     }
 
+                    ObjectNode copy = null;
+                    if (this.lookupFromLDAP) {
+                        LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.groupIdName + "=" + id + ")", new ArrayList<String>());
+                        if (!res.hasMore()) {
+                            err(request, response, 404, "objectNotFound", "Could not find the  object");
+                            return;
+                        }
 
-                    res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase,2,"(" + this.groupIdName + "=" + id + ")",new ArrayList<String>());
-                    if (! res.hasMore()) {
-                        err(request,response, 404, "objectNotFound", "Could not find the  object");
-                        return;
+
+                        LDAPEntry entry = res.next();
+
+                        while (res.hasMore()) res.next();
+
+                        copy = ldapGroup2Scim(entry);
+                    } else {
+                        UserStoreProviderLookups target = this.loadTarget(request,response);
+                        if (target == null) {
+                            err(request,response,500,"error","Could not load target");
+                            return;
+                        }
+
+                        Group group = null;
+                        if (target.isGroupIdUniqueId()) {
+                            group = target.lookupGroupByName(id);
+                        } else {
+                            group = target.lookupGroupById(id);
+                        }
+
+                        if (group == null) {
+                            err(request, response, 409, "objectNotFound", "Could not find the  object");
+                            return;
+                        }
+
+                        copy = tremoloGroup2Scim(group,target);
                     }
-
-
-                    entry = res.next();
-
-                    while (res.hasMore()) res.next();
-
-                    ObjectNode copy = ldapGroup2Scim(entry);
 
                     ensureMeta(copy, base(request), p[0], id, 1);
 
@@ -946,20 +1292,43 @@ public class Scim implements HttpFilter {
     }
 
     private boolean memberGroupUpdate(HttpFilterRequest request,HttpFilterResponse response, String memberid, String displayName,boolean add) throws LDAPException, IOException, ProvisioningException {
-        LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase,2,"(" + this.idAttributeName + "=" + memberid + ")",new ArrayList<String>());
-        if (! res.hasMore()) {
-            err(request,response, 404, "objectNotFound", "Could not find the member " + memberid);
-            return true;
+        String userId = null;
+        if (this.lookupFromLDAP) {
+            LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.idAttributeName + "=" + memberid + ")", new ArrayList<String>());
+            if (!res.hasMore()) {
+                err(request, response, 404, "objectNotFound", "Could not find the member " + memberid);
+                return true;
+            }
+
+
+            LDAPEntry entry = res.next();
+
+            while (res.hasMore()) res.next();
+
+            userId = entry.getAttribute(this.lookupAttributeName).getStringValue();
+
+            while (res.hasMore()) res.next();
+        } else {
+            UserStoreProviderLookups target = this.loadTarget(request,response);
+            if (target == null) {
+                err(request,response,500,"error","Could not load target");
+                return false;
+            }
+
+            if (target.isUniqueIdTremoloId()) {
+                userId = memberid;
+            } else {
+                User userFromTremolo = target.lookupUserById(memberid);
+                if (userFromTremolo == null) {
+                    logger.warn(String.format("Could not find user with id %s",memberid));
+                    return false;
+                } else {
+                    userId = userFromTremolo.getUserID();
+                }
+            }
+
+
         }
-
-
-        LDAPEntry entry = res.next();
-
-        while (res.hasMore()) res.next();
-
-        String userId = entry.getAttribute(this.lookupAttributeName).getStringValue();
-
-        while (res.hasMore()) res.next();
 
         HashMap<String,Object> wfrequest = new HashMap<>();
         wfrequest.put("removegroup",add ? "false" : "true");
@@ -998,18 +1367,35 @@ public class Scim implements HttpFilter {
         if (request.getMethod().equalsIgnoreCase("DELETE")) {
             response.setStatus(201);
         } else {
-            LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.lookupAttributeName + "=" + uidAttr + ")", new ArrayList<String>());
-            if (!res.hasMore()) {
-                err(request,response, 409, "objectNotFound", "Could not find the created object");
-                return;
+            String id = null;
+            ObjectNode copy = null;
+            if (this.lookupFromLDAP) {
+                LDAPSearchResults res = GlobalEntries.getGlobalEntries().getConfigManager().getMyVD().search(this.searchBase, 2, "(" + this.lookupAttributeName + "=" + uidAttr + ")", new ArrayList<String>());
+                if (!res.hasMore()) {
+                    err(request, response, 409, "objectNotFound", "Could not find the created object");
+                    return;
+                }
+
+                copy = M.createObjectNode();
+                LDAPEntry entry = res.next();
+
+                while (res.hasMore()) res.next();
+
+                id = ldap2scim(entry, copy);
+            } else {
+                copy = M.createObjectNode();
+                UserStoreProviderLookups target = this.loadTarget(request,response);
+                if (target == null) {
+                    err(request, response, 500, "error", "Could not find the target");
+                    return;
+                }
+
+                User user = null;
+                user = target.lookupUserByLogin(uidAttr);
+
+
+                id = tremolo2scim(user,target,copy);
             }
-
-            ObjectNode copy = M.createObjectNode();
-            LDAPEntry entry = res.next();
-
-            while (res.hasMore()) res.next();
-
-            String id = ldap2scim(entry, copy);
             ensureMeta(copy, base(request), p[0], id, 1);
 
 
@@ -1019,6 +1405,53 @@ public class Scim implements HttpFilter {
             write(request,response, 201, copy);
 
         }
+    }
+
+    private String user2scim(User fromTremolo, ObjectNode copy,UserStoreProviderLookups target) throws ProvisioningException {
+
+
+        User forScim = this.tremolo2scim.mapUser(fromTremolo,true);
+
+
+        String id = null;
+
+        if (target.isUniqueIdTremoloId()) {
+            id = fromTremolo.getUserID();
+        } else {
+            id = fromTremolo.getAttribs().get(this.idAttributeName).getValues().get(0);
+        }
+
+
+
+
+        copy.put("id", id);
+
+        ArrayNode schemas = M.createArrayNode();
+        schemas.add("urn:ietf:params:scim:schemas:core:2.0:User");
+        copy.put("schemas", schemas);
+
+        forScim.getAttribs().keySet().forEach(attrName -> {
+            Attribute attr = forScim.getAttribs().get(attrName);
+            String val = attr.getValues().get(0);
+            boolean isJson = (val.startsWith("{") || val.startsWith("["));
+            if (isJson) {
+                try {
+                    copy.put(attrName,M.readTree(val));
+                } catch (JsonProcessingException e) {
+                    logger.warn("Could not parse JSON " + val, e);
+                }
+            } else {
+                if (attr.getValues().size() == 1) {
+                    copy.put(attrName, val);
+                } else {
+                    ArrayNode array = M.createArrayNode();
+                    attr.getValues().forEach(val2 -> array.add(val2));
+                    copy.put(attrName, array);
+                }
+            }
+
+        });
+        return id;
     }
 
     private String ldap2scim(LDAPEntry entry, ObjectNode copy) throws ProvisioningException {
@@ -1036,6 +1469,53 @@ public class Scim implements HttpFilter {
 
 
         String id = entry.getAttribute(this.idAttributeName).getStringValue();
+
+
+        copy.put("id", id);
+
+        ArrayNode schemas = M.createArrayNode();
+        schemas.add("urn:ietf:params:scim:schemas:core:2.0:User");
+        copy.put("schemas", schemas);
+
+        forScim.getAttribs().keySet().forEach(attrName -> {
+            Attribute attr = forScim.getAttribs().get(attrName);
+            String val = attr.getValues().get(0);
+            boolean isJson = (val.startsWith("{") || val.startsWith("["));
+            if (isJson) {
+                try {
+                    copy.put(attrName,M.readTree(val));
+                } catch (JsonProcessingException e) {
+                    logger.warn("Could not parse JSON " + val, e);
+                }
+            } else {
+                if (attr.getValues().size() == 1) {
+                    copy.put(attrName, val);
+                } else {
+                    ArrayNode array = M.createArrayNode();
+                    attr.getValues().forEach(val2 -> array.add(val2));
+                    copy.put(attrName, array);
+                }
+            }
+
+        });
+        return id;
+    }
+
+    private String tremolo2scim(User fromTremolo,UserStoreProviderLookups target, ObjectNode copy) throws ProvisioningException {
+
+
+        User forScim = this.tremolo2scim.mapUser(fromTremolo,true);
+
+
+        String id = null;
+
+        if (target.isUniqueIdTremoloId()) {
+            id = fromTremolo.getUserID();
+        } else {
+            id = fromTremolo.getAttribs().get(this.idAttributeName).getValues().get(0);
+        }
+
+
 
 
         copy.put("id", id);
@@ -1125,6 +1605,12 @@ public class Scim implements HttpFilter {
         this.groupIdName = config.getAttribute("groupIdName").getValues().get(0);
         this.groupMemberAttributeName = config.getAttribute("groupMemberAttributeName").getValues().get(0);
         this.groupDeleteWorkflow = config.getAttribute("groupDeleteWorkflow").getValues().get(0);
+
+        this.lookupFromLDAP = config.getAttribute("lookupFromLDAP").getValues().get(0).equalsIgnoreCase("true");
+
+        if (! this.lookupFromLDAP) {
+            this.lookupTarget = config.getAttribute("lookupTarget").getValues().get(0);
+        }
 
         Attribute scim2tremoloMapping = config.getAttribute("scim2tremolo");
         if (scim2tremoloMapping != null) {
@@ -1506,16 +1992,19 @@ public class Scim implements HttpFilter {
             }
         } else {
             if (attr.toLowerCase().equalsIgnoreCase("member")) {
-                try {
-                    String memberdn = this.groupId2Dn(value);
-                    if (memberdn != null) {
-                        value = memberdn;
-                    }
-                } catch (LDAPException e) {
-                    logger.warn("Could not get the DN for the member " + value,e);
-                }
-
                 attr = GlobalEntries.getGlobalEntries().getConfigManager().getCfg().getGroupMemberAttribute();
+                if (this.lookupFromLDAP) {
+                    try {
+                        String memberdn = this.groupId2Dn(value);
+                        if (memberdn != null) {
+                            value = memberdn;
+                        }
+                    } catch (LDAPException e) {
+                        logger.warn("Could not get the DN for the member " + value, e);
+                    }
+
+
+                }
 
             } else {
                 String ldapAttr = this.scimGroupFilterAttrib2Ldap.get(attr.toLowerCase());
