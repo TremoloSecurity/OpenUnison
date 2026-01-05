@@ -25,17 +25,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.Map;
 import java.util.Set;
 
 import javax.sql.DataSource;
 
 
+import com.tremolosecurity.util.NVP;
+import net.sourceforge.myvd.types.FilterNode;
+import net.sourceforge.myvd.types.FilterType;
 import org.apache.commons.net.ntp.TimeStamp;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.format.ISODateTimeFormat;
@@ -1562,6 +1561,244 @@ public class BasicDB implements BasicDBInterface {
 			JdbcInsert.getPoolCache().remove(this.jdbcPoolHolder.getKey());
 		}
 		
+	}
+
+	public static String stringFilter(FilterNode root, StringBuffer filter, ArrayList<NVP> vals) {
+		FilterType op;
+		//filter.append('(');
+		String comp = null;
+		ArrayList<FilterNode> children;
+		Iterator<FilterNode> filterIt;
+		String attribName = null;
+
+		boolean isFirst = true;
+
+
+		op = root.getType();
+		switch (op){
+			case AND:
+
+				HashMap<String,ArrayList<FilterNode>> attribs = new HashMap<String,ArrayList<FilterNode>>();
+				//first sort the nodes into "buckets"
+				children = root.getChildren();
+				filterIt = children.iterator();
+				while (filterIt.hasNext()) {
+					FilterNode node = filterIt.next();
+					if (node.getType() == FilterType.AND) {
+						ArrayList<FilterNode> ands = attribs.get("&");
+						if (ands == null) {
+							ands = new ArrayList<FilterNode>();
+							attribs.put("&",ands);
+						}
+						ands.add(node);
+					} else if (node.getType() == FilterType.OR) {
+						ArrayList<FilterNode> ors = attribs.get("|");
+						if (ors == null) {
+							ors = new ArrayList<FilterNode>();
+							attribs.put("|",ors);
+						}
+						ors.add(node);
+					} else if (node.getType() == FilterType.NOT) {
+						ArrayList<FilterNode> nots = attribs.get("!");
+						if (nots == null) {
+							nots = new ArrayList<FilterNode>();
+							attribs.put("!",nots);
+						}
+						nots.add(node);
+					} else {
+
+						ArrayList<FilterNode> attribNodes = attribs.get(node.getName().toLowerCase());
+						if (attribNodes == null) {
+							attribNodes = new ArrayList<FilterNode>();
+							attribs.put(node.getName(),attribNodes);
+						}
+						attribNodes.add(node);
+					}
+				}
+
+				filter.append(" ( ");
+
+				Iterator<String> itBuckets = attribs.keySet().iterator();
+				while (itBuckets.hasNext()) {
+					String attrib = itBuckets.next();
+					ArrayList<FilterNode> nodes = attribs.get(attrib);
+					if (attrib.equals("&")) {
+						Iterator<FilterNode> itNodes = nodes.iterator();
+						filter.append(" ( ");
+						while (itNodes.hasNext()) {
+							stringFilter(itNodes.next(),filter,vals);
+							if (itNodes.hasNext()) {
+								filter.append(" AND ");
+							}
+						}
+
+
+						filter.append(" ) ");
+
+						if (itBuckets.hasNext()) {
+							filter.append(" AND ");
+						}
+					} else if (attrib.equals("|")) {
+						Iterator<FilterNode> itNodes = nodes.iterator();
+						filter.append(" ( ");
+						while (itNodes.hasNext()) {
+							stringFilter(itNodes.next(),filter,vals);
+							if (itNodes.hasNext()) {
+								filter.append(" AND ");
+							}
+						}
+						filter.append(" ) ");
+
+						if (itBuckets.hasNext()) {
+							filter.append(" AND ");
+						}
+					} else if (attrib.equals("!")) {
+						Iterator<FilterNode> itNodes = nodes.iterator();
+						filter.append(" ( ");
+						while (itNodes.hasNext()) {
+							stringFilter(itNodes.next(),filter,vals);
+							if (itNodes.hasNext()) {
+								filter.append(" AND ");
+							}
+						}
+						filter.append(" ) ");
+
+						if (itBuckets.hasNext()) {
+							filter.append(" AND ");
+						}
+					} else {
+						Iterator<FilterNode> itNodes = nodes.iterator();
+						filter.append(" ( ");
+						while (itNodes.hasNext()) {
+							stringFilter(itNodes.next(),filter,vals);
+							if (itNodes.hasNext()) {
+								filter.append(" OR ");
+							}
+						}
+						filter.append(" ) ");
+
+						if (itBuckets.hasNext()) {
+							filter.append(" AND ");
+						}
+					}
+				}
+
+				filter.append(" ) ");
+
+
+
+				break;
+			case OR:
+				filter.append(" ( ");
+
+				children = root.getChildren();
+				filterIt = children.iterator();
+				while (filterIt.hasNext()) {
+					stringFilter(filterIt.next(),filter,vals);
+					if (filterIt.hasNext()) {
+						filter.append(" OR ");
+					}
+				}
+				filter.append(" ) ");
+				break;
+
+			case NOT:
+				filter.append(" NOT ( ");
+				stringFilter(root.getNot(),filter,vals);
+				filter.append(" ) ");
+
+				break;
+			case EQUALS:{
+				if (root.getName().equalsIgnoreCase("objectclass")) {
+					filter.append(" 1=1 ");
+				} else {
+					attribName = root.getName();
+
+					if (attribName == null) {
+						filter.append(" 1 = 0 ");
+					} else {
+
+						filter.append(attribName);
+						filter.append("=?");
+
+						vals.add(new NVP(root.getName(),root.getValue()));
+					}
+				}
+
+
+
+				break;
+			}
+			case GREATER_THEN:{
+				attribName = root.getName().toLowerCase();
+				filter.append(attribName);
+				filter.append(">=?");
+				vals.add(new NVP(root.getName(),root.getValue()));
+				break;
+			}
+			case LESS_THEN:{
+				attribName = root.getName().toLowerCase();
+				filter.append(attribName);
+				filter.append("<=?");
+				vals.add(new NVP(root.getName(),root.getValue()));
+				break;
+
+
+			}
+			case PRESENCE:
+				if (root.getName().equalsIgnoreCase("objectclass")) {
+					filter.append(" 1=1 ");
+				} else {
+					filter.append(root.getName());
+					filter.append(" IS NOT NULL ");
+				}
+				break;
+                    /*case APPROX_MATCH:
+                        filter.append((String)itr.next());
+                        filter.append("~=");
+                        byte[] value = (byte[])itr.next();
+                        filter.append(byteString(value));
+
+                        if (comp != null && itr.hasNext()) {
+                        	filter.append(comp);
+                        }
+
+                        break;
+                    case LDAPSearchRequest.EXTENSIBLE_MATCH:
+                        String oid = (String)itr.next();
+
+                        filter.append((String)itr.next());
+                        filter.append(':');
+                        filter.append(oid);
+                        filter.append(":=");
+                        filter.append((String)itr.next());
+
+                        if (comp != null && itr.hasNext()) {
+                        	filter.append(comp);
+                        }
+
+                        break;*/
+			case SUBSTR:{
+				attribName = root.getName();
+				filter.append(attribName);
+				filter.append(" LIKE '");
+				boolean noStarLast = false;
+
+				filter.append(root.getValue().replace('*','%')).append('\'');
+
+				break;
+			}
+		}
+
+
+
+
+
+		if (comp != null) {
+			filter.append(')');
+		}
+
+		return attribName;
 	}
 	
 	
