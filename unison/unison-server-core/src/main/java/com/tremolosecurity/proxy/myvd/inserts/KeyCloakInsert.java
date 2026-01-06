@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import com.tremolosecurity.util.JSUtils;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
@@ -181,14 +182,21 @@ public class KeyCloakInsert implements Insert {
 	private String getAccessToken() throws IOException, InterruptedException, ParseException {
 		HttpClient http = HttpClient.newBuilder().build();
 		try {
-        HttpRequest authTokenRequest = HttpRequest.newBuilder()
-                                      .uri(URI.create(String.format("%s/protocol/openid-connect/token", this.authRealm)))
-                                      .header("Content-Type", "application/x-www-form-urlencoded")
-                                      .POST(BodyPublishers.ofString(String.format("client_id=%s&username=%s&password=%s&grant_type=%s",
+			/*
+			.POST(BodyPublishers.ofString(String.format("client_id=%s&username=%s&password=%s&grant_type=%s",
                                     		  URLEncoder.encode(this.clientId, "UTF-8"),
                                     		  URLEncoder.encode(this.user, "UTF-8"),
                                     		  URLEncoder.encode(this.password, "UTF-8"),
                                     		  URLEncoder.encode(this.grantType, "UTF-8"), "UTF-8" ) ))
+			 */
+        HttpRequest authTokenRequest = HttpRequest.newBuilder()
+                                      .uri(URI.create(String.format("%s/protocol/openid-connect/token", this.authRealm)))
+                                      .header("Content-Type", "application/x-www-form-urlencoded")
+				 					  .POST(JSUtils.formEncode("client_id=%s&username=%s&password=%s&grant_type=%s",
+											  					this.clientId,
+											  					this.user,
+											  					this.password,
+											  					this.grantType))
                                       .build();
         
         HttpResponse<String> response = http.send(authTokenRequest, BodyHandlers.ofString());

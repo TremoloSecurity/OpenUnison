@@ -16,6 +16,8 @@
 package com.tremolosecurity.util;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.net.http.HttpRequest;
 import java.util.Base64;
 
 /**
@@ -36,5 +38,15 @@ public class JSUtils {
 	
 	public static String base64Decode(String src) {
 		return new String(Base64.getDecoder().decode(src));
+	}
+
+	public static HttpRequest.BodyPublisher formEncode(String template,String ... values) throws UnsupportedEncodingException {
+		String[] transformed = new String[values.length];
+		for (int i = 0; i < values.length; i++) {
+			transformed[i] = URLEncoder.encode(values[i],"UTF-8");
+		}
+
+		String formPost = String.format(template,transformed);
+		return HttpRequest.BodyPublishers.ofString(formPost);
 	}
 }
