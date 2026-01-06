@@ -1068,7 +1068,9 @@ public class Scim implements HttpFilter {
                 String uidAttr = payload.get(this.uidAttributeName).asText();
                 User scimUser = new User(uidAttr);
                 payload.fieldNames().forEachRemaining(name -> {
-                    Attribute userAttr = new Attribute(name,payload.get(name).toString());
+                    JsonNode node = payload.get(name);
+                    String value = node.isTextual() ? node.asText() : node.toString();
+                    Attribute userAttr = new Attribute(name,value);
                     scimUser.getAttribs().put(name, userAttr);
                 });
 
