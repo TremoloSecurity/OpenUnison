@@ -172,7 +172,11 @@ public class OpenIDConnectToken {
 	}
 
 	public boolean isExpired() {
-		return this.expires.isBeforeNow();
+		if (this.expires == null) {
+			return true;
+		} else {
+			return this.expires.isBeforeNow();
+		}
 	}
 
 	public String getIdpName() {

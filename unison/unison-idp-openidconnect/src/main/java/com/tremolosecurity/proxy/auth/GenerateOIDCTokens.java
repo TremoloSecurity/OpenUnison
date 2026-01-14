@@ -105,12 +105,9 @@ public class GenerateOIDCTokens implements AuthMechanism {
 		
 		
 		OpenIDConnectToken token = new OpenIDConnectToken(idpName,trustName,overrideURL);
-		try {
-			request.setAttribute(ProxyTools.OVERRIDE_HOST, System.getProperty("OU_HOST"));
-			token.generateToken(request);
-		} catch (MalformedClaimException | JoseException | LDAPException | ProvisioningException e) {
-			throw new ServletException("Could not generate token",e);
-		}
+
+		request.setAttribute(ProxyTools.OVERRIDE_HOST, System.getProperty("OU_HOST"));
+
 		
 		
 			
