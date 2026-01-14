@@ -59,6 +59,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
 import com.novell.ldap.util.ByteArray;
+import com.tremolosecurity.config.xml.*;
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.JMSException;
 import jakarta.jms.MessageConsumer;
@@ -123,22 +124,6 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 import com.tremolosecurity.config.util.ConfigManager;
-import com.tremolosecurity.config.xml.ApprovalDBType;
-import com.tremolosecurity.config.xml.DynamicPortalUrlsType;
-import com.tremolosecurity.config.xml.JobType;
-import com.tremolosecurity.config.xml.MessageListenerType;
-import com.tremolosecurity.config.xml.NameValue;
-import com.tremolosecurity.config.xml.OrgType;
-import com.tremolosecurity.config.xml.ParamType;
-import com.tremolosecurity.config.xml.ParamWithValueType;
-import com.tremolosecurity.config.xml.PortalUrlsType;
-import com.tremolosecurity.config.xml.SchedulingType;
-import com.tremolosecurity.config.xml.TargetType;
-import com.tremolosecurity.config.xml.TargetsType;
-import com.tremolosecurity.config.xml.TremoloType;
-import com.tremolosecurity.config.xml.WorkflowChoiceTaskType;
-import com.tremolosecurity.config.xml.WorkflowTaskType;
-import com.tremolosecurity.config.xml.WorkflowType;
 import com.tremolosecurity.json.Token;
 import com.tremolosecurity.openunison.OpenUnisonConstants;
 import com.tremolosecurity.openunison.notifications.NotificationSystem;
@@ -1992,7 +1977,7 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 	
 		
-		scheduleProps.setProperty("org.quartz.scheduler.instanceId", UUID.randomUUID().toString());
+		scheduleProps.setProperty("org.quartz.scheduler.instanceId", "AUTO");
 		scheduleProps.setProperty("org.quartz.threadPool.threadCount", Integer.toString(sct.getThreadCount()));
 		scheduleProps.setProperty("org.quartz.scheduler.instanceName", "global");
 		if (sct.isUseDB()) {
@@ -2016,13 +2001,13 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		}
 		
 		
-		
+
 		if (sct.isUseDB() && System.getProperties().get("tremolo.io/localscheduler.table.prefix") != null) {
 			logger.info("Local scheduler with table prefix '" + System.getProperties().get("tremolo.io/localscheduler.table.prefix") + "'");
 			Properties localScheduleProps = new Properties();
 			localScheduleProps.putAll(scheduleProps);
 			localScheduleProps.setProperty("org.quartz.jobStore.tablePrefix", System.getProperty("tremolo.io/localscheduler.table.prefix"));
-			localScheduleProps.setProperty("org.quartz.scheduler.instanceId", UUID.randomUUID().toString());
+			localScheduleProps.setProperty("org.quartz.scheduler.instanceId", "AUTO");
 			localScheduleProps.setProperty("org.quartz.threadPool.threadCount", Integer.toString(sct.getThreadCount()));
 			localScheduleProps.setProperty("org.quartz.jobStore.class", "org.quartz.impl.jdbcjobstore.JobStoreTX");
 			localScheduleProps.setProperty("org.quartz.jobStore.driverDelegateClass", sct.getScheduleDB().getDelegateClassName());
@@ -2068,6 +2053,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 					while (toker.hasMoreTokens()) {
 						this.localJobs.add(toker.nextToken().toLowerCase());
 					}
+					// add the local monitor job
+					this.localJobs.add("localjobchecker");
 				}
 			} catch (SchedulerException e1) {
 				throw new ProvisioningException("Could not initialize local scheduler", e1);
@@ -2082,7 +2069,40 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			this.scheduler.start();
 			this.cfgMgr.addThread(new StopScheduler(this.scheduler));
 			HashSet<String> jobKeys = new HashSet<String>();
-			
+
+			JobType checker = new JobType();
+			checker.setClassName("com.tremolosecurity.provisioning.scheduler.jobs.CheckRunningJobs");
+			checker.setName("jobchecker");
+			checker.setGroup("jobchecker");
+			CronScheduleType cronSchedule = new CronScheduleType();
+			cronSchedule.setYear("*");
+			cronSchedule.setMonth("*");
+			cronSchedule.setDayOfMonth("*");
+			cronSchedule.setDayOfWeek("?");
+			cronSchedule.setMinutes("*");
+			cronSchedule.setHours("*");
+			cronSchedule.setSeconds("0");
+			checker.setCronSchedule(cronSchedule);
+
+			addNewJob(jobKeys, checker);
+
+			if (this.localScheduler != null) {
+				checker = new JobType();
+				checker.setClassName("com.tremolosecurity.provisioning.scheduler.jobs.CheckRunningJobs");
+				checker.setName("localjobchecker");
+				checker.setGroup("localjobchecker");
+				cronSchedule = new CronScheduleType();
+				cronSchedule.setYear("*");
+				cronSchedule.setMonth("*");
+				cronSchedule.setDayOfMonth("*");
+				cronSchedule.setDayOfWeek("?");
+				cronSchedule.setMinutes("*");
+				cronSchedule.setHours("*");
+				cronSchedule.setSeconds("0");
+				checker.setCronSchedule(cronSchedule);
+				addNewJob(jobKeys, checker);
+			}
+
 			for (JobType jobType : sct.getJob()) {
 				addNewJob(jobKeys, jobType);
 			}
@@ -2269,7 +2289,8 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			
 		}
 		jb.withIdentity(jk);
-		
+		jb.requestRecovery(true);
+
 		jd = jb.build();
 		
 		StringBuffer cron = new StringBuffer();
@@ -2433,6 +2454,27 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 		} catch (JMSException e) {
 			logger.error("could not enqueue to DLQ",e);
+		}
+	}
+
+	@Override
+	public void resetSchedulers() throws ProvisioningException {
+		if (this.scheduler != null) {
+            try {
+                this.scheduler.standby();
+				this.scheduler.start();
+            } catch (SchedulerException e) {
+                throw new  ProvisioningException("Could not clear primary scheduler",e);
+            }
+        }
+
+		if (this.localScheduler != null) {
+			try {
+				this.localScheduler.standby();
+				this.localScheduler.start();
+			} catch (SchedulerException e) {
+				throw new  ProvisioningException("Could not clear local scheduler",e);
+			}
 		}
 	}
 

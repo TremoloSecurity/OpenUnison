@@ -180,4 +180,5 @@ public interface ProvisioningEngine {
 	void reEnQueue(TextMessage tm, int numOfTries,JMSSessionHolder session);
 	
 
+	public abstract void resetSchedulers() throws ProvisioningException;
 }

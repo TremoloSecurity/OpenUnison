@@ -167,6 +167,8 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 
 	private K8sApis k8sApi;
 
+	private long timeout;
+
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
@@ -920,7 +922,15 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 		this.useCertificate = false;
 		this.url = this.loadOption("url", cfg, false);
 		this.name = name;
-		
+
+
+		String timeoutVal = this.loadOptionalAttributeValue("timeout","timeout",cfg,null);
+		if (timeoutVal != null) {
+			this.timeout = Long.parseLong(timeoutVal);
+		} else {
+			this.timeout = 30_000;
+		}
+
 		this.annotations = new HashMap<String,String>();
 		this.labels = new HashMap<String,String>();
 		
@@ -1188,7 +1198,12 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 		BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(
 				cfgMgr.getHttpClientSocketRegistry());
 
-		RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).setRedirectsEnabled(false)
+		RequestConfig rc = RequestConfig.custom()
+				.setCookieSpec(CookieSpecs.STANDARD)
+				.setRedirectsEnabled(false)
+				.setConnectTimeout(30_000)
+				.setConnectTimeout(30_000)
+				.setSocketTimeout(30_000)
 				.build();
 
 		CloseableHttpClient http = HttpClients.custom()
