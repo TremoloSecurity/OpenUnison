@@ -83,6 +83,8 @@ public class Scim implements HttpFilter {
     private Map<String,String> scimFilterAttrib2Ldap;
     private HashMap<Object, String> scimGroupFilterAttrib2Ldap;
 
+    Set<String> allowedAttributes;
+
     boolean lookupFromLDAP;
     String lookupTarget;
 
@@ -124,15 +126,20 @@ public class Scim implements HttpFilter {
     private  void ensureMeta(ObjectNode n, String base, String coll, String id, long version) {
         ObjectNode meta = n.with("meta");
         meta.put("resourceType", coll.substring(0, coll.length() - 1)); // User / Group
-        meta.put("location", base + "/" + coll + "/" + id);
-        meta.put("version", String.valueOf(version));
-        String now = Instant.now().toString();
-        if (!meta.has("created")) meta.put("created", now);
-        meta.put("lastModified", now);
+        if (base.endsWith(coll)) {
+            meta.put("location", base +  "/" + id);
+        } else {
+            meta.put("location", base + "/" + coll + "/" + id);
+        }
+
+
+
     }
     private static void setEtag(HttpFilterResponse resp, ObjectNode n) {
-        String v = n.path("meta").path("version").asText(null);
-        if (v != null) resp.setHeader("ETag", "\"" + v + "\"");
+        if (n.path("meta") != null && n.path("version") != null) {
+            String v = n.path("meta").path("version").asText(null);
+            if (v != null) resp.setHeader("ETag", "\"" + v + "\"");
+        }
     }
 
 
@@ -145,18 +152,23 @@ public class Scim implements HttpFilter {
         }
 
 
-        request.getServletRequest().setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
-        response.setContentType(CT);
-        if (request.getMethod().equals("POST")) {
-            doPost(request,response,chain);
-        } else if (request.getMethod().equals("GET")) {
-            doGet(request,response,chain);
-        } else if (request.getMethod().equals("PATCH")) {
-            doPatch(request,response,chain);
-        } else if (request.getMethod().equals("PUT")) {
-            doPost(request,response,chain);
-        } else if (request.getMethod().equals("DELETE")) {
-            doDelete(request,response,chain);
+        try {
+            request.getServletRequest().setAttribute("com.tremolosecurity.unison.proxy.noRedirectOnError", "com.tremolosecurity.unison.proxy.noRedirectOnError");
+            response.setContentType(CT);
+            if (request.getMethod().equals("POST")) {
+                doPost(request, response, chain);
+            } else if (request.getMethod().equals("GET")) {
+                doGet(request, response, chain);
+            } else if (request.getMethod().equals("PATCH")) {
+                doPatch(request, response, chain);
+            } else if (request.getMethod().equals("PUT")) {
+                doPost(request, response, chain);
+            } else if (request.getMethod().equals("DELETE")) {
+                doDelete(request, response, chain);
+            }
+        } catch (Throwable t) {
+            logger.error(String.format("Could not process request %s to %s",request.getMethod(),request.getRequestURL(),t));
+            err(request,response,500,"unknown",t.getMessage());
         }
     }
 
@@ -692,19 +704,37 @@ public class Scim implements HttpFilter {
     private void doGet(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain) throws Exception {
         String[] p = split(request);
         if (p == null || p.length == 0) { err(request,response, 404, "invalidPath", "Unknown"); return; }
-        if (!("Users".equals(p[0]) || "Groups".equals(p[0]))) { err(request,response, 404, "invalidPath", "Unknown GET"); return; }
+        if (!("Users".equals(p[0]) || "Groups".equals(p[0]) || "ResourceTypes".equals(p[0]) || "Schemas".equals(p[0]) )) { err(request,response, 404, "invalidPath", "Unknown GET"); return; }
 
         switch (p[0]) {
-            /*case "ServiceProviderConfig": write(response, 200, spc(base(request))); return;
-            case "ResourceTypes":         write(response, 200, resourceTypes(base(request))); return;
-            case "Schemas":
-                if (p.length == 1) { write(response, 200, schemas()); }
-                else {
-                    ObjectNode s = schema(p[1]);
-                    if (s == null) { err(request,response, 404, "notFound", "Schema not found"); return; }
-                    write(response, 200, s);
+            //case "ServiceProviderConfig": write(response, 200, spc(base(request))); return;
+            case "ResourceTypes":
+                if (p.length == 1) {
+                    write(request, response, 200, ScimSchema.resourceTypes(base(request)));
+                    return;
+                } else {
+                    ObjectNode ret = ScimSchema.resourceType(base(request),p[1]);
+                    if (ret != null) {
+                        write(request, response, 200, ret);
+                    } else {
+                        err(request, response, 404, "invalidPath", "Unknown ResourceType");
+                    }
+                    return;
                 }
-                return;*/
+            case "Schemas":
+                  if (p.length == 1) {
+                      logger.info("Allowed attributes " + this.allowedAttributes);
+                      write(request, response, 200, ScimSchema.schemas(base(request),this.allowedAttributes));
+                  } else {
+                      ObjectNode ret = ScimSchema.schema(base(request),p[1],this.allowedAttributes);
+                      if (ret != null) {
+                          write(request, response, 200, ret);
+                      } else {
+                          err(request, response, 404, "invalidPath", "Unknown Schema");
+                      }
+                  }
+                  return;
+
             case "Users":
             case "Groups":
 
@@ -1065,13 +1095,20 @@ public class Scim implements HttpFilter {
         switch (p[0]) {
             case "Users":
                 // translate from a SCIM object to an OpenUnison user
+                JsonNode jsonNode = payload.get(this.uidAttributeName);
+                if (jsonNode == null) {
+                    err(request,response, 400, "invalidValue", "missing userName attribute");
+                    return;
+                }
                 String uidAttr = payload.get(this.uidAttributeName).asText();
                 User scimUser = new User(uidAttr);
                 payload.fieldNames().forEachRemaining(name -> {
                     JsonNode node = payload.get(name);
-                    String value = node.isTextual() ? node.asText() : node.toString();
-                    Attribute userAttr = new Attribute(name,value);
-                    scimUser.getAttribs().put(name, userAttr);
+                    if (node != null) {
+                        String value = node.isTextual() ? node.asText() : node.toString();
+                        Attribute userAttr = new Attribute(name, value);
+                        scimUser.getAttribs().put(name, userAttr);
+                    }
                 });
 
                 if (request.getMethod().equalsIgnoreCase("PUT")) {
@@ -1087,7 +1124,7 @@ public class Scim implements HttpFilter {
                 if (request.getMethod().equalsIgnoreCase("POST")) {
 
 
-                    String displayName = payload.get("displayName").asText();
+                    String displayName = payload.get("displayName") != null ? payload.get("displayName").asText() : null;
                     JsonNode members = payload.get("members");
                     if (members != null) {
                         if (members.isArray()) {
@@ -1481,21 +1518,24 @@ public class Scim implements HttpFilter {
 
         forScim.getAttribs().keySet().forEach(attrName -> {
             Attribute attr = forScim.getAttribs().get(attrName);
-            String val = attr.getValues().get(0);
-            boolean isJson = (val.startsWith("{") || val.startsWith("["));
-            if (isJson) {
-                try {
-                    copy.put(attrName,M.readTree(val));
-                } catch (JsonProcessingException e) {
-                    logger.warn("Could not parse JSON " + val, e);
-                }
-            } else {
-                if (attr.getValues().size() == 1) {
-                    copy.put(attrName, val);
+            if (attr.getValues().size() > 0) {
+                String val = attr.getValues().get(0);
+                boolean isJson = (val.startsWith("{") || val.startsWith("["));
+                if (isJson) {
+
+                    try {
+                        copy.put(attrName, M.readTree(val));
+                    } catch (JsonProcessingException e) {
+                        logger.warn("Could not parse JSON " + val, e);
+                    }
                 } else {
-                    ArrayNode array = M.createArrayNode();
-                    attr.getValues().forEach(val2 -> array.add(val2));
-                    copy.put(attrName, array);
+                    if (! ScimSchema.isMultiValued(attrName)) {
+                        copy.put(attrName, val);
+                    } else {
+                        ArrayNode array = M.createArrayNode();
+                        attr.getValues().forEach(val2 -> array.add(val2));
+                        copy.put(attrName, array);
+                    }
                 }
             }
 
@@ -1614,6 +1654,9 @@ public class Scim implements HttpFilter {
             this.lookupTarget = config.getAttribute("lookupTarget").getValues().get(0);
         }
 
+        this.allowedAttributes = new HashSet<String>();
+        this.allowedAttributes.add("id");
+
         Attribute scim2tremoloMapping = config.getAttribute("scim2tremolo");
         if (scim2tremoloMapping != null) {
             List<Map<String,String>> attrCfgs = new ArrayList<>();
@@ -1658,6 +1701,7 @@ public class Scim implements HttpFilter {
             tremolo2scimMapping.getValues().forEach(attrName -> {
                 HashMap<String,String> cfg = new HashMap<>();
                 cfg.put("name", attrName);
+                this.allowedAttributes.add(attrName);
                 Attribute attr = config.getAttribute("tremolo2scim." + attrName + ".source");
                 if (attr == null) {
                     logger.warn("Configuration " + "tremolo2scim." + attrName + ".source missing" );
