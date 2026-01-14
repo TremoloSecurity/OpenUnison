@@ -167,7 +167,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 
 	private K8sApis k8sApi;
 
-	private long timeout;
+	private int timeout;
 
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
@@ -926,7 +926,7 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 
 		String timeoutVal = this.loadOptionalAttributeValue("timeout","timeout",cfg,null);
 		if (timeoutVal != null) {
-			this.timeout = Long.parseLong(timeoutVal);
+			this.timeout = Integer.parseInt(timeoutVal);
 		} else {
 			this.timeout = 30_000;
 		}
@@ -1201,9 +1201,8 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 		RequestConfig rc = RequestConfig.custom()
 				.setCookieSpec(CookieSpecs.STANDARD)
 				.setRedirectsEnabled(false)
-				.setConnectTimeout(30_000)
-				.setConnectTimeout(30_000)
-				.setSocketTimeout(30_000)
+				//.setConnectTimeout(this.timeout)
+				.setConnectionRequestTimeout(this.timeout)
 				.build();
 
 		CloseableHttpClient http = HttpClients.custom()
