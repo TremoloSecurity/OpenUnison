@@ -30,10 +30,10 @@
 		<c3p0.version>0.11.2</c3p0.version>
 		<google-api-services-plus.version>v1-rev20190328-1.30.10</google-api-services-plus.version>
 		<google-api-services-oauth2.version>v2-rev20200213-2.0.0</google-api-services-oauth2.version>
-		<google-api-services-admin-directory.version>directory_v1-rev20250804-2.0.0</google-api-services-admin-directory.version>
+		<google-api-services-admin-directory.version>directory_v1-rev20251124-2.0.0</google-api-services-admin-directory.version>
 		<json-simple.version>1.1.1</json-simple.version>
 		<json-simple.version>1.1.1</json-simple.version>
-		<twilio-java-sdk.version>11.3.0</twilio-java-sdk.version>
+		<twilio-java-sdk.version>11.3.1</twilio-java-sdk.version>
 		<restfb.version>3.18.0</restfb.version>
 		<jbosssx-bare.version>4.1.6.Final</jbosssx-bare.version>
 		<jbosssx-client.version>4.1.6.Final</jbosssx-client.version>
@@ -42,7 +42,7 @@
 		<gson.version>2.13.2</gson.version>
 		<bcprov-jdk18on.version>1.83</bcprov-jdk18on.version>
 		<bcprov-ext-jdk18on.version>1.78.1</bcprov-ext-jdk18on.version>
-		<bcpkix-jdk18on.version>1.80</bcpkix-jdk18on.version>
+		<bcpkix-jdk18on.version>1.83</bcpkix-jdk18on.version>
 		<catalina.version>10.1.10</catalina.version>
 		<undertow-1x.version>1.0.0.Final</undertow-1x.version>
 		<myvd-server.version>1.0.25</myvd-server.version>
@@ -67,11 +67,11 @@
 		<apache-log4j-extras.version>1.2.17</apache-log4j-extras.version>
 		<googleauth.version>1.5.0</googleauth.version>
 		<activemq.version>6.2.0</activemq.version>
-		<commons-pool2.version>2.12.1</commons-pool2.version>
-		<aws-java-sdk.version>2.40.15</aws-java-sdk.version>
+		<commons-pool2.version>2.13.1</commons-pool2.version>
+		<aws-java-sdk.version>2.41.8</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>2.1.4</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.3.4</stringtemplate.version>
-		<hibernate.version>7.2.0.Final</hibernate.version>
+		<hibernate.version>7.2.1.Final</hibernate.version>
 		<javaee.version>7.0</javaee.version>
 		<org.apache.poi.version>5.5.1</org.apache.poi.version>
 		<jose4j.version>0.9.6</jose4j.version>
@@ -82,7 +82,7 @@
 		<jackson-core.version>2.20.1</jackson-core.version>
 		<slf4j.version>2.0.17</slf4j.version>
 		<guava.version>33.5.0-jre</guava.version>
-		<undertow.version>2.3.20.Final</undertow.version>
+		<undertow.version>2.3.21.Final</undertow.version>
 	  	<jastow.version>2.2.8.Final</jastow.version>
 	  	<jboss-jstl-api_1.2_spec.version>1.1.4.Final</jboss-jstl-api_1.2_spec.version>
 	  	<xmlsec.version>2.0.6</xmlsec.version>
@@ -112,7 +112,7 @@
 		<spring.version>5.3.39</spring.version>
 		<activation.version>1.2.0</activation.version>
 		<velocity.version>2.4.1</velocity.version>
-		<nimbusds.version>11.30.1</nimbusds.version>
+		<nimbusds.version>11.31.1</nimbusds.version>
 		<pdfbox.version>3.0.6</pdfbox.version>
 		<ws.rs-api.version>3.1.0</ws.rs-api.version>
 		<qpid.version>2.9.0</qpid.version>
@@ -129,7 +129,7 @@
 		<!-- issues with JSP compiles -->
 		<ecj.version>3.40.0</ecj.version>
 		<jakarta-jsp.version>3.1.1</jakarta-jsp.version>
-		<org-json-json.version>20250517</org-json-json.version>
+		<org-json-json.version>20251224</org-json-json.version>
 		<jakarta-jaxb.version>3.0.1</jakarta-jaxb.version>
 		<!-- Last version that supports Java 21 -->
 		<checker.version>3.9.1</checker.version>
