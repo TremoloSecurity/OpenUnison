@@ -43,7 +43,7 @@
 		<bcprov-jdk18on.version>1.82</bcprov-jdk18on.version>
 		<bcprov-ext-jdk18on.version>1.78.1</bcprov-ext-jdk18on.version>
 		<bcpkix-jdk18on.version>1.80</bcpkix-jdk18on.version>
-		<catalina.version>10.1.10</catalina.version>
+		<catalina.version>10.1.47</catalina.version>
 		<undertow-1x.version>1.0.0.Final</undertow-1x.version>
 		<myvd-server.version>1.0.25</myvd-server.version>
 		<jldap.version>1.0.3</jldap.version>
