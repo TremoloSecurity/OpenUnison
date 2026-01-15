@@ -332,7 +332,7 @@ public class OktaInsert implements Insert {
         	
         	if (this.users) {
         	
-	        	List<User> usersFromOkta = os.getUserApi().listUsers(null, null, null, finalOktaFilter,null, null, null); 
+	        	List<User> usersFromOkta = os.getUserApi().listUsers(null, null, finalOktaFilter,null, null,null,null,null,null,null);
 	        			
 	        			
 	        			//okta.listUsers(null, finalOktaFilter , null, null, null);
@@ -382,12 +382,12 @@ public class OktaInsert implements Insert {
         			String searchFilter = sb.toString();
         			searchFilter = searchFilter.substring(0, searchFilter.length() - 3);
         			
-        			List<User> users = os.getUserApi().listUsers(null, null,null, searchFilter, null, null, null); 
+        			List<User> users = os.getUserApi().listUsers(null, null, searchFilter, null, null, null,null,null,null,null);
         					
         					
         			for (User fromOkta : users) {
         				
-        				List<Group> memberships = os.getUserApi().listUserGroups(fromOkta.getId());
+        				List<Group> memberships = os.getUserResourcesApi().listUserGroups(fromOkta.getId());
         				
         				for (Group groupFromOkta : memberships) {
         					if (! processedGroups.contains(groupFromOkta.getProfile().getName())) {
@@ -420,7 +420,7 @@ public class OktaInsert implements Insert {
         				
         				if (! processedGroups.contains(group)) {
         			
-		        			List<Group> groups = os.getGroupApi().listGroups(group, null, null, null, null, null, null, null);
+		        			List<Group> groups = os.getGroupApi().listGroups(null, null, group, null, null, null, null, null);
 		        			
 		        			processedGroups.add(group);
 		        			try {
@@ -506,7 +506,7 @@ public class OktaInsert implements Insert {
 			ArrayList<Entry> ret) throws UnsupportedEncodingException {
 		List<Group> groupList;
 		Group fromOkta;
-		groupList = groupApi.listGroups(name, null, null, null, null, null, null, null);
+		groupList = groupApi.listGroups(null, null, name, null, null, null, null, null);
 		
 		if (groupList.size() > 0) {
 			fromOkta = groupList.get(0);
@@ -557,7 +557,7 @@ public class OktaInsert implements Insert {
 		
 		
 		try {
-			fromOkta = os.getUserApi().getUser(name);
+			fromOkta = os.getUserApi().getUser(name,null,null);
 			
 		} catch (ApiException e) {
 			if (e.getCode() == 404) {
@@ -592,7 +592,7 @@ public class OktaInsert implements Insert {
 		
 		LDAPAttribute groups = new LDAPAttribute("groups");
 		
-		List<Group> oktaGroups = okta.getUserApi().listUserGroups(fromOkta.getId());
+		List<Group> oktaGroups = okta.getUserResourcesApi().listUserGroups(fromOkta.getId());
 		
 		for (Group group : oktaGroups) {
 			groups.addValue(group.getProfile().getName());

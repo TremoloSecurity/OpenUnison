@@ -25,6 +25,9 @@ import java.util.Map;
 import java.util.Set;
 
 
+import com.okta.sdk.client.AuthorizationMode;
+import com.okta.sdk.resource.api.UserLifecycleApi;
+import com.okta.sdk.resource.api.UserResourcesApi;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -65,9 +68,15 @@ public class OktaTarget implements UserStoreProvider {
     
     UserApi userApi = null;
     GroupApi groupApi = null;
-	
+	UserResourcesApi userResourcesApi = null;
+	UserLifecycleApi userLifecycleApi = null;
 	
 	String name;
+	private String clientid;
+	private Set<String> scopes;
+	private String keyName;
+	private String kid;
+
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
 			throws ProvisioningException {
@@ -100,7 +109,7 @@ public class OktaTarget implements UserStoreProvider {
 		
 		
 		for (String group : user.getGroups()) {
-			List<Group> gl = this.groupApi.listGroups(group, null,null, null, null, null, null, null);
+			List<Group> gl = this.groupApi.listGroups(null, null,group, null, null, null, null, null);
 			
 			ub.addGroup(gl.iterator().next().getId());
 		}
@@ -141,7 +150,7 @@ public class OktaTarget implements UserStoreProvider {
 		Map<String,String> propsFromUser = null;
 		
 		try {
-			fromOkta = this.userApi.getUser(user.getUserID());
+			fromOkta = this.userApi.getUser(user.getUserID(),null,null);
 			propsFromUser = ObjUtils.props2map(fromOkta);
 		} catch (ApiException  e) {
 			if (e.getCode() != 404) {
@@ -172,7 +181,7 @@ public class OktaTarget implements UserStoreProvider {
 			
 			HashSet<String> groups = new HashSet<String>();
 			List<String> groupsToAdd = new ArrayList<String>();
-			List<Group> groupsFromUser = this.userApi.listUserGroups(fromOkta.getId()); 
+			List<Group> groupsFromUser =  this.userResourcesApi.listUserGroups(fromOkta.getId());
 			for (Group group : groupsFromUser) {
 				groups.add(group.getProfile().getName());
 			}
@@ -184,7 +193,7 @@ public class OktaTarget implements UserStoreProvider {
 			}
 			
 			for (String group : groupsToAdd) {
-				List<Group> gl = this.groupApi.listGroups(group, null,null, null, null, null, null, null);
+				List<Group> gl = this.groupApi.listGroups(null, null,group, null, null, null, null, null);
 				
 				Group groupFromOkta = gl.iterator().next();
 				groupApi.assignUserToGroup(groupFromOkta.getId(), fromOkta.getId());
@@ -208,7 +217,7 @@ public class OktaTarget implements UserStoreProvider {
 			}
 			com.okta.sdk.resource.model.UpdateUserRequest updateRequest = new com.okta.sdk.resource.model.UpdateUserRequest();
 			updateRequest.setProfile(fromOkta.getProfile());
-			this.userApi.updateUser(fromOkta.getId(), updateRequest, true);
+			this.userApi.updateUser(fromOkta.getId(), updateRequest, true,null,new HashMap<>());
 			
 			List<Group> groupsToRemove = new ArrayList<Group>();
 			if (! addOnly) {
@@ -244,13 +253,13 @@ public class OktaTarget implements UserStoreProvider {
 		com.okta.sdk.resource.model.User fromOkta = null;
 		
 		try {
-			fromOkta = this.userApi.getUser(user.getUserID());
+			fromOkta = this.userApi.getUser(user.getUserID(),null,null);
 		} catch (ApiException e) {
 			throw new ProvisioningException("Could not lookup user",e);
 		}
 		
-		this.userApi.deactivateUser(user.getUserID(), false);
-		this.userApi.deleteUser(user.getUserID(), false);
+		this.userLifecycleApi.deactivateUser(user.getUserID(), false,null);
+		this.userApi.deleteUser(user.getUserID(), false,null);
 		this.cfgMgr.getProvisioningEngine().logAction(name,true, ActionType.Delete,  approvalID, workflow, "login", user.getUserID());
 	}
 	@Override
@@ -262,7 +271,7 @@ public class OktaTarget implements UserStoreProvider {
 			com.okta.sdk.resource.model.User fromOkta = null;
 			
 			try {
-				fromOkta = userApi.getUser(userID);
+				fromOkta = userApi.getUser(userID,null,null);
 			} catch (ApiException e) {
 				if (e.getCode() == 404) {
 					return null;
@@ -287,7 +296,7 @@ public class OktaTarget implements UserStoreProvider {
 			}
 			
 			
-			List<Group> groups = this.userApi.listUserGroups(userID);
+			List<Group> groups = this.userResourcesApi.listUserGroups(userID);
 			for (Group group : groups) {
 				user.getGroups().add(group.getProfile().getName());
 			}
@@ -313,20 +322,45 @@ public class OktaTarget implements UserStoreProvider {
 		} else {
 			this.domain = "https://" + domainFromConfig;
 		}
+
+		if (this.domain.endsWith("/")) {
+			this.domain = this.domain.substring(0, this.domain.length() - 1);
+		}
 		
-		
-		
-		this.token = cfg.get("token").getValues().get(0);
+
+		if (cfg.get("token") != null) {
+			this.token = cfg.get("token").getValues().get(0);
+			this.okta = Clients.builder()
+					.setOrgUrl(this.domain)
+
+					.setClientCredentials(new TokenClientCredentials(this.token))
+					.build();
+		} else {
+			this.clientid = cfg.get("clientid").getValues().get(0);
+			this.scopes = new HashSet<>();
+			scopes.addAll(cfg.get("scopes").getValues());
+			this.keyName = cfg.get("keyName").getValues().get(0);
+			this.kid = cfg.get("kid").getValues().get(0);
+
+			this.okta = Clients.builder()
+					.setOrgUrl(this.domain)
+					.setAuthorizationMode(AuthorizationMode.PRIVATE_KEY)
+					.setClientId(this.clientid)
+					.setScopes(this.scopes)
+					.setKid(this.kid)
+					.setPrivateKey(cfgMgr.getPrivateKey(this.keyName))
+					.build();
+		}
+
 		
 		this.builder = Clients.builder();
-		this.okta = Clients.builder()
-						.setOrgUrl(this.domain)
-						.setClientCredentials(new TokenClientCredentials(this.token))
-						.build();
+
 		
 		
 		this.userApi = new UserApi(okta);
 		this.groupApi = new GroupApi(okta);
+		this.userResourcesApi = new UserResourcesApi(okta);
+		this.userLifecycleApi = new UserLifecycleApi(okta);
 		
 		this.name = name;
 	}
@@ -350,7 +384,14 @@ public class OktaTarget implements UserStoreProvider {
 	public GroupApi getGroupApi() {
 		return this.groupApi;
 	}
-	
+
+	public UserResourcesApi getUserResourcesApi() {
+		return this.userResourcesApi;
+	}
+
+	public UserLifecycleApi getUserLifecycleApi() {
+		return this.userLifecycleApi;
+	}
 	
 
 }
