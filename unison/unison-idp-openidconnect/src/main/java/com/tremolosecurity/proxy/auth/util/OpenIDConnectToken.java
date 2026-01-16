@@ -189,7 +189,12 @@ public class OpenIDConnectToken {
 				.get(OpenIDConnectIdP.UNISON_OPENIDCONNECT_IDPS);
 
 		OpenIDConnectIdP idp = idps.get(this.idpName);
-		return idp.getSessionStore().getSession(this.oidcSession.getSessionID()).getRefreshToken();
+		if (this.oidcSession != null) {
+			return idp.getSessionStore().getSession(this.oidcSession.getSessionID()).getRefreshToken();
+		} else {
+			return null;
+		}
+
 		
 	}
 	

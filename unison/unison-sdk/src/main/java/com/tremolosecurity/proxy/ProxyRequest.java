@@ -279,7 +279,9 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 					while (toker.hasMoreTokens()) {
 						String token = toker.nextToken();
 						int index = token.indexOf('=');
-						
+						if (index < 0) {
+							continue;
+						}
 						String name = token.substring(0,index);
 						
 						if (name.indexOf('%') != -1) {

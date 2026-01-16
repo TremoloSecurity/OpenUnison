@@ -74,8 +74,11 @@ public class IdTokenLoader implements TokenLoader {
     @Override
     public Object loadToken(AuthInfo user, HttpSession session,HttpServletRequest request) throws Exception {
         OpenIDConnectToken token = (OpenIDConnectToken) session.getAttribute(GenerateOIDCTokens.UNISON_SESSION_OIDC_ID_TOKEN);
-        
-        token.replaceState();
+        if (token.isExpired()) {
+            token.generateToken(request);
+        } else {
+            token.replaceState();
+        }
         
         
         

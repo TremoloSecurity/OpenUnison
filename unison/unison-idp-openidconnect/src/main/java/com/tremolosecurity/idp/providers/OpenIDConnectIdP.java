@@ -842,6 +842,17 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 
 	private TokenData validateToken(String token, String tokenType, Key validationKey, String requiredIssuer, String requiredAudience, UrlHolder holder, HttpServletRequest req, AuthInfo authData, HttpServletResponse resp, boolean requiresAmr) throws ServletException {
+		if (token == null) {
+			AccessLog.log(AccessEvent.AzFail, holder.getApp(), req, authData, "No token provided");
+            try {
+                this.sendErrorCode(req, resp, 401);
+            } catch (IOException e) {
+                throw new ServletException(e);
+            }
+
+            return null;
+		}
+
 		JsonWebSignature jws = new JsonWebSignature();
 		TokenData td = new TokenData();
 		try {
