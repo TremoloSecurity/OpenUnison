@@ -752,6 +752,9 @@ public class SessionManagerImpl implements SessionManager {
 		sessionCookie.setPath("/");
 		sessionCookie.setSecure(false);
 		sessionCookie.setMaxAge(0);
+		if (sessionCookie.getDomain() != null && sessionCookie.getDomain().startsWith(".")) {
+			sessionCookie.setDomain(sessionCookie.getDomain().substring(1));
+		}
 		response.addCookie(sessionCookie);
 		sharedSession.invalidate();
 
