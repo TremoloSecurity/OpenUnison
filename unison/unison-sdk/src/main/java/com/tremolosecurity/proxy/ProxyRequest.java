@@ -25,15 +25,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletInputStream;
@@ -82,6 +74,8 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 	String protocol;
 	
 	String requestUrl;
+
+	Cookie[] cookies;
 	
 	public boolean isParamsInBody() {
 		return isParamsInBody;
@@ -306,7 +300,15 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 				}
 			}
 		}
-		
+
+		if (request.getCookies() != null) {
+			this.cookies = new Cookie[request.getCookies().length];
+			for (int i = 0; i < this.cookies.length; i++) {
+				cookies[i] = new ProxyCookie(request.getCookies()[i]);
+			}
+		}
+
+
 	}
 	
 	public ProxyRequest(HttpServletRequest req) throws Exception {
@@ -492,6 +494,9 @@ public class ProxyRequest extends HttpServletRequestWrapper {
 	}
 	
 	
-	
+	@Override
+	public Cookie[] getCookies() {
+		return this.cookies;
+	}
 	
 }
