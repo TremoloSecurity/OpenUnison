@@ -145,10 +145,12 @@ public class Scim implements HttpFilter {
 
     @Override
     public void doFilter(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain) throws Exception {
-        logger.info(request.getMethod() + " " + request.getRequestURL());
-        byte[] requestBytes = (byte[]) request.getAttribute(ProxySys.MSG_BODY);
-        if (requestBytes != null) {
-            logger.info(new String(requestBytes));
+        if (logger.isDebugEnabled()) {
+            logger.debug(request.getMethod() + " " + request.getRequestURL());
+            byte[] requestBytes = (byte[]) request.getAttribute(ProxySys.MSG_BODY);
+            if (requestBytes != null) {
+                logger.debug(new String(requestBytes));
+            }
         }
 
 
@@ -167,7 +169,7 @@ public class Scim implements HttpFilter {
                 doDelete(request, response, chain);
             }
         } catch (Throwable t) {
-            logger.error(String.format("Could not process request %s to %s",request.getMethod(),request.getRequestURL(),t));
+            logger.error(String.format("Could not process request %s to %s",request.getMethod(),request.getRequestURL()),t);
             err(request,response,500,"unknown",t.getMessage());
         }
     }
@@ -385,7 +387,10 @@ public class Scim implements HttpFilter {
 
 
         byte[] requestBytes = (byte[]) request.getAttribute(ProxySys.MSG_BODY);
-        logger.info(new String(requestBytes));
+        if (logger.isDebugEnabled()) {
+            logger.debug(new String(requestBytes));
+        }
+
         ByteArrayInputStream bais = new ByteArrayInputStream(requestBytes);
 
         ObjectNode payload = (ObjectNode) M.readTree(bais);
@@ -688,7 +693,9 @@ public class Scim implements HttpFilter {
                     }
                 });
 
-                logger.info("Updated: " + copyuser.toString());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Updated: " + copyuser.toString());
+                }
                 // translate from a SCIM object to an OpenUnison user
                 String uidAttr = copyuser.get(this.uidAttributeName).asText();
                 User scimUser = new User(uidAttr);
@@ -723,7 +730,9 @@ public class Scim implements HttpFilter {
                 }
             case "Schemas":
                   if (p.length == 1) {
-                      logger.info("Allowed attributes " + this.allowedAttributes);
+                      if (logger.isDebugEnabled()) {
+                          logger.debug("Allowed attributes " + this.allowedAttributes);
+                      }
                       write(request, response, 200, ScimSchema.schemas(base(request),this.allowedAttributes));
                   } else {
                       ObjectNode ret = ScimSchema.schema(base(request),p[1],this.allowedAttributes);
@@ -1087,7 +1096,9 @@ public class Scim implements HttpFilter {
         if (!("Users".equals(p[0]) || "Groups".equals(p[0]))) { err(request,response, 404, "invalidPath", "Unknown POST"); return; }
 
         byte[] requestBytes = (byte[]) request.getAttribute(ProxySys.MSG_BODY);
-        logger.info(new String(requestBytes));
+        if (logger.isDebugEnabled()) {
+            logger.debug(new String(requestBytes));
+        }
         ByteArrayInputStream bais = new ByteArrayInputStream(requestBytes);
 
         ObjectNode payload = (ObjectNode) M.readTree(bais);
@@ -1386,7 +1397,7 @@ public class Scim implements HttpFilter {
 
     private void runWorkflow(HttpFilterRequest request, HttpFilterResponse response, User scimUser, ObjectNode payload, String uidAttr, String[] p,String workflowName) throws ProvisioningException, LDAPException, IOException {
         User tremoloUser = this.scim2tremolo.mapUser(scimUser,true);
-        if (scimUser.getAttribs().get(this.idAttributeName) != null) {
+        if (scimUser.getAttribs().get(this.idAttributeName) != null && payload.get("id") != null) {
             tremoloUser.getAttribs().put(this.idAttributeName,new Attribute(this.idAttributeName,payload.get("id").asText()));
         }
         // check if there's a password
