@@ -113,7 +113,9 @@ public class AuthMgrSys {
 					
 				}
 			} else {
-				throw new ServletException("Unknown URI : " + request.getRequestURI());
+				logger.warn(String.format("Unknown URI: %s",request.getRequestURI()));
+				response.sendError(404);
+				return;
 			}
 		}
 		
