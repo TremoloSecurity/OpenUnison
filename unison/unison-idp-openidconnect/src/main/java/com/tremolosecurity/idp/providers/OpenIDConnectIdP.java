@@ -201,6 +201,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	ApplicationType applicationType;
 	private Set<String> carryOverClaims;
 	private Set<String> accessTokenIgnoreClaims;
+	private boolean noRandomNonce;
 
 
 	private void addCorsHeaders(HttpServletResponse resp, HttpServletRequest req, ProcessAfterFilterChain postProcess) throws IOException, ServletException {
@@ -1634,8 +1635,17 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		}*/
 
 		String accessToken = null;
+		String nonceValue = null;
+		if (nonce == null) {
+			// even if no nonce is present, we generally create one to create some entropy
+			if (! this.noRandomNonce) {
+				nonceValue = UUID.randomUUID().toString();
+			}
+		} else {
+			nonceValue = nonce.getValues().get(0);
+		}
 
-		OidcSessionState oidcSession = createUserSession(request, clientID, holder, trust, dn.getValues().get(0), cfgMgr, access, (nonce != null ? nonce.getValues().get(0) : UUID.randomUUID().toString()), authChainName.getValues().get(0));
+		OidcSessionState oidcSession = createUserSession(request, clientID, holder, trust, dn.getValues().get(0), cfgMgr, access, nonceValue, authChainName.getValues().get(0));
 
 		if (trust.getTokenCookieName() != null) {
 			// create a token cookie
@@ -2067,6 +2077,12 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			this.refreshTokenGracePeriodMillis = Integer.parseInt(init.get("refreshTokenGraceMillis").getValues().get(0));
 		} else {
 			this.refreshTokenGracePeriodMillis = 0;
+		}
+
+		if (init.containsKey("noRandomNonce")) {
+			this.noRandomNonce = init.get("noRandomNonce").getValues().get(0).equalsIgnoreCase("true");
+		} else {
+			this.noRandomNonce = false;
 		}
 
 		this.authURI = GlobalEntries.getGlobalEntries().getConfigManager().getApp(this.idpName).getUrls().getUrl().get(0).getUri();
