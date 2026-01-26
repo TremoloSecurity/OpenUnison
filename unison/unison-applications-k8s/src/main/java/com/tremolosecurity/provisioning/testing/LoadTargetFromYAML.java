@@ -42,8 +42,18 @@ import java.nio.file.Path;
 
 
 public class LoadTargetFromYAML {
-
     public static UserStoreProvider loadFromYAML(ConfigManager cfgMgr, String yamlFile, Map<String,String> props, Map<String, Map<String,String>> secrets) throws Exception {
+        TargetType target = loadTargetFromYAML(cfgMgr, yamlFile, props, secrets);
+        return createTarget(cfgMgr, target);
+    }
+
+    public static UserStoreProvider addTargetFromYaml (ConfigManager cfgMgr, String yamlFile, Map<String,String> props, Map<String, Map<String,String>> secrets) throws Exception {
+        TargetType target = loadTargetFromYAML(cfgMgr, yamlFile, props, secrets);
+        cfgMgr.getProvisioningEngine().addDynamicTarget(cfgMgr, target);
+        return cfgMgr.getProvisioningEngine().getTarget(target.getName()).getProvider();
+    }
+
+    private static TargetType loadTargetFromYAML(ConfigManager cfgMgr, String yamlFile, Map<String,String> props, Map<String, Map<String,String>> secrets) throws Exception {
 
         props.keySet().forEach(key -> {
             System.setProperty(key, props.get(key));
@@ -118,7 +128,7 @@ public class LoadTargetFromYAML {
 
 
 
-        return createTarget(cfgMgr, target);
+        return target;
     }
 
 
