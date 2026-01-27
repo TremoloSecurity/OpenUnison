@@ -101,13 +101,14 @@ public class GenerateOIDCTokens implements AuthMechanism {
 		if (authParams.get("overrideURL") != null) {
 			overrideURL = authParams.get("overrideURL").getValues().get(0);
 		}
-		
+
+
 		
 		
 		OpenIDConnectToken token = new OpenIDConnectToken(idpName,trustName,overrideURL);
 
 		request.setAttribute(ProxyTools.OVERRIDE_HOST, System.getProperty("OU_HOST"));
-
+		token.setupLogout(request);
 		
 		
 			

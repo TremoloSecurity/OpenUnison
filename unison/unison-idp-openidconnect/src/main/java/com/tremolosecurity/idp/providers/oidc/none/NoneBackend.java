@@ -17,6 +17,7 @@ package com.tremolosecurity.idp.providers.oidc.none;
 
 import java.util.HashMap;
 
+import com.tremolosecurity.proxy.auth.AuthInfo;
 import jakarta.servlet.ServletContext;
 
 import com.tremolosecurity.idp.providers.oidc.model.OidcSessionState;
@@ -56,6 +57,11 @@ public class NoneBackend implements OidcSessionStore {
 	@Override
 	public OidcSessionState getSession(String sessionId) throws Exception {
 		throw new Exception("Not Supported");
+	}
+
+	@Override
+	public void deleteSessionsForUser(AuthInfo authInfo) throws Exception {
+
 	}
 
 	@Override

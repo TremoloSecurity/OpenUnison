@@ -2722,6 +2722,10 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 		}
 	}
+
+	public void clearSessionsForUserDN(AuthInfo authInfo) throws Exception {
+		this.sessionStore.deleteSessionsForUser(authInfo);
+	}
 }
 
 

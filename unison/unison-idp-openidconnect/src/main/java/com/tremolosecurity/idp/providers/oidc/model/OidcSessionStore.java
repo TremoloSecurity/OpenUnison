@@ -15,6 +15,7 @@ package com.tremolosecurity.idp.providers.oidc.model;
 import java.util.HashMap;
 import java.util.List;
 
+import com.tremolosecurity.proxy.auth.AuthInfo;
 import jakarta.servlet.ServletContext;
 
 import org.joda.time.DateTime;
@@ -34,8 +35,10 @@ public interface OidcSessionStore {
 	public void deleteAllSessions(String sessionId) throws Exception;
 	
 	public OidcSessionState getSession(String sessionId) throws Exception;
-	
-	public void resetSession(OidcSessionState session) throws Exception;
+
+    void deleteSessionsForUser(AuthInfo authInfo) throws Exception;
+
+    public void resetSession(OidcSessionState session) throws Exception;
 	
 	public void cleanOldSessions() throws Exception; 
 	

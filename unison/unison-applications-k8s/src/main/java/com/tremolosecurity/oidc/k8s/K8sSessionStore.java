@@ -15,7 +15,6 @@ package com.tremolosecurity.oidc.k8s;
 import java.io.*;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,11 +29,9 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import jakarta.servlet.ServletContext;
-import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.Logger;
-import org.checkerframework.checker.units.qual.A;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.json.simple.JSONArray;
@@ -42,14 +39,10 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import com.google.gson.Gson;
-import com.tremolosecurity.config.xml.ApplicationType;
 import com.tremolosecurity.idp.providers.oidc.model.ExpiredRefreshToken;
 import com.tremolosecurity.idp.providers.oidc.model.OidcSessionState;
 import com.tremolosecurity.idp.providers.oidc.model.OidcSessionStore;
-import com.tremolosecurity.idp.server.IDP;
 import com.tremolosecurity.json.Token;
-import com.tremolosecurity.log.AccessLog.AccessEvent;
-import com.tremolosecurity.openunison.OpenUnisonConstants;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
 import com.tremolosecurity.provisioning.util.HttpCon;
@@ -471,6 +464,33 @@ public class K8sSessionStore implements OidcSessionStore {
 		byte[] decBytes = org.bouncycastle.util.encoders.Base64.decode(token.getEncryptedRequest());
 		
 		return new String(cipher.doFinal(decBytes));
+	}
+
+	@Override
+	public void deleteSessionsForUser(AuthInfo authInfo) throws Exception {
+		OpenShiftTarget k8s = null;
+		try {
+			k8s = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(this.k8sTarget).getProvider();
+		} catch (ProvisioningException e1) {
+			logger.error("Could not retrieve kubernetes target",e1);
+			throw new ProvisioningException("Could not connect to kubernetes",e1);
+		}
+
+		String dnHash = DigestUtils.sha1Hex(authInfo.getUserDN());
+
+		String url = new StringBuilder().append("/apis/openunison.tremolo.io/").append(this.getApiVersion()).append("/namespaces/").append(this.nameSpace).append("/oidc-sessions?labelSelector=tremolo.io%2Fuser-dn%3D").append(dnHash).toString();
+		HttpCon con = k8s.createClient();
+		try {
+
+			String jsonResp = k8s.callWSDelete(k8s.getAuthToken(), con, url);
+
+			if (logger.isDebugEnabled()) {
+				logger.debug("json response from deleting object : " + jsonResp);
+			}
+		} finally {
+			con.getHttp().close();
+			con.getBcm().close();
+		}
 	}
 
 	@Override

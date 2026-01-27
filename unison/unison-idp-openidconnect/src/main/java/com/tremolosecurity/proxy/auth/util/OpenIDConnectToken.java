@@ -24,8 +24,13 @@ import java.util.UUID;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+
+import com.tremolosecurity.proxy.filter.HttpFilterRequest;
+import com.tremolosecurity.proxy.logout.LogoutHandler;
+import com.tremolosecurity.proxy.logout.LogoutUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
@@ -66,6 +71,7 @@ public class OpenIDConnectToken {
 	String urlOfRequest;
 	private OidcSessionState oidcSession;
 	private ApplicationType app;
+	boolean generatedSession;
 	
 	public OidcSessionState getSessionState() {
 		return this.oidcSession;
@@ -88,11 +94,40 @@ public class OpenIDConnectToken {
 		this.idpName = idpName;
 		this.trustName = trustName;
 		this.urlOfRequest = urlOfRequest;
+		this.generatedSession = false;
+	}
+
+	public void setupLogout(HttpServletRequest request) {
+		HttpSession session = ((HttpServletRequest) request).getSession();
+		AuthController ac = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL));
+		LogoutHandler logout = new LogoutHandler() {
+			@Override
+			public void handleLogout(HttpServletRequest request, HttpServletResponse response, boolean activeLogout) throws ServletException {
+				if (!generatedSession) {
+					HashMap<String,OpenIDConnectIdP> oidcIdPs = (HashMap<String,OpenIDConnectIdP>) GlobalEntries.getGlobalEntries().get(OpenIDConnectIdP.UNISON_OPENIDCONNECT_IDPS);
+					OpenIDConnectIdP idp = oidcIdPs.get(idpName);
+					if (idp != null) {
+						if (activeLogout) {
+                            try {
+                                idp.clearSessionsForUserDN(ac.getAuthInfo());
+                            } catch (Exception e) {
+                                logger.warn(String.format("Could not clear sessions for user dn %s",ac.getAuthInfo().getUserDN()),e);
+                            }
+                        }
+					} else {
+						logger.warn(String.format("IDP %s does not exist", idpName));
+					}
+				}
+			}
+		};
+
+		LogoutUtil.addLogoutHandler(request, logout);
+
 	}
 
 	public void generateToken(HttpServletRequest request) throws ServletException, JoseException,
 			LDAPException, ProvisioningException, MalformedClaimException, UnsupportedEncodingException, IOException {
-
+		this.generatedSession = true;
 		AuthController ac = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL));
 		
 
@@ -118,6 +153,7 @@ public class OpenIDConnectToken {
 
 	private void generateClaimsData(AuthController ac, OpenIDConnectIdP idp,HttpServletRequest request)
 			throws JoseException, LDAPException, ProvisioningException, MalformedURLException, MalformedClaimException {
+		this.generatedSession = true;
 		this.idClaims = idp.generateClaims(ac.getAuthInfo(), GlobalEntries.getGlobalEntries().getConfigManager(),
 				trustName, this.urlOfRequest,request);
 		this.idJws = idp.generateJWS(getClaims());
@@ -185,6 +221,7 @@ public class OpenIDConnectToken {
 
 	
 	public String getRefreshToken() throws Exception {
+		this.generatedSession = true;
 		HashMap<String, OpenIDConnectIdP> idps = (HashMap<String, OpenIDConnectIdP>) GlobalEntries.getGlobalEntries()
 				.get(OpenIDConnectIdP.UNISON_OPENIDCONNECT_IDPS);
 
@@ -196,6 +233,10 @@ public class OpenIDConnectToken {
 		}
 
 		
+	}
+
+	public boolean isGeneratedSession() {
+		return generatedSession;
 	}
 	
 

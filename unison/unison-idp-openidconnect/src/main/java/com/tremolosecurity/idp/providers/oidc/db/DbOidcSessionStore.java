@@ -15,6 +15,7 @@ package com.tremolosecurity.idp.providers.oidc.db;
 import java.sql.Timestamp;
 import java.util.HashMap;
 
+import com.tremolosecurity.proxy.auth.AuthInfo;
 import jakarta.servlet.ServletContext;
 
 import org.hibernate.query.Query;
@@ -122,6 +123,28 @@ public class DbOidcSessionStore implements OidcSessionStore {
 			
 			return session;
 			
+		} finally {
+			if (db != null) {
+				if (db.getTransaction() != null && db.getTransaction().isActive()) {
+					db.getTransaction().rollback();
+				}
+				db.close();
+			}
+		}
+	}
+
+	@Override
+	public void deleteSessionsForUser(AuthInfo authInfo) throws Exception {
+		Session db = null;
+		try {
+			db = this.sessionFactory.openSession();
+			db.beginTransaction();
+			String hql = "DELETE FROM OidcDbSession o WHERE o.userDN = :userDN";
+			Query query = db.createQuery(hql);
+			query.setParameter("userDN",authInfo.getUserDN());
+
+			query.executeUpdate();
+			db.getTransaction().commit();
 		} finally {
 			if (db != null) {
 				if (db.getTransaction() != null && db.getTransaction().isActive()) {
