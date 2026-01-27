@@ -68,8 +68,9 @@ bylabels = {}
 for issue in allIssues:
     issueURL = 'https://api.github.com/repos/TremoloSecurity/OpenUnison/issues/' + issue
     r = requests.get(issueURL,headers=headers)
-    json = r.json();
-    for label in json['labels']:
+    if r.ok:
+      json = r.json();
+      for label in json[u'labels']:
         if not (label['name'] in bylabels):
             labelGroup = []
             bylabels[label["name"]] = labelGroup

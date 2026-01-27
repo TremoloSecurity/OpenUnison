@@ -1,3 +1,28 @@
+# 1.0.44-2026012601
+
+**enhancements:**
+ - remove need for genoidc auth mech [\#1036](https://github.com/TremoloSecurity/OpenUnison/issues/1036)
+ - idp - if an idp doesn't exist, have a warning instead of an exception [\#1041](https://github.com/TremoloSecurity/OpenUnison/issues/1041)
+ - javascript target [\#1034](https://github.com/TremoloSecurity/OpenUnison/issues/1034)
+ - SCIM 2.0 API endpoints [\#1008](https://github.com/TremoloSecurity/OpenUnison/issues/1008)
+ - Okta - Add support for OAuth2 [\#1039](https://github.com/TremoloSecurity/OpenUnison/issues/1039)
+ - Scheduler - self heal broken schedulers [\#1037](https://github.com/TremoloSecurity/OpenUnison/issues/1037)
+
+**Tasks:**
+ - 1.0.44 build [\#1010](https://github.com/TremoloSecurity/OpenUnison/issues/1010)
+
+**bugs:**
+ - oidc idp - when nonce not included in request a random nonce is included in the id_token [\#1038](https://github.com/TremoloSecurity/OpenUnison/issues/1038)
+ - Prometheus JMSPull - Not ignoring keepalive [\#1032](https://github.com/TremoloSecurity/OpenUnison/issues/1032)
+ - WaitForState Job - better error handling for individual waitforstates [\#1018](https://github.com/TremoloSecurity/OpenUnison/issues/1018)
+ - Kube Watch - catch 410 errors [\#1028](https://github.com/TremoloSecurity/OpenUnison/issues/1028)
+ - K8sSessionStore clearOidcSessions - does not account for large number of sessions [\#1013](https://github.com/TremoloSecurity/OpenUnison/issues/1013)
+ - NPE when loading a namespacegroupmetadata with no external group [\#1012](https://github.com/TremoloSecurity/OpenUnison/issues/1012)
+ - Key ID header missing from OIDC ID token after refresh [\#1025](https://github.com/TremoloSecurity/OpenUnison/issues/1025)
+ - jboss-logging-3.4.3.Final.jar  maven puled in unison-service-undertow [\#1027](https://github.com/TremoloSecurity/OpenUnison/issues/1027)
+ - WebSocket only supports 5 concurrent connections, then hangs all traffic [\#1026](https://github.com/TremoloSecurity/OpenUnison/issues/1026)
+
+
 # 1.0.43.1-2025112401
 
 **bugs:**
