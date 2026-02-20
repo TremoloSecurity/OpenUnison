@@ -800,6 +800,13 @@ public class OpenIDConnectIdP implements IdentityProvider {
 					clientCredentialsGrant(request, response, clientID, clientSecret, ac, holder);
 
 
+				} else if (grantType.equalsIgnoreCase("password")) {
+					// not supported
+					String resp = "{\"error\":\"unsupported_grant_type\"}";
+					response.setContentType("application/json");
+					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+					response.getOutputStream().write(resp.getBytes("UTF-8"));
+					return;
 				} else {
 					completeUserLogin(request, response, code, clientID, clientSecret, holder, ac.getAuthInfo(), codeVerifier);
 				}
