@@ -47,6 +47,7 @@ import javax.crypto.spec.IvParameterSpec;
 
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
 import com.tremolosecurity.proxy.*;
+import com.tremolosecurity.proxy.auth.*;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -116,11 +117,6 @@ import com.tremolosecurity.openunison.OpenUnisonConstants;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
-import com.tremolosecurity.proxy.auth.AuthController;
-import com.tremolosecurity.proxy.auth.AuthInfo;
-import com.tremolosecurity.proxy.auth.AzSys;
-import com.tremolosecurity.proxy.auth.PostAuthSuccess;
-import com.tremolosecurity.proxy.auth.RequestHolder;
 import com.tremolosecurity.proxy.auth.passwordreset.PasswordResetRequest;
 import com.tremolosecurity.proxy.auth.util.AuthUtil;
 import com.tremolosecurity.proxy.az.AzRule;
@@ -1175,12 +1171,21 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 		String accessToken = header.substring("Bearer ".length());
 
-		OidcSessionState dbSession = this.getSessionByAccessToken(accessToken);
-		if (dbSession == null) {
+		OidcSessionState dbSession = null;
+		try {
+			 dbSession = this.getSessionByAccessToken(accessToken);
+
+			if (dbSession == null) {
+				AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo(), "NONE");
+				this.sendErrorCode(request, response, 401);
+				return;
+			}
+		} catch (InvalidSignatureException e) {
 			AccessLog.log(AccessEvent.AzFail, holder.getApp(), (HttpServletRequest) request, ac.getAuthInfo(), "NONE");
 			this.sendErrorCode(request, response, 401);
 			return;
 		}
+
 
 
 		OpenIDConnectTrust trust = trusts.get(dbSession.getClientID());
@@ -2610,7 +2615,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.jwtSigningKeyName).getPublicKey());
 
 		if (!jws.verifySignature()) {
-			throw new Exception("Invalid access_token signature");
+			throw new InvalidSignatureException("Invalid access_token signature");
 		}
 
 		JwtClaims claims = JwtClaims.parse(jws.getPayload());
