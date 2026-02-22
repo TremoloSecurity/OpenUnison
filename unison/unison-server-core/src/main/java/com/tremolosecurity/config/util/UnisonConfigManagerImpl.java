@@ -28,6 +28,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -187,6 +188,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	private NotificationManagerImpl notificationManager;
 	private TrustManagerFactory trustManagerFactory;
 
+	private Map<String,Integer> keyVersions;
 
 	@Override
 	public  Map<Integer,String> getErrorPages() {
@@ -330,6 +332,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 		}
 
 		this.secretKeyCache = new HashMap<String,Key>();
+		this.keyVersions = new HashMap<>();
 		
 	}
 	
@@ -1277,6 +1280,12 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 			return null;
 		}
 	}
+
+	@Override
+	public void addPrivateKey(String alias, X509Certificate pub, PrivateKey priv) throws KeyStoreException {
+		this.ks.setKeyEntry(alias,priv,this.cfg.getKeyStorePassword().toCharArray(),new Certificate[]{pub});
+		this.secretKeyCache.put(alias,priv);
+	}
 	
 	
 
@@ -1668,6 +1677,20 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	@Override
 	public AuthChainType getAuthFailChain() {
 		return this.authFailChain;
+	}
+
+	@Override
+	public void setKeyVersion(String name, int version) {
+		this.keyVersions.put(name, version);
+	}
+
+	@Override
+	public int getKeyVersion(String name) {
+		if (this.keyVersions.containsKey(name)) {
+			return this.keyVersions.get(name);
+		} else {
+			return 1;
+		}
 	}
 	
 }

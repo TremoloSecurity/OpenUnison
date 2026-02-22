@@ -206,7 +206,9 @@ public interface ConfigManager {
 	 */
 	public abstract PrivateKey getPrivateKey(String alias);
 
-	/**
+    void addPrivateKey(String alias, X509Certificate pub, PrivateKey priv) throws KeyStoreException;
+
+    /**
 	 * Returns Unison's key store
 	 * @return
 	 */
@@ -403,6 +405,9 @@ public interface ConfigManager {
 	void deleteApp(String name);
 
 	NotificationsManager getNotificationsMananager();
-	
 
+
+    void setKeyVersion(String name, int version);
+
+	int getKeyVersion(String name);
 }
