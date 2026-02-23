@@ -427,7 +427,37 @@ public class ScaleJSOperator implements HttpFilter {
 
 		for (AttributeConfig attr : forSearch) {
 			if (attr.isPicked()) {
-				filter.add(equal(attr.getName(), attr.getValue()));
+
+				if (attr.getValue().contains("*")) {
+					// substring
+					boolean startsWithStar = attr.getValue().startsWith("*");
+					boolean endsWithStar   = attr.getValue().endsWith("*");
+
+					String value = attr.getValue();
+
+					if (startsWithStar) {
+						value = value.substring(1);
+					}
+
+					if (endsWithStar) {
+						value = value.substring(0, value.length() - 1);
+					}
+
+					if (startsWithStar && endsWithStar) {
+						filter.add(FilterBuilder.contains(attr.getName(), value));
+					} else if (startsWithStar) {
+						filter.add(FilterBuilder.endsWith(attr.getName(), value));
+					} else if (endsWithStar) {
+						filter.add(FilterBuilder.startsWith(attr.getName(), value));
+					} else {
+						filter.add(FilterBuilder.equal(attr.getName(), value));
+					}
+				} else {
+					// exact value
+					filter.add(equal(attr.getName(), attr.getValue()));
+				}
+
+
 			}
 		}
 
