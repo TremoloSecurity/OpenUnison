@@ -428,13 +428,26 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			HttpUriRequest post = null;
 			
 			try {
+
+
 				RequestBuilder rb = RequestBuilder.post()
 				        .setUri(new java.net.URI(loadTokenURL))
 				        .addParameter("code", request.getParameter("code"))
-				        .addParameter("client_id", clientid)
-				        .addParameter("client_secret", secret)
+
+				        //.addParameter("client_secret", secret)
+
 				        .addParameter("redirect_uri", b.toString())
 				        .addParameter("grant_type", "authorization_code");
+
+
+				if (secret == null || secret.isEmpty()) {
+					rb.addParameter("client_id", clientid);
+				} else {
+					String headerToken = new String(java.util.Base64.getEncoder().encode(String.format("%s:%s",clientid,secret).getBytes(StandardCharsets.UTF_8)));
+					String headerVal = String.format("Basic %s", headerToken);
+					rb.addHeader("Authorization", headerVal);
+				}
+
 				if (codeVerifier != null) {
 					rb.addParameter("code_verifier",codeVerifier);
 				}
@@ -451,8 +464,9 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			    
 			CloseableHttpResponse httpResp = http.execute(post);
 			
-			if (httpResp.getStatusLine().getStatusCode() != 200) {				
-				logger.error("Could not retrieve token : " + httpResp.getStatusLine().getStatusCode() + " / " + httpResp.getStatusLine().getReasonPhrase());				
+			if (httpResp.getStatusLine().getStatusCode() != 200) {
+
+				logger.error("Could not retrieve token : " + httpResp.getStatusLine().getStatusCode() + " / " + httpResp.getStatusLine().getReasonPhrase() + "/" + EntityUtils.toString(httpResp.getEntity()));
 				as.setSuccess(false);
 				holder.getConfig().getAuthManager().nextAuth(request, response,session,false);
 				return;
