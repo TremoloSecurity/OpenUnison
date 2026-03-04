@@ -18,10 +18,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLEncoder;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -199,6 +196,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	private Set<String> accessTokenIgnoreClaims;
 	private boolean noRandomNonce;
 
+	private boolean spiffeDiscovery;
+	private int spiffeRefreshHint;
 
 	private void addCorsHeaders(HttpServletResponse resp, HttpServletRequest req, ProcessAfterFilterChain postProcess) throws IOException, ServletException {
 		/*resp.addHeader("Vary", "Origin");
@@ -284,10 +283,20 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				final JsonWebKey jwk = JsonWebKey.Factory.newJwk(cert.getPublicKey());
 
 
-				String keyID = buildKID(cert);
-				jwk.setKeyId(keyID);
+
 				jwk.setUse("sig");
 				jwk.setAlgorithm("RS256");
+
+				if (this.spiffeDiscovery) {
+					jwk.setOtherParameter("use", "jwt-svid");
+					jwk.setOtherParameter("spiffe_sequence",GlobalEntries.getGlobalEntries().getConfigManager().getKeyVersion(this.jwtSigningKeyName));
+					jwk.setOtherParameter("spiffe_refresh_hint",this.spiffeRefreshHint);
+					String keyID = buildSpiffeKid(cert,ProxyTools.getInstance().getFqdnUrl(this.authURI, request));
+					jwk.setKeyId(keyID);
+				} else {
+					String keyID = buildKID(cert);
+					jwk.setKeyId(keyID);
+				}
 
 
 				ProcessAfterFilterChain proc = new ProcessAfterFilterChain() {
@@ -466,6 +475,15 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	private String buildKID(X509Certificate cert) {
 		StringBuffer b = new StringBuffer();
 		b.append(cert.getSubjectDN().getName()).append('-').append(cert.getIssuerDN().getName()).append('-').append(cert.getSerialNumber().toString());
+		return b.toString();
+	}
+
+	private String buildSpiffeKid(X509Certificate cert,String url) {
+		StringBuffer b = new StringBuffer();
+
+		URI uri = URI.create(url);
+
+		b.append("spiffe://").append(uri.getHost()).append("/").append(this.idpName);
 		return b.toString();
 	}
 
@@ -2235,6 +2253,21 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		}
 
 
+		attr = init.get("spiffeDiscovery");
+		if (attr != null) {
+			this.spiffeDiscovery = attr.getValues().get(0).equalsIgnoreCase("true");
+		} else {
+			this.spiffeDiscovery = false;
+		}
+
+		if (this.spiffeDiscovery) {
+			attr = init.get("spiffeRefreshHint");
+			if (attr != null) {
+				this.spiffeRefreshHint = Integer.parseInt(attr.getValues().get(0).trim());
+			} else {
+				this.spiffeRefreshHint = 86400;
+			}
+		}
 
 
 	}
