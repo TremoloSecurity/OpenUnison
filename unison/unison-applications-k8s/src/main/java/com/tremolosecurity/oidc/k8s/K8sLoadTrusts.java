@@ -13,24 +13,16 @@
 
 package com.tremolosecurity.oidc.k8s;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.StringTokenizer;
 
 import com.tremolosecurity.proxy.az.AzRule;
 import jakarta.servlet.ServletContext;
 
-import jakarta.servlet.ServletException;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.methods.HttpGet;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.tremolosecurity.config.xml.TremoloType;
@@ -44,13 +36,13 @@ import com.tremolosecurity.provisioning.mapping.MapIdentity;
 import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
-import com.tremolosecurity.server.StopableThread;
-import com.tremolosecurity.unison.openshiftv3.OpenShiftTarget;
 
 public class K8sLoadTrusts implements DynamicLoadTrusts,K8sWatchTarget {
 	
 	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(K8sLoadTrusts.class.getName());
-	
+
+	String idpName;
+	OpenIDConnectIdP idp;
 	HashMap<String, OpenIDConnectTrust> trusts;
 	String namespace;
 	
@@ -59,9 +51,10 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,K8sWatchTarget {
 	
 	@Override
 	public void loadTrusts(String idpName, ServletContext ctx,
-			HashMap<String, Attribute> init, HashMap<String, HashMap<String, Attribute>> trustCfg, MapIdentity mapper,HashMap<String, OpenIDConnectTrust> trusts)
+						   HashMap<String, Attribute> init, HashMap<String, HashMap<String, Attribute>> trustCfg, MapIdentity mapper, HashMap<String, OpenIDConnectTrust> trusts, OpenIDConnectIdP idp)
 			throws Exception {
-		
+		this.idpName = idpName;
+		this.idp = idp;
 		this.trusts = trusts;
 		
 		String k8sTarget = 	init.get("trusts.k8starget").getValues().get(0);
@@ -79,14 +72,51 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,K8sWatchTarget {
 
 	private void addTrust(HashMap<String, OpenIDConnectTrust> trusts, HttpCon http, String token, Object o)
 			throws IOException, ClientProtocolException, ParseException,ProvisioningException {
+
+
+
 		JSONObject trustObj = (JSONObject) o;
 		JSONObject metadata = (JSONObject) trustObj.get("metadata");
-		
+		JSONObject spec = (JSONObject) trustObj.get("spec");
+		String clientid = spec.get("clientId").toString();
+
+		boolean expectsLabel = idp.getLabelValue() != null;
+
+		JSONObject labels = (JSONObject) metadata.get("labels");
+		String filterLabel = null;
+		if (labels != null) {
+			filterLabel = (String) labels.get("tremolo.io/trust-app");
+		}
+
+		if (expectsLabel) {
+			// expecting a label
+			if (filterLabel == null) {
+				// there's no label, skip
+				// remove first if it exists
+				trusts.remove(clientid);
+				return;
+			} else {
+				if (! filterLabel.equals(idp.getLabelValue())) {
+					// the filter labels don't match, skip
+					// remove first if it exists
+					trusts.remove(clientid);
+					return;
+				}
+			}
+		} else {
+			// not expecting a label
+			if (filterLabel != null) {
+				// there is a label, ignore it
+				// remove first if it exists
+				trusts.remove(clientid);
+				return;
+			}
+		}
 		
 		String resourceVersion = (String) metadata.get("resourceVersion");
 
 		
-		JSONObject spec = (JSONObject) trustObj.get("spec");
+
 		logger.info(metadata.get("name"));
 		
 		

@@ -199,6 +199,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	private boolean spiffeDiscovery;
 	private int spiffeRefreshHint;
 
+	private String labelValue;
+
 	private void addCorsHeaders(HttpServletResponse resp, HttpServletRequest req, ProcessAfterFilterChain postProcess) throws IOException, ServletException {
 		/*resp.addHeader("Vary", "Origin");
 		resp.addHeader("Access-Control-Allow-Origin","*");
@@ -2103,6 +2105,13 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		final String localIdPName = idpName;
 		this.idpName = idpName;
 
+		Attribute attr = init.get("labelValue");
+		if (attr != null) {
+			this.labelValue = attr.getValues().get(0).trim();
+		} else {
+			this.labelValue = null;
+		}
+
 		if (init.containsKey("refreshTokenGraceMillis")) {
 			this.refreshTokenGracePeriodMillis = Integer.parseInt(init.get("refreshTokenGraceMillis").getValues().get(0));
 		} else {
@@ -2130,7 +2139,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				loadTrusts = (DynamicLoadTrusts) Class.forName(className).newInstance();
 
 
-				loadTrusts.loadTrusts(idpName, ctx, init, trustCfg, mapper, this.trusts);
+				loadTrusts.loadTrusts(idpName, ctx, init, trustCfg, mapper, this.trusts,this);
 
 			} catch (Exception e) {
 				logger.error("Could not initialize trusts", e);
@@ -2241,7 +2250,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 		this.applicationType = GlobalEntries.getGlobalEntries().getConfigManager().getApp(idpName);
 		this.carryOverClaims = new HashSet<>();
 
-		Attribute attr = init.get("carryOverClaims");
+		attr = init.get("carryOverClaims");
 		if (attr != null) {
 			this.carryOverClaims.addAll(attr.getValues());
 		}
@@ -2268,6 +2277,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				this.spiffeRefreshHint = 86400;
 			}
 		}
+
+
 
 
 	}
@@ -2770,6 +2781,10 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 	public void clearSessionsForUserDN(AuthInfo authInfo) throws Exception {
 		this.sessionStore.deleteSessionsForUser(authInfo);
+	}
+
+	public String getLabelValue() {
+		return this.labelValue;
 	}
 }
 

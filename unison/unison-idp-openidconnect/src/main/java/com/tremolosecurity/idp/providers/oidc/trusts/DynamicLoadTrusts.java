@@ -15,6 +15,7 @@ package com.tremolosecurity.idp.providers.oidc.trusts;
 
 import java.util.HashMap;
 
+import com.tremolosecurity.idp.providers.OpenIDConnectIdP;
 import jakarta.servlet.ServletContext;
 
 import com.tremolosecurity.idp.providers.OpenIDConnectTrust;
@@ -23,6 +24,6 @@ import com.tremolosecurity.saml.Attribute;
 
 public interface DynamicLoadTrusts {
 
-	public void loadTrusts(String idpName,ServletContext ctx, HashMap<String, Attribute> init, HashMap<String, HashMap<String, Attribute>> trustCfg,MapIdentity mapper,HashMap<String,OpenIDConnectTrust> trusts) throws Exception;
-	
+	public void loadTrusts(String idpName,ServletContext ctx, HashMap<String, Attribute> init, HashMap<String, HashMap<String, Attribute>> trustCfg,MapIdentity mapper,HashMap<String,OpenIDConnectTrust> trusts,OpenIDConnectIdP trust) throws Exception;
+
 }
