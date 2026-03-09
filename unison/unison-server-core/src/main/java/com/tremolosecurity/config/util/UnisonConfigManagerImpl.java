@@ -723,11 +723,16 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 			
 			
 		}
+
+		try {
+			CustomAuthorization cuz = (CustomAuthorization) Class.forName(azrule.getClassName()).newInstance();
+			cuz.init(azCfg);
+			this.customAzRules.put(azrule.getName(), cuz);
+		} catch (Throwable t) {
+			logger.warn(String.format("Could not initialize authorization rule %s",azrule.getName()),t);
+		}
 		
-		CustomAuthorization cuz = (CustomAuthorization) Class.forName(azrule.getClassName()).newInstance();
-		cuz.init(azCfg);
-		
-		this.customAzRules.put(azrule.getName(), cuz);
+
 	}
 
 
@@ -1139,9 +1144,11 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 					
 					attr.getValues().add(pt.getValue());
 				}
-			
+
+
 				DynamicAuthMechs dynCustomAuMechs = (DynamicAuthMechs) Class.forName(className).newInstance();
 				dynCustomAuMechs.loadDynamicAuthMechs(this, this.getProvisioningEngine(), cfgAttrs);
+
 			}
 			
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | ProvisioningException e) {
@@ -1152,32 +1159,36 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 
 	private void initializeAuthenticationMechanism(MechanismType mt)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		AuthMechanism authMech = (AuthMechanism) Class.forName(mt.getClassName().trim()).newInstance();
-		
-		HashMap<String,Attribute> attrs = new HashMap<String,Attribute>();
-		Iterator<ParamType> params = mt.getInit().getParam().iterator();
-		
-		while (params.hasNext()) {
-			ParamType pt = params.next();
-			Attribute attr = attrs.get(pt.getName());
-			if (attr == null) {
-				attr = new Attribute(pt.getName());
-				attrs.put(pt.getName(),attr);
+		try {
+			AuthMechanism authMech = (AuthMechanism) Class.forName(mt.getClassName().trim()).newInstance();
+
+			HashMap<String, Attribute> attrs = new HashMap<String, Attribute>();
+			Iterator<ParamType> params = mt.getInit().getParam().iterator();
+
+			while (params.hasNext()) {
+				ParamType pt = params.next();
+				Attribute attr = attrs.get(pt.getName());
+				if (attr == null) {
+					attr = new Attribute(pt.getName());
+					attrs.put(pt.getName(), attr);
+				}
+				attr.getValues().add(pt.getValue());
 			}
-			attr.getValues().add(pt.getValue());
-		}
-		
-		authMech.init(ctx, attrs);
-		
-		if (this.ctxPath.equalsIgnoreCase("/")) {
-			this.mechs.put(mt.getUri(), authMech);
-		} else {
-			this.mechs.put(this.ctxPath +  mt.getUri(), authMech);
-		}
-		
-		if (mt.getClassName().equals("com.tremolosecurity.proxy.auth.AlwaysFail")) {
-			this.alwaysFailAuth = (AlwaysFail) authMech;
-			this.alwaysFailAuthMech = mt;
+
+			authMech.init(ctx, attrs);
+
+			if (this.ctxPath.equalsIgnoreCase("/")) {
+				this.mechs.put(mt.getUri(), authMech);
+			} else {
+				this.mechs.put(this.ctxPath + mt.getUri(), authMech);
+			}
+
+			if (mt.getClassName().equals("com.tremolosecurity.proxy.auth.AlwaysFail")) {
+				this.alwaysFailAuth = (AlwaysFail) authMech;
+				this.alwaysFailAuthMech = mt;
+			}
+		} catch (Throwable t) {
+			logger.warn(String.format("Could not initialize authentication mechanism %s",mt.getName()),t);
 		}
 		
 		

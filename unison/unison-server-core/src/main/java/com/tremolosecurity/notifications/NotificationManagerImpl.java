@@ -37,16 +37,20 @@ public class NotificationManagerImpl implements NotificationsManager {
 	
 	@Override
 	public void addNotificationSystem(String name, String className, Map<String, Attribute> config) throws Exception {
-		NotificationSystem notifier = (NotificationSystem) Class.forName(className).getConstructor().newInstance();
-		
-		notifier.init(name, config);
-		
-		synchronized (this.notifiers) {
-			if (notifiers.get(name) != null) {
-				this.removeNotificationSystem(name);
+		try {
+			NotificationSystem notifier = (NotificationSystem) Class.forName(className).getConstructor().newInstance();
+
+			notifier.init(name, config);
+
+			synchronized (this.notifiers) {
+				if (notifiers.get(name) != null) {
+					this.removeNotificationSystem(name);
+				}
+
+				this.notifiers.put(name, notifier);
 			}
-			
-			this.notifiers.put(name, notifier);
+		} catch (Throwable e) {
+			logger.warn(String.format("Could not initialize notification system %s.", name), e);
 		}
 
 	}

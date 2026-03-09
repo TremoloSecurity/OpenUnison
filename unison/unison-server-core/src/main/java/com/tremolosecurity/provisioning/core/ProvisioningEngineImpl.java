@@ -736,8 +736,12 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 			WorkflowType wft = it.next();
 			String name = wft.getName();
 			logger.info("Processing workflow - '" + name + "'");
-			WorkflowImpl wf = new WorkflowImpl(this.cfgMgr,wft);
-			this.workflows.put(name, wf);
+			try {
+				WorkflowImpl wf = new WorkflowImpl(this.cfgMgr, wft);
+				this.workflows.put(name, wf);
+			} catch (Throwable t) {
+				logger.warn(String.format("Could not initialize workflow %s",wft.getName()),t);
+			}
 		}
 		
 		
@@ -903,31 +907,35 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 		
 		synchronized (this.userStores) {
 			try {
-				provider = (UserStoreProvider) Class.forName(targetCfg.getClassName()).newInstance();
-			} catch (Exception e) {
-				throw new ProvisioningException("Could not initialize target " + targetCfg.getName(),e);
-			}
-			
-			MapIdentity mapper = new MapIdentity(targetCfg);
-			this.userStores.put(targetCfg.getName(), new ProvisioningTargetImpl(targetCfg.getName(),provider,mapper));
-			
-			if (provider instanceof UserStoreProviderWithMetadata) {
-				UserStoreProviderWithMetadata providerWithMetaData = (UserStoreProviderWithMetadata) provider;
-				if (targetCfg.getAnnotation() != null && providerWithMetaData.getAnnotations() != null) {
-					for (NameValue nv : targetCfg.getAnnotation()) {
-						providerWithMetaData.getAnnotations().put(nv.getName(), nv.getValue());
+				try {
+					provider = (UserStoreProvider) Class.forName(targetCfg.getClassName()).newInstance();
+				} catch (Exception e) {
+					throw new ProvisioningException("Could not initialize target " + targetCfg.getName(), e);
+				}
+
+				MapIdentity mapper = new MapIdentity(targetCfg);
+				this.userStores.put(targetCfg.getName(), new ProvisioningTargetImpl(targetCfg.getName(), provider, mapper));
+
+				if (provider instanceof UserStoreProviderWithMetadata) {
+					UserStoreProviderWithMetadata providerWithMetaData = (UserStoreProviderWithMetadata) provider;
+					if (targetCfg.getAnnotation() != null && providerWithMetaData.getAnnotations() != null) {
+						for (NameValue nv : targetCfg.getAnnotation()) {
+							providerWithMetaData.getAnnotations().put(nv.getName(), nv.getValue());
+						}
+					}
+
+					if (targetCfg.getLabel() != null && providerWithMetaData.getLabels() != null) {
+						for (NameValue nv : targetCfg.getLabel()) {
+							providerWithMetaData.getLabels().put(nv.getName(), nv.getValue());
+						}
 					}
 				}
-				
-				if (targetCfg.getLabel() != null && providerWithMetaData.getLabels() != null) {
-					for (NameValue nv : targetCfg.getLabel()) {
-						providerWithMetaData.getLabels().put(nv.getName(), nv.getValue());
-					}
-				}
+
+
+				provider.init(cfg, cfgMgr, targetCfg.getName());
+			} catch (Throwable t) {
+				logger.warn(String.format("Could not initialize target %s",targetCfg.getName()), t);
 			}
-			
-			
-			provider.init(cfg,cfgMgr,targetCfg.getName());
 		}
 	}
 	
@@ -2275,43 +2283,47 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 
 	private void addJob(JobType jobType, JobKey jk)
 			throws ClassNotFoundException, SchedulerException {
-		
-		boolean localJob = this.localJobs != null && this.localJobs.contains(jobType.getName().toLowerCase());
-		
-		JobDetail jd;
-		JobBuilder jb = JobBuilder.newJob((Class<? extends Job>) Class.forName(jobType.getClassName()));
-		for (ParamWithValueType pt : jobType.getParam()) {
-			if (pt.getValue() != null && ! pt.getValue().isBlank()) {
-				jb.usingJobData(pt.getName(), pt.getValue());
-			} else {
-				jb.usingJobData(pt.getName(), pt.getValueAttribute());
-			}
-			
-		}
-		jb.withIdentity(jk);
-		jb.requestRecovery(true);
+		try {
+			boolean localJob = this.localJobs != null && this.localJobs.contains(jobType.getName().toLowerCase());
 
-		jd = jb.build();
-		
-		StringBuffer cron = new StringBuffer();
-		cron.append(jobType.getCronSchedule().getSeconds()).append(' ')
-		    .append(jobType.getCronSchedule().getMinutes()).append(' ')
-		    .append(jobType.getCronSchedule().getHours()).append(' ')
-		    .append(jobType.getCronSchedule().getDayOfMonth()).append(' ')
-		    .append(jobType.getCronSchedule().getMonth()).append(' ')
-		    .append(jobType.getCronSchedule().getDayOfWeek()).append(' ')
-		    .append(jobType.getCronSchedule().getYear());
-		
-		TriggerBuilder tb = TriggerBuilder.newTrigger()
-				                           .withIdentity("trigger_" + jobType.getName(),jobType.getGroup())
-				                           .withSchedule(CronScheduleBuilder.cronSchedule(cron.toString()).withMisfireHandlingInstructionFireAndProceed());;
-			
-		if (localJob) {
-			logger.info(String.format("Adding job %s to local scheduler",jobType.getName()));
-			this.localScheduler.scheduleJob(jd, tb.build());
-		} else {
-			logger.info(String.format("Adding job %s to global scheduler",jobType.getName()));
-			this.scheduler.scheduleJob(jd, tb.build());
+			JobDetail jd;
+			JobBuilder jb = JobBuilder.newJob((Class<? extends Job>) Class.forName(jobType.getClassName()));
+			for (ParamWithValueType pt : jobType.getParam()) {
+				if (pt.getValue() != null && !pt.getValue().isBlank()) {
+					jb.usingJobData(pt.getName(), pt.getValue());
+				} else {
+					jb.usingJobData(pt.getName(), pt.getValueAttribute());
+				}
+
+			}
+			jb.withIdentity(jk);
+			jb.requestRecovery(true);
+
+			jd = jb.build();
+
+			StringBuffer cron = new StringBuffer();
+			cron.append(jobType.getCronSchedule().getSeconds()).append(' ')
+					.append(jobType.getCronSchedule().getMinutes()).append(' ')
+					.append(jobType.getCronSchedule().getHours()).append(' ')
+					.append(jobType.getCronSchedule().getDayOfMonth()).append(' ')
+					.append(jobType.getCronSchedule().getMonth()).append(' ')
+					.append(jobType.getCronSchedule().getDayOfWeek()).append(' ')
+					.append(jobType.getCronSchedule().getYear());
+
+			TriggerBuilder tb = TriggerBuilder.newTrigger()
+					.withIdentity("trigger_" + jobType.getName(), jobType.getGroup())
+					.withSchedule(CronScheduleBuilder.cronSchedule(cron.toString()).withMisfireHandlingInstructionFireAndProceed());
+			;
+
+			if (localJob) {
+				logger.info(String.format("Adding job %s to local scheduler", jobType.getName()));
+				this.localScheduler.scheduleJob(jd, tb.build());
+			} else {
+				logger.info(String.format("Adding job %s to global scheduler", jobType.getName()));
+				this.scheduler.scheduleJob(jd, tb.build());
+			}
+		} catch (Throwable t) {
+			logger.warn(String.format("Could not initialize job %s", jobType.getName()), t);
 		}
 		
 	}
@@ -2374,27 +2386,31 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	@Override
 	public void addMessageListener(MessageListenerType mlt) throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException, ProvisioningException, JMSException {
-		UnisonMessageListener uml = (UnisonMessageListener) Class.forName(mlt.getClassName()).newInstance();
-		
-		HashMap<String,Attribute> attrs = new HashMap<String,Attribute>();
-		for (ParamType pt : mlt.getParams()) {
-			Attribute attr = attrs.get(pt.getName());
-			if (attr == null) {
-				attr = new Attribute(pt.getName());
-				attrs.put(pt.getName(), attr);
+		try {
+			UnisonMessageListener uml = (UnisonMessageListener) Class.forName(mlt.getClassName()).newInstance();
+
+			HashMap<String, Attribute> attrs = new HashMap<String, Attribute>();
+			for (ParamType pt : mlt.getParams()) {
+				Attribute attr = attrs.get(pt.getName());
+				if (attr == null) {
+					attr = new Attribute(pt.getName());
+					attrs.put(pt.getName(), attr);
+				}
+				attr.getValues().add(pt.getValue());
 			}
-			attr.getValues().add(pt.getValue());
+
+			uml.init(this.cfgMgr, attrs);
+
+
+			JMSSessionHolder session = JMSConnectionFactory.getConnectionFactory().getSession(mlt.getQueueName());
+			session.setMessageListener(uml);
+
+			uml.setListenerSession(session, cfgMgr);
+
+			this.listenerSessions.put(mlt.getQueueName(), session);
+		} catch (Throwable t) {
+			logger.warn(String.format("Could not initialize listener %s",mlt.getQueueName()),t);
 		}
-		
-		uml.init(this.cfgMgr,attrs);
-		
-		
-		JMSSessionHolder session = JMSConnectionFactory.getConnectionFactory().getSession(mlt.getQueueName());
-		session.setMessageListener(uml);
-		
-		uml.setListenerSession(session, cfgMgr);
-		
-		this.listenerSessions.put(mlt.getQueueName(),session);
 	}
 	
 	@Override
