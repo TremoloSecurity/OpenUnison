@@ -661,12 +661,17 @@ public class ProvisioningEngineImpl implements ProvisioningEngine {
 	public void initWorkFlows() throws ProvisioningException {
 		
 		
-		
-		Iterator<String> wfNames = this.workflows.keySet().iterator();
-		while (wfNames.hasNext()) {
-			String name = wfNames.next();
-			this.workflows.get(name).init();
-		}
+
+			Iterator<String> wfNames = this.workflows.keySet().iterator();
+			while (wfNames.hasNext()) {
+				String name = wfNames.next();
+				try {
+					this.workflows.get(name).init();
+				} catch (Throwable t) {
+					logger.warn(String.format("Could not initialize workflow %s",name),t);
+				}
+			}
+
 		
 		
 		try {
