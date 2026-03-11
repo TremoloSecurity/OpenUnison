@@ -79,7 +79,7 @@
 		<xalan.version>2.7.3</xalan.version>
 		<jackson.version>2.21.1</jackson.version>
 		<jackson-annotations.version>2.21</jackson-annotations.version>
-		<jackson-core.version>2.21.0</jackson-core.version>
+		<jackson-core.version>2.21.1</jackson-core.version>
 		<slf4j.version>2.0.17</slf4j.version>
 		<guava.version>33.5.0-jre</guava.version>
 		<undertow.version>2.3.22.Final</undertow.version>
@@ -98,6 +98,7 @@
 		<netty-https2.version>4.2.10.Final</netty-https2.version>
 		<dom4j.version>2.2.0</dom4j.version>
 		<gitlab.version>6.2.0</gitlab.version>
+		<commons-lang3.version>3.18.0</commons-lang3.version>
 		<commons-beanutils.version>1.11.0</commons-beanutils.version>
 		<swagger-core.version>2.1.5</swagger-core.version>
 		<k8sapi.version>10.0.0</k8sapi.version>
