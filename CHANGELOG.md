@@ -4,6 +4,7 @@
  - 1.0.45 build [\#1043](https://github.com/TremoloSecurity/OpenUnison/issues/1043)
 
 **bugs:**
+ - Kubernetes Watches - Increase to 10 minutes [\#1051](https://github.com/TremoloSecurity/OpenUnison/issues/1051)
  - K8s Dynamic Config - failure to start a dynamicly loaded object leads to failed startup [\#1021](https://github.com/TremoloSecurity/OpenUnison/issues/1021)
  - OpenIDConnect IdP - return 401 instead of 500 if the access token for userinfo is wrong [\#1045](https://github.com/TremoloSecurity/OpenUnison/issues/1045)
  - OpenID Connect IdP - pasword grant generates 500 [\#1042](https://github.com/TremoloSecurity/OpenUnison/issues/1042)
