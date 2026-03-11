@@ -287,7 +287,7 @@ public class K8sWatcher implements StopableThread {
 		try {
 			StringBuilder urlb = new StringBuilder().append(k8s.getUrl())
 					                        .append(this.uri)
-					                        .append("?watch=true&timeoutSecond=45&allowWatchBookmarks=true");
+					                        .append("?watch=true&timeoutSecond=600&allowWatchBookmarks=true");
 			
 			if (this.lastResourceId != null) {
 				urlb.append("&resourceVersion=")
