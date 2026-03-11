@@ -1,3 +1,22 @@
+# 1.0.45-2026031101
+
+**Tasks:**
+ - 1.0.45 build [\#1043](https://github.com/TremoloSecurity/OpenUnison/issues/1043)
+
+**bugs:**
+ - K8s Dynamic Config - failure to start a dynamicly loaded object leads to failed startup [\#1021](https://github.com/TremoloSecurity/OpenUnison/issues/1021)
+ - OpenIDConnect IdP - return 401 instead of 500 if the access token for userinfo is wrong [\#1045](https://github.com/TremoloSecurity/OpenUnison/issues/1045)
+ - OpenID Connect IdP - pasword grant generates 500 [\#1042](https://github.com/TremoloSecurity/OpenUnison/issues/1042)
+
+**enhancements:**
+ - Support labels on trusts [\#945](https://github.com/TremoloSecurity/OpenUnison/issues/945)
+ - Add JWT -SVID support to the OIDC identity provider and auth mech [\#1035](https://github.com/TremoloSecurity/OpenUnison/issues/1035)
+ - oidc auth - use basic auth for the code exchange [\#1047](https://github.com/TremoloSecurity/OpenUnison/issues/1047)
+ - ScaleJS Ops: support wildcard search [\#1046](https://github.com/TremoloSecurity/OpenUnison/issues/1046)
+ - Support dynamically loaded keys and certificates [\#1044](https://github.com/TremoloSecurity/OpenUnison/issues/1044)
+
+
+
 # 1.0.44-2026012601
 
 **enhancements:**
