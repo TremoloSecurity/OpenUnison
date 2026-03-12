@@ -1,4 +1,4 @@
-# 1.0.45-2026031101
+# 1.0.45-2026031201
 
 **Tasks:**
  - 1.0.45 build [\#1043](https://github.com/TremoloSecurity/OpenUnison/issues/1043)

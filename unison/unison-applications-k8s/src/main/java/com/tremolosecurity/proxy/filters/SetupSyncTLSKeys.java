@@ -25,8 +25,8 @@ import org.apache.log4j.Logger;
 
 public class SetupSyncTLSKeys implements HttpFilter {
     static Logger logger = Logger.getLogger(SetupSyncTLSKeys.class.getName());
-    SecretVersionsWatch watch;
-    static Integer semaphore;
+    static SecretVersionsWatch watch;
+    static Integer semaphore = 1;
 
 
 
@@ -52,7 +52,7 @@ public class SetupSyncTLSKeys implements HttpFilter {
 
     @Override
     public synchronized void initFilter(HttpFilterConfig config) throws Exception {
-        semaphore = 1;
+
 
         Attribute attr;
 
