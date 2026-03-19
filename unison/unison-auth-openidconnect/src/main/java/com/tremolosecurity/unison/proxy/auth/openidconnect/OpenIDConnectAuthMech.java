@@ -348,12 +348,23 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			//initialize openidconnect
 			
 			String state = new BigInteger(130, this.secureRandom).toString(32);
-			request.getSession().setAttribute("UNISON_OPENIDCONNECT_STATE", state);
+			if (request.getSession().getAttribute("UNISON_OPENIDCONNECT_STATE") != null) {
+				state = request.getSession().getAttribute("UNISON_OPENIDCONNECT_STATE").toString();
+			} else {
+				request.getSession().setAttribute("UNISON_OPENIDCONNECT_STATE", state);
+			}
+
+
 			
 			String codeVerifier = null;
 			if (idpUsePkce) {
 				codeVerifier = this.generateCodeChallenge();
-				request.getSession().setAttribute("UNISON_OPENIDCONNECT_CODE_VERIFIER", codeVerifier);
+				if (request.getSession().getAttribute("UNISON_OPENIDCONNECT_CODE_VERIFIER") != null) {
+					codeVerifier = request.getSession().getAttribute("UNISON_OPENIDCONNECT_CODE_VERIFIER").toString();
+				} else {
+					request.getSession().setAttribute("UNISON_OPENIDCONNECT_CODE_VERIFIER", codeVerifier);
+				}
+
 			}
 			
 			StringBuffer redirToSend = new StringBuffer();
@@ -413,7 +424,10 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			stateFromURL = stateFromURL.substring(stateFromURL.indexOf('=') + 1);
 			
 			String stateFromSession = (String) request.getSession().getAttribute("UNISON_OPENIDCONNECT_STATE");
-			
+
+			// got this far, can remove the state
+			request.getSession().removeAttribute("UNISON_OPENIDCONNECT_STATE");
+
 			if (! stateFromSession.equalsIgnoreCase(stateFromURL)) {
 				throw new ServletException("Invalid State");
 			}
@@ -423,7 +437,10 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 				if (idpUsePkce) {
 					throw new ServletException("No PKCE code verifier in session");
 				}
-			} 
+			}
+
+			request.getSession().removeAttribute("UNISON_OPENIDCONNECT_CODE_VERIFIER");
+
 		
 			HttpUriRequest post = null;
 			
@@ -482,7 +499,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 				token.append(line);
 			}
 			
-			
+
 			
 			
 			httpResp.close();

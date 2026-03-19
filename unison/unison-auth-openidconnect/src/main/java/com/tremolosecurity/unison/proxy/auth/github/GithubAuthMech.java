@@ -166,6 +166,11 @@ public class GithubAuthMech implements AuthMechanism {
 			//initialize openidconnect
 			
 			String state = new BigInteger(130, new SecureRandom()).toString(32);
+
+			if (request.getSession().getAttribute("UNISON_OPENIDCONNECT_STATE") != null) {
+				state = request.getSession().getAttribute("UNISON_OPENIDCONNECT_STATE").toString();
+			}
+
 			request.getSession().setAttribute("UNISON_OPENIDCONNECT_STATE", state);
 			
 			StringBuffer redirToSend = new StringBuffer();
@@ -182,6 +187,7 @@ public class GithubAuthMech implements AuthMechanism {
 			stateFromURL = stateFromURL.substring(stateFromURL.indexOf('=') + 1);
 			
 			String stateFromSession = (String) request.getSession().getAttribute("UNISON_OPENIDCONNECT_STATE");
+			request.getSession().removeAttribute("UNISON_OPENIDCONNECT_STATE");
 			
 			if (! stateFromSession.equalsIgnoreCase(stateFromURL)) {
 				throw new ServletException("Invalid State");
