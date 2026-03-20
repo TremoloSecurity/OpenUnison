@@ -1983,7 +1983,7 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 
 		if (!authInfo.isAuthComplete()) {
-			logger.warn("Attempted completetd federation before authentication is completed, clearing authentication and redirecting to the original URL");
+			logger.warn("Attempted completed federation before authentication is completed, clearing authentication and redirecting to the original URL");
 
 			UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
 			request.getSession().removeAttribute(ProxyConstants.AUTH_CTL);

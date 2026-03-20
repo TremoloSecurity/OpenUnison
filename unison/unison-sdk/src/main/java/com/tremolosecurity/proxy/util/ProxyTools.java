@@ -81,8 +81,8 @@ public class ProxyTools {
 	
 	public String getFqdnUrl(String url,HttpServletRequest req) {
 		
-		
-		if (url.startsWith("http")) {
+		// check if the url already starts with http or another protocol
+		if (url.startsWith("http") || url.contains("://")) {
 			return url;
 			//return this.getHttpsUrl(url, req);
 		} else {
