@@ -1,3 +1,12 @@
+# 1.0.46-2026032001
+
+**bugs:**
+ - non http(s) redirects don't get generated properly [\#1053](https://github.com/TremoloSecurity/OpenUnison/issues/1053)
+ - oidc auth - overlapping requests overwrites state and code verifier [\#1052](https://github.com/TremoloSecurity/OpenUnison/issues/1052)
+
+**Tasks:**
+ - 1.0.46 build [\#1048](https://github.com/TremoloSecurity/OpenUnison/issues/1048)
+
 # 1.0.45-2026031201
 
 **Tasks:**
