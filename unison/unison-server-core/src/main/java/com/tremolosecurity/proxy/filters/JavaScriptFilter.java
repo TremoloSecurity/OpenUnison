@@ -15,9 +15,13 @@
  *******************************************************************************/
 package com.tremolosecurity.proxy.filters;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.tremolosecurity.proxy.mappings.JavaScriptMappings;
+import com.tremolosecurity.server.GlobalEntries;
 import org.apache.log4j.Logger;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
@@ -36,16 +40,45 @@ public class JavaScriptFilter implements HttpFilter {
 	String javaScript;
 	Map<String,Object> globals;
 	boolean initCompleted;
+
+	List<String> jsToLoad;
+
 	
 	@Override
 	public void doFilter(HttpFilterRequest request, HttpFilterResponse response, HttpFilterChain chain)
 			throws Exception {
 		if (this.initCompleted) {
+
+
+
+
+
 			Context context = Context.newBuilder("js").allowAllAccess(true).build();
 			try {
 				context.getBindings("js").putMember("globals", globals);
 				
 				context.getBindings("js").putMember("globals", globals);
+
+				if (this.jsToLoad.size() > 0) {
+					JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+					if (javascripts != null) {
+						this.jsToLoad.forEach(jsName -> {
+							String javascript = javascripts.getMapping(jsName);
+							if (javascript != null) {
+								context.eval("js", javascript);
+							} else {
+								logger.warn("JavScript " + jsName + " not found");
+							}
+						});
+					} else {
+						logger.warn("No javascripts loader initialized");
+					}
+				}
+
+
+
+
+
 				Value val = context.eval("js",this.javaScript);
 				
 				Value doFilter = context.getBindings("js").getMember("doFilter");
@@ -79,7 +112,13 @@ public class JavaScriptFilter implements HttpFilter {
 		initCompleted = false;
 		
 		Context context = Context.newBuilder("js").allowAllAccess(true).build();
-		
+
+		this.jsToLoad = new ArrayList<String>();
+		if (config.getAttribute("includeJs") != null) {
+			jsToLoad.addAll(config.getAttribute("includeJs").getValues());
+		}
+
+
 		try {
 			globals = new HashMap<String,Object>();
 			context.getBindings("js").putMember("globals", globals);

@@ -15,43 +15,33 @@
  *******************************************************************************/
 package com.tremolosecurity.proxy.dynamicconfiguration;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import com.tremolosecurity.proxy.mappings.JavaScriptMappings;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 import com.tremolosecurity.config.util.ConfigManager;
-import com.tremolosecurity.config.xml.ResultGroupType;
-import com.tremolosecurity.config.xml.ResultType;
-import com.tremolosecurity.config.xml.TargetType;
 import com.tremolosecurity.config.xml.TremoloType;
 import com.tremolosecurity.k8s.watch.K8sWatchTarget;
 import com.tremolosecurity.k8s.watch.K8sWatcher;
 import com.tremolosecurity.openunison.util.config.OpenUnisonConfigLoader;
-import com.tremolosecurity.provisioning.core.ProvisioningEngine;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
-import com.tremolosecurity.proxy.dynamicloaders.DynamicResultGroups;
-import com.tremolosecurity.provisioning.targets.LoadTargetsFromK8s;
-import com.tremolosecurity.saml.Attribute;
-import com.tremolosecurity.server.GlobalEntries;
+import com.tremolosecurity.proxy.mappings.JavaScriptMappings;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
-public class LoadJavaScriptMappingFromK8s  implements K8sWatchTarget, JavaScriptMappings {
-static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(LoadJavaScriptMappingFromK8s.class.getName());
-	
+import java.util.HashMap;
+import java.util.Map;
+
+public class LoadJavaScriptsFromK8s implements K8sWatchTarget, JavaScriptMappings {
+	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(LoadJavaScriptsFromK8s.class.getName());
+
 	K8sWatcher k8sWatch;
-	
+
 	TremoloType tremolo;
 
 	Map<String,String> maps;
-	
+
 	private ConfigManager cfgMgr;
-	
-	
-	public LoadJavaScriptMappingFromK8s() {
+
+
+	public LoadJavaScriptsFromK8s() {
 		this.maps = new HashMap<String,String>();
 	}
 
@@ -61,7 +51,7 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 	}
 	
 	
-	public void loadJavaScriptMappings(ConfigManager cfgMgr, 
+	public void loadJavaScripts(ConfigManager cfgMgr,
 			String k8sTarget,String namespace) throws ProvisioningException {
 		this.tremolo = cfgMgr.getCfg();
 		
@@ -71,7 +61,7 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 		
 		this.cfgMgr = cfgMgr;
 		
-		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,"javascriptmappings","openunison.tremolo.io",this,cfgMgr,cfgMgr.getProvisioningEngine());
+		this.k8sWatch = new K8sWatcher(k8sTarget,namespace,"javascripts","openunison.tremolo.io",this,cfgMgr,cfgMgr.getProvisioningEngine());
 		
 		this.k8sWatch.initalRun();
 
@@ -95,11 +85,11 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 			
 			String name = (String) metadata.get("name");
 			
-			logger.info("Adding mapping " + name);
+			logger.info("Adding javascripts " + name);
 			
 			maps.put(name, (String) ((JSONObject)newRoot.get("spec")).get("javascript"));
 		} catch (ParseException e) {
-			throw new ProvisioningException("Could not parse resultgroup",e);
+			throw new ProvisioningException("Could not parse javascripts",e);
 		}
 		
 	}
@@ -122,12 +112,12 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 			
 			String name = (String) metadata.get("name");
 			
-			logger.info("modifying mapping " + name);
+			logger.info("modifying javascripts " + name);
 			
 			maps.put(name, (String) ((JSONObject)newRoot.get("spec")).get("javascript"));
 			
 		} catch (ParseException e) {
-			throw new ProvisioningException("Could not parse resultgroup",e);
+			throw new ProvisioningException("Could not parse javascripts",e);
 		}
 		
 	}
@@ -144,7 +134,7 @@ static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogMana
 		
 		String name = (String) metadata.get("name");
 		
-		logger.info("Deleting mapping " + name);
+		logger.info("Deleting javascripts " + name);
 		
 		maps.remove(name);
 		
