@@ -18,6 +18,9 @@ limitations under the License.
 package com.tremolosecurity.proxy.auth;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 
 import jakarta.servlet.ServletContext;
@@ -27,6 +30,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import org.apache.commons.codec.binary.Hex;
 import org.joda.time.DateTime;
 
 import com.tremolosecurity.proxy.auth.util.AuthStep;
@@ -56,14 +60,25 @@ public class LoginService implements AuthMechanism {
 		Attribute chains = authParams.get(LoginService.CHAINS);
 		
 		HashMap<String,String> chainMap = new HashMap<String,String>();
-		
+		HashMap<String,String> chainHtmlMap = new HashMap<>();
+		MessageDigest mDigest = null;
+
+			try {
+				mDigest = MessageDigest.getInstance("SHA1");
+			} catch (NoSuchAlgorithmException e) {
+				throw new ServletException("SHA1 not available",e);
+			}
 		for (String val : chains.getValues()) {
 			String chainLabel = val.substring(0,val.indexOf('='));
+
+			String chainKey = Hex.encodeHexString(mDigest.digest(chainLabel.getBytes(StandardCharsets.UTF_8)));
+
 			String cahinURL = val.substring(val.indexOf('=') + 1);
-			chainMap.put(chainLabel, cahinURL);
+			chainMap.put(chainKey, cahinURL);
+			chainHtmlMap.put(chainLabel, cahinURL);
 		}
 		
-		request.getSession().setAttribute(LoginService.CHAINS, chainMap);
+		request.getSession().setAttribute(LoginService.CHAINS, chainHtmlMap);
 		
 		
 		if (session.getAttribute("tremolo.io/loginservice/detination") != null) {
@@ -97,7 +112,24 @@ public class LoginService implements AuthMechanism {
 	private void startLogin(HttpServletRequest request,HttpServletResponse response, HttpSession session,
 			HashMap<String, String> chainMap, String chainLabel,String cookieName,int days)
 			throws IOException {
-		String chainURL = chainMap.get(chainLabel);
+
+		MessageDigest messageDigest = null;
+		try {
+			messageDigest = MessageDigest.getInstance("SHA1");
+		} catch (NoSuchAlgorithmException e) {
+			throw new IOException("SHA1 not available",e);
+		}
+
+		String chainKey = Hex.encodeHexString(messageDigest.digest(chainLabel.getBytes(StandardCharsets.UTF_8)));
+
+		String chainURL = chainMap.get(chainKey);
+
+		if (chainURL == null) {
+			chainURL = chainMap.get(chainLabel);
+			if (chainURL != null) {
+				chainKey = chainLabel;
+			}
+		}
 		
 		RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
 		session.setAttribute(LoginService.ORIG_REQ_HOLDER, reqHolder);
@@ -117,7 +149,7 @@ public class LoginService implements AuthMechanism {
 		
 		if (! found) {
 			if (request.getParameter("remember") != null && request.getParameter("remember").equalsIgnoreCase("true")) {
-				Cookie cookie = new Cookie(cookieName,chainLabel);
+				Cookie cookie = new Cookie(cookieName,chainKey);
 				cookie.setPath("/");
 				cookie.setMaxAge(days * 24 * 60 * 60);
 				
