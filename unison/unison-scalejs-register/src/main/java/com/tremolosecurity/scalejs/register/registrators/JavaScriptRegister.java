@@ -15,10 +15,13 @@
  *******************************************************************************/
 package com.tremolosecurity.scalejs.register.registrators;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tremolosecurity.proxy.mappings.JavaScriptMappings;
+import com.tremolosecurity.server.GlobalEntries;
 import org.apache.log4j.Logger;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
@@ -36,6 +39,8 @@ public class JavaScriptRegister implements CreateRegisterUser {
 	String javaScript;
 	Map<String,Object> globals;
 	boolean initCompleted;
+
+	List<String> jsToLoad;
 
 	@Override
 	public void init(ScaleJSRegisterConfig registerConfig) throws ProvisioningException {
@@ -58,6 +63,29 @@ public class JavaScriptRegister implements CreateRegisterUser {
 			
 			globals = new HashMap<String,Object>();
 			context.getBindings("js").putMember("globals", globals);
+
+			this.jsToLoad = new ArrayList<String>();
+			if (registerConfig.getCustomSubmissionConfig().get("includeJs") != null) {
+				jsToLoad.addAll(registerConfig.getCustomSubmissionConfig().get("includeJs").getValues());
+			}
+
+			if (this.jsToLoad.size() > 0) {
+				JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+				if (javascripts != null) {
+					for (String jsName : this.jsToLoad) {
+						String javascript = javascripts.getMapping(jsName);
+						if (javascript != null) {
+							context.eval("js", javascript);
+						} else {
+							logger.warn("JavScript " + jsName + " not found");
+						}
+					}
+				} else {
+					logger.warn("No javascripts loader initialized");
+				}
+			}
+
+
 			Value val = context.eval("js",this.javaScript);
 			
 			Value init = context.getBindings("js").getMember("init");
@@ -98,6 +126,23 @@ public class JavaScriptRegister implements CreateRegisterUser {
 				context.getBindings("js").putMember("globals", globals);
 				
 				context.getBindings("js").putMember("globals", globals);
+
+				if (this.jsToLoad.size() > 0) {
+					JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+					if (javascripts != null) {
+						for (String jsName : this.jsToLoad) {
+							String javascript = javascripts.getMapping(jsName);
+							if (javascript != null) {
+								context.eval("js", javascript);
+							} else {
+								logger.warn("JavScript " + jsName + " not found");
+							}
+						}
+					} else {
+						logger.warn("No javascripts loader initialized");
+					}
+				}
+
 				Value val = context.eval("js",this.javaScript);
 				
 				Value createTremoloUser = context.getBindings("js").getMember("createTremoloUser");
@@ -131,8 +176,23 @@ public class JavaScriptRegister implements CreateRegisterUser {
 			Context context = Context.newBuilder("js").allowAllAccess(true).build();
 			try {
 				context.getBindings("js").putMember("globals", globals);
-				
-				context.getBindings("js").putMember("globals", globals);
+
+				if (this.jsToLoad.size() > 0) {
+					JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+					if (javascripts != null) {
+						for (String jsName : this.jsToLoad) {
+							String javascript = javascripts.getMapping(jsName);
+							if (javascript != null) {
+								context.eval("js", javascript);
+							} else {
+								logger.warn("JavScript " + jsName + " not found");
+							}
+						}
+					} else {
+						logger.warn("No javascripts loader initialized");
+					}
+				}
+
 				Value val = context.eval("js",this.javaScript);
 				
 				Value setWorkflowParameters = context.getBindings("js").getMember("setWorkflowParameters");

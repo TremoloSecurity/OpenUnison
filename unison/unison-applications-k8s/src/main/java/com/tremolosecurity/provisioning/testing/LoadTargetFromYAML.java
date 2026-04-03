@@ -30,7 +30,10 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tremolosecurity.provisioning.core.UserStoreProviderWithMetadata;
 import com.tremolosecurity.provisioning.mapping.MapIdentity;
+import com.tremolosecurity.proxy.dynamicconfiguration.LoadJavaScriptsFromK8s;
+import com.tremolosecurity.proxy.mappings.JavaScriptMappings;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -42,6 +45,23 @@ import java.nio.file.Path;
 
 
 public class LoadTargetFromYAML {
+    public static void loadJsFromYaml(ConfigManager cfgMgr, String yamlFile,Map<String,String> props) throws Exception {
+        props.keySet().forEach(key -> {
+            System.setProperty(key, props.get(key));
+        });
+        String json = convertYamlToJson(Path.of(yamlFile));
+        JSONObject root = (JSONObject) new JSONParser().parse(json);
+        String name = ((JSONObject)root.get("metadata")).get("name").toString();
+        String js = ((JSONObject)root.get("spec")).get("javascript").toString();
+        TestingLoadJavascripts javascripts = (TestingLoadJavascripts) GlobalEntries.getGlobalEntries().get("javascripts");
+        if (javascripts == null) {
+            javascripts = new TestingLoadJavascripts();
+            GlobalEntries.getGlobalEntries().set("javascripts", javascripts);
+        }
+
+        javascripts.addMapping(name, js);
+
+    }
     public static UserStoreProvider loadFromYAML(ConfigManager cfgMgr, String yamlFile, Map<String,String> props, Map<String, Map<String,String>> secrets) throws Exception {
         TargetType target = loadTargetFromYAML(cfgMgr, yamlFile, props, secrets);
         return createTarget(cfgMgr, target);
@@ -193,5 +213,21 @@ public class LoadTargetFromYAML {
 
         return provider;
 
+    }
+}
+
+class TestingLoadJavascripts implements JavaScriptMappings {
+    HashMap<String,String> js;
+
+    public TestingLoadJavascripts() {
+        this.js = new HashMap<>();
+    }
+    @Override
+    public String getMapping(String name) {
+        return this.js.get(name);
+    }
+
+    public void addMapping(String name,String js) {
+        this.js.put(name,js);
     }
 }

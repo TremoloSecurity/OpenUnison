@@ -16,14 +16,19 @@
 package com.tremolosecurity.proxy.auth;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
+import com.tremolosecurity.proxy.mappings.JavaScriptMappings;
+import com.tremolosecurity.server.GlobalEntries;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import org.apache.log4j.Logger;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
@@ -33,6 +38,7 @@ import com.tremolosecurity.proxy.util.ProxyConstants;
 import com.tremolosecurity.saml.Attribute;
 
 public class JavaScriptAuth implements AuthMechanism {
+	static Logger logger = Logger.getLogger(JavaScriptAuth.class.getName());
 
 	@Override
 	public void init(ServletContext ctx, HashMap<String, Attribute> init) {
@@ -51,9 +57,28 @@ public class JavaScriptAuth implements AuthMechanism {
 			throws IOException, ServletException {
 		HttpSession session = ((HttpServletRequest) request).getSession();
 		HashMap<String,Attribute> authParams = (HashMap<String,Attribute>) session.getAttribute(ProxyConstants.AUTH_MECH_PARAMS);
+
+		Context context = Context.newBuilder("js").allowAllAccess(true).build();
+
+		if (authParams.containsKey("includeJs")) {
+			Attribute jsToLoadAttr = authParams.get("includeJs");
+			JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+			if (javascripts != null) {
+				for (String jsName : jsToLoadAttr.getValues()) {
+					String javascript = javascripts.getMapping(jsName);
+					if (javascript != null) {
+						context.eval("js", javascript);
+					} else {
+						logger.warn("JavScript " + jsName + " not found");
+					}
+				}
+			} else {
+				logger.warn("No javascripts loader initialized");
+			}
+		}
 		
 		String js = authParams.get("js").getValues().get(0);
-		Context context = Context.newBuilder("js").allowAllAccess(true).build();
+
 		
 		Value val = context.eval("js",js);
 		

@@ -16,8 +16,12 @@
 
 package com.tremolosecurity.provisioning.listeners;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
+import com.tremolosecurity.proxy.mappings.JavaScriptMappings;
+import com.tremolosecurity.server.GlobalEntries;
 import jakarta.jms.Message;
 
 import org.apache.log4j.Logger;
@@ -32,7 +36,7 @@ import com.tremolosecurity.saml.Attribute;
 public class JSListener extends UnisonMessageListener {
 	static Logger logger = Logger.getLogger(JSListener.class);
 	String js;
-
+	List<String> jsToLoad;
 	boolean initCompleted;
 	
 	@Override
@@ -41,7 +45,23 @@ public class JSListener extends UnisonMessageListener {
 		if (initCompleted) {
 			try {
 			context = Context.newBuilder("js").allowAllAccess(true).build();
-			
+
+			if (this.jsToLoad.size() > 0) {
+				JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+				if (javascripts != null) {
+					for (String jsName : this.jsToLoad) {
+						String javascript = javascripts.getMapping(jsName);
+						if (javascript != null) {
+							context.eval("js", javascript);
+						} else {
+							logger.warn("JavScript " + jsName + " not found");
+						}
+					}
+				} else {
+					logger.warn("No javascripts loader initialized");
+				}
+			}
+
 			Value val = context.eval("js",this.js);
 			
 			Value onMessage = context.getBindings("js").getMember("onMessage");
@@ -81,6 +101,12 @@ public class JSListener extends UnisonMessageListener {
 		
 		
 		try {
+
+			this.jsToLoad = new ArrayList<String>();
+			if (attributes.get("includeJs") != null) {
+				jsToLoad.addAll(attributes.get("includeJs").getValues());
+			}
+
 			Value val = context.eval("js",this.js);
 			
 			Value onMessage = context.getBindings("js").getMember("onMessage");

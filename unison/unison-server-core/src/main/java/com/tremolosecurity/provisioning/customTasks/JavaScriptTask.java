@@ -15,15 +15,20 @@
  *******************************************************************************/
 package com.tremolosecurity.provisioning.customTasks;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.tremolosecurity.config.xml.CustomTaskType;
 import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.provisioning.core.User;
 import com.tremolosecurity.provisioning.core.WorkflowTask;
 import com.tremolosecurity.provisioning.util.CustomTask;
+import com.tremolosecurity.proxy.mappings.JavaScriptMappings;
 import com.tremolosecurity.saml.Attribute;
 
+import com.tremolosecurity.server.GlobalEntries;
 import org.apache.log4j.Logger;
 import org.graalvm.polyglot.*;
 import org.graalvm.polyglot.proxy.*;
@@ -34,7 +39,13 @@ public class JavaScriptTask implements CustomTask {
 	String javaScript;
 	Map<String,Object> state;
 	boolean initCompleted;
+	List<String> jsToLoad;
+
+
+
 	transient WorkflowTask task;
+
+
 
 	@Override
 	public void init(WorkflowTask task, Map<String, Attribute> params) throws ProvisioningException {
@@ -42,14 +53,41 @@ public class JavaScriptTask implements CustomTask {
 		
 		Context context = Context.newBuilder("js").allowAllAccess(true).build();
 		context.getBindings("js").putMember("state", state);
-		
+
+
 		
 		
 		try {
 			this.javaScript = params.get("javaScript").getValues().get(0);
 			params.remove("javaScript");
+
+			this.jsToLoad = new ArrayList<String>();
+			if (params.get("includeJs") != null) {
+				jsToLoad.addAll(params.get("includeJs").getValues());
+				//params.remove("includeJs");
+			}
+
+
 			state = new HashMap<String,Object>();
 			context.getBindings("js").putMember("state", state);
+
+			if (this.jsToLoad.size() > 0) {
+				JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+				if (javascripts != null) {
+					for (String jsName : this.jsToLoad) {
+						String javascript = javascripts.getMapping(jsName);
+						if (javascript != null) {
+							context.eval("js", javascript);
+						} else {
+							logger.warn("JavScript " + jsName + " not found");
+						}
+					}
+				} else {
+					logger.warn("No javascripts loader initialized");
+				}
+			}
+
+
 			Value val = context.eval("js",this.javaScript);
 			
 			Value init = context.getBindings("js").getMember("init");
@@ -86,6 +124,34 @@ public class JavaScriptTask implements CustomTask {
 		if (initCompleted) {
 			Context context = Context.newBuilder("js").allowAllAccess(true).build();
 			context.getBindings("js").putMember("state", state);
+
+			if (this.jsToLoad == null) {
+				this.jsToLoad = new ArrayList<>();
+				// not sure why this isn't persisted
+				com.tremolosecurity.provisioning.tasks.CustomTask wft = (com.tremolosecurity.provisioning.tasks.CustomTask) task;
+				Attribute vals = wft.getParams().get("includeJs");
+				if (vals != null) {
+					this.jsToLoad.addAll(vals.getValues());
+				}
+			}
+
+
+			if (this.jsToLoad.size() > 0) {
+				JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+				if (javascripts != null) {
+					for (String jsName : this.jsToLoad) {
+						String javascript = javascripts.getMapping(jsName);
+						if (javascript != null) {
+							context.eval("js", javascript);
+						} else {
+							logger.warn("JavScript " + jsName + " not found");
+						}
+					}
+				} else {
+					logger.warn("No javascripts loader initialized");
+				}
+			}
+
 			Value val = context.eval("js",this.javaScript);
 			
 			Value init = context.getBindings("js").getMember("reInit");
@@ -105,6 +171,24 @@ public class JavaScriptTask implements CustomTask {
 				Context context = Context.newBuilder("js").allowAllAccess(true).build();
 				context.getBindings("js").putMember("state", state);
 				context.getBindings("js").putMember("task", task);
+
+				if (this.jsToLoad.size() > 0) {
+					JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+					if (javascripts != null) {
+						for (String jsName : this.jsToLoad) {
+							String javascript = javascripts.getMapping(jsName);
+							if (javascript != null) {
+								context.eval("js", javascript);
+							} else {
+								logger.warn("JavScript " + jsName + " not found");
+							}
+						}
+					} else {
+						logger.warn("No javascripts loader initialized");
+					}
+				}
+
+
 				Value val = context.eval("js",this.javaScript);
 				
 				Value doTask = context.getBindings("js").getMember("doTask");

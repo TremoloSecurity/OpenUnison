@@ -19,19 +19,17 @@ package com.tremolosecurity.provisioning.core.providers;
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.provisioning.UserStoreProviderLookups;
 import com.tremolosecurity.provisioning.core.*;
+import com.tremolosecurity.proxy.mappings.JavaScriptMappings;
 import com.tremolosecurity.saml.Attribute;
+import com.tremolosecurity.server.GlobalEntries;
 import org.apache.log4j.Logger;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.io.IOAccess;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class JavaScriptTarget implements UserStoreProviderWithAddGroup, UserStoreProviderWithMetadata, UserStoreProviderLookups {
 
@@ -43,12 +41,31 @@ public class JavaScriptTarget implements UserStoreProviderWithAddGroup, UserStor
     boolean createGroups;
     boolean userLookups;
 
+    List<String> jsToLoad;
+
     static Logger logger = Logger.getLogger(JavaScriptTarget.class.getName());
 
     public Object execFunction(String functionName, Object... parameters) throws ProvisioningException{
         try {
             Context context = Context.newBuilder("js").allowAllAccess(true).allowIO(IOAccess.ALL).build();
             context.getBindings("js").putMember("state", state);
+
+            if (this.jsToLoad.size() > 0) {
+                JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+                if (javascripts != null) {
+                    this.jsToLoad.forEach(jsName -> {
+                        String javascript = javascripts.getMapping(jsName);
+                        if (javascript != null) {
+                            context.eval("js", javascript);
+                        } else {
+                            logger.warn("JavScript " + jsName + " not found");
+                        }
+                    });
+                } else {
+                    logger.warn("No javascripts loader initialized");
+                }
+            }
+
             Value val = context.eval("js",this.javaScript);
             Value doTask = context.getBindings("js").getMember(functionName);
 
@@ -66,6 +83,23 @@ public class JavaScriptTarget implements UserStoreProviderWithAddGroup, UserStor
         try {
             Context context = Context.newBuilder("js").allowAllAccess(true).build();
             context.getBindings("js").putMember("state", state);
+
+            if (this.jsToLoad.size() > 0) {
+                JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+                if (javascripts != null) {
+                    this.jsToLoad.forEach(jsName -> {
+                        String javascript = javascripts.getMapping(jsName);
+                        if (javascript != null) {
+                            context.eval("js", javascript);
+                        } else {
+                            logger.warn("JavScript " + jsName + " not found");
+                        }
+                    });
+                } else {
+                    logger.warn("No javascripts loader initialized");
+                }
+            }
+
             Value val = context.eval("js",this.javaScript);
             Value doTask = context.getBindings("js").getMember(functionName);
             doTask.executeVoid(parameters);
@@ -332,6 +366,12 @@ public class JavaScriptTarget implements UserStoreProviderWithAddGroup, UserStor
 
 
         try {
+
+            this.jsToLoad = new ArrayList<String>();
+            if (cfg.get("includeJs") != null) {
+                jsToLoad.addAll(cfg.get("includeJs").getValues());
+            }
+
             this.javaScript = cfg.get("javaScript").getValues().get(0);
             cfg.remove("javaScript");
             state = new HashMap<String,Object>();
@@ -340,6 +380,23 @@ public class JavaScriptTarget implements UserStoreProviderWithAddGroup, UserStor
             state.put("cfgMgr",cfgMgr);
 
             context.getBindings("js").putMember("state", state);
+
+            if (this.jsToLoad.size() > 0) {
+                JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+                if (javascripts != null) {
+                    this.jsToLoad.forEach(jsName -> {
+                        String javascript = javascripts.getMapping(jsName);
+                        if (javascript != null) {
+                            context.eval("js", javascript);
+                        } else {
+                            logger.warn("JavScript " + jsName + " not found");
+                        }
+                    });
+                } else {
+                    logger.warn("No javascripts loader initialized");
+                }
+            }
+
             Value val = context.eval("js",this.javaScript);
 
             Value init = context.getBindings("js").getMember("init");

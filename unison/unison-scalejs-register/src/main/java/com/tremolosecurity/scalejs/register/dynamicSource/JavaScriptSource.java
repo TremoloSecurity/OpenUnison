@@ -15,10 +15,13 @@
  *******************************************************************************/
 package com.tremolosecurity.scalejs.register.dynamicSource;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tremolosecurity.proxy.mappings.JavaScriptMappings;
+import com.tremolosecurity.server.GlobalEntries;
 import org.apache.log4j.Logger;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
@@ -37,6 +40,8 @@ public class JavaScriptSource implements SourceList {
 	String javaScript;
 	Map<String,Object> globals;
 	boolean initCompleted;
+
+	List<String> jsToLoad;
 	
 	@Override
 	public void init(ScaleAttribute attribute, Map<String, Attribute> config) {
@@ -56,9 +61,33 @@ public class JavaScriptSource implements SourceList {
 			}
 		
 			this.javaScript = attr.getValues().get(0);
+
+			this.jsToLoad = new ArrayList<String>();
+			if (config.get("includeJs") != null) {
+				jsToLoad.addAll(config.get("includeJs").getValues());
+			}
 			
 			globals = new HashMap<String,Object>();
 			context.getBindings("js").putMember("globals", globals);
+
+
+			if (this.jsToLoad.size() > 0) {
+				JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+				if (javascripts != null) {
+					for (String jsName : this.jsToLoad) {
+						String javascript = javascripts.getMapping(jsName);
+						if (javascript != null) {
+							context.eval("js", javascript);
+						} else {
+							logger.warn("JavScript " + jsName + " not found");
+						}
+					}
+				} else {
+					logger.warn("No javascripts loader initialized");
+				}
+			}
+
+
 			Value val = context.eval("js",this.javaScript);
 			
 			Value init = context.getBindings("js").getMember("init");
@@ -99,6 +128,22 @@ public class JavaScriptSource implements SourceList {
 				
 				context = Context.newBuilder("js").allowAllAccess(true).build();
 				context.getBindings("js").putMember("globals", globals);
+
+				if (this.jsToLoad.size() > 0) {
+					JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+					if (javascripts != null) {
+                        for (String jsName : this.jsToLoad) {
+                            String javascript = javascripts.getMapping(jsName);
+                            if (javascript != null) {
+                                context.eval("js", javascript);
+                            } else {
+                                logger.warn("JavScript " + jsName + " not found");
+                            }
+                        }
+                    } else {
+						logger.warn("No javascripts loader initialized");
+					}
+				}
 				
 				Value val = context.eval("js",this.javaScript);
 				
@@ -132,7 +177,23 @@ public class JavaScriptSource implements SourceList {
 				
 				context = Context.newBuilder("js").allowAllAccess(true).build();
 				context.getBindings("js").putMember("globals", globals);
-				
+
+				if (this.jsToLoad.size() > 0) {
+					JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+					if (javascripts != null) {
+						for (String jsName : this.jsToLoad) {
+							String javascript = javascripts.getMapping(jsName);
+							if (javascript != null) {
+								context.eval("js", javascript);
+							} else {
+								logger.warn("JavScript " + jsName + " not found");
+							}
+						}
+					} else {
+						logger.warn("No javascripts loader initialized");
+					}
+				}
+
 				Value val = context.eval("js",this.javaScript);
 				
 				Value validate = context.getBindings("js").getMember("validate");

@@ -16,11 +16,10 @@ limitations under the License.
 
 package com.tremolosecurity.customaz;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.tremolosecurity.proxy.mappings.JavaScriptMappings;
+import com.tremolosecurity.server.GlobalEntries;
 import org.apache.log4j.Logger;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
@@ -42,6 +41,8 @@ public class JavaScriptAz implements CustomAuthorization {
 	String javaScript;
 	boolean initCompleted;
 
+	List<String> jsToLoad;
+
 	@Override
 	public void init(Map<String, Attribute> config) throws AzException {
 		initCompleted = false;		
@@ -53,8 +54,11 @@ public class JavaScriptAz implements CustomAuthorization {
 		
 			globalsToStore = new HashMap<String,Object>();
 			context.getBindings("js").putMember("globalsToStore", globalsToStore);
-		
-		
+
+			this.jsToLoad = new ArrayList<String>();
+			if (config.get("includeJs") != null) {
+				jsToLoad.addAll(config.get("includeJs").getValues());
+			}
 		
 			Attribute attr = config.get("javaScript");
 			if (attr == null) {
@@ -66,6 +70,25 @@ public class JavaScriptAz implements CustomAuthorization {
 			
 			globals = new HashMap<String,Object>();
 			context.getBindings("js").putMember("globals", globals);
+
+			if (this.jsToLoad.size() > 0) {
+				JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+				if (javascripts != null) {
+					for (String jsName : this.jsToLoad) {
+						String javascript = javascripts.getMapping(jsName);
+						if (javascript != null) {
+							context.eval("js", javascript);
+						} else {
+							logger.warn("JavScript " + jsName + " not found");
+						}
+					}
+				} else {
+					logger.warn("No javascripts loader initialized");
+				}
+			}
+
+
+
 			Value val = context.eval("js",this.javaScript);
 			
 			Value init = context.getBindings("js").getMember("init");
@@ -125,6 +148,23 @@ public class JavaScriptAz implements CustomAuthorization {
 				context.getBindings("js").putMember("globals", globals);
 				
 				context.getBindings("js").putMember("globals", globals);
+
+				if (this.jsToLoad.size() > 0) {
+					JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+					if (javascripts != null) {
+						for (String jsName : this.jsToLoad) {
+							String javascript = javascripts.getMapping(jsName);
+							if (javascript != null) {
+								context.eval("js", javascript);
+							} else {
+								logger.warn("JavScript " + jsName + " not found");
+							}
+						}
+					} else {
+						logger.warn("No javascripts loader initialized");
+					}
+				}
+
 				Value val = context.eval("js",this.javaScript);
 				
 				Value isAuthorized = context.getBindings("js").getMember("isAuthorized");
@@ -147,6 +187,23 @@ public class JavaScriptAz implements CustomAuthorization {
 				context.getBindings("js").putMember("globals", globals);
 				
 				context.getBindings("js").putMember("globals", globals);
+
+				if (this.jsToLoad.size() > 0) {
+					JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+					if (javascripts != null) {
+						for (String jsName : this.jsToLoad) {
+							String javascript = javascripts.getMapping(jsName);
+							if (javascript != null) {
+								context.eval("js", javascript);
+							} else {
+								logger.warn("JavScript " + jsName + " not found");
+							}
+						}
+					} else {
+						logger.warn("No javascripts loader initialized");
+					}
+				}
+
 				Value val = context.eval("js",this.javaScript);
 				
 				

@@ -1,8 +1,11 @@
 package com.tremolosecurity.mapping;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.tremolosecurity.proxy.mappings.JavaScriptMappings;
 import org.apache.log4j.Logger;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
@@ -28,6 +31,8 @@ public class JavaScriptMapping implements CustomMapping {
 	private String name;
 	
 	private String key;
+
+	List<String> jsToLoad;
 
 	@Override
 	public Attribute doMapping(User user, String attrname) {
@@ -59,6 +64,23 @@ public class JavaScriptMapping implements CustomMapping {
 		
 		Context context = Context.newBuilder("js").allowAllAccess(true).build();
 		try {
+
+			if (this.jsToLoad.size() > 0) {
+				JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");
+				if (javascripts != null) {
+					for (String jsName : this.jsToLoad) {
+						String javascript = javascripts.getMapping(jsName);
+						if (javascript != null) {
+							context.eval("js", javascript);
+						} else {
+							logger.warn("JavScript " + jsName + " not found");
+						}
+					}
+				} else {
+					logger.warn("No javascripts loader initialized");
+				}
+			}
+
 			Value initicalCtx = context.eval("js",js);
 			Value doMapping = context.getBindings("js").getMember("doMapping");
 			
@@ -92,7 +114,12 @@ public class JavaScriptMapping implements CustomMapping {
 		this.name = params[2];
 		this.key = this.target + "-" + this.namespace;
 		
-		
+		this.jsToLoad = new ArrayList<String>();
+		if (params.length > 3) {
+			for (int i = 3; i < params.length; i++) {
+				this.jsToLoad.add(params[i]);
+			}
+		}
 
 	}
 

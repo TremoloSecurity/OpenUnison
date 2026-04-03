@@ -41,6 +41,7 @@ public class LoadJavaScriptsFromK8s implements K8sWatchTarget, JavaScriptMapping
 	private ConfigManager cfgMgr;
 
 
+
 	public LoadJavaScriptsFromK8s() {
 		this.maps = new HashMap<String,String>();
 	}
