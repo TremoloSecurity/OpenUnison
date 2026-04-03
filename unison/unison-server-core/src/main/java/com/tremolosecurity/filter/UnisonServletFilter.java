@@ -19,11 +19,14 @@ package com.tremolosecurity.filter;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.security.Provider;
 import java.security.Security;
 import java.sql.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -299,7 +302,34 @@ static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonServl
 				embSys.nextSys(pr, (HttpServletResponse)resp);
 			}
 		
+		} catch (IllegalStateException ise) {
+			logger.warn(String.format("Illegal state exception for %s",req.getRequestURL()));
 		} catch (Exception e) {
+
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+
+
+			e.printStackTrace(pw);
+			pw.flush();
+			StringBuilder sb = new StringBuilder();
+			boolean foundXforwardedFor = false;
+
+			Enumeration enumer = req.getHeaders("x-forwarded-for");
+			if (enumer != null) {
+				while (enumer.hasMoreElements()) {
+					String val = (String) enumer.nextElement();
+					sb.append(val).append("; ");
+					foundXforwardedFor = true;
+				}
+			}
+
+			if (!foundXforwardedFor) {
+				sb.append("none");
+			}
+
+			String errorMsg = String.format("Error on URL : %s\nMethod: %s\nForwarded from: %s\nStack Trace:\n*****************************\n%s\n*****************************",req.getRequestURL(),req.getMethod(),sb.toString(),sw.toString());
+			logger.error(errorMsg);
 			
 			if (req.getContentType() != null && req.getContentType().startsWith("application/json")) {
 				logger.error("Could not process api request",e);
@@ -310,7 +340,7 @@ static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonServl
 			} else {
 				req.setAttribute("TREMOLO_ERROR_REQUEST_URL", req.getRequestURL().toString());
 				req.setAttribute("TREMOLO_ERROR_EXCEPTION", e);
-				logger.error("Could not process request",e);
+
 				StringBuffer b = new StringBuffer();
 				b.append(cfg.getAuthFormsPath()).append("error.jsp");
 				req.getRequestDispatcher(b.toString()).forward(pr, resp);

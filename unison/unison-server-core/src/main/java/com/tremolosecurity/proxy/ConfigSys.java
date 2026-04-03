@@ -351,6 +351,8 @@ public class ConfigSys  {
 				
 				
 			}
+		} catch (java.nio.channels.ClosedChannelException cce)  {
+			logger.warn(String.format("Channel close for %s",req.getRequestURL()));
 		} catch (Exception e) {
 			ApplicationType appType = null;
 			if (holder != null) {
