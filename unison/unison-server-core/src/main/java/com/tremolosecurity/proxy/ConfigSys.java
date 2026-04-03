@@ -17,13 +17,7 @@ limitations under the License.
 
 package com.tremolosecurity.proxy;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.SocketException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -368,8 +362,32 @@ public class ConfigSys  {
 			}
 			
 			AccessLog.log(AccessEvent.Error, appType, (HttpServletRequest) req, userAuth , "NONE");
-			
-			logger.error("Error generated in request",e);
+
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+
+
+			e.printStackTrace(pw);
+			pw.flush();
+			StringBuilder sb = new StringBuilder();
+			boolean foundXforwardedFor = false;
+
+			Enumeration enumer = req.getHeaders("x-forwarded-for");
+			if (enumer != null) {
+				while (enumer.hasMoreElements()) {
+					String val = (String) enumer.nextElement();
+					sb.append(val).append("; ");
+					foundXforwardedFor = true;
+				}
+			}
+
+			if (!foundXforwardedFor) {
+				sb.append("none");
+			}
+
+			String errorMsg = String.format("Error on URL : %s\nMethod: %s\nForwarded from: %s\nStack Trace:\n*****************************\n%s\n*****************************",req.getRequestURL(),req.getMethod(),sb.toString(),sw.toString());
+			logger.error(errorMsg);
+
 			if (req.getContentType() != null && req.getContentType().startsWith("application/json")) {
 				
 				resp.setStatus(500);
@@ -380,7 +398,7 @@ public class ConfigSys  {
 			
 				req.setAttribute("TREMOLO_ERROR_REQUEST_URL", req.getRequestURL().toString());
 				req.setAttribute("TREMOLO_ERROR_EXCEPTION", e);
-				logger.error("Could not process request",e);
+				//logger.error("Could not process request",e);
 				
 				String redirectLocation = cfg.getErrorPages().get(500);
 	
