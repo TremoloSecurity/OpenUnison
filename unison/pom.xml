@@ -48,6 +48,7 @@
 		<myvd-server.version>1.0.28</myvd-server.version>
 		<jldap.version>1.0.3</jldap.version>
 		<httpclient.version>4.5.14</httpclient.version>
+		<http5client.version>5.4.2</http5client.version>
 		<httpcore.version>4.4.16</httpcore.version>
 		<httpmime.version>4.5.14</httpmime.version>
 		<commons-fileupload.version>2.0.0-M1-SNAPSHOT</commons-fileupload.version>
@@ -79,7 +80,7 @@
 		<xalan.version>2.7.3</xalan.version>
 		<jackson.version>2.21.2</jackson.version>
 		<jackson-annotations.version>2.21</jackson-annotations.version>
-		<jackson-core.version>2.21.1</jackson-core.version>
+		<jackson-core.version>2.21.2</jackson-core.version>
 		<slf4j.version>2.0.17</slf4j.version>
 		<guava.version>33.5.0-jre</guava.version>
 		<undertow.version>2.3.24.Final</undertow.version>
