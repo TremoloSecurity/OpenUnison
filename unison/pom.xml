@@ -79,7 +79,7 @@
 		<xalan.version>2.7.3</xalan.version>
 		<jackson.version>2.21.2</jackson.version>
 		<jackson-annotations.version>2.21</jackson-annotations.version>
-		<jackson-core.version>2.21.1</jackson-core.version>
+		<jackson-core.version>2.21.2</jackson-core.version>
 		<slf4j.version>2.0.17</slf4j.version>
 		<guava.version>33.5.0-jre</guava.version>
 		<undertow.version>2.3.24.Final</undertow.version>
