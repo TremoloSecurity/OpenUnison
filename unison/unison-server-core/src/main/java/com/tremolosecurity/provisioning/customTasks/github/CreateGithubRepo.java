@@ -40,20 +40,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.log4j.Logger;
 import org.jose4j.lang.JoseException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.kohsuke.github.GHCreateRepositoryBuilder;
-import org.kohsuke.github.GHDeployKey;
-import org.kohsuke.github.GHEvent;
-import org.kohsuke.github.GHHook;
-import org.kohsuke.github.GHOrganization;
-import org.kohsuke.github.GHRepository;
+import org.kohsuke.github.*;
 import org.kohsuke.github.GHRepository.Visibility;
-import org.kohsuke.github.GHTeam;
-import org.kohsuke.github.GitHub;
-import org.kohsuke.github.GitHubBuilder;
 
 import com.goterl.lazysodium.exceptions.SodiumException;
 import com.goterl.lazysodium.utils.Key;
@@ -71,7 +64,7 @@ import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.server.GlobalEntries;
 
 public class CreateGithubRepo implements CustomTask {
-	
+	static Logger logger = Logger.getLogger(CreateGithubRepo.class.getName());
 	String targetName;
 	String name;
 	transient WorkflowTask task;
@@ -262,7 +255,24 @@ public class CreateGithubRepo implements CustomTask {
 			String lDeployKeyName = this.task.renderTemplate(this.deployKeyName, request);
 			
 			boolean found = false;
-			List<GHDeployKey> deployKeys = repo.getDeployKeys();
+			List<GHDeployKey> deployKeys = null;
+
+			boolean foundDeployKey = false;
+			for (int i=0;i<10;i++) {
+				try {
+					deployKeys = repo.getDeployKeys();
+					foundDeployKey = true;
+					break;
+				} catch (GHFileNotFoundException e) {
+					logger.warn("Could not load deploy keys",e);
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException ex) {
+
+                    }
+                }
+			}
+
 			
 			for (GHDeployKey key : deployKeys) {
 				if (key.getTitle().equals(lDeployKeyName)) {
@@ -327,37 +337,22 @@ public class CreateGithubRepo implements CustomTask {
 				}
 				
 				if (! found) {
-					String webhookToken = new GenPasswd(50).getPassword();
-					String b64WebhookToken = java.util.Base64.getEncoder().encodeToString(webhookToken.getBytes("UTF-8"));
-					String webhookSecretRequestName = "github.webhook.secret." + lTargetName + "." + lName;
-					request.put(webhookSecretRequestName,webhookToken);
-					request.put("b64" + webhookSecretRequestName,b64WebhookToken);
-					user.getAttribs().put(webhookSecretRequestName, new Attribute("webhookSecretRequestName","true"));
-					
-					HashMap<String,String> hookCfg = new HashMap<String,String>();
-					
-					hookCfg.put("url", lWebHookUrl);
-					hookCfg.put("content_type", "json");
-					hookCfg.put("secret", webhookToken);
-					
-					List<GHEvent> events = new ArrayList<GHEvent>(); 
-					
-					for (String event : this.webhookEvents) {
-						String eventStr = task.renderTemplate(event, request);
-						
-						if (eventStr.equals("*")) {
-							eventStr = "ALL";
-						}
-						
-						GHEvent eventObj = GHEvent.valueOf(eventStr); 
-						events.add(eventObj);
+					boolean finished = false;
+					for (int i=0;1<10;i++) {
+						try {
+							createInitialDeploymentKey(user, request, lTargetName, lName, lWebHookUrl, repo, approvalID, workflow, github);
+							finished = true;
+							break;
+						} catch (GHFileNotFoundException e) {
+							logger.warn("Could not create deploy key", e);
+                            try {
+                                Thread.sleep(10000);
+                            } catch (InterruptedException ex) {
+
+                            }
+                        }
 					}
-					
-					GHHook hook = repo.createHook("web", hookCfg, events, true);
-					
-					GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().logAction(lTargetName,
-							false, ActionType.Add, approvalID, workflow,
-							String.format("github-repo-%s.%s-webhook",github.getOrgName(),repo.getName()), lWebHookUrl);
+
 				}
 			}
 			
@@ -370,7 +365,41 @@ public class CreateGithubRepo implements CustomTask {
 		
 		return true;
 	}
-	
+
+	private void createInitialDeploymentKey(User user, Map<String, Object> request, String lTargetName, String lName, String lWebHookUrl, GHRepository repo, int approvalID, Workflow workflow, GitHubProvider github) throws IOException, ProvisioningException {
+		String webhookToken = new GenPasswd(50).getPassword();
+		String b64WebhookToken = java.util.Base64.getEncoder().encodeToString(webhookToken.getBytes("UTF-8"));
+		String webhookSecretRequestName = "github.webhook.secret." + lTargetName + "." + lName;
+		request.put(webhookSecretRequestName,webhookToken);
+		request.put("b64" + webhookSecretRequestName,b64WebhookToken);
+		user.getAttribs().put(webhookSecretRequestName, new Attribute("webhookSecretRequestName","true"));
+
+		HashMap<String,String> hookCfg = new HashMap<String,String>();
+
+		hookCfg.put("url", lWebHookUrl);
+		hookCfg.put("content_type", "json");
+		hookCfg.put("secret", webhookToken);
+
+		List<GHEvent> events = new ArrayList<GHEvent>();
+
+		for (String event : this.webhookEvents) {
+			String eventStr = task.renderTemplate(event, request);
+
+			if (eventStr.equals("*")) {
+				eventStr = "ALL";
+			}
+
+			GHEvent eventObj = GHEvent.valueOf(eventStr);
+			events.add(eventObj);
+		}
+
+		GHHook hook = repo.createHook("web", hookCfg, events, true);
+
+		GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().logAction(lTargetName,
+				false, ActionType.Add, approvalID, workflow,
+				String.format("github-repo-%s.%s-webhook", github.getOrgName(), repo.getName()), lWebHookUrl);
+	}
+
 	byte[] encodePublicKey(RSAPublicKey key) throws IOException {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		/* encode the "ssh-rsa" string */
