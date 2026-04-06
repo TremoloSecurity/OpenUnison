@@ -1,3 +1,17 @@
+# 1.0.47-2026040601
+
+**bugs:**
+ - GitHub - create new project fails because it can't find deployment keys [\#1060](https://github.com/TremoloSecurity/OpenUnison/issues/1060)
+ - ConfigSys - errors not always printing stack traces [\#1058](https://github.com/TremoloSecurity/OpenUnison/issues/1058)
+
+**Tasks:**
+ - 1.0.47 build [\#1055](https://github.com/TremoloSecurity/OpenUnison/issues/1055)
+
+**enhancements:**
+ - java.lang.IllegalStateException: UT010019: Response already commited - don't need a stack trace [\#1059](https://github.com/TremoloSecurity/OpenUnison/issues/1059)
+ - add javascriptmappings loading for json tasks [\#1056](https://github.com/TremoloSecurity/OpenUnison/issues/1056)
+ - LoginService: use hashed values for "remember me" cookie [\#1057](https://github.com/TremoloSecurity/OpenUnison/issues/1057)
+
 # 1.0.46-2026032001
 
 **bugs:**
