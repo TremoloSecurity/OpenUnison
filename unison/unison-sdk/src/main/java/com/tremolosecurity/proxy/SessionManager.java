@@ -32,13 +32,7 @@ public interface SessionManager {
 
 	public abstract void invalidateSession(TremoloHttpSession tsession);
 
-	public abstract HttpSession getSession(UrlHolder holder,
-			HttpServletRequest request, HttpServletResponse response,
-			ServletContext ctx) throws Exception;
 
-	public abstract HttpSession getSession(String sessionCookieName,
-			UrlHolder holder, HttpServletRequest request,
-			HttpServletResponse response, ServletContext ctx) throws Exception;
 
 	public abstract void writeSession(UrlHolder holder,
 			TremoloHttpSession session, HttpServletRequest request,
@@ -65,4 +59,10 @@ public interface SessionManager {
     void moveSession(String currentDn, String newDn);
 
     public abstract void logoutAll(String userdn);
+
+    TremoloHttpSession getSessionById(String sessionId);
+
+	void putSession(String sessionId, TremoloHttpSession session);
+
+
 }

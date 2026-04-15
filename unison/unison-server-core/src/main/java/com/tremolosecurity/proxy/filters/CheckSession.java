@@ -15,6 +15,8 @@ package com.tremolosecurity.proxy.filters;
 import java.util.ArrayList;
 
 import javax.crypto.SecretKey;
+
+import com.tremolosecurity.proxy.*;
 import jakarta.servlet.http.Cookie;
 
 import org.apache.logging.log4j.Logger;
@@ -22,10 +24,6 @@ import org.joda.time.DateTime;
 
 import com.google.gson.Gson;
 import com.tremolosecurity.config.xml.ApplicationType;
-import com.tremolosecurity.proxy.ExternalSessionExpires;
-import com.tremolosecurity.proxy.ProxyUtil;
-import com.tremolosecurity.proxy.SessionManagerImpl;
-import com.tremolosecurity.proxy.TremoloHttpSession;
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.auth.AuthInfo;
 import com.tremolosecurity.proxy.filter.HttpFilter;
@@ -70,7 +68,7 @@ public class CheckSession implements HttpFilter {
 			response.sendError(401);
 		} else {
 			for (Cookie cookie : sessionCookies) {
-				TremoloHttpSession session = SessionManagerImpl.findSessionFromCookie(cookie, this.appConfig.secretKey, (SessionManagerImpl) GlobalEntries.getGlobalEntries().get(ProxyConstants.TREMOLO_SESSION_MANAGER));
+				TremoloHttpSession session = SessionTools.findSessionFromCookie(cookie, this.appConfig.secretKey, (SessionManagerImpl) GlobalEntries.getGlobalEntries().get(ProxyConstants.TREMOLO_SESSION_MANAGER));
 				if (session == null) {
 					response.sendError(401);
 				} else {

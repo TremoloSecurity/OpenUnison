@@ -22,6 +22,8 @@ import java.util.Properties;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+
+import com.tremolosecurity.proxy.SessionTools;
 import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 
@@ -107,9 +109,20 @@ public class OpenUnisonServletFilter extends UnisonServletFilter {
 	public void postLoadConfiguration(FilterConfig filterCfg,
 			String registryName, ConfigManager cfgMgr) {
 
-		sessionManager = new SessionManagerImpl(cfgMgr,filterCfg.getServletContext());
+		if (cfgMgr.getCfg().getApplications().getSessionStore() == null || cfgMgr.getCfg().getApplications().getSessionStore().isLocal()) {
+			sessionManager = new SessionManagerImpl(cfgMgr,filterCfg.getServletContext());
+		} else {
+			//TODO add session store initialization code
+		}
+
+		SessionTools sessionTools = new SessionTools(filterCfg.getServletContext(), sessionManager,cfgMgr);
+
 		GlobalEntries.getGlobalEntries().set(ProxyConstants.TREMOLO_SESSION_MANAGER, sessionManager);
 		filterCfg.getServletContext().setAttribute(ProxyConstants.TREMOLO_SESSION_MANAGER, sessionManager);
+
+		GlobalEntries.getGlobalEntries().set(ProxyConstants.TREMOLO_SESSION_TOOL, sessionTools);
+		filterCfg.getServletContext().setAttribute(ProxyConstants.TREMOLO_SESSION_TOOL, sessionTools);
+
 
 	}
 

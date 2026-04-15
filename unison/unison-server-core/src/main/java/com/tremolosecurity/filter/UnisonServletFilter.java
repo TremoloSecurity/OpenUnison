@@ -30,6 +30,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Properties;
 
+import com.tremolosecurity.proxy.*;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -52,10 +53,6 @@ import com.tremolosecurity.config.xml.AuthChainType;
 
 import com.tremolosecurity.embedd.LocalSessionRequest;
 import com.tremolosecurity.embedd.NextEmbSys;
-import com.tremolosecurity.proxy.ProxyRequest;
-import com.tremolosecurity.proxy.ProxyResponse;
-import com.tremolosecurity.proxy.ProxyUtil;
-import com.tremolosecurity.proxy.SessionManager;
 import com.tremolosecurity.proxy.auth.AuthController;
 import com.tremolosecurity.proxy.auth.AuthMechanism;
 import com.tremolosecurity.proxy.auth.RequestHolder;
@@ -68,7 +65,8 @@ import com.tremolosecurity.server.GlobalEntries;
 public abstract class UnisonServletFilter implements Filter {
 
 static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonServletFilter.class);
-	
+
+
 	FilterConfig cfg;
 	boolean passOn;
 
@@ -91,6 +89,7 @@ static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonServl
 		HttpServletResponse resp = (HttpServletResponse) response;
 		ConfigManager cfg = (ConfigManager) ctx.getAttribute(ProxyConstants.TREMOLO_CONFIG);
 		SessionManager sessionMgr = (SessionManager) ctx.getAttribute(ProxyConstants.TREMOLO_SESSION_MANAGER);
+		SessionTools sessionTools = (SessionTools) ctx.getAttribute(ProxyConstants.TREMOLO_SESSION_TOOL);
 		ProxyRequest pr = null;
 		
 		try {
@@ -201,7 +200,7 @@ static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonServl
 				
 				
 				
-				sharedSession = sessionMgr.getSession(sessionCookieName,holder,((HttpServletRequest) req),((HttpServletResponse) resp),this.ctx);
+				sharedSession = sessionTools.getSession(sessionCookieName,holder,((HttpServletRequest) req),((HttpServletResponse) resp),this.ctx);
 				
 				
 				if (sharedSession != null) {
@@ -214,7 +213,7 @@ static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonServl
 			} else {
 			
 				
-					sharedSession = sessionMgr.getSession(holder,((HttpServletRequest) req),((HttpServletResponse) resp),this.ctx);
+					sharedSession = sessionTools.getSession(holder,((HttpServletRequest) req),((HttpServletResponse) resp),this.ctx);
 				
 			}
 			
@@ -256,8 +255,8 @@ static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UnisonServl
 								
 								
 								isForcedAuth = true;
-								
-								sharedSession = sessionMgr.getSession(holder,((HttpServletRequest) req),((HttpServletResponse) resp),this.ctx);
+
+								sharedSession = sessionTools.getSession(holder,((HttpServletRequest) req),((HttpServletResponse) resp),this.ctx);
 								if (sharedSession != null) {
 									pr.setSession(sharedSession);
 								}

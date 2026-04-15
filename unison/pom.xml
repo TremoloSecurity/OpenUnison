@@ -136,6 +136,7 @@
 		<!-- Last version that supports Java 21 -->
 		<checker.version>3.9.1</checker.version>
 		<dnsjava.version>3.6.4</dnsjava.version>
+		<infinispan.version>16.1.3</infinispan.version>
 	</properties>
 
 	<repositories>

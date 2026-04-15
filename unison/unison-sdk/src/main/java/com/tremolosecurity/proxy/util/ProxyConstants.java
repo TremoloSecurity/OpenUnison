@@ -39,4 +39,6 @@ public class ProxyConstants {
 	public static final String AUTH_FAILED_USER_DN = "TREMOLO_AUTH_FAILED_USER_DN";
 
 	public static final String TREMOLO_SESSION_DN = "tremolo.io/session_dn";
+    public static final String TREMOLO_SESSION_TOOL = "tremolo.io/session_tool";
+	public static final String TREMOLO_SESSION_TOOLS = "tremolo.io/session_tools";
 }
