@@ -24,14 +24,22 @@ import com.tremolosecurity.scalejs.token.sdk.TokenLoader;
 import com.tremolosecurity.server.GlobalEntries;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.log4j.Logger;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 
+import javax.mail.Message;
+import java.security.MessageDigest;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.HexFormat;
 import java.util.List;
 
 public class StsToken implements TokenLoader {
@@ -41,6 +49,7 @@ public class StsToken implements TokenLoader {
     int minutes;
 
     List<String> additionalClaims;
+    static Logger logger = Logger.getLogger(StsToken.class.getName());
 
     @Override
     public void init(HttpFilterConfig config, ScaleTokenConfig scaleTokenConfig) throws Exception {
@@ -55,14 +64,11 @@ public class StsToken implements TokenLoader {
         }
 
 
-
-
-
     }
 
     @Override
     public Object loadToken(AuthInfo user, HttpSession session, HttpServletRequest request) throws Exception {
-        HashMap<String,String> tokenResponse = new HashMap<>();
+        HashMap<String, String> tokenResponse = new HashMap<>();
 
         // generate claims
         JwtClaims claims = new JwtClaims();
@@ -87,6 +93,13 @@ public class StsToken implements TokenLoader {
             }
         }
 
+        Certificate cert = GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.keyName);
+
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        String thumbprint = HexFormat.of().formatHex(digest.digest(cert.getEncoded())).toUpperCase();
+        tokenResponse.put("thumbprint", thumbprint);
+        tokenResponse.put("certificate", this.cert2pem(this.keyName));
+
         JsonWebSignature jws = new JsonWebSignature();
         jws.setPayload(claims.toJson());
         jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getPrivateKey(keyName));
@@ -94,9 +107,28 @@ public class StsToken implements TokenLoader {
 
         String jwt = jws.getCompactSerialization();
 
-        tokenResponse.put("expires",Instant.ofEpochMilli(claims.getExpirationTime().getValueInMillis()).atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
+        tokenResponse.put("expires", Instant.ofEpochMilli(claims.getExpirationTime().getValueInMillis()).atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
         tokenResponse.put("jwt", jwt);
 
         return tokenResponse;
+    }
+
+    private String cert2pem(String certificateName) {
+        X509Certificate cert = GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(certificateName);
+        if (cert == null) {
+            return null;
+        } else {
+            Base64 encoder = new Base64(64);
+            StringBuffer b = new StringBuffer();
+            b.append("-----BEGIN CERTIFICATE-----\n");
+            try {
+                b.append(encoder.encodeAsString(cert.getEncoded()));
+            } catch (CertificateEncodingException e) {
+                logger.warn("Could not decode certificate", e);
+                return null;
+            }
+            b.append("-----END CERTIFICATE-----");
+            return b.toString();
+        }
     }
 }
