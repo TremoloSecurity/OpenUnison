@@ -37,6 +37,9 @@ public class JavaScriptTarget implements UserStoreProviderWithAddGroup, UserStor
     Map<String,Object> state;
     boolean initCompleted;
 
+    Map<String,String> annotations;
+    Map<String,String> labels;
+
 
     boolean createGroups;
     boolean userLookups;
@@ -45,10 +48,17 @@ public class JavaScriptTarget implements UserStoreProviderWithAddGroup, UserStor
 
     static Logger logger = Logger.getLogger(JavaScriptTarget.class.getName());
 
+    public JavaScriptTarget() {
+        this.annotations = new HashMap<>();
+        this.labels = new HashMap<>();
+    }
+
     public Object execFunction(String functionName, Object... parameters) throws ProvisioningException{
         try {
             Context context = Context.newBuilder("js").allowAllAccess(true).allowIO(IOAccess.ALL).build();
             context.getBindings("js").putMember("state", state);
+            context.getBindings("js").putMember("labels", labels);
+            context.getBindings("js").putMember("annotations", annotations);
 
             if (this.jsToLoad.size() > 0) {
                 JavaScriptMappings javascripts = (JavaScriptMappings) GlobalEntries.getGlobalEntries().get("javascripts");

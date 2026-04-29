@@ -20,19 +20,6 @@
 		<auth-folder>unison-server-core</auth-folder>
 	</properties>
 
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.infinispan</groupId>
-				<artifactId>infinispan-bom</artifactId>
-				<version>${infinispan.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-
-
 	<dependencies>
 		<dependency>
 			<groupId>io.undertow</groupId>
