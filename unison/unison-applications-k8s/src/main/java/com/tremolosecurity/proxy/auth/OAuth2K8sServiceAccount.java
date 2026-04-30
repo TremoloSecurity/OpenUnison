@@ -268,6 +268,47 @@ public class OAuth2K8sServiceAccount extends OAuth2Bearer {
 					
 					
 				}
+
+				JSONObject kubeio = (JSONObject) jwtNVP.get("extra");
+				if (kubeio != null) {
+					JSONArray vals = (JSONArray) kubeio.get("authentication.io/credential-id");
+
+					if (vals != null) {
+
+						Attribute attr = new Attribute("credential-id");
+						attr.getValues().addAll(vals);
+						authInfo.getAttribs().put(attr.getName(), attr);
+					}
+
+					vals = (JSONArray) kubeio.get("authentication.io/node-name");
+					if (vals != null) {
+						Attribute attr = new Attribute("node-name");
+						attr.getValues().addAll(vals);
+						authInfo.getAttribs().put(attr.getName(), attr);
+					}
+
+					vals = (JSONArray) kubeio.get("authentication.io/node-uid");
+					if (vals != null) {
+						Attribute attr = new Attribute("node-uid");
+						attr.getValues().addAll(vals);
+						authInfo.getAttribs().put(attr.getName(), attr);
+					}
+
+					vals = (JSONArray) kubeio.get("authentication.io/pod-name");
+					if (vals != null) {
+						Attribute attr = new Attribute("pod-name");
+						attr.getValues().addAll(vals);
+						authInfo.getAttribs().put(attr.getName(), attr);
+					}
+
+					vals = (JSONArray) kubeio.get("authentication.io/pod-uid");
+					if (vals != null) {
+						Attribute attr = new Attribute("pod-uid");
+						attr.getValues().addAll(vals);
+						authInfo.getAttribs().put(attr.getName(), attr);
+					}
+
+				}
 				
 				as.setSuccess(true);
 				
@@ -327,6 +368,47 @@ public class OAuth2K8sServiceAccount extends OAuth2Bearer {
 		authInfo.getAttribs().put("sub", new Attribute("sub",uid));
 		
 		authInfo.getAttribs().put("objectClass", new Attribute("objectClass",defaultObjectClass));
+
+		JSONObject kubeio = (JSONObject) jwtNVP.get("extra");
+		if (kubeio != null) {
+			JSONArray vals = (JSONArray) kubeio.get("authentication.kubernetes.io/credential-id");
+
+			if (vals != null) {
+
+				Attribute attr = new Attribute("credential-id");
+				attr.getValues().addAll(vals);
+				authInfo.getAttribs().put(attr.getName(), attr);
+			}
+
+			vals = (JSONArray) kubeio.get("authentication.kubernetes.io/node-name");
+			if (vals != null) {
+				Attribute attr = new Attribute("node-name");
+				attr.getValues().addAll(vals);
+				authInfo.getAttribs().put(attr.getName(), attr);
+			}
+
+			vals = (JSONArray) kubeio.get("authentication.kubernetes.io/node-uid");
+			if (vals != null) {
+				Attribute attr = new Attribute("node-uid");
+				attr.getValues().addAll(vals);
+				authInfo.getAttribs().put(attr.getName(), attr);
+			}
+
+			vals = (JSONArray) kubeio.get("authentication.kubernetes.io/pod-name");
+			if (vals != null) {
+				Attribute attr = new Attribute("pod-name");
+				attr.getValues().addAll(vals);
+				authInfo.getAttribs().put(attr.getName(), attr);
+			}
+
+			vals = (JSONArray) kubeio.get("authentication.kubernetes.io/pod-uid");
+			if (vals != null) {
+				Attribute attr = new Attribute("pod-uid");
+				attr.getValues().addAll(vals);
+				authInfo.getAttribs().put(attr.getName(), attr);
+			}
+
+		}
 	}
 
 }
