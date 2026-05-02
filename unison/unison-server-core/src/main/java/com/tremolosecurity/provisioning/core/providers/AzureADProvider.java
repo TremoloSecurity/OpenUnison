@@ -253,7 +253,12 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 				
 				this.cfgMgr.getProvisioningEngine().logAction(this.name,false, ActionType.Add,  approvalID, workflow, "onPremisesImmutableId", user.getAttribs().get("onPremisesImmutableId").getValues().get(0));
 			}
-			
+
+
+			waitForUser(user, request);
+			Thread.sleep(1000);
+			waitForUser(user, request);
+
 			User fromAzure = new User(user.getUserID());
 			
 			
@@ -271,6 +276,22 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 				
 			}
 			con.getBcm().close();
+		}
+	}
+
+	private void waitForUser(User user, Map<String, Object> request) throws ProvisioningException, InterruptedException {
+		User waitForUser = this.findUser(user.getUserID(),new HashSet<>(),request);
+		boolean found = waitForUser != null;
+		int checks = 0;
+		while (!found) {
+			logger.info(String.format("Waiting for %s to be available %s", user.getUserID(),checks));
+			if (checks > 100) {
+				throw new ProvisioningException(user.getUserID() + " not created after 100 seconds");
+			}
+			checks++;
+			Thread.sleep(1000);
+			waitForUser = this.findUser(user.getUserID(),new HashSet<>(), request);
+			found = waitForUser != null;
 		}
 	}
 
