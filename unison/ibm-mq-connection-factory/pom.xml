@@ -27,6 +27,12 @@
         <groupId>com.ibm.mq</groupId>
         <artifactId>com.ibm.mq.jakarta.client</artifactId>
         <version>${ibm-mq.version}</version>
+        <exclusions>
+            <exclusion>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+            </exclusion>
+        </exclusions>
     </dependency>
     <dependency>
 		<groupId>org.json</groupId>

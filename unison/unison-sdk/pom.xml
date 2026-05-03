@@ -67,6 +67,12 @@
 			<groupId>org.cryptacular</groupId>
 			<artifactId>cryptacular</artifactId>
 			<version>${cryptacular.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcpkix-jdk18on</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		
 		<dependency>
@@ -155,7 +161,12 @@
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-saml-api</artifactId>
 			<version>${opensaml.version}</version>
-
+			<exclusions>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcpkix-jdk18on</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
@@ -167,6 +178,12 @@
 					<groupId>com.fasterxml.jackson.core</groupId>
 					<artifactId>jackson-databind</artifactId>
 				</exclusion>
+
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcpkix-jdk18on</artifactId>
+				</exclusion>
+
 			</exclusions>
 		</dependency>
 		<dependency>
