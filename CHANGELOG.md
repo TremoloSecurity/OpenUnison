@@ -1,3 +1,19 @@
+# 1.0.48-2026050401
+
+**Tasks:**
+ - 1.0.48 build [\#1054](https://github.com/TremoloSecurity/OpenUnison/issues/1054)
+ - 1.0.47.1 [\#1064](https://github.com/TremoloSecurity/OpenUnison/issues/1064)
+
+**bugs:**
+ - AzureAD Target - add better waiting for account creation [\#1068](https://github.com/TremoloSecurity/OpenUnison/issues/1068)
+ - JavaScriptTask not initializing when there are annotations on the Target [\#1063](https://github.com/TremoloSecurity/OpenUnison/issues/1063)
+
+**enhancements:**
+ - Kubernetes AuthMech - Add pod identity to the user identity [\#1067](https://github.com/TremoloSecurity/OpenUnison/issues/1067)
+ - ScaleJS STS token - include the cert and thumbprint [\#1066](https://github.com/TremoloSecurity/OpenUnison/issues/1066)
+ - Support for infinispan for distributed sessions pre-work [\#1062](https://github.com/TremoloSecurity/OpenUnison/issues/1062)
+
+
 # 1.0.47-2026040601
 
 **bugs:**
