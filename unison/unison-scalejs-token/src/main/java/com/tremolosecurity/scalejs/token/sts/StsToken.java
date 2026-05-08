@@ -93,7 +93,7 @@ public class StsToken implements TokenLoader {
             }
         }
 
-        Certificate cert = GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.keyName);
+        X509Certificate cert = GlobalEntries.getGlobalEntries().getConfigManager().getCertificate(this.keyName);
 
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         String thumbprint = HexFormat.of().formatHex(digest.digest(cert.getEncoded())).toUpperCase();
@@ -103,6 +103,13 @@ public class StsToken implements TokenLoader {
         JsonWebSignature jws = new JsonWebSignature();
         jws.setPayload(claims.toJson());
         jws.setKey(GlobalEntries.getGlobalEntries().getConfigManager().getPrivateKey(keyName));
+
+        StringBuffer b = new StringBuffer();
+        b.append(cert.getSubjectDN().getName()).append('-').append(cert.getIssuerDN().getName()).append('-').append(cert.getSerialNumber().toString());
+
+        String keyID = b.toString();
+        jws.setKeyIdHeaderValue(keyID);
+
         jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
 
         String jwt = jws.getCompactSerialization();
