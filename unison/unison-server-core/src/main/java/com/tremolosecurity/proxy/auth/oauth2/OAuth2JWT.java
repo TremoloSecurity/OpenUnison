@@ -104,6 +104,17 @@ public class OAuth2JWT extends OAuth2Bearer {
 		boolean sendError = !request.getMethod().equalsIgnoreCase("OPTIONS");
 		List<Header> corsHeaders = (List<Header>) request.getAttribute(OAuth2Bearer.CORS_HEADERS);
 
+
+		int defaultNotBeforeMinutes = 5;
+		if (authParams.get("defaultNotBeforeMinutes") != null) {
+			defaultNotBeforeMinutes = Integer.parseInt(authParams.get("defaultNotBeforeMinutes").getValues().get(0));
+		}
+
+		boolean allowNoIat = false;
+		if (authParams.get("allowNoIat") != null) {
+			allowNoIat = Boolean.parseBoolean(authParams.get("allowNoIat").getValues().get(0));
+		}
+
 		String issuer = authParams.get("issuer").getValues().get(0);
 		HashSet<String> audiences = new HashSet<String>();
 		if (authParams.get("audience") == null) {
@@ -229,7 +240,25 @@ public class OAuth2JWT extends OAuth2Bearer {
 			String json = jws.getPayload();
 			JSONObject obj = (JSONObject) new JSONParser().parse(json);
 			long exp = ((Long)obj.get("exp")) * 1000L;
-			long nbf = ((Long)obj.get("nbf")) * 1000L;
+
+			long iat = System.currentTimeMillis();
+
+			if (obj.get("iat") != null) {
+				iat = ((Long)obj.get("iat")) * 1000L;
+			} else {
+				if (! allowNoIat) {
+					iat = Long.MAX_VALUE;
+				}
+			}
+
+
+
+			long nbf = iat - (defaultNotBeforeMinutes * (60 * 60 * 1000));
+
+			if (obj.get("nbf") != null) {
+				nbf = ((Long)obj.get("nbf")).longValue() * 1000L;
+			}
+
 			
 			if (new DateTime(exp).isBeforeNow()) {
 				as.setExecuted(true);
@@ -241,8 +270,10 @@ public class OAuth2JWT extends OAuth2Bearer {
 				super.sendFail(response, realmName, scope, null, null,sendError,corsHeaders);
 				return;
 			}
-			
-			if (new DateTime(nbf).isAfterNow()) {
+
+			DateTime nbfdt = new DateTime(nbf);
+
+			if (nbfdt.isAfterNow()) {
 				as.setExecuted(true);
 				as.setSuccess(false);
 				
