@@ -70,7 +70,7 @@ public class OAuth2JWT extends OAuth2Bearer {
 	
 	static org.apache.logging.log4j.Logger logger = org.apache.logging.log4j.LogManager.getLogger(OAuth2JWT.class.getName());
 
-	static HashMap<String,List<PublicKey>> keyCache = new HashMap<String,List<PublicKey>>();
+	static HashMap<String,Map<String,PublicKey>> keyCache = new HashMap<String,Map<String,PublicKey>>();
 	
 	public HttpCon createClient() throws Exception {
 		ArrayList<Header> defheaders = new ArrayList<Header>();
@@ -94,6 +94,123 @@ public class OAuth2JWT extends OAuth2Bearer {
 
 		return con;
 
+	}
+
+	private boolean checkSignature(int count,Map<String,PublicKey> pks,JsonWebSignature jws,HttpServletRequest request, HttpServletResponse response, AuthStep as, HttpSession session, HashMap<String, Attribute> authParams, String realmName, String scope, ConfigManager cfg, String issuer, boolean sendError, List<Header> corsHeaders,boolean fromWellKnown) throws IOException, ServletException, JoseException {
+
+
+		if (pks.size() == 1) {
+			// only one key
+			PublicKey pk = null;
+			if (fromWellKnown && pks.get("local") == null) {
+				// we can short circuit a false by checking the kid
+				String kid = jws.getHeader("kid");
+				if (kid != null) {
+					pk = pks.get(kid);
+					if (pk == null) {
+						if (count == 0) {
+							return false;
+						} else {
+							// remove cache for the issuer and re-load
+							keyCache.remove(issuer);
+							pks = loadPublicKeysFromWebFinger(request, response, as, session, authParams, realmName, scope, cfg, issuer, sendError, corsHeaders);
+							if (pks == null) {
+								return false;
+							} else {
+								return checkSignature(count - 1, pks, jws, request, response, as, session, authParams, realmName, scope, cfg, issuer, sendError, corsHeaders, fromWellKnown);
+							}
+						}
+					}
+				}
+			}
+
+			pk = pks.get(pks.keySet().iterator().next());
+			jws.setKey(pk);
+			if (jws.verifySignature()) {
+				return true;
+			} else {
+				if (count == 0) {
+					return false;
+				} else {
+					if (fromWellKnown) {
+						// remove cache for the issuer and re-load
+						keyCache.remove(issuer);
+						pks = loadPublicKeysFromWebFinger(request, response, as, session, authParams, realmName, scope, cfg, issuer, sendError, corsHeaders);
+						if (pks == null) {
+							return false;
+						} else {
+							return checkSignature(count - 1, pks, jws, request, response, as, session, authParams, realmName, scope, cfg, issuer, sendError, corsHeaders, fromWellKnown);
+						}
+
+
+					} else {
+						// nothing to reload from, short circuit failure
+						return false;
+					}
+				}
+			}
+		} else {
+			String kid = jws.getHeader("kid");
+			if (kid != null) {
+				PublicKey pk = pks.get(kid);
+				if (pk != null) {
+					jws.setKey(pk);
+					if (jws.verifySignature()) {
+						return true;
+					} else {
+						if (count == 0) {
+							return false;
+						} else {
+							if (fromWellKnown) {
+								// remove cache for the issuer and re-load
+								keyCache.remove(issuer);
+								pks = loadPublicKeysFromWebFinger(request, response, as, session, authParams, realmName, scope, cfg, issuer, sendError, corsHeaders);
+								if (pks == null) {
+									return false;
+								} else {
+									return checkSignature(count-1,pks,jws,request,response,as,session,authParams,realmName,scope,cfg,issuer,sendError,corsHeaders,fromWellKnown);
+								}
+							} else {
+								// nothing to reload, short circuit false
+								return false;
+							}
+						}
+					}
+				} else {
+
+					for (String kidName : pks.keySet()) {
+						pk = pks.get(kidName);
+						jws.setKey(pk);
+						if (jws.verifySignature()) {
+							return true;
+						}
+					}
+
+					// no keys checked
+					if (count == 0) {
+						return false;
+					} else {
+						if (fromWellKnown) {
+							// remove cache for the issuer and re-load
+							keyCache.remove(issuer);
+							pks = loadPublicKeysFromWebFinger(request, response, as, session, authParams, realmName, scope, cfg, issuer, sendError, corsHeaders);
+							if (pks == null) {
+								return false;
+							} else {
+								return checkSignature(count-1,pks,jws,request,response,as,session,authParams,realmName,scope,cfg,issuer,sendError,corsHeaders,fromWellKnown);
+							}
+						} else {
+							// nothing to reload, short circuit false
+							return false;
+						}
+					}
+
+
+				}
+			}
+		}
+
+		return false;
 	}
 	
 	@Override
@@ -128,115 +245,17 @@ public class OAuth2JWT extends OAuth2Bearer {
 		
 		boolean useWellKnown = fromWellKnown.equalsIgnoreCase("true");
 		
-		List<PublicKey> pks = null;
+		Map<String,PublicKey> pks = null;
 		
 		if (useWellKnown) {
-			pks = keyCache.get(issuer);
-			if (pks == null) {
-				StringBuilder sb = new StringBuilder();
-				sb.append(issuer);
-				if (! issuer.endsWith("/")) {
-					sb.append("/");
-					
-				}
-				sb.append(".well-known/openid-configuration");
-				
-				String wellKnownURL = sb.toString();
+			pks = loadPublicKeysFromWebFinger(request, response, as, session, authParams, realmName, scope, cfg, issuer, sendError, corsHeaders);
+			if (pks == null) return;
 
-				String webFingerToken = null;
-
-				Attribute webfingerClassLoader = authParams.get("webfingerCredentialLoader");
-				if (webfingerClassLoader != null) {
-                    try {
-                        WebFingerCredentialLoader credLoader = (WebFingerCredentialLoader) Class.forName(webfingerClassLoader.getValues().get(0)).newInstance();
-						webFingerToken = credLoader.loadBearerToken(request, response, as, session, authParams);
-                    } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
-                        throw new ServletException("Could not load webfinger credential",e);
-                    }
-                }
-
-				HttpCon http = null;
-				try {
-					http = this.createClient();
-					HttpGet get = new HttpGet(wellKnownURL);
-
-					if (webFingerToken != null) {
-						get.addHeader("Authorization", String.format("Bearer %s",webFingerToken));
-					}
-
-					CloseableHttpResponse resp = http.getHttp().execute(get);
-
-					if (resp.getStatusLine().getStatusCode() != 200) {
-						logger.warn(String.format("Could not load %s: %s, %s",wellKnownURL,resp.getStatusLine().getStatusCode(),resp.getStatusLine().getReasonPhrase()));
-						as.setExecuted(true);
-						as.setSuccess(false);
-						cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
-						super.sendFail(response, realmName, scope, null, null,sendError,corsHeaders);
-						return;
-					}
-
-					String json = EntityUtils.toString(resp.getEntity());
-					resp.close();
-					JSONParser parser = new JSONParser();
-					JSONObject root = (JSONObject) parser.parse(json);
-					String jwksUrl = (String) root.get("jwks_uri");
-					
-					get = new HttpGet(jwksUrl);
-					if (webFingerToken != null) {
-						get.addHeader("Authorization", String.format("Bearer %s",webFingerToken));
-					}
-					resp = http.getHttp().execute(get);
-
-					if (resp.getStatusLine().getStatusCode() != 200) {
-						logger.warn(String.format("Could not load %s: %s, %s",jwksUrl,resp.getStatusLine().getStatusCode(),resp.getStatusLine().getReasonPhrase()));
-						as.setExecuted(true);
-						as.setSuccess(false);
-						cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
-						super.sendFail(response, realmName, scope, null, null,sendError,corsHeaders);
-						return;
-					}
-
-					json = EntityUtils.toString(resp.getEntity());
-					resp.close();
-					
-					
-					
-					pks = new ArrayList<PublicKey>();
-					JsonWebKeySet jks = new JsonWebKeySet(json);
-					for (JsonWebKey j : jks.getJsonWebKeys()) {
-						if (j.getUse().equalsIgnoreCase("sig")) {
-							pks.add((PublicKey)j.getKey());
-						}
-					}
-					
-					
-					if (pks.size() == 0) {
-						throw new ServletException("No key found");
-					}
-					
-					
-					
-					keyCache.put(issuer, pks);
-					
-					
-					
-					
-				} catch (Exception e) {
-					throw new ServletException("Could not get oidc certs",e);
-				} finally {
-					if (http != null) {
-						http.getHttp().close();
-						http.getBcm().close();
-					}
-				}
-				
-			}
-			
 		} else {
 			String validationKey = authParams.get("validationKey").getValues().get(0);
-			pks = new ArrayList<PublicKey>();
+			pks = new HashMap<String,PublicKey>();
 			
-			pks.add( cfg.getCertificate(validationKey).getPublicKey());
+			pks.put("local", cfg.getCertificate(validationKey).getPublicKey());
 		}
 		
 		
@@ -255,16 +274,11 @@ public class OAuth2JWT extends OAuth2Bearer {
 		
 		JsonWebSignature jws = new JsonWebSignature();
 		try {
-			boolean sigVerified = false;
+
 			jws.setCompactSerialization(lmToken);
-			
-			for (PublicKey pk : pks) {
-				jws.setKey(pk);
-				if (jws.verifySignature()) {
-					sigVerified = true;
-					break;
-				}
-			}
+
+			boolean sigVerified = this.checkSignature(1,pks,jws,request,response,as,session,authParams,realmName,scope,cfg,issuer,sendError,corsHeaders,fromWellKnown.equalsIgnoreCase("true"));
+
 				
 			
 			if (! sigVerified) {
@@ -402,7 +416,112 @@ public class OAuth2JWT extends OAuth2Bearer {
 		
 
 	}
-	
+
+	private Map<String,PublicKey> loadPublicKeysFromWebFinger(HttpServletRequest request, HttpServletResponse response, AuthStep as, HttpSession session, HashMap<String, Attribute> authParams, String realmName, String scope, ConfigManager cfg, String issuer, boolean sendError, List<Header> corsHeaders) throws ServletException, IOException {
+		Map<String,PublicKey> pks;
+		pks = keyCache.get(issuer);
+		if (pks == null) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(issuer);
+			if (! issuer.endsWith("/")) {
+				sb.append("/");
+
+			}
+			sb.append(".well-known/openid-configuration");
+
+			String wellKnownURL = sb.toString();
+
+			String webFingerToken = null;
+
+			Attribute webfingerClassLoader = authParams.get("webfingerCredentialLoader");
+			if (webfingerClassLoader != null) {
+try {
+WebFingerCredentialLoader credLoader = (WebFingerCredentialLoader) Class.forName(webfingerClassLoader.getValues().get(0)).newInstance();
+					webFingerToken = credLoader.loadBearerToken(request, response, as, session, authParams);
+} catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+throw new ServletException("Could not load webfinger credential",e);
+}
+}
+
+			HttpCon http = null;
+			try {
+				http = this.createClient();
+				HttpGet get = new HttpGet(wellKnownURL);
+
+				if (webFingerToken != null) {
+					get.addHeader("Authorization", String.format("Bearer %s",webFingerToken));
+				}
+
+				CloseableHttpResponse resp = http.getHttp().execute(get);
+
+				if (resp.getStatusLine().getStatusCode() != 200) {
+					logger.warn(String.format("Could not load %s: %s, %s",wellKnownURL,resp.getStatusLine().getStatusCode(),resp.getStatusLine().getReasonPhrase()));
+					as.setExecuted(true);
+					as.setSuccess(false);
+					cfg.getAuthManager().nextAuth(request, response, request.getSession(),false);
+					super.sendFail(response, realmName, scope, null, null, sendError, corsHeaders);
+					return null;
+				}
+
+				String json = EntityUtils.toString(resp.getEntity());
+				resp.close();
+				JSONParser parser = new JSONParser();
+				JSONObject root = (JSONObject) parser.parse(json);
+				String jwksUrl = (String) root.get("jwks_uri");
+
+				get = new HttpGet(jwksUrl);
+				if (webFingerToken != null) {
+					get.addHeader("Authorization", String.format("Bearer %s",webFingerToken));
+				}
+				resp = http.getHttp().execute(get);
+
+				if (resp.getStatusLine().getStatusCode() != 200) {
+					logger.warn(String.format("Could not load %s: %s, %s",jwksUrl,resp.getStatusLine().getStatusCode(),resp.getStatusLine().getReasonPhrase()));
+					as.setExecuted(true);
+					as.setSuccess(false);
+					cfg.getAuthManager().nextAuth(request, response, request.getSession(),false);
+					super.sendFail(response, realmName, scope, null, null, sendError, corsHeaders);
+					return null;
+				}
+
+				json = EntityUtils.toString(resp.getEntity());
+				resp.close();
+
+
+
+				pks = new HashMap<String,PublicKey>();
+				JsonWebKeySet jks = new JsonWebKeySet(json);
+				for (JsonWebKey j : jks.getJsonWebKeys()) {
+					if (j.getUse().equalsIgnoreCase("sig")) {
+						pks.put(j.getKeyId(), (PublicKey)j.getKey());
+					}
+				}
+
+
+				if (pks.size() == 0) {
+					throw new ServletException("No key found");
+				}
+
+
+
+				keyCache.put(issuer, pks);
+
+
+
+
+			} catch (Exception e) {
+				throw new ServletException("Could not get oidc certs",e);
+			} finally {
+				if (http != null) {
+					http.getHttp().close();
+					http.getBcm().close();
+				}
+			}
+
+		}
+		return pks;
+	}
+
 	public static void lookupUser(AuthStep as, HttpSession session, MyVDConnection myvd, String noMatchOU, String uidAttr,
 			String lookupFilter, AuthChainType act, Map jwtNVP,String defaultObjectClass) {
 		boolean uidIsFilter = ! lookupFilter.isEmpty();
@@ -560,3 +679,4 @@ public class OAuth2JWT extends OAuth2Bearer {
 	}
 
 }
+
