@@ -142,11 +142,39 @@ public class OAuth2JWT extends OAuth2Bearer {
 				sb.append(".well-known/openid-configuration");
 				
 				String wellKnownURL = sb.toString();
+
+				String webFingerToken = null;
+
+				Attribute webfingerClassLoader = authParams.get("webfingerCredentialLoader");
+				if (webfingerClassLoader != null) {
+                    try {
+                        WebFingerCredentialLoader credLoader = (WebFingerCredentialLoader) Class.forName(webfingerClassLoader.getValues().get(0)).newInstance();
+						webFingerToken = credLoader.loadBearerToken(request, response, as, session, authParams);
+                    } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+                        throw new ServletException("Could not load webfinger credential",e);
+                    }
+                }
+
 				HttpCon http = null;
 				try {
 					http = this.createClient();
 					HttpGet get = new HttpGet(wellKnownURL);
+
+					if (webFingerToken != null) {
+						get.addHeader("Authorization", String.format("Bearer %s",webFingerToken));
+					}
+
 					CloseableHttpResponse resp = http.getHttp().execute(get);
+
+					if (resp.getStatusLine().getStatusCode() != 200) {
+						logger.warn(String.format("Could not load %s: %s, %s",wellKnownURL,resp.getStatusLine().getStatusCode(),resp.getStatusLine().getReasonPhrase()));
+						as.setExecuted(true);
+						as.setSuccess(false);
+						cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
+						super.sendFail(response, realmName, scope, null, null,sendError,corsHeaders);
+						return;
+					}
+
 					String json = EntityUtils.toString(resp.getEntity());
 					resp.close();
 					JSONParser parser = new JSONParser();
@@ -154,7 +182,20 @@ public class OAuth2JWT extends OAuth2Bearer {
 					String jwksUrl = (String) root.get("jwks_uri");
 					
 					get = new HttpGet(jwksUrl);
+					if (webFingerToken != null) {
+						get.addHeader("Authorization", String.format("Bearer %s",webFingerToken));
+					}
 					resp = http.getHttp().execute(get);
+
+					if (resp.getStatusLine().getStatusCode() != 200) {
+						logger.warn(String.format("Could not load %s: %s, %s",jwksUrl,resp.getStatusLine().getStatusCode(),resp.getStatusLine().getReasonPhrase()));
+						as.setExecuted(true);
+						as.setSuccess(false);
+						cfg.getAuthManager().nextAuth(request, response,request.getSession(),false);
+						super.sendFail(response, realmName, scope, null, null,sendError,corsHeaders);
+						return;
+					}
+
 					json = EntityUtils.toString(resp.getEntity());
 					resp.close();
 					
