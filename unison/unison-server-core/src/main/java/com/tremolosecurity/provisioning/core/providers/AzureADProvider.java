@@ -856,8 +856,22 @@ public class AzureADProvider implements UserStoreProviderWithAddGroup {
 						this.callWSPatchJson(con, uri, json, callNumber + 1);
 					}
 					
-				} else {
-					throw new IOException("Post failed " + EntityUtils.toString(resp.getEntity()));
+				} else if (resp.getStatusLine().getStatusCode() == 404) {
+					if (callNumber == 10) {
+						throw new IOException("Patch failed on " + b.toString() + " / " + EntityUtils.toString(resp.getEntity()));
+					} else {
+						logger.warn("Could not patch user, retrying after one second: " + EntityUtils.toString(resp.getEntity()));
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+
+                        }
+                        this.callWSPatchJson(con, uri, json, callNumber + 1);
+					}
+				}
+
+					else {
+					throw new IOException("Post failed " + resp.getStatusLine().getStatusCode() + " / " +  EntityUtils.toString(resp.getEntity()));
 				}
 				
 				
