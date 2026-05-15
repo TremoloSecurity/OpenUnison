@@ -315,6 +315,12 @@
 			<version>${checker.version}</version>
 <!--			<scope>compile</scope>-->
 		</dependency>
+
+		<dependency>
+			<groupId>org.checkerframework</groupId>
+			<artifactId>checker-qual</artifactId>
+			<version>${checker.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
@@ -327,8 +333,6 @@
 		</dependency>
 	</dependencies>
 
-
-	
 
 
 
