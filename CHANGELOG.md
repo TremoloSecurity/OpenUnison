@@ -1,3 +1,16 @@
+# 1.0.49-2026051401
+
+**Tasks:**
+ - 1.0.49 build [\#1070](https://github.com/TremoloSecurity/OpenUnison/issues/1070)
+
+**enhancements:**
+ - AzureAD Target - Retry patch on 404 [\#1074](https://github.com/TremoloSecurity/OpenUnison/issues/1074)
+ - OAuth2JWT - Reload issuer on failure [\#1073](https://github.com/TremoloSecurity/OpenUnison/issues/1073)
+ - OAuth2JWT - support credentials for webfinger lookup [\#1072](https://github.com/TremoloSecurity/OpenUnison/issues/1072)
+ - Missing nbf claim breaks OAuth2JWT [\#1069](https://github.com/TremoloSecurity/OpenUnison/issues/1069)
+ - STS - no kid in tokens breaks claude workload identity integration [\#1071](https://github.com/TremoloSecurity/OpenUnison/issues/1071)
+
+
 # 1.0.48-2026050401
 
 **Tasks:**
