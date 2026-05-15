@@ -55,7 +55,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.tremolosecurity.server.GlobalEntries;
 
