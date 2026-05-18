@@ -69,9 +69,11 @@ limitations under the License.
               </div>
               <script language="javascript">
 				    <%
-				        String redirto = (String) session.getAttribute("TREMOLO_AUTH_URI");
+				        String redirto = (String) session.getAttribute("tremolo.io/splash/redirectto");
                         if (redirto == null) {
                             redirto = auth + "error.jsp";
+                        } else {
+                            session.removeAttribute("tremolo.io/splash/redirectto");
                         }
 				    %>
 

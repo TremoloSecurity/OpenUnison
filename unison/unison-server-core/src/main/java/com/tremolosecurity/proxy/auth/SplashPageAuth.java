@@ -66,6 +66,8 @@ public class SplashPageAuth implements AuthMechanism {
 			holder.getConfig().getAuthManager().nextAuth(request, response, session, false);
 		} else {
 			String redirect = authParams.get("splashUri").getValues().get(0);
+			String redirectto = (String) session.getAttribute("TREMOLO_AUTH_URI");
+			session.setAttribute("tremolo.io/splash/redirectto", redirectto);
 			response.sendRedirect(redirect);
 		}
 
