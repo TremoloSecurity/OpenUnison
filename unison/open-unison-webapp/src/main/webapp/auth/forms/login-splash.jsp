@@ -68,8 +68,14 @@ limitations under the License.
               	We are completing your login ..
               </div>
               <script language="javascript">
-				
-					window.location.href = "<%= request.getParameter("redirto") %>?finishsso=true";
+				    <%
+				        String redirto = (String) session.getAttribute("TREMOLO_AUTH_URI");
+                        if (redirto == null) {
+                            redirto = auth + "error.jsp";
+                        }
+				    %>
+
+					window.location.href = "<%= redirto  %>?finishsso=true";
 				</script>
 				<div id="error"></div>
             </div>
