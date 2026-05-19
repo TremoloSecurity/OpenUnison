@@ -107,7 +107,9 @@ limitations under the License.
 				</div>			
 				<% }
 					}%>
-				
+
+				<% if (System.getProperty("tremolo.io/logintest/showallinfo") != null) { %>
+
 				<h2>Headers</h2>
 				<%
 					Enumeration<String> enumer = request.getHeaderNames();
@@ -187,6 +189,12 @@ limitations under the License.
 				<%
 					}
 				%>
+
+
+				<%
+					}
+				%>
+
 				<div class="row">
 					<a href="<%= request.getAttribute("UNISON_LOGINTEST_LOGOUTURI") %>">Logout</a>
 					
