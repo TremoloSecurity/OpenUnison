@@ -15,6 +15,7 @@ package com.tremolosecurity.oidc.k8s;
 import java.io.*;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +67,11 @@ public class K8sSessionStore implements OidcSessionStore {
 	private String idpName;
 	
 	private String apiVersion;
-	
+	private String ownerApiVersion;
+	private String ownerKind;
+	private String ownerName;
+	private String ownerUid;
+
 
 	@Override
 	public void init(String idpName, ServletContext ctx, HashMap<String, Attribute> init,
@@ -86,8 +91,83 @@ public class K8sSessionStore implements OidcSessionStore {
 		this.gson = new Gson();
 		this.apiVersion = null;
 
+		this.ownerApiVersion = null;
+		this.ownerKind = null;
+		this.ownerName = null;
+		this.ownerUid = null;
+
+		findOwnerDeployment();
+
 	}
-	
+
+
+	private synchronized void findOwnerDeployment() throws Exception {
+		String hostName = System.getenv("HOSTNAME");
+		if (hostName == null) {
+			return;
+		}
+
+		String uri = "/api/v1/namespaces/" + this.nameSpace + "/pods/" + hostName;
+		loadOwner(uri);
+	}
+
+	private boolean loadOwner(String uri) throws Exception {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Owner check on " + uri);
+			}
+			OpenShiftTarget target = (OpenShiftTarget) GlobalEntries.getGlobalEntries().getConfigManager().getProvisioningEngine().getTarget(this.k8sTarget).getProvider();
+			HttpCon http = null;
+			try {
+				http = target.createClient();
+				String jsonResp = target.callWS(target.getAuthToken(), http, uri);
+				if (logger.isDebugEnabled()) {
+					logger.debug("owner lookup " + jsonResp);
+				}
+				JSONObject json = (JSONObject) new JSONParser().parse(jsonResp);
+				JSONObject metadata = (JSONObject) json.get("metadata");
+				if (metadata == null) {
+					return false;
+				}
+
+				JSONArray owner = (JSONArray) metadata.get("ownerReferences");
+				if (owner == null || owner.isEmpty()) {
+					return false;
+				}
+
+				JSONObject ownerObj = (JSONObject) owner.get(0);
+				String apiVersion = (String) ownerObj.get("apiVersion");
+				String kind = (String) ownerObj.get("kind");
+				String name = (String) ownerObj.get("name");
+				String uid = (String) ownerObj.get("uid");
+
+				String ownerUri = "/" + (apiVersion.startsWith("api/v1") ? apiVersion : "apis/" + apiVersion) + "/namespaces/" + this.nameSpace + "/" + kind.toLowerCase() + "s/" + name;
+				if (!loadOwner(ownerUri)) {
+					this.ownerApiVersion = apiVersion;
+					this.ownerKind = kind;
+					this.ownerName = name;
+					this.ownerUid = uid;
+
+					return true;
+
+				} else {
+					return false;
+				}
+
+
+			} finally {
+				if (http != null) {
+					try {
+						http.getHttp().close();
+					} catch (Throwable t) {
+						// doesnt matter
+					}
+
+					http.getBcm().close();
+				}
+			}
+
+	}
+
 	private synchronized String getApiVersion() {
 		if (this.apiVersion != null) {
 			return this.apiVersion;
@@ -140,6 +220,19 @@ public class K8sSessionStore implements OidcSessionStore {
 		createObject.put("metadata", metaData);
 		metaData.put("name", sessionIdName);
 		metaData.put("namespace",this.nameSpace);
+
+		if (this.ownerApiVersion != null) {
+			Map<String,Object> ownerRef = new HashMap<>();
+			ownerRef.put("apiVersion", this.ownerApiVersion);
+			ownerRef.put("kind", this.ownerKind);
+			ownerRef.put("name", this.ownerName);
+			ownerRef.put("uid", this.ownerUid);
+			ownerRef.put("controller",true);
+
+			List<Map<String,Object>> ownerRefs = new ArrayList<Map<String,Object>>();
+			ownerRefs.add(ownerRef);
+			metaData.put("ownerReferences", ownerRefs);
+		}
 		
 		HashMap<String,Object> labels = new HashMap<String,Object>();
 		metaData.put("labels",labels);
