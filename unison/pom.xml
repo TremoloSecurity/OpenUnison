@@ -69,7 +69,7 @@
 		<googleauth.version>1.5.0</googleauth.version>
 		<activemq.version>6.2.5</activemq.version>
 		<commons-pool2.version>2.13.1</commons-pool2.version>
-		<aws-java-sdk.version>2.44.5</aws-java-sdk.version>
+		<aws-java-sdk.version>2.44.12</aws-java-sdk.version>
 		<amazon-sqs-java-messaging-lib.version>2.1.4</amazon-sqs-java-messaging-lib.version>
 		<stringtemplate.version>4.3.4</stringtemplate.version>
 		<hibernate.version>7.3.4.Final</hibernate.version>
@@ -111,11 +111,11 @@
 		<json-smart.version>2.6.0</json-smart.version>
 		<xnio-api.version>3.8.17.Final</xnio-api.version>
 		<jersey.version>2.44</jersey.version>
-		<woodstox.version>7.1.1</woodstox.version>
+		<woodstox.version>7.2.0</woodstox.version>
 		<spring.version>5.3.39</spring.version>
 		<activation.version>1.2.0</activation.version>
 		<velocity.version>2.4.1</velocity.version>
-		<nimbusds.version>11.37.1</nimbusds.version>
+		<nimbusds.version>11.37.2</nimbusds.version>
 		<pdfbox.version>3.0.7</pdfbox.version>
 		<ws.rs-api.version>3.1.0</ws.rs-api.version>
 		<qpid.version>2.10.0</qpid.version>
