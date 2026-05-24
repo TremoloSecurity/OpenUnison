@@ -269,6 +269,26 @@ public class JMSConnection {
 		
 		
 	}
+
+	public void close() {
+
+		this.sessions.forEach(JMSSessionHolder::close);
+
+
+		if (this.con != null) {
+			try {
+				this.con.stop();
+			} catch (JMSException e) {
+				logger.warn("Could not stop connection", e);
+			}
+
+			try {
+				this.con.close();
+			} catch (JMSException e) {
+				logger.warn("Could not close connection", e);
+			}
+		}
+    }
 	
 	
 }

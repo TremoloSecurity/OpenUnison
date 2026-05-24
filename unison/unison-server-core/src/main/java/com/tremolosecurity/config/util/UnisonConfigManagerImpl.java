@@ -1352,6 +1352,7 @@ public abstract class UnisonConfigManagerImpl implements ConfigManager, UnisonCo
 	public void clearThreads() {
 		for (StopableThread r : this.threads) {
 			synchronized (r) {
+				logger.info("Stopping thread " + r);
 				r.stop();
 				r.notify();
 			}

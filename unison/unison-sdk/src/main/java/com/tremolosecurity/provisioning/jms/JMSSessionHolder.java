@@ -108,4 +108,30 @@ public class JMSSessionHolder {
 	public JMSConnection getJMSConnection() {
 		return this.con;
 	}
+
+	public void close()  {
+		if (mc != null) {
+            try {
+                mc.close();
+            } catch (JMSException e) {
+                logger.warn("Failed to close MessageConsumer", e);
+            }
+        }
+
+		if (mp != null) {
+            try {
+                mp.close();
+            } catch (JMSException e) {
+                logger.warn("Failed to close MessageProducer", e);
+            }
+        }
+
+		if (session != null) {
+            try {
+                session.close();
+            } catch (JMSException e) {
+                logger.warn("Failed to close Session", e);
+            }
+        }
+	}
 }

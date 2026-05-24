@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.tremolosecurity.server.StopableThread;
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.JMSException;
 
@@ -95,6 +96,24 @@ public class JMSConnectionFactory {
 		}
 		
 		this.cons = new ArrayList<JMSConnection>();
+
+		StopableThread t = new StopableThread() {
+			@Override
+			public void run() {
+
+			}
+
+			@Override
+			public void stop() {
+                try {
+                    JMSConnectionFactory.getConnectionFactory().close();
+                } catch (ProvisioningException e) {
+                    logger.warn("Could not close JMSConnectionFactory", e);
+                }
+            }
+		};
+
+		GlobalEntries.getGlobalEntries().getConfigManager().addThread(t);
 	}
 	
 	public synchronized JMSSessionHolder getSession(String queueName) throws ProvisioningException {
@@ -157,5 +176,10 @@ public class JMSConnectionFactory {
 		} catch (JMSException e) {
 			throw new ProvisioningException("Could not initialize session",e);
 		}
+	}
+
+	public synchronized void close() {
+		this.cons.forEach(JMSConnection::close);
+		this.cons.clear();
 	}
 }
