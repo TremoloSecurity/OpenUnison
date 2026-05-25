@@ -1,3 +1,17 @@
+# 1.0.50-2026052501
+
+**Tasks:**
+ - 1.0.50 build [\#1076](https://github.com/TremoloSecurity/OpenUnison/issues/1076)
+
+**enhancements:**
+ - explicitly shutdown jms sessions [\#1081](https://github.com/TremoloSecurity/OpenUnison/issues/1081)
+ - oidc idp - kubernetes sessions - create ownerRef [\#1080](https://github.com/TremoloSecurity/OpenUnison/issues/1080)
+
+**bugs:**
+ - Remove headers, session vairables from loginTEst.jsp [\#1078](https://github.com/TremoloSecurity/OpenUnison/issues/1078)
+ - SAML2 Splash Page - redirto parameter should not be set client side [\#1077](https://github.com/TremoloSecurity/OpenUnison/issues/1077)
+
+
 # 1.0.49-2026051401
 
 **Tasks:**
