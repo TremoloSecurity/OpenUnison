@@ -129,17 +129,7 @@
 
 
 
-        <dependency>
-            <groupId>xerces</groupId>
-            <artifactId>xercesImpl</artifactId>
-            <version>${xerces.version}</version>
-            <exclusions>
-            	<exclusion>
-            		<groupId>xml-apis</groupId>
-            		<artifactId>xml-apis</artifactId>
-            	</exclusion>
-            </exclusions>
-        </dependency>
+
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>

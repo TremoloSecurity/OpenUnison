@@ -22,8 +22,7 @@
 		<commons-collections.version>3.2.2</commons-collections.version>
 		<commons-cli.version>1.11.0</commons-cli.version>
 		<commons-codec.version>1.22.0</commons-codec.version>
-		<opensaml.version>5.2.1</opensaml.version>
-		<xerces.version>2.12.2</xerces.version>
+		<opensaml.version>5.2.2</opensaml.version>
 		<alfresco-client.version>5.0.a</alfresco-client.version>
 		<javax.xml.rpc-api.version>1.1.2</javax.xml.rpc-api.version>
 		<google-api-client.version>2.9.0</google-api-client.version>
@@ -77,7 +76,7 @@
 		<org.apache.poi.version>5.5.1</org.apache.poi.version>
 		<jose4j.version>0.9.6</jose4j.version>
 		<mongodb-driver.version>3.12.14</mongodb-driver.version>
-		<xalan.version>2.7.3</xalan.version>
+
 		<jackson.version>2.21.3</jackson.version>
 		<jackson-annotations.version>2.21</jackson-annotations.version>
 		<jackson-core.version>2.21.3</jackson-core.version>
