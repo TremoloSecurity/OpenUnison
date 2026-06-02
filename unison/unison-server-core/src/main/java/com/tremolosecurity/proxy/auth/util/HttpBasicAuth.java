@@ -51,6 +51,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.impl.cookie.BrowserCompatSpec;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
@@ -110,7 +111,8 @@ public class HttpBasicAuth implements BasicAuthImpl {
 
 			CloseableHttpClient httpclient = HttpClients.custom()
 					.setConnectionManager(bhcm)
-					.setDefaultCredentialsProvider(credsProvider).build();
+					.setDefaultCredentialsProvider(credsProvider)
+					.setRoutePlanner(new SystemDefaultRoutePlanner(null)).build();
 
 			HttpGet get = new HttpGet(this.url);
 

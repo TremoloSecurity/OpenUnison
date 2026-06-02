@@ -28,6 +28,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 
 import com.tremolosecurity.config.util.ConfigManager;
 import com.tremolosecurity.saml.Attribute;
@@ -55,7 +56,7 @@ public class LoadAttributesFromWS implements LoadUserData {
 		
 		BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(GlobalEntries.getGlobalEntries().getConfigManager().getHttpClientSocketRegistry());
 		RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
-		CloseableHttpClient http = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(rc).build();
+		CloseableHttpClient http = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(rc).setRoutePlanner(new SystemDefaultRoutePlanner(null)).build();
 		    
 		HttpGet get = new HttpGet(url);
 		String header = new StringBuilder().append("Bearer ").append(request.getSession().getAttribute(bearerTokenName)).toString();
