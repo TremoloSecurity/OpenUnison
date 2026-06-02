@@ -86,6 +86,7 @@ public class OAuth2JWT extends OAuth2Bearer {
 				                  .setConnectionManager(bhcm)
 				                  .setDefaultHeaders(defheaders)
 				                  .setDefaultRequestConfig(rc)
+								  .setRoutePlanner(new SystemDefaultRoutePlanner(null))
 				                  .build();
 
 		HttpCon con = new HttpCon();
