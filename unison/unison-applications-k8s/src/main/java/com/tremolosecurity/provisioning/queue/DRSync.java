@@ -30,6 +30,7 @@ import com.tremolosecurity.provisioning.util.HttpCon;
 import com.tremolosecurity.saml.Attribute;
 import com.tremolosecurity.unison.openshiftv3.OpenShiftTarget;
 import com.tremolosecurity.unison.openshiftv3.dr.DisasterRecoveryAction;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -41,7 +42,8 @@ public class DRSync extends UnisonMessageListener {
 	@Override
 	public void onMessage(ConfigManager cfg, Object payload, Message msg) throws ProvisioningException {
 		DisasterRecoveryAction drAction = (DisasterRecoveryAction) payload;
-		
+
+		logger.info("method :" + drAction.getMethod());
 		logger.info("dr action : " + drAction.getUrl());
 		
 		if (logger.isDebugEnabled()) {
@@ -56,7 +58,44 @@ public class DRSync extends UnisonMessageListener {
 		try {
 			http = k8s.createClient();
 			if (drAction.getMethod().equalsIgnoreCase("POST")) {
-				logger.info(k8s.callWSPost(k8s.getAuthToken(), http, drAction.getUrl(), drAction.getJson()));
+				String json = drAction.getJson();
+				boolean replacedOwnerRef = false;
+				if (k8s.getOwnerApiVersion() != null) {
+					JSONObject root = (JSONObject) new JSONParser().parse(drAction.getJson());
+					JSONObject metadata = (JSONObject) root.get("metadata");
+					if (metadata != null) {
+
+						JSONArray ownerReferences = (JSONArray) metadata.get("ownerReferences");
+						if (ownerReferences != null) {
+							String namespace = (String) metadata.get("namespace");
+							for (Object o : ownerReferences) {
+								JSONObject owner = (JSONObject) o;
+								String ownerApiVersion = (String) owner.get("apiVersion");
+								String ownerName = (String) owner.get("name");
+								String ownerKind = (String) owner.get("kind");
+								String uidFromK8s = k8s.getOwnerUid();
+								if (ownerApiVersion != null && ownerApiVersion.equals(k8s.getOwnerApiVersion())
+									&& ownerName != null && ownerName.equals(k8s.getOwnerName())
+									&& ownerKind != null && ownerKind.equals(k8s.getOwnerKind())
+									&& namespace != null && namespace.equals(k8s.getOwnerNamespace())
+								) {
+									replacedOwnerRef = true;
+									owner.put("uid",uidFromK8s);
+								}
+
+							}
+
+						}
+					}
+
+					if (replacedOwnerRef) {
+						json = root.toString();
+					}
+				}
+
+
+
+				logger.info(k8s.callWSPost(k8s.getAuthToken(), http, drAction.getUrl(), json));
 			} else if (drAction.getMethod().equalsIgnoreCase("DELETE")) {
 				logger.info(k8s.callWSDelete(k8s.getAuthToken(), http, drAction.getUrl()));
 			} else if (drAction.getMethod().equalsIgnoreCase("PATCH")) {
@@ -84,6 +123,39 @@ public class DRSync extends UnisonMessageListener {
 					if (resourceVersion != null) {
 						metadata.put("resourceVersion", resourceVersion);
 					}
+				}
+
+
+				boolean replacedOwnerRef = false;
+				if (k8s.getOwnerApiVersion() != null) {
+					JSONObject root = jsonToPut;
+
+					if (metadata != null) {
+
+						JSONArray ownerReferences = (JSONArray) metadata.get("ownerReferences");
+						if (ownerReferences != null) {
+							String namespace = (String) metadata.get("namespace");
+							for (Object o : ownerReferences) {
+								JSONObject owner = (JSONObject) o;
+								String ownerApiVersion = (String) owner.get("apiVersion");
+								String ownerName = (String) owner.get("name");
+								String ownerKind = (String) owner.get("kind");
+								String uidFromK8s = k8s.getOwnerUid();
+								if (ownerApiVersion != null && ownerApiVersion.equals(k8s.getOwnerApiVersion())
+										&& ownerName != null && ownerName.equals(k8s.getOwnerName())
+										&& ownerKind != null && ownerKind.equals(k8s.getOwnerKind())
+										&& namespace != null && namespace.equals(k8s.getOwnerNamespace())
+								) {
+									replacedOwnerRef = true;
+									owner.put("uid",uidFromK8s);
+								}
+
+							}
+
+						}
+					}
+
+
 				}
 
 				drAction.setJson(jsonToPut.toString());

@@ -68,6 +68,7 @@ import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.lang.JoseException;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -102,7 +103,9 @@ import com.tremolosecurity.unison.openshiftv3.model.groups.GroupItem;
 
 
 public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreProviderWithMetadata {
-	
+
+	private String nameSpace;
+
 	public enum TokenType {
 		NONE,
 		STATIC,
@@ -168,6 +171,13 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 	private K8sApis k8sApi;
 
 	private int timeout;
+
+	private String apiVersion;
+	private String ownerApiVersion;
+	private String ownerKind;
+	private String ownerName;
+	private String ownerUid;
+	private String hostOverideProperty;
 
 	@Override
 	public void createUser(User user, Set<String> attributes, Map<String, Object> request)
@@ -1077,7 +1087,18 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 		}
 		
 		this.gitUrl = this.loadOptionalAttributeValue("gitUrl", "gitUrl", cfg, null);
-		
+
+
+		this.nameSpace = this.loadOptionalAttributeValue("ownerNamespace","ownerNamespace",cfg,null);
+		if (this.nameSpace != null) {
+			this.hostOverideProperty = this.loadOptionalAttributeValue("hostNameOverride","hostNameOverride",cfg,null);
+            try {
+                findOwnerDeployment();
+            } catch (Exception e) {
+                throw new ProvisioningException("Could not find ownerDeployment",e);
+            }
+        }
+
 		String drQueueNames = this.loadOptionalAttributeValue("drqueues","drqueues", cfg, null);
 		this.drQueues = new ArrayList<JMSSessionHolder>();
 		if (drQueueNames != null) {
@@ -1096,6 +1117,80 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 		
 		this.k8sApi = new K8sApis(this);
 		
+	}
+
+	private synchronized void findOwnerDeployment() throws Exception {
+
+
+		String hostName = System.getenv("HOSTNAME");
+
+		if (this.hostOverideProperty != null) {
+			hostName = System.getProperty(this.hostOverideProperty);
+		}
+
+		if (hostName == null) {
+			return;
+		}
+
+		String uri = "/api/v1/namespaces/" + this.nameSpace + "/pods/" + hostName;
+		loadOwner(uri);
+	}
+
+	private boolean loadOwner(String uri) throws Exception {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Owner check on " + uri);
+		}
+		OpenShiftTarget target = this;
+		HttpCon http = null;
+		try {
+			http = target.createClient();
+			String jsonResp = target.callWS(target.getAuthToken(), http, uri);
+			if (logger.isDebugEnabled()) {
+				logger.debug("owner lookup " + jsonResp);
+			}
+			JSONObject json = (JSONObject) new JSONParser().parse(jsonResp);
+			JSONObject metadata = (JSONObject) json.get("metadata");
+			if (metadata == null) {
+				return false;
+			}
+
+			JSONArray owner = (JSONArray) metadata.get("ownerReferences");
+			if (owner == null || owner.isEmpty()) {
+				return false;
+			}
+
+			JSONObject ownerObj = (JSONObject) owner.get(0);
+			String apiVersion = (String) ownerObj.get("apiVersion");
+			String kind = (String) ownerObj.get("kind");
+			String name = (String) ownerObj.get("name");
+			String uid = (String) ownerObj.get("uid");
+
+			String ownerUri = "/" + (apiVersion.startsWith("api/v1") ? apiVersion : "apis/" + apiVersion) + "/namespaces/" + this.nameSpace + "/" + kind.toLowerCase() + "s/" + name;
+			if (!loadOwner(ownerUri)) {
+				this.ownerApiVersion = apiVersion;
+				this.ownerKind = kind;
+				this.ownerName = name;
+				this.ownerUid = uid;
+
+				return true;
+
+			} else {
+				return false;
+			}
+
+
+		} finally {
+			if (http != null) {
+				try {
+					http.getHttp().close();
+				} catch (Throwable t) {
+					// doesnt matter
+				}
+
+				http.getBcm().close();
+			}
+		}
+
 	}
 	
 	public K8sApis getApis() {
@@ -1635,5 +1730,25 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 	
 	public String getName() {
 		return this.name;
+	}
+
+	public String getOwnerApiVersion() {
+		return this.ownerApiVersion;
+	}
+
+	public String getOwnerKind() {
+		return this.ownerKind;
+	}
+
+	public String getOwnerName() {
+		return this.ownerName;
+	}
+
+	public String getOwnerUid() {
+		return this.ownerUid;
+	}
+
+	public String getOwnerNamespace() {
+		return this.nameSpace;
 	}
 }
