@@ -1090,6 +1090,20 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 
 
 		this.nameSpace = this.loadOptionalAttributeValue("ownerNamespace","ownerNamespace",cfg,null);
+		if (this.nameSpace == null) {
+			try {
+				String token = this.getAuthToken();
+				if (token != null) {
+					this.nameSpace = this.extractServiceAccountNamespace(token);
+				}
+
+			} catch (Exception e) {
+				logger.warn("Could not load the authentication token", e);
+			}
+		}
+
+
+
 		if (this.nameSpace != null) {
 			this.hostOverideProperty = this.loadOptionalAttributeValue("hostNameOverride","hostNameOverride",cfg,null);
             try {
@@ -1191,6 +1205,34 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 			}
 		}
 
+	}
+
+
+
+	private  String extractServiceAccountNamespace(String jwt) throws Exception {
+		JwtConsumer jwtConsumer = new JwtConsumerBuilder()
+				.setSkipSignatureVerification()
+				.setSkipAllValidators()
+				.build();
+
+		JwtClaims claims = jwtConsumer.processToClaims(jwt);
+		String sub = claims.getSubject();
+
+		// Kubernetes service account subject format:
+		// system:serviceaccount:<namespace>:<serviceaccount-name>
+		String prefix = "system:serviceaccount:";
+		if (sub == null || !sub.startsWith(prefix)) {
+			return null;
+		}
+
+		String remainder = sub.substring(prefix.length());
+		int nextColon = remainder.indexOf(':');
+
+		if (nextColon <= 0) {
+			return null;
+		}
+
+		return remainder.substring(0, nextColon);
 	}
 	
 	public K8sApis getApis() {
