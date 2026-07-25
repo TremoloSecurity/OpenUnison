@@ -1455,22 +1455,34 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 		StringBuffer b = new StringBuffer();
 		b.append("/apis/user.openshift.io/v1/groups/").append(groupName);
 		String json = this.callWS(token, con, b.toString());
+
+
+
 		com.tremolosecurity.unison.openshiftv3.model.groups.Group group = gson.fromJson(json, com.tremolosecurity.unison.openshiftv3.model.groups.Group.class);
-		if (group.getUsers() == null) {
-			group.setUsers(new HashSet<String>());
-		}
-		if ( ! group.getUsers().contains(userName)) {
-			
-			group.getUsers().add(userName);
-			json = gson.toJson(group);
-			json = this.callWSPut(token, con, b.toString(), json);
-			Response resp = gson.fromJson(json, Response.class);
-			if (resp.getKind().equals("Group")) {
-				this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Add,  approvalID, workflow, "group", groupName);
-			} else {
-				throw new Exception("Could not add group " + groupName + " to " + userName + " - " + resp.getReason());
+		if (group.getCode() == 404) {
+			logger.warn(String.format("Group %s does not exist",groupName));
+		} else {
+			if (group.getUsers() == null) {
+				group.setUsers(new HashSet<String>());
+			}
+			if ( ! group.getUsers().contains(userName)) {
+
+				group.getUsers().add(userName);
+				json = gson.toJson(group);
+				json = this.callWSPut(token, con, b.toString(), json);
+				Response resp = gson.fromJson(json, Response.class);
+				if (resp.getKind().equals("Group")) {
+					this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Add,  approvalID, workflow, "group", groupName);
+				} else {
+					if (resp.getCode() == 404) {
+						logger.warn(String.format("Group %s does not exist",groupName));
+					} else {
+						throw new Exception("Could not add group " + groupName + " to " + userName + " - " + resp.getReason());
+					}
+				}
 			}
 		}
+
 	}
 	
 	public void removeUserFromGroup(String token,HttpCon con,String userName,String groupName,int approvalID,Workflow workflow) throws Exception {
