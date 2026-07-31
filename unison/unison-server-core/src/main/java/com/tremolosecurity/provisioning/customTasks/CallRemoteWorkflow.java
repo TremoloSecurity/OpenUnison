@@ -31,6 +31,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.message.BasicHeader;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
@@ -174,6 +175,7 @@ public class CallRemoteWorkflow implements CustomTask {
 			http = HttpClients.custom()
 					                  .setConnectionManager(bhcm)
 					                  .setDefaultRequestConfig(rc)
+					                  .setRoutePlanner(new SystemDefaultRoutePlanner(null))
 					                  .build();
 			
 			HttpPost post = new HttpPost(this.url);

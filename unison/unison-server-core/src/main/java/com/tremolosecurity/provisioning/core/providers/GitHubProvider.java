@@ -40,6 +40,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
@@ -211,7 +212,7 @@ public class GitHubProvider implements UserStoreProviderWithAddGroup {
 				BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(
 						GlobalEntries.getGlobalEntries().getConfigManager().getHttpClientSocketRegistry());
 				RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
-				CloseableHttpClient http = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(rc)
+				CloseableHttpClient http = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(rc).setRoutePlanner(new SystemDefaultRoutePlanner(null))
 						.build();
 
 				try {
@@ -356,7 +357,7 @@ public class GitHubProvider implements UserStoreProviderWithAddGroup {
 		BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(
 				GlobalEntries.getGlobalEntries().getConfigManager().getHttpClientSocketRegistry());
 		RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
-		CloseableHttpClient http = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(rc)
+		CloseableHttpClient http = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(rc).setRoutePlanner(new SystemDefaultRoutePlanner(null))
 				.build();
 		try {
 			HttpUriRequest graphql = RequestBuilder.post()
