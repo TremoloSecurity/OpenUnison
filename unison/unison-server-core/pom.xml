@@ -48,7 +48,7 @@
 		<dependency>
 			<groupId>io.undertow</groupId>
 			<artifactId>undertow-parser-generator</artifactId>
-			<version>${undertow.version}</version>
+			<version>${undertow-parser-generator.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.undertow.jastow</groupId>
