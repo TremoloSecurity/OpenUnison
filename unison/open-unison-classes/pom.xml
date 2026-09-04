@@ -157,6 +157,11 @@
 		  <version>${openunison.version}</version>
 	  </dependency>
 
+	  <dependency>
+		  <groupId>org.apache.httpcomponents.client5</groupId>
+		  <artifactId>httpclient5</artifactId>
+		  <version>${http5client.version}</version>
+	  </dependency>
 
   	
   	

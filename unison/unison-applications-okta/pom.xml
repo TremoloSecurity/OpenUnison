@@ -85,7 +85,16 @@
 			<artifactId>jackson-core</artifactId>
 			<version>${jackson-core.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>com.github.jknack</groupId>
+			<artifactId>handlebars</artifactId>
+			<version>${githubjknack.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents.client5</groupId>
+			<artifactId>httpclient5</artifactId>
+			<version>${http5client.version}</version>
+		</dependency>
 	</dependencies>
 
 	

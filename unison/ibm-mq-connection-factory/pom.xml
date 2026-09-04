@@ -32,6 +32,14 @@
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcpkix-jdk18on</artifactId>
             </exclusion>
+            <exclusion>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18o</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcutil-jdk18on</artifactId>
+            </exclusion>
         </exclusions>
     </dependency>
     <dependency>
@@ -39,6 +47,16 @@
 		<artifactId>json</artifactId>
 		<version>${org-json-json.version}</version>
 	</dependency>
+      <dependency>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcprov-jdk18on</artifactId>
+          <version>${bcprov-jdk18on.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.bouncycastle</groupId>
+              <artifactId>bcutil-jdk18on</artifactId>
+          <version>${bcutil-jdk18on.version}</version>
+      </dependency>
   </dependencies>
 
   
