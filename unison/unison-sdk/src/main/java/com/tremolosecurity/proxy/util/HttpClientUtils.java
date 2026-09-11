@@ -21,6 +21,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
 import com.tremolosecurity.config.util.ConfigManager;
@@ -32,7 +33,7 @@ public class HttpClientUtils {
 	public static HttpClient createSingleClient(ConfigManager cfg) {
 		BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(cfg.getHttpClientSocketRegistry());
 		
-		CloseableHttpClient httpclient = HttpClients.custom().setConnectionManager(bhcm).build();
+		CloseableHttpClient httpclient = HttpClients.custom().setConnectionManager(bhcm).setRoutePlanner(new SystemDefaultRoutePlanner(null)).build();
 		
 		return httpclient;
 	}

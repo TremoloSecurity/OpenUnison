@@ -32,6 +32,8 @@ import java.util.List;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -46,6 +48,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.impl.cookie.BrowserCompatSpec;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.HttpParams;
@@ -200,7 +203,8 @@ public class TremoloTarget implements UserStoreProvider {
 		}
 		
 		phcm = new PoolingHttpClientConnectionManager(cfgMgr.getHttpClientSocketRegistry());
-		httpclient = HttpClients.custom().setConnectionManager(phcm).build();
+		RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
+		httpclient = HttpClients.custom().setConnectionManager(phcm).setRoutePlanner(new SystemDefaultRoutePlanner(null)).build();
 		
 		
 
