@@ -1,3 +1,11 @@
+# 1.0.51-2026090901
+
+**Tasks:**
+ - 1.0.51 build [\#1084](https://github.com/TremoloSecurity/OpenUnison/issues/1084)
+
+**bugs:**
+ - DRSync - ownerReferences causes objects to get deleted [\#1085](https://github.com/TremoloSecurity/OpenUnison/issues/1085)
+
 # 1.0.50-2026052501
 
 **Tasks:**

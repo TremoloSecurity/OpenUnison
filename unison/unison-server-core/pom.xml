@@ -48,7 +48,7 @@
 		<dependency>
 			<groupId>io.undertow</groupId>
 			<artifactId>undertow-parser-generator</artifactId>
-			<version>${undertow.version}</version>
+			<version>${undertow-parser-generator.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.undertow.jastow</groupId>
@@ -259,6 +259,12 @@
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<version>${jackson.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>tools.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson-tools-databind.version}</version>
 		</dependency>
 
 		<dependency>

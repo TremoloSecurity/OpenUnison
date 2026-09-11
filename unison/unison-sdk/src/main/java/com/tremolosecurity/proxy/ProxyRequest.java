@@ -38,8 +38,9 @@ import org.apache.commons.collections.iterators.IteratorEnumeration;
 import org.apache.commons.fileupload2.core.FileItem;
 import org.apache.commons.fileupload2.core.FileItemFactory;
 import org.apache.commons.fileupload2.core.DiskFileItemFactory;
-import org.apache.commons.fileupload2.jakarta.JakartaServletFileUpload;
-import org.apache.commons.fileupload2.jakarta.JakartaServletRequestContext;
+
+import org.apache.commons.fileupload2.jakarta.servlet5.JakartaServletFileUpload;
+import org.apache.commons.fileupload2.jakarta.servlet5.JakartaServletRequestContext;
 import org.apache.logging.log4j.Logger;
 
 import com.tremolosecurity.util.NVP;
