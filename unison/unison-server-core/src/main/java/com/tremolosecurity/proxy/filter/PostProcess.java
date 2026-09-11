@@ -63,6 +63,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicHeader;
@@ -558,7 +559,8 @@ public abstract class PostProcess extends ProcessAfterFilterChain {
 				
 				
 				
-				HttpClientBuilder httpBuilder = HttpClients.custom().setConnectionManager(phcm).setDefaultRequestConfig(requestConfig);
+				HttpClientBuilder httpBuilder = HttpClients.custom().setConnectionManager(phcm).setDefaultRequestConfig(requestConfig)
+					.setRoutePlanner(new SystemDefaultRoutePlanner(null));
 				
 				
 				
@@ -612,6 +614,7 @@ public abstract class PostProcess extends ProcessAfterFilterChain {
 				http = HttpClients.custom()
 						                  .setConnectionManager(bhcm)
 						                  .setDefaultRequestConfig(rc)
+										  .setRoutePlanner(new SystemDefaultRoutePlanner(null))
 						                  .build();
 				if (pc != null) {
 					sb.append("com.tremolosecurity.proxy.http.pool.").append(holder.getUrl().getUuid());

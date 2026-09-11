@@ -52,6 +52,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.impl.cookie.BrowserCompatSpec;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.HttpParams;
@@ -167,7 +168,7 @@ public class PreAuthFilter implements HttpFilter {
 				LastMileUtil.addLastMile(cfg, userData.getAttribs().get(loginAttribute).getValues().get(0), this.loginAttribute, method, lastMileKeyAlias, true);
 				BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(cfg.getHttpClientSocketRegistry());			
 				try {
-					CloseableHttpClient httpclient = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(cfg.getGlobalHttpClientConfig()).build();
+					CloseableHttpClient httpclient = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(cfg.getGlobalHttpClientConfig()).setRoutePlanner(new SystemDefaultRoutePlanner(null)).build();
 					
 					HttpResponse resp = httpclient.execute(method);
 					
