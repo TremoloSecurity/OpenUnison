@@ -577,7 +577,7 @@ public class SAML2Auth implements AuthMechanism {
 		
 		List<X509Certificate>  sigCerts = new ArrayList<X509Certificate>();
 		
-		boolean isMultiIdp = authParams.get("isMultiIdP") != null && authParams.get("isMultiIdP").getValues().get(0).equalsIgnoreCase("true");
+
 		
 		
 
@@ -644,37 +644,11 @@ public class SAML2Auth implements AuthMechanism {
 				}
 			}
 			
-			if (isMultiIdp) {
-				
-				
-				try {
-					String dn = authParams.get("idpDir").getValues().get(0);
-					
-					
-					
-					
-					
-					LDAPSearchResults res = cfgMgr.getMyVD().search(dn, 2, equal("issuer",samlResponse.getIssuer().getValue()).toString() , new ArrayList<String>());
-					if (! res.hasMore()) {
-						throw new ServletException(String.format("No IdP found: %s",samlResponse.getIssuer().getValue()));
-					}
-					
-					LDAPEntry entry = res.next();
-					while (res.hasMore()) res.next();
-					java.security.cert.CertificateFactory cf= java.security.cert.CertificateFactory.getInstance("X.509");
-					sigCerts.add((java.security.cert.X509Certificate) cf.generateCertificate(new ByteArrayInputStream(Base64.decodeBase64(entry.getAttribute("idpSig").getStringValue()))));
-					
-					
-				} catch (LDAPException e) {
-					throw new ServletException("Could not load IdP data",e);
-				} catch (CertificateException e) {
-					throw new ServletException("Could not load IdP data",e);
-				} 
-			} else {
-				for (String sigCertName : sigCertNames) {
-					sigCerts.add(cfgMgr.getCertificate(sigCertName));
-				}
+
+			for (String sigCertName : sigCertNames) {
+				sigCerts.add(cfgMgr.getCertificate(sigCertName));
 			}
+
 			
 			if (responseSigned) {
 				if (samlResponse.getSignature() != null) {
