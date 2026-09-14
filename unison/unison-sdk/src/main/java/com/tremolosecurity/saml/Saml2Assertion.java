@@ -140,8 +140,10 @@ public  class Saml2Assertion {
 		this(subject,key,cert,encCert,issuer,recepient,audience,signAssertion,signResponse,encAssertion,nameIDFormat,authnContextRef,5);
 	
 	}
-	
 	public Saml2Assertion(String subject,PrivateKey key,X509Certificate cert,X509Certificate encCert,String issuer,String recepient,String audience,boolean signAssertion,boolean signResponse,boolean encAssertion,String nameIDFormat,String authnContextRef,int  minAlive) {
+		this(subject,key,cert,encCert,issuer,recepient,audience,signAssertion,signResponse,encAssertion,nameIDFormat,authnContextRef,5,0);
+	}
+	public Saml2Assertion(String subject,PrivateKey key,X509Certificate cert,X509Certificate encCert,String issuer,String recepient,String audience,boolean signAssertion,boolean signResponse,boolean encAssertion,String nameIDFormat,String authnContextRef,int  minAlive,int minOffset) {
 		this.subject = subject;
 		
 		this.sigKey = key;
@@ -153,9 +155,11 @@ public  class Saml2Assertion {
 		
 		
 		this.issueInstant = Instant.now();//(new DateTime()).withZone(DateTimeZone.UTC);
+
+
 		
-		this.notBefore =  this.issueInstant.minusMillis(minAlive * 60 * 1000);//        (new DateTime(now - ())).withZone(DateTimeZone.UTC);
-		this.notAfter =  this.issueInstant.plusMillis(minAlive * 60 * 1000);//  (new DateTime(now + (5 * 60 * 1000))).withZone(DateTimeZone.UTC);
+		this.notBefore =  this.issueInstant.plusSeconds(minOffset * 60).minusMillis(minAlive * 60 * 1000);//        (new DateTime(now - ())).withZone(DateTimeZone.UTC);
+		this.notAfter =  this.issueInstant.plusSeconds(minOffset * 60).plusMillis(minAlive * 60 * 1000);//  (new DateTime(now + (5 * 60 * 1000))).withZone(DateTimeZone.UTC);
 		this.attribs = new ArrayList<Attribute>();
 		
 		

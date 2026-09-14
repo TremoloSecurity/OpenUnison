@@ -36,6 +36,7 @@ import java.security.SecureRandom;
 import java.security.SignatureException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
+import java.time.Clock;
 import java.util.*;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -43,6 +44,9 @@ import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 
 import com.novell.ldap.util.ByteArray;
@@ -812,6 +816,27 @@ public class SAML2Auth implements AuthMechanism {
 				holder.getConfig().getAuthManager().nextAuth(req, resp, session,false);
 				return;
 			}
+
+			// validate notbefore and notafter
+			Instant now = Clock.systemUTC().instant();
+			Instant notBefore = assertion.getConditions().getNotBefore();
+			Instant notAfter = assertion.getConditions().getNotOnOrAfter();
+
+			if (notBefore != null && now.isBefore(notBefore)) {
+				logger.warn("Assertion is before " + notBefore);
+				as.setSuccess(false);
+				holder.getConfig().getAuthManager().nextAuth(req, resp, session,false);
+				return;
+			}
+
+			if (notAfter != null && now.isAfter(notAfter)) {
+				logger.warn("Assertion is after " + notAfter);
+				as.setSuccess(false);
+				holder.getConfig().getAuthManager().nextAuth(req, resp, session,false);
+				return;
+			}
+
+
 			
 			try {
 				if (authParams.get("dontLinkToLDAP") == null || authParams.get("dontLinkToLDAP").getValues().get(0).equalsIgnoreCase("false")) {
