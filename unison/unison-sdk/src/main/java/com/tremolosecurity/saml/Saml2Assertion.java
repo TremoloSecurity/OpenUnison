@@ -181,12 +181,15 @@ public  class Saml2Assertion {
 		}
 		
 	}
-	
-	
-	
-	
+
+
+
+
 
 	public String generateSaml2Response() throws Exception {
+		return generateSaml2Response(null);
+	}
+	public String generateSaml2Response(String inResponseTo) throws Exception {
 		byte[] idBytes = new byte[20];
 		random.nextBytes(idBytes);
 		
@@ -221,6 +224,10 @@ public  class Saml2Assertion {
 		r.setID(id);
 		r.setIssueInstant(this.issueInstant);
 		r.setDestination(recepient);
+
+		if (inResponseTo != null) {
+			r.setInResponseTo(inResponseTo);
+		}
 		
 		IssuerBuilder issuerBuilder = new IssuerBuilder();
 		

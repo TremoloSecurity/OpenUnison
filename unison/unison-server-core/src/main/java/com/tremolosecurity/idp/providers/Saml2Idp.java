@@ -230,7 +230,7 @@ public class Saml2Idp implements IdentityProvider {
 			
 			
 			try {
-				doFederation(request, response, issuer, nameID, authnCtx, url,relayState,trust);
+				doFederation(request, response, issuer, nameID, authnCtx, url,relayState,trust,null);
 			} catch (Exception e) {
 				throw new ServletException("Could not do idp initiated federation",e);
 			}
@@ -427,6 +427,8 @@ public class Saml2Idp implements IdentityProvider {
 			logger.debug("NameID Format : '" + nameID + "'");
 			logger.debug("Authn Class Ctx : '" + authnCtx + "'");
 		}
+
+		String authnReqId = authn.getID();
 		
 		Saml2Trust trust = this.trusts.get(issuer);
 		
@@ -497,12 +499,12 @@ public class Saml2Idp implements IdentityProvider {
 			}
 		}
 		
-		doFederation(request, response, issuer, nameID, authnCtx, url,relayState,trust);
+		doFederation(request, response, issuer, nameID, authnCtx, url,relayState,trust,authnReqId);
 	}
 
 	private void doFederation(HttpServletRequest request,
 			HttpServletResponse response, String issuer, String nameID,
-			String authnCtx, String url, String relayState,Saml2Trust trust) throws Exception, ServletException,
+			String authnCtx, String url, String relayState,Saml2Trust trust,String authnId) throws Exception, ServletException,
 			IOException {
 		
 		
@@ -549,6 +551,7 @@ public class Saml2Idp implements IdentityProvider {
 		transaction.postToURL = url;
 		transaction.authnCtxName = authnCtx;
 		transaction.relayState = relayState;
+		transaction.authnId = authnId;
 		
 		session.setAttribute(Saml2Idp.TRANSACTION_DATA, transaction);
 		
@@ -817,7 +820,7 @@ public class Saml2Idp implements IdentityProvider {
 		String respXML = "";
 		
 		try {
-			respXML = resp.generateSaml2Response();
+			respXML = resp.generateSaml2Response(transaction.authnId);
 		} catch (Exception e) {
 			throw new ServletException("Could not generate SAMLResponse",e);
 		}
@@ -904,7 +907,7 @@ public class Saml2Idp implements IdentityProvider {
 		String respXML = "";
 		
 		try {
-			respXML = resp.generateSaml2Response();
+			respXML = resp.generateSaml2Response(transaction.authnId);
 		} catch (Exception e) {
 			throw new ServletException("Could not generate SAMLResponse",e);
 		}
@@ -964,7 +967,8 @@ class SamlTransaction implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
+	 String authnId;
+
 	String postToURL;
 	String nameIDFormat;
 	String nameIDAttr;

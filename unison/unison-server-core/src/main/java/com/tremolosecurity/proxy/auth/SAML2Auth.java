@@ -308,6 +308,7 @@ public class SAML2Auth implements AuthMechanism {
 			}
 
 
+
 			assertionConsumerServiceURL = ProxyTools.getInstance().getFqdnUrl(uri,req);// "http://sp.localdomain.com:8080/SampleSP/echo";
 
 			if (authParams.get("forceToSSL") != null && authParams.get("forceToSSL").getValues().get(0).equalsIgnoreCase("true")) {
@@ -347,8 +348,10 @@ public class SAML2Auth implements AuthMechanism {
 			b.append('f').append(Hex.encodeHexString(idBytes));
 			
 			String id = b.toString();
-			
-			
+
+
+
+			req.getSession().setAttribute("tremolo.io/saml2/reqid",id);
 			
 			authn.setIssueInstant(Instant.now());
 			//authn.setID(Long.toString(random.nextLong()));
@@ -626,6 +629,20 @@ public class SAML2Auth implements AuthMechanism {
 			
 			Response samlResponse = (Response) XMLObjectSupport.getUnmarshaller(root)
 					.unmarshall(root);
+
+			// validate the responseto if needed
+			String postAuthnReqTo,redirAuthnReqTo;
+
+
+			String inResponseTo = (String) req.getSession().getAttribute("tremolo.io/saml2/reqid");
+			if (inResponseTo != null) {
+				if (samlResponse.getInResponseTo() == null || samlResponse.getInResponseTo().isEmpty() || ! inResponseTo.equals(samlResponse.getInResponseTo())) {
+					logger.warn("Response is not associated with initial request");
+					as.setSuccess(false);
+					holder.getConfig().getAuthManager().nextAuth(req, resp, session,false);
+					return;
+				}
+			}
 			
 			if (isMultiIdp) {
 				
@@ -783,14 +800,21 @@ public class SAML2Auth implements AuthMechanism {
 			Instant notBefore = assertion.getConditions().getNotBefore();
 			Instant notAfter = assertion.getConditions().getNotOnOrAfter();
 
-			if (notBefore != null && now.isBefore(notBefore)) {
+			String minSkewCfg = req.getParameter("minSkew");
+			if (minSkewCfg == null) {
+				minSkewCfg = "1";
+			}
+
+			int minSkew = Integer.parseInt(minSkewCfg);
+
+			if (notBefore != null && now.plusSeconds(minSkew * 60).isBefore(notBefore)) {
 				logger.warn("Assertion is before " + notBefore);
 				as.setSuccess(false);
 				holder.getConfig().getAuthManager().nextAuth(req, resp, session,false);
 				return;
 			}
 
-			if (notAfter != null && now.isAfter(notAfter)) {
+			if (notAfter != null && !now.minusSeconds(minSkew * 60).isBefore(notAfter)) {
 				logger.warn("Assertion is after " + notAfter);
 				as.setSuccess(false);
 				holder.getConfig().getAuthManager().nextAuth(req, resp, session,false);
@@ -813,6 +837,8 @@ public class SAML2Auth implements AuthMechanism {
 					}
 				}
 			}
+
+
 
 
 			
