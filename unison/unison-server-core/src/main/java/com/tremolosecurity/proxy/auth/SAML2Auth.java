@@ -75,17 +75,7 @@ import org.opensaml.core.xml.io.UnmarshallingException;
 import org.opensaml.core.xml.schema.XSAny;
 import org.opensaml.core.xml.schema.XSString;
 import org.opensaml.core.xml.util.XMLObjectSupport;
-import org.opensaml.saml.saml2.core.Assertion;
-import org.opensaml.saml.saml2.core.AuthnContextClassRef;
-import org.opensaml.saml.saml2.core.AuthnContextComparisonTypeEnumeration;
-import org.opensaml.saml.saml2.core.AuthnRequest;
-import org.opensaml.saml.saml2.core.EncryptedAssertion;
-import org.opensaml.saml.saml2.core.Issuer;
-import org.opensaml.saml.saml2.core.LogoutRequest;
-import org.opensaml.saml.saml2.core.LogoutResponse;
-import org.opensaml.saml.saml2.core.NameIDPolicy;
-import org.opensaml.saml.saml2.core.RequestedAuthnContext;
-import org.opensaml.saml.saml2.core.Response;
+import org.opensaml.saml.saml2.core.*;
 import org.opensaml.saml.saml2.core.impl.AuthnContextClassRefBuilder;
 import org.opensaml.saml.saml2.core.impl.AuthnRequestBuilder;
 import org.opensaml.saml.saml2.core.impl.AuthnRequestMarshaller;
@@ -834,6 +824,23 @@ public class SAML2Auth implements AuthMechanism {
 				as.setSuccess(false);
 				holder.getConfig().getAuthManager().nextAuth(req, resp, session,false);
 				return;
+			}
+
+			// validate the recipient
+			String requestUrl = ProxyTools.getInstance().getFqdnUrl(req.getRequestURI(),req);
+			int qmark = requestUrl.indexOf('?');
+			if (qmark > 0) {
+				requestUrl = requestUrl.substring(0, qmark);
+			}
+			for (AudienceRestriction audienceRestriction : assertion.getConditions().getAudienceRestrictions()) {
+				for (Audience audience : audienceRestriction.getAudiences()) {
+					if (! audience.getURI().equalsIgnoreCase(requestUrl)) {
+						logger.warn("Invalid request URI " + audience.getURI());
+						as.setSuccess(false);
+						holder.getConfig().getAuthManager().nextAuth(req, resp, session,false);
+						return;
+					}
+				}
 			}
 
 
