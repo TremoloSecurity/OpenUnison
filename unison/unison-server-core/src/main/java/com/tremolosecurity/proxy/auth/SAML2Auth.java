@@ -286,7 +286,7 @@ public class SAML2Auth implements AuthMechanism {
 					.getAttribute(ProxyConstants.AUTH_MECH_PARAMS);
 			
 			
-			boolean isMultiIdp = authParams.get("isMultiIdP") != null && authParams.get("isMultiIdP").getValues().get(0).equalsIgnoreCase("true");
+
 			
 			String postAuthnReqTo = "";
 			String redirAuthnReqTo = "";
@@ -298,55 +298,26 @@ public class SAML2Auth implements AuthMechanism {
 				uri = req.getRequestURI();
 			}
 			
-			if (isMultiIdp) {
-				
-				URL url = new URL(req.getRequestURL().toString());
-				String hostName = url.getHost();
-				String dn = authParams.get("idpDir").getValues().get(0);
-				
-				try {
-					StringBuffer b = new StringBuffer();
-					
-					LDAPSearchResults res = cfgMgr.getMyVD().search(dn, 2, equal("hostname",hostName).toString(), new ArrayList<String>());
-					if (! res.hasMore()) {
-						throw new ServletException("No IdP found");
-					}
-					
-					LDAPEntry entry = res.next();
-					while (res.hasMore()) res.next();
-					postAuthnReqTo = entry.getAttribute("idpURL").getStringValue();
-					
-					redirAuthnReqTo = entry.getAttribute("idpRedirURL").getStringValue();
-					
-					assertionConsumerServiceURL = ProxyTools.getInstance().getFqdnUrl(uri,req);
-					signAuthnReq = entry.getAttribute("signAuthnReq").getStringValue().equalsIgnoreCase("1");
-					
-					
-				} catch (LDAPException e) {
-					throw new ServletException("Could not load IdP data",e);
-				}
-				
-				
+
+			if (metadata == null) {
+				postAuthnReqTo = authParams.get("idpURL").getValues().get(0);// "http://idp.partner.domain.com:8080/opensso/SSOPOST/metaAlias/testSaml2Idp";
+				redirAuthnReqTo = authParams.get("idpRedirURL").getValues().get(0);
 			} else {
-				if (metadata == null) {
-					postAuthnReqTo = authParams.get("idpURL").getValues().get(0);// "http://idp.partner.domain.com:8080/opensso/SSOPOST/metaAlias/testSaml2Idp";
-					redirAuthnReqTo = authParams.get("idpRedirURL").getValues().get(0);
-				} else {
-					postAuthnReqTo = metadata.getSsoPostURL();
-					redirAuthnReqTo = metadata.getSsoRedirectURL();
-				}
-				
-				
-				assertionConsumerServiceURL = ProxyTools.getInstance().getFqdnUrl(uri,req);// "http://sp.localdomain.com:8080/SampleSP/echo";
-				
-				if (authParams.get("forceToSSL") != null && authParams.get("forceToSSL").getValues().get(0).equalsIgnoreCase("true")) {
-					if (! assertionConsumerServiceURL.startsWith("https")) {
-						assertionConsumerServiceURL = assertionConsumerServiceURL.replace("http://", "https://");
-					}
-				}
-				
-				signAuthnReq = authParams.get("signAuthnReq") != null && authParams.get("signAuthnReq").getValues().get(0).equalsIgnoreCase("true");
+				postAuthnReqTo = metadata.getSsoPostURL();
+				redirAuthnReqTo = metadata.getSsoRedirectURL();
 			}
+
+
+			assertionConsumerServiceURL = ProxyTools.getInstance().getFqdnUrl(uri,req);// "http://sp.localdomain.com:8080/SampleSP/echo";
+
+			if (authParams.get("forceToSSL") != null && authParams.get("forceToSSL").getValues().get(0).equalsIgnoreCase("true")) {
+				if (! assertionConsumerServiceURL.startsWith("https")) {
+					assertionConsumerServiceURL = assertionConsumerServiceURL.replace("http://", "https://");
+				}
+			}
+
+			signAuthnReq = authParams.get("signAuthnReq") != null && authParams.get("signAuthnReq").getValues().get(0).equalsIgnoreCase("true");
+
 
 			ConfigManager cfg = (ConfigManager) req.getAttribute(ProxyConstants.TREMOLO_CFG_OBJ);
 			
