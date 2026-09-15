@@ -28,12 +28,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.SecureRandom;
-import java.security.SignatureException;
+import java.security.*;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.time.Clock;
@@ -50,6 +45,7 @@ import java.time.Duration;
 import java.time.Instant;
 
 import com.novell.ldap.util.ByteArray;
+import com.tremolosecurity.proxy.auth.saml2.*;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -104,12 +100,15 @@ import org.opensaml.security.credential.UsageType;
 import org.opensaml.xmlsec.encryption.support.InlineEncryptedKeyResolver;
 import org.opensaml.xmlsec.keyinfo.impl.StaticKeyInfoCredentialResolver;
 import org.opensaml.xmlsec.signature.KeyInfo;
+import org.opensaml.xmlsec.signature.SignableXMLObject;
+import org.opensaml.xmlsec.signature.Signature;
 import org.opensaml.xmlsec.signature.X509Data;
 import org.opensaml.xmlsec.signature.impl.KeyInfoBuilder;
 import org.opensaml.xmlsec.signature.impl.X509CertificateBuilder;
 import org.opensaml.xmlsec.signature.impl.X509DataBuilder;
 import org.opensaml.xmlsec.signature.support.SignatureValidator;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -124,9 +123,6 @@ import com.tremolosecurity.config.xml.AuthMechType;
 import com.tremolosecurity.config.xml.ParamType;
 import com.tremolosecurity.config.xml.ParamWithValueType;
 import com.tremolosecurity.proxy.TremoloHttpSession;
-import com.tremolosecurity.proxy.auth.saml2.MetaDataChecker;
-import com.tremolosecurity.proxy.auth.saml2.Saml2MetadataLookup;
-import com.tremolosecurity.proxy.auth.saml2.Saml2SingleLogout;
 import com.tremolosecurity.proxy.auth.util.AuthStep;
 import com.tremolosecurity.proxy.auth.util.AuthUtil;
 import com.tremolosecurity.proxy.logout.LogoutUtil;
@@ -157,7 +153,7 @@ public class SAML2Auth implements AuthMechanism {
 	
 	public static HashMap<String,String> xmlDigSigAlgs;
 	public static HashMap<String,String> javaDigSigAlgs;
-	
+	private static final String XMLDSIG_NS = "http://www.w3.org/2000/09/xmldsig#";
 	static {
 		xmlDigSigAlgs = new HashMap<String,String>();
 		xmlDigSigAlgs.put("RSA-SHA1", "http://www.w3.org/2000/09/xmldsig#rsa-sha1");
@@ -500,6 +496,38 @@ public class SAML2Auth implements AuthMechanism {
 		}
 	}
 
+	public static String sha256(SignableXMLObject samlObject) throws Exception {
+		Signature signature = samlObject.getSignature();
+
+		if (signature == null) {
+			throw new IllegalArgumentException("SAML object is not signed");
+		}
+
+		Element signatureElement = signature.getDOM();
+
+		if (signatureElement == null) {
+			throw new IllegalStateException(
+					"Signature has not been unmarshalled or marshalled");
+		}
+
+		NodeList values = signatureElement.getElementsByTagNameNS(
+				XMLDSIG_NS, "SignatureValue");
+
+		if (values.getLength() != 1) {
+			throw new IllegalArgumentException(
+					"Expected exactly one SignatureValue");
+		}
+
+		String encodedSignature = values.item(0).getTextContent();
+		byte[] signatureBytes = Base64.decodeBase64(encodedSignature);
+
+
+		byte[] digest = MessageDigest.getInstance("SHA-256")
+				.digest(signatureBytes);
+
+		return HexFormat.of().formatHex(digest);
+	}
+
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp,AuthStep as)
 			throws ServletException, IOException {
@@ -649,7 +677,9 @@ public class SAML2Auth implements AuthMechanism {
 				sigCerts.add(cfgMgr.getCertificate(sigCertName));
 			}
 
-			
+
+			String signatureDigest = null;
+
 			if (responseSigned) {
 				if (samlResponse.getSignature() != null) {
 					
@@ -665,6 +695,7 @@ public class SAML2Auth implements AuthMechanism {
 								SAMLSignatureProfileValidator profileValidator = new SAMLSignatureProfileValidator();
 					            profileValidator.validate(samlResponse.getSignature());
 					            SignatureValidator.validate(samlResponse.getSignature(), sigCred);
+								signatureDigest = sha256(samlResponse);
 					            foundSigned = true;
 							} catch (org.opensaml.xmlsec.signature.support.SignatureException se) {
 								
@@ -731,6 +762,7 @@ public class SAML2Auth implements AuthMechanism {
 								SAMLSignatureProfileValidator profileValidator = new SAMLSignatureProfileValidator();
 					            profileValidator.validate(assertion.getSignature());
 					            SignatureValidator.validate(assertion.getSignature(), sigCred);
+								signatureDigest = sha256(assertion);
 					            foundSigned = true;
 							} catch (org.opensaml.xmlsec.signature.support.SignatureException se) {
 								
@@ -750,7 +782,10 @@ public class SAML2Auth implements AuthMechanism {
 				}
 			
 			}
-			
+
+
+
+
 			//If it made it here, the assertion is valid, lets check the authncontextclassref
 			Attribute authnContextClassRef = authParams.get("authCtxRef");
 			
@@ -788,8 +823,13 @@ public class SAML2Auth implements AuthMechanism {
 				return;
 			}
 
-			if (notAfter != null && !now.minusSeconds(minSkew * 60).isBefore(notAfter)) {
-				logger.warn("Assertion is after " + notAfter);
+			if (notAfter == null || !now.minusSeconds(minSkew * 60).isBefore(notAfter)) {
+				if (notAfter == null) {
+					logger.warn("No assertion noAfter constraint");
+				} else {
+					logger.warn("Assertion is after " + notAfter);
+				}
+
 				as.setSuccess(false);
 				holder.getConfig().getAuthManager().nextAuth(req, resp, session,false);
 				return;
@@ -813,7 +853,38 @@ public class SAML2Auth implements AuthMechanism {
 			}
 
 
+			// Everything is valid, check for replay if configured
+			if (signatureDigest != null) {
+				Attribute cfgAttr = authParams.get("digstCacheEnabled");
+				if (cfgAttr != null && cfgAttr.getValues().size() > 0 && cfgAttr.getValues().get(0).equalsIgnoreCase("true")) {
+					// cache is enabled
+					String driver = authParams.get("driver").getValues().get(0);
 
+
+					String url = authParams.get("url").getValues().get(0);;
+					String user = authParams.get("user").getValues().get(0);;
+					String pwd = authParams.get("password").getValues().get(0);;
+
+					int maxCons = Integer.parseInt(authParams.get("maxCons").getValues().get(0));
+					int maxIdleCons = Integer.parseInt(authParams.get("maxIdleCons").getValues().get(0));
+
+					String dialect = authParams.get("dialect").getValues().get(0);
+					String validationQuery = authParams.get("validationQuery").getValues().get(0);
+
+					String hibernateConfig = authParams.get("hibernateConfig") != null ? authParams.get("hibernateConfig").getValues().get(0) : null;
+
+					String hibernateCreateSchema = authParams.get("hibernateCreateSchema") != null ? authParams.get("hibernateCreateSchema").getValues().get(0) : null;
+
+					Saml2DigestCache.initialize(driver,user,pwd,url,dialect,maxCons,maxIdleCons,validationQuery,hibernateConfig,hibernateCreateSchema);
+					Saml2DigestCache cache = Saml2DigestCache.getInstance();
+					if (! cache.saveDigest(signatureDigest,notAfter)) {
+						logger.warn("Digest already used: " + signatureDigest);
+						as.setSuccess(false);
+						holder.getConfig().getAuthManager().nextAuth(req, resp, session,false);
+						return;
+					}
+				}
+			}
 
 			
 			try {
