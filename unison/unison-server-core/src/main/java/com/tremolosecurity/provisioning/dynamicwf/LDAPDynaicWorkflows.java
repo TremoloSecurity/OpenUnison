@@ -55,41 +55,42 @@ public class LDAPDynaicWorkflows implements DynamicWorkflow {
 			LDAPSearchResults res = cfg.getMyVD().search(base, 2, filter, new ArrayList<String>());
 			
 			while (res.hasMore()) {
-				HashMap<String,String> wfDef = new HashMap<String,String>();
 				LDAPEntry group = res.next();
-				
-				String groupName = this.getAttributeEntry("groupNameAttribute", group,params);
-				if (groupName == null) {
-					throw new ProvisioningException("No groupName");
-				}
-				wfDef.put("groupName", groupName);
-				
-				if (params.get("approverAttribute") != null) {
-					String approver = this.getAttributeEntry("approverAttribute", group,params);
-					wfDef.put("approver", approver);
-				} else {
-					wfDef.put("approver", "");
-				}
-				
-				if (params.get("descriptionAttribute") != null) {
-					String description = this.getAttributeEntry("descriptionAttribute", group,params);
-					wfDef.put("descriptionAttribute", description);
-				} else {
-					wfDef.put("descriptionAttribute", "");
-				}
+				if (group != null) {
+					HashMap<String,String> wfDef = new HashMap<String,String>();
+					String groupName = this.getAttributeEntry("groupNameAttribute", group, params);
+					if (groupName == null) {
+						throw new ProvisioningException("No groupName");
+					}
+					wfDef.put("groupName", groupName);
+
+					if (params.get("approverAttribute") != null) {
+						String approver = this.getAttributeEntry("approverAttribute", group, params);
+						wfDef.put("approver", approver);
+					} else {
+						wfDef.put("approver", "");
+					}
+
+					if (params.get("descriptionAttribute") != null) {
+						String description = this.getAttributeEntry("descriptionAttribute", group, params);
+						wfDef.put("descriptionAttribute", description);
+					} else {
+						wfDef.put("descriptionAttribute", "");
+					}
 
 
-				for (Object o : group.getAttributeSet()) {
-					LDAPAttribute attr = (LDAPAttribute) o;
-					String lcasename = attr.getName().toLowerCase();
-					if (! LDAPDynaicWorkflows.ignore.contains(lcasename)) {
-						String attrName = attr.getName().replaceAll("[-]", "_");
-						wfDef.put(attrName, attr.getStringValue());
-					}	
-				}
+					for (Object o : group.getAttributeSet()) {
+						LDAPAttribute attr = (LDAPAttribute) o;
+						String lcasename = attr.getName().toLowerCase();
+						if (!LDAPDynaicWorkflows.ignore.contains(lcasename)) {
+							String attrName = attr.getName().replaceAll("[-]", "_");
+							wfDef.put(attrName, attr.getStringValue());
+						}
+					}
 
-				
-				wfParams.add(wfDef);
+
+					wfParams.add(wfDef);
+				}
 				
 				
 				
