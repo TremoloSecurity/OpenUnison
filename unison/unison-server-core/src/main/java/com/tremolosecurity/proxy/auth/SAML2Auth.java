@@ -528,6 +528,30 @@ public class SAML2Auth implements AuthMechanism {
 		return HexFormat.of().formatHex(digest);
 	}
 
+
+	static String removeComments(String xml) {
+		StringBuilder result = new StringBuilder();
+		int depth = 0;
+		int i = 0;
+
+		while (i < xml.length()) {
+			if (xml.startsWith("<!--", i)) {
+				depth++;
+				i += 4;
+			} else if (depth > 0 && xml.startsWith("-->", i)) {
+				depth--;
+				i += 3;
+			} else {
+				if (depth == 0) {
+					result.append(xml.charAt(i));
+				}
+				i++;
+			}
+		}
+
+		return result.toString();
+	}
+
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp,AuthStep as)
 			throws ServletException, IOException {
@@ -641,7 +665,7 @@ public class SAML2Auth implements AuthMechanism {
 		}
 
 
-		xml = xml.replaceAll("<!--.*-->", "");
+		xml = removeComments(xml);
 
 		
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
