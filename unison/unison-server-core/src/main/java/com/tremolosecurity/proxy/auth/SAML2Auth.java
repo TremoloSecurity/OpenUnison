@@ -694,6 +694,8 @@ public class SAML2Auth implements AuthMechanism {
 					holder.getConfig().getAuthManager().nextAuth(req, resp, session,false);
 					return;
 				}
+
+
 			}
 			
 
@@ -875,6 +877,55 @@ public class SAML2Auth implements AuthMechanism {
 					}
 				}
 			}
+
+			if (assertion.getSubject() != null && assertion.getSubject().getSubjectConfirmations() != null) {
+				for (SubjectConfirmation subjectConfirmation : assertion.getSubject().getSubjectConfirmations()) {
+					SubjectConfirmationData subjectConfirmationData = subjectConfirmation.getSubjectConfirmationData();
+
+					boolean lookForInResponseTo = false;
+					boolean foundValidInResponseTo = false;
+					if (inResponseTo != null) {
+						lookForInResponseTo = true;
+					}
+
+					if (subjectConfirmationData != null) {
+						if (subjectConfirmationData.getRecipient() != null) {
+							if (! subjectConfirmationData.getRecipient().equalsIgnoreCase(requestUrl)) {
+								logger.warn("Invalid request URI " + subjectConfirmationData.getRecipient());
+								as.setSuccess(false);
+								holder.getConfig().getAuthManager().nextAuth(req, resp, session,false);
+								return;
+							}
+						}
+
+						// since the response may not be signed, need to also check the assertion
+						if (lookForInResponseTo) {
+							if (subjectConfirmationData.getInResponseTo() != null) {
+								if (! subjectConfirmationData.getInResponseTo().equalsIgnoreCase(inResponseTo)) {
+									logger.warn("Invalid in response to " + subjectConfirmationData.getInResponseTo());
+									as.setSuccess(false);
+									holder.getConfig().getAuthManager().nextAuth(req, resp, session,false);
+									return;
+								} else {
+									foundValidInResponseTo = true;
+								}
+							}
+						}
+
+						if (lookForInResponseTo && ! foundValidInResponseTo) {
+							logger.warn("no InResponseTo found");
+							as.setSuccess(false);
+							holder.getConfig().getAuthManager().nextAuth(req, resp, session,false);
+							return;
+						}
+
+					}
+				}
+			}
+
+
+
+			assertion.getSubject().getSubjectConfirmations().get(0).getSubjectConfirmationData();
 
 
 			// Everything is valid, check for replay if configured
