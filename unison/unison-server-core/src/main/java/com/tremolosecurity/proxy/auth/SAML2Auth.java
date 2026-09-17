@@ -833,12 +833,12 @@ public class SAML2Auth implements AuthMechanism {
 			Instant notBefore = assertion.getConditions().getNotBefore();
 			Instant notAfter = assertion.getConditions().getNotOnOrAfter();
 
-			String minSkewCfg = req.getParameter("minSkew");
+			Attribute minSkewCfg = authParams.get("minSkew");
 			if (minSkewCfg == null) {
-				minSkewCfg = "1";
+				minSkewCfg = new Attribute("minSkew","1");
 			}
 
-			int minSkew = Integer.parseInt(minSkewCfg);
+			int minSkew = Integer.parseInt(minSkewCfg.getValues().get(0));
 
 			if (notBefore != null && now.plusSeconds(minSkew * 60).isBefore(notBefore)) {
 				logger.warn("Assertion is before " + notBefore);
