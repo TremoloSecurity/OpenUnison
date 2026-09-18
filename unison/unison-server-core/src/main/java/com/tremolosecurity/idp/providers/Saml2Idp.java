@@ -809,7 +809,7 @@ public class Saml2Idp implements IdentityProvider {
 		//issuer.append(holder.getUrl().getUri());
 		issuer.append(cfg.getAuthIdPPath()).append(this.idpName);
 		
-		Saml2Assertion resp = new Saml2Assertion(subject,pk,cert,spEncCert,issuer.toString(),transaction.postToURL,transaction.issuer,trust.signAssertion,trust.signResponse,trust.encAssertion,transaction.nameIDFormat,transaction.authnCtxName);
+		Saml2Assertion resp = new Saml2Assertion(subject,pk,cert,spEncCert,issuer.toString(),transaction.postToURL,transaction.issuer,trust.signAssertion,trust.signResponse,trust.encAssertion,transaction.nameIDFormat,transaction.authnCtxName,5,0,transaction.authnId);
 		
 		for (String attrName : mapped.getAttribs().keySet()) {
 			resp.getAttribs().add(mapped.getAttribs().get(attrName));
@@ -898,7 +898,7 @@ public class Saml2Idp implements IdentityProvider {
 		//issuer.append(holder.getUrl().getUri());
 		issuer.append(cfg.getAuthIdPPath()).append(this.idpName);
 		
-		Saml2Assertion resp = new Saml2Assertion(null,pk,cert,spEncCert,issuer.toString(),transaction.postToURL,transaction.issuer,trust.signAssertion,trust.signResponse,trust.encAssertion,transaction.nameIDFormat,transaction.authnCtxName);
+		Saml2Assertion resp = new Saml2Assertion(null,pk,cert,spEncCert,issuer.toString(),transaction.postToURL,transaction.issuer,trust.signAssertion,trust.signResponse,trust.encAssertion,transaction.nameIDFormat,transaction.authnCtxName,5,0,transaction.authnId);
 		
 		
 		

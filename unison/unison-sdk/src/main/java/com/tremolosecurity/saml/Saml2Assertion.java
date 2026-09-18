@@ -135,15 +135,18 @@ public  class Saml2Assertion {
 	
 	String nameIDFormat;
 	String authnContextRef;
+
+	String transactionId;
 	
 	public Saml2Assertion(String subject,PrivateKey key,X509Certificate cert,X509Certificate encCert,String issuer,String recepient,String audience,boolean signAssertion,boolean signResponse,boolean encAssertion,String nameIDFormat,String authnContextRef) {
 		this(subject,key,cert,encCert,issuer,recepient,audience,signAssertion,signResponse,encAssertion,nameIDFormat,authnContextRef,5);
 	
 	}
 	public Saml2Assertion(String subject,PrivateKey key,X509Certificate cert,X509Certificate encCert,String issuer,String recepient,String audience,boolean signAssertion,boolean signResponse,boolean encAssertion,String nameIDFormat,String authnContextRef,int  minAlive) {
-		this(subject,key,cert,encCert,issuer,recepient,audience,signAssertion,signResponse,encAssertion,nameIDFormat,authnContextRef,5,0);
+		this(subject,key,cert,encCert,issuer,recepient,audience,signAssertion,signResponse,encAssertion,nameIDFormat,authnContextRef,5,0,null);
 	}
-	public Saml2Assertion(String subject,PrivateKey key,X509Certificate cert,X509Certificate encCert,String issuer,String recepient,String audience,boolean signAssertion,boolean signResponse,boolean encAssertion,String nameIDFormat,String authnContextRef,int  minAlive,int minOffset) {
+	public Saml2Assertion(String subject,PrivateKey key,X509Certificate cert,X509Certificate encCert,String issuer,String recepient,String audience,boolean signAssertion,boolean signResponse,boolean encAssertion,String nameIDFormat,String authnContextRef,int  minAlive,int minOffset,String transactionid) {
+		this.transactionId = transactionid;
 		this.subject = subject;
 		
 		this.sigKey = key;
@@ -417,6 +420,10 @@ public  class Saml2Assertion {
 		SubjectConfirmationData scd = scdb.buildObject();
 		scd.setNotOnOrAfter(this.notAfter);
 		scd.setRecipient(this.recepient);
+
+		if (this.transactionId != null) {
+			scd.setInResponseTo(this.transactionId);
+		}
 		
 		sc.setSubjectConfirmationData(scd);
 		subject.getSubjectConfirmations().add(sc);
