@@ -138,8 +138,8 @@ import com.tremolosecurity.server.GlobalEntries;
 
 public class SAML2Auth implements AuthMechanism {
 
-	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(SAML2Auth.class);
 
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(SAML2Auth.class);
 	ConfigManager cfgMgr;
 
 	private SecureRandom random;
@@ -832,6 +832,14 @@ public class SAML2Auth implements AuthMechanism {
 
 			// validate notbefore and notafter
 			Instant now = Clock.systemUTC().instant();
+
+			if (assertion.getConditions() == null || assertion.getConditions().getAudienceRestrictions() == null) {
+				logger.warn("No audience restrictions");
+				as.setSuccess(false);
+				holder.getConfig().getAuthManager().nextAuth(req, resp, session,false);
+				return;
+			}
+
 			Instant notBefore = assertion.getConditions().getNotBefore();
 			Instant notAfter = assertion.getConditions().getNotOnOrAfter();
 
@@ -867,6 +875,10 @@ public class SAML2Auth implements AuthMechanism {
 			if (qmark > 0) {
 				requestUrl = requestUrl.substring(0, qmark);
 			}
+
+
+
+			boolean foundAudienceRestriction = false;
 			for (AudienceRestriction audienceRestriction : assertion.getConditions().getAudienceRestrictions()) {
 				for (Audience audience : audienceRestriction.getAudiences()) {
 					if (! audience.getURI().equalsIgnoreCase(requestUrl)) {
@@ -875,7 +887,15 @@ public class SAML2Auth implements AuthMechanism {
 						holder.getConfig().getAuthManager().nextAuth(req, resp, session,false);
 						return;
 					}
+					foundAudienceRestriction = true;
 				}
+			}
+
+			if (! foundAudienceRestriction) {
+				logger.warn("No audience restrictions");
+				as.setSuccess(false);
+				holder.getConfig().getAuthManager().nextAuth(req, resp, session,false);
+				return;
 			}
 
 			if (assertion.getSubject() != null && assertion.getSubject().getSubjectConfirmations() != null) {
