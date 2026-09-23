@@ -1,3 +1,17 @@
+# 1.0.52-2026092301
+
+**Tasks:**
+ - 1.0.52 build [\#1086](https://github.com/TremoloSecurity/OpenUnison/issues/1086)
+
+**bugs:**
+ - SAML2 Updates [\#1094](https://github.com/TremoloSecurity/OpenUnison/issues/1094)
+ - LDAP Dynamic Workflow: NPE fails to load workflows [\#1096](https://github.com/TremoloSecurity/OpenUnison/issues/1096)
+
+**enhancements:**
+ - SAML2: Remove multi-idp configuration [\#1095](https://github.com/TremoloSecurity/OpenUnison/issues/1095)
+ - Integrate better proxy handling [\#1087](https://github.com/TremoloSecurity/OpenUnison/issues/1087)
+
+
 # 1.0.51-2026090901
 
 **Tasks:**
