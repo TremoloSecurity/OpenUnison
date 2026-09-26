@@ -183,7 +183,7 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 			if (idp == null) {
 				
 				idp = new OidcIdpUrls();
-				this.idpUrls.put(discoveryUrl, idp);
+
 				
 				
 				
@@ -216,14 +216,11 @@ public class OpenIDConnectAuthMech implements AuthMechanism {
 								 }
 							 }
 						}
+
+						this.idpUrls.put(discoveryUrl, idp);
 						
 					} else {
-						idp.setIdpUrl(authParams.get("idpURL").getValues().get(0));
-						idp.setTokenUrl(loadTokenURL = authParams.get("loadTokenURL").getValues().get(0));
-						Attribute usePkce = authParams.get("usePkce");
-						if (usePkce != null) {
-							idp.setUsePkce(usePkce.getValues().get(0).equalsIgnoreCase("true"));
-						}
+						throw new ServletException("Issuer not available: " + issuer + " / " + resp.getStatusLine().getStatusCode());
 					}
 				} catch (ParseException e) {
 					throw new ServletException("Could not parse discovery document",e);
