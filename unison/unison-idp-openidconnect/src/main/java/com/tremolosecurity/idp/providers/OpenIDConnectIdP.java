@@ -247,6 +247,11 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 		String action = (String) request.getAttribute(IDP.ACTION_NAME);
 
+		if (action == null) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+			return;
+		}
+
 		UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
 		if (holder == null) {
 			throw new ServletException("Holder is null");
@@ -469,6 +474,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 				throw new ServletException("Could not process userinfo request", e);
 			}
 
+		} else {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
 		}
 
 
