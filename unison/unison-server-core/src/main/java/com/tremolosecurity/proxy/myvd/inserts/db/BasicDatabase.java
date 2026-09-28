@@ -162,17 +162,30 @@ public class BasicDatabase extends MultiNameSpaceInsert implements JdbcPool {
 		
 		
 		String SQL = "SELECT ";
+
+		String rdnField = null;
 		
 		while (toker.hasMoreTokens()) {
 			 String token = toker.nextToken();
 			 String fieldName = token.substring(token.indexOf('=') + 1);
+			 String ldapName = token.substring(0,token.indexOf('='));
+
+			 if (ldapName.equalsIgnoreCase("cn")) {
+				rdnField = fieldName;
+			 }
 			 
+
 			 SQL += groupTable + "." + fieldName + " AS " + fieldName + ", ";
 		}
 		
 		SQL = SQL.substring(0,SQL.lastIndexOf(','));
 		
 		SQL += " FROM " + groupTable + " LEFT OUTER JOIN " + manyToManyTable + " ON " + groupTable + "." + groupPrimaryKey + "=" + manyToManyTable + "." + manyToManyGroup + " LEFT OUTER JOIN " + userTable + " ON " + manyToManyTable + "." + manyToManyUser + "=" + userTable + "." + userPrimaryKey;
+		
+		if (rdnField != null) {
+			SQL += " ORDER BY " + rdnField;
+		}
+		
 		
 		return SQL;
 	}
@@ -181,6 +194,7 @@ public class BasicDatabase extends MultiNameSpaceInsert implements JdbcPool {
 		String mapping = props.getProperty("user-mapping");
 		
 		StringTokenizer toker = new StringTokenizer(mapping,",",false);
+		
 		
 		
 		
@@ -204,17 +218,29 @@ public class BasicDatabase extends MultiNameSpaceInsert implements JdbcPool {
 		StringTokenizer toker = new StringTokenizer(mapping,",",false);
 		
 		String SQL = "SELECT ";
+
+		String rdnField = null;
 		
 		while (toker.hasMoreTokens()) {
 			 String token = toker.nextToken();
 			 String fieldName = token.substring(token.indexOf('=') + 1);
-			 
+			 String ldapName = token.substring(0,token.indexOf('='));
+
+			 if (ldapName.equalsIgnoreCase("uid")) {
+				rdnField = fieldName;
+			 }
+
 			 SQL += fieldName + ", ";
 		}
 		
 		SQL = SQL.substring(0,SQL.lastIndexOf(','));
 		
 		SQL += " FROM " + table;
+
+		if (rdnField != null) {
+			SQL += " ORDER BY " + rdnField;
+		}
+
 		return SQL;
 	}
 
