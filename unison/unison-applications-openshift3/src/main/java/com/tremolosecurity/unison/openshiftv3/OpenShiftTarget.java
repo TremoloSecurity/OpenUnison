@@ -1454,7 +1454,13 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 		Gson gson = new Gson();
 		StringBuffer b = new StringBuffer();
 		b.append("/apis/user.openshift.io/v1/groups/").append(groupName);
-		String json = this.callWS(token, con, b.toString());
+		String json = "";
+		try {
+			json = this.callWS(token, con, b.toString());
+		} catch (Exception e) {
+			logger.warn(String.format("Unable to find group %s, skipping", groupName),e);
+			return;
+		}
 
 
 
@@ -1489,21 +1495,34 @@ public class OpenShiftTarget implements UserStoreProviderWithAddGroup,UserStoreP
 		Gson gson = new Gson();
 		StringBuffer b = new StringBuffer();
 		b.append("/apis/user.openshift.io/v1/groups/").append(groupName);
-		String json = this.callWS(token, con, b.toString());
-		com.tremolosecurity.unison.openshiftv3.model.groups.Group group = gson.fromJson(json, com.tremolosecurity.unison.openshiftv3.model.groups.Group.class);
-		if (group.getUsers() == null) {
-			group.setUsers(new HashSet<String>());
+
+		String json = "";
+		try {
+			json = this.callWS(token, con, b.toString());
+		} catch (Exception e) {
+			logger.warn(String.format("Unable to find group %s, skipping", groupName),e);
+			return;
 		}
-		if (group.getUsers().contains(userName)) {
-			
-			group.getUsers().remove(userName);
-			json = gson.toJson(group);
-			json = this.callWSPut(token, con, b.toString(), json);
-			Response resp = gson.fromJson(json, Response.class);
-			if (resp.getKind().equals("Group")) {
-				this.cfgMgr.getProvisioningEngine().logAction(name,false, ActionType.Delete,  approvalID, workflow, "group", groupName);
-			} else {
-				throw new Exception("Could not remove group " + groupName + " to " + userName + " - " + resp.getReason());
+
+		com.tremolosecurity.unison.openshiftv3.model.groups.Group group = gson.fromJson(json, com.tremolosecurity.unison.openshiftv3.model.groups.Group.class);
+		if (group.getCode() == 404) {
+			logger.warn(String.format("Group %s does not exist",groupName));
+		} else {
+
+			if (group.getUsers() == null) {
+				group.setUsers(new HashSet<String>());
+			}
+			if (group.getUsers().contains(userName)) {
+
+				group.getUsers().remove(userName);
+				json = gson.toJson(group);
+				json = this.callWSPut(token, con, b.toString(), json);
+				Response resp = gson.fromJson(json, Response.class);
+				if (resp.getKind().equals("Group")) {
+					this.cfgMgr.getProvisioningEngine().logAction(name, false, ActionType.Delete, approvalID, workflow, "group", groupName);
+				} else {
+					throw new Exception("Could not remove group " + groupName + " to " + userName + " - " + resp.getReason());
+				}
 			}
 		}
 	}
