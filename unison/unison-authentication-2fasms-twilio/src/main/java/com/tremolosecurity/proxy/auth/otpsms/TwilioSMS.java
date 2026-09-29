@@ -27,8 +27,8 @@ import com.tremolosecurity.saml.Attribute;
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
-
-
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 
 public class TwilioSMS extends SMSAuth {
@@ -36,8 +36,8 @@ public class TwilioSMS extends SMSAuth {
 	
 	
 	
-	public void sendSMS(HashMap<String,Attribute> authParams,String from,
-			String message, String to) throws ServletException {
+	public void sendSMS(HashMap<String,Attribute> authParams, String from,
+						String message, String to, HttpServletRequest request, HttpServletResponse response) throws ServletException {
 		
 		String accountSID = authParams.get("accountSID").getValues().get(0);
 		String authToken = authParams.get("authToken").getValues().get(0);

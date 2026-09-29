@@ -101,7 +101,7 @@ public abstract class SMSAuth implements AuthMechanism {
 			
 			session.setAttribute("TREMOLO_SMS_KEY", key);
 			
-			sendSMS(authParams, from, message, to);
+			sendSMS(authParams, from, message, to, request, response);
 		}
 		
 		response.sendRedirect(redirectForm);
@@ -111,7 +111,7 @@ public abstract class SMSAuth implements AuthMechanism {
 
 	
 
-	public abstract void sendSMS(HashMap<String,Attribute> authParams,String from, String message, String to) throws ServletException;
+	public abstract void sendSMS(HashMap<String,Attribute> authParams,String from, String message, String to,HttpServletRequest request, HttpServletResponse response) throws ServletException;
 
 
 

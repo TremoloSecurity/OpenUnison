@@ -30,11 +30,13 @@ import javax.mail.internet.MimeMessage;
 import jakarta.servlet.ServletException;
 
 import com.tremolosecurity.saml.Attribute;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class SmtpOtp extends SMSAuth {
 
 	@Override
-	public void sendSMS(HashMap<String, Attribute> authParams, String from, String message, String to)
+	public void sendSMS(HashMap<String, Attribute> authParams, String from, String message, String to, HttpServletRequest request, HttpServletResponse response)
 			throws ServletException {
 		
 		Properties props = new Properties();
