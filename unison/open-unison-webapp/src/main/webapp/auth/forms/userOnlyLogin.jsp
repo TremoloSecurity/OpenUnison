@@ -69,7 +69,12 @@ if (reqHolder != null) {
                 <label class="form-label" for="user">User Name</label>
               </div>
             </div>
-          </div>          
+          </div>
+          <div class="row row-cols-1">
+            <div class="col">
+              <div id="recaptcha" ></div>
+            </div>
+          </div>
           <div class="row row-cols-2">
             <div class="col">
               <button type="submit" id="submit" name="submit" class="btn btn-primary btn-block" data-mdb-ripple-init>Sign in</button>
@@ -90,7 +95,23 @@ if (reqHolder != null) {
   <!-- MDB -->
   <script type="text/javascript" src="<%= auth %>js-mdb/mdb.umd.min.js"></script>
   <!-- Custom scripts -->
-  <script type="text/javascript"></script>
+  <script type="text/javascript">
+    function onloadCallback() {
+
+      timer = window.setInterval(
+              function() {
+                grecaptcha.render('recaptcha', {
+                  'sitekey' : '<%= request.getSession().getAttribute("tremolo.io/rccaptchasitekey") %>'
+                });
+                clearInterval(timer);
+              },
+              100
+
+      );
+
+    }
+  </script>
+  <script type="text/javascript" src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit"></script>
 </body>
 
 </html>

@@ -18,12 +18,12 @@ limitations under the License.
 package com.tremolosecurity.proxy.auth;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.*;
 
+import com.google.gson.Gson;
 import com.novell.ldap.util.ByteArray;
+import com.tremolosecurity.proxy.auth.util.ReCaptchaResponse;
+import com.tremolosecurity.server.GlobalEntries;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -31,6 +31,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
@@ -58,7 +70,7 @@ public class UserOnlyAuthMech implements AuthMechanism {
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(UserOnlyAuthMech.class);
 	
 	public static final String LOGIN_JSP = "loginJSP";
-	
+	static Gson gson = new Gson();
 	ConfigManager cfgMgr;
 	
 	@Override
@@ -70,6 +82,11 @@ public class UserOnlyAuthMech implements AuthMechanism {
 		HashMap<String,Attribute> authParams = (HashMap<String,Attribute>) session.getAttribute(ProxyConstants.AUTH_MECH_PARAMS);
 		
 		String formURI = authParams.get(LOGIN_JSP).getValues().get(0);
+
+		if (authParams.containsKey("recaptchaSiteKey")) {
+			Attribute recaptchaSiteKey = authParams.get("recaptchaSiteKey");
+			session.setAttribute("tremolo.io/rccaptchasitekey", recaptchaSiteKey.getValues().get(0));
+		}
 		
 		resp.sendRedirect(ProxyTools.getInstance().getFqdnUrl(formURI, req));
 	}
@@ -87,6 +104,64 @@ public class UserOnlyAuthMech implements AuthMechanism {
 		RequestHolder reqHolder = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getHolder();
 		
 		HashMap<String,Attribute> authParams = (HashMap<String,Attribute>) session.getAttribute(ProxyConstants.AUTH_MECH_PARAMS);
+
+		if (authParams.containsKey("recaptchaSecret")) {
+			Attribute recaptchaSecret = authParams.get("recaptchaSecret");
+			String challengeResponse = req.getParameter("g-recaptcha-response");
+
+			if (challengeResponse == null) {
+				as.setSuccess(false);
+				as.setExecuted(true);
+				holder.getConfig().getAuthManager().nextAuth(req, resp,session,false);
+				return;
+			}
+
+			BasicHttpClientConnectionManager bhcm = new BasicHttpClientConnectionManager(GlobalEntries.getGlobalEntries().getConfigManager().getHttpClientSocketRegistry());
+			RequestConfig rc = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
+			CloseableHttpClient http = HttpClients.custom().setConnectionManager(bhcm).setDefaultRequestConfig(rc).setRoutePlanner(new SystemDefaultRoutePlanner(null)).build();
+			try {
+
+				HttpPost httppost = new HttpPost("https://www.google.com/recaptcha/api/siteverify");
+
+				List<NameValuePair> formparams = new ArrayList<NameValuePair>();
+				formparams.add(new BasicNameValuePair("secret", recaptchaSecret.getValues().get(0)));
+				formparams.add(new BasicNameValuePair("response", challengeResponse));
+				UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, "UTF-8");
+
+
+				httppost.setEntity(entity);
+
+				CloseableHttpResponse httpresp = http.execute(httppost);
+
+
+
+				ReCaptchaResponse res = gson.fromJson(EntityUtils.toString(httpresp.getEntity()), ReCaptchaResponse.class);
+
+				if (! res.isSuccess()) {
+					logger.warn("Failed recaptcha");
+					as.setSuccess(false);
+					as.setExecuted(true);
+					holder.getConfig().getAuthManager().nextAuth(req, resp,session,false);
+					return;
+				}
+			} finally {
+				if (http != null) {
+					http.close();
+				}
+
+				if (bhcm != null) {
+					bhcm.close();
+				}
+
+			}
+
+
+
+
+		}
+
+
+
 		String uidAttr = "uid";
 		if (authParams.get("uidAttr") != null) {
 			uidAttr = authParams.get("uidAttr").getValues().get(0);
