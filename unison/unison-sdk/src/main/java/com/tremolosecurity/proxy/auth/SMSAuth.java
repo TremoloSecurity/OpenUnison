@@ -53,8 +53,18 @@ public abstract class SMSAuth implements AuthMechanism {
 		
 		HttpSession session = ((HttpServletRequest) request).getSession();
 		HashMap<String,Attribute> authParams = (HashMap<String,Attribute>) session.getAttribute(ProxyConstants.AUTH_MECH_PARAMS);
-		
-		
+
+		LogSmsSend logSend = null;
+		Attribute logSmsClassName =  authParams.get("logSendClass");
+		if (logSmsClassName != null) {
+			try {
+				logSend = (LogSmsSend) Class.forName(logSmsClassName.getValues().get(0)).newInstance();
+			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+				throw new ServletException("Could not initialize send logger",e);
+			}
+		}
+
+
 		String from = authParams.get("fromNumber").getValues().get(0);
 		String toAttrName = authParams.get("toAttrName").getValues().get(0);
 		String redirectForm = authParams.get("redirectForm").getValues().get(0);
@@ -100,9 +110,15 @@ public abstract class SMSAuth implements AuthMechanism {
 			session.setAttribute("TREMOLO_SMS_KEY", key);
 
 			sendSMS(authParams, from, message, to,request,response);
+			if (logSend != null) {
+				logSend.logSend(request,response);
+			}
 		} else {
 			message = (String) session.getAttribute("TREMOLO_SMS_KEY");
 			sendSMS(authParams, from, message, to,request,response);
+			if (logSend != null) {
+				logSend.logSend(request,response);
+			}
 		}
 		
 		response.sendRedirect(redirectForm);
