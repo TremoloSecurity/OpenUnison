@@ -16,7 +16,11 @@
 package com.tremolosecurity.proxy.auth;
 
 import java.net.URLEncoder;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Properties;
 
 import javax.mail.Authenticator;
@@ -70,10 +74,15 @@ public class SmtpOtp extends SMSAuth {
 		}
 		
 		Message msgToSend = new MimeMessage(session);
+
+
+		String subject = new StringBuffer().append(authParams.get("subject").getValues().get(0)).append(" - ").append(generateTimestamp(authParams)).toString();
+		request.getSession().setAttribute("tremolo.io/otp/subject",subject);
+
 		try {
 			msgToSend.setFrom(new InternetAddress(from));
 			msgToSend.addRecipient( Message.RecipientType.TO, new InternetAddress(to));
-			msgToSend.setSubject(authParams.get("subject").getValues().get(0));
+			msgToSend.setSubject(subject);
 			msgToSend.setText(message);
 			
 			msgToSend.saveChanges();
@@ -86,7 +95,17 @@ public class SmtpOtp extends SMSAuth {
 		
 
 	}
-	
 
+	public static String generateTimestamp(HashMap<String, Attribute> authParams) {
+		String subjectTimeStampFormat = authParams.get("subjectTimeStampFormat").getValues().get(0);
+		String subjectTimeStampLocale = authParams.get("subjectTimeStampLocale").getValues().get(0);
+		String subjectTimeStampTimezone = authParams.get("subjectTimeStampTimezone").getValues().get(0);
+
+		return LocalDateTime.now(ZoneId.of(subjectTimeStampTimezone))
+				.format(DateTimeFormatter.ofPattern(subjectTimeStampFormat, Locale.of(subjectTimeStampLocale)))
+				.replace("AM", "am")
+				.replace("PM", "pm");
+
+	}
 
 }

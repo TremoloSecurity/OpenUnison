@@ -86,22 +86,23 @@ public abstract class SMSAuth implements AuthMechanism {
 		
 		
 		AuthMechType amt = act.getAuthMech().get(as.getId());
-		
-		
-		
-		
+
+
+		AuthInfo user = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
+		String to = user.getAttribs().get(toAttrName).getValues().get(0);
 		if (session.getAttribute("TREMOLO_SMS_KEY") == null) {
 			GenPasswd gp = new GenPasswd(keyLen,useUpperCase,useLowerCase,useNumbers,useSpecial);
-			
-			AuthInfo user = ((AuthController) session.getAttribute(ProxyConstants.AUTH_CTL)).getAuthInfo();
-			String to = user.getAttribs().get(toAttrName).getValues().get(0);
 			String key = gp.getPassword();
-			
+
+
 			message = message.replaceAll("[$][{]key[}]", key);
-			
+
 			session.setAttribute("TREMOLO_SMS_KEY", key);
-			
-			sendSMS(authParams, from, message, to, request, response);
+
+			sendSMS(authParams, from, message, to,request,response);
+		} else {
+			message = (String) session.getAttribute("TREMOLO_SMS_KEY");
+			sendSMS(authParams, from, message, to,request,response);
 		}
 		
 		response.sendRedirect(redirectForm);

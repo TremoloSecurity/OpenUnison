@@ -29,6 +29,8 @@ if (reqHolder != null) {
 	targetURL = cfg.getAuthManager().getGetRedirectURL(reqHolder).toString();
 	auth = cfg.getAuthFormsPath();
 }
+
+String respMsg = (String) request.getSession().getAttribute("tremolo.io/otp/subject");
 %>
 
 <head>
@@ -62,6 +64,16 @@ if (reqHolder != null) {
           <div class="row row-cols-1">
             <div class="col text-center"><h1>Login</h1></div>
           </div>
+
+          <% if (respMsg != null) { %>
+          <div class="row row-cols-1">
+            <div class="col">
+              <div id="alert-text" class="alert alert-info">A code was sent to you with the subject <b><%= request.getSession().getAttribute("tremolo.io/otp/subject") %></b></div>
+
+            </div>
+          </div>
+          <% } %>
+
           <div class="row row-cols-1">
             <div class="col">
               <div class="form-outline mb-4" data-mdb-input-init>
@@ -69,7 +81,14 @@ if (reqHolder != null) {
                 <label class="form-label" for="key">Key from Text Message</label>
               </div>
             </div>
-          </div>          
+          </div>
+          <div class="row row-cols-1">
+            <div class="col">
+              <div class="form-outline mb-4" data-mdb-input-init>
+                Didn't receive a code? <a href="<%=session.getAttribute("TREMOLO_AUTH_URI")%>">Send another code</a>
+              </div>
+            </div>
+          </div>
           <div class="row row-cols-2">
             <div class="col">
               <button type="submit" id="submit" name="submit" class="btn btn-primary btn-block" data-mdb-ripple-init>Sign in</button>
