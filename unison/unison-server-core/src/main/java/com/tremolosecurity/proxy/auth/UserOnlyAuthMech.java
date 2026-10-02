@@ -105,6 +105,18 @@ public class UserOnlyAuthMech implements AuthMechanism {
 		
 		HashMap<String,Attribute> authParams = (HashMap<String,Attribute>) session.getAttribute(ProxyConstants.AUTH_MECH_PARAMS);
 
+		UserNameLookupLogger lookupLogger = null;
+
+		Attribute portLookupLoggerClassName =  authParams.get("postLookupLogger");
+		if (portLookupLoggerClassName != null) {
+            try {
+                lookupLogger = (UserNameLookupLogger) Class.forName(portLookupLoggerClassName.getValues().get(0)).newInstance();
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+                throw new ServletException("Could not initialize lookup logger",e);
+            }
+        }
+
+
 		if (authParams.containsKey("recaptchaSecret")) {
 			Attribute recaptchaSecret = authParams.get("recaptchaSecret");
 			String challengeResponse = req.getParameter("g-recaptcha-response");
@@ -230,11 +242,16 @@ public class UserOnlyAuthMech implements AuthMechanism {
 				}
 				
 				
-				
+				if (lookupLogger != null) {
+					lookupLogger.logResult(req,resp,true);
+				}
 				as.setSuccess(true);
 				
 				
 			} else {
+				if (lookupLogger != null) {
+					lookupLogger.logResult(req,resp,false);
+				}
 				as.setSuccess(false);
 				
 				resp.sendRedirect(noUserJSP);
@@ -243,7 +260,10 @@ public class UserOnlyAuthMech implements AuthMechanism {
 			
 		} catch (LDAPException e) {
 			logger.error("Could not find user",e);
-			
+
+			if (lookupLogger != null) {
+				lookupLogger.logResult(req,resp,false);
+			}
 			as.setSuccess(false);
 			
 			
