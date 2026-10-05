@@ -1,3 +1,22 @@
+# 1.0.53-2026100301
+
+**Tasks:**
+ - 1.0.53 build [\#1101](https://github.com/TremoloSecurity/OpenUnison/issues/1101)
+
+**enhancements:**
+ - sms auth, log sent one-time-passwords [\#1098](https://github.com/TremoloSecurity/OpenUnison/issues/1098)
+ - user name only - add mechanism to track failed lookups [\#1099](https://github.com/TremoloSecurity/OpenUnison/issues/1099)
+ - one-time-password auth, add resend capability [\#1104](https://github.com/TremoloSecurity/OpenUnison/issues/1104)
+ - username only auth - add google reCaptcha support [\#1103](https://github.com/TremoloSecurity/OpenUnison/issues/1103)
+ - OIDC - Integrate JS claims integration [\#1088](https://github.com/TremoloSecurity/OpenUnison/issues/1088)
+ - sendSms - add request and response [\#1100](https://github.com/TremoloSecurity/OpenUnison/issues/1100)
+ - OpenShift Target - If a group that is provisioned doesn't exist, generate a warning instead of an error [\#1089](https://github.com/TremoloSecurity/OpenUnison/issues/1089)
+
+**bugs:**
+ - add order by to BasicDb Insert [\#1102](https://github.com/TremoloSecurity/OpenUnison/issues/1102)
+ - oidc idp - If no "action" is specified, return a 400 [\#1093](https://github.com/TremoloSecurity/OpenUnison/issues/1093)
+ - OIDC auth mechanism keeps a null authorization endpoint when the first discovery fetch fails [\#1097](https://github.com/TremoloSecurity/OpenUnison/issues/1097)
+
 # 1.0.52-2026092301
 
 **Tasks:**
