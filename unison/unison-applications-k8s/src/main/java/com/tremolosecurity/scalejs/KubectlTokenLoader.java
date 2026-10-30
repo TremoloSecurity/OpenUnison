@@ -49,6 +49,9 @@ public class KubectlTokenLoader implements TokenLoader {
     private String kubectlUsage;
     private String kubectlWinUsage;
     private String oulogin;
+
+    String certPem;
+    String trustName;
     
     
 
@@ -59,7 +62,22 @@ public class KubectlTokenLoader implements TokenLoader {
         
         this.kubectlTemplate = config.getAttribute("kubectlTemplate").getValues().get(0);
         this.kubectlUsage = config.getAttribute("kubectlUsage").getValues().get(0);
-        this.k8sCaCertName = config.getAttribute("k8sCaCertName").getValues().get(0);
+
+
+        if (config.getAttribute("trustName") != null) {
+            this.trustName = config.getAttribute("trustName").getValues().get(0);
+        } else {
+            this.trustName = null;
+        }
+
+        if (config.getAttribute("certPem") != null) {
+            this.certPem = config.getAttribute("certPem").getValues().get(0);
+            this.k8sCaCertName = null;
+        } else {
+            this.k8sCaCertName = config.getAttribute("k8sCaCertName").getValues().get(0);
+            this.certPem = null;
+        }
+
         this.unisonCaCertName = config.getAttribute("unisonCaCertName").getValues().get(0);
         
         if (config.getAttribute("oulogin") != null) {
@@ -106,9 +124,13 @@ public class KubectlTokenLoader implements TokenLoader {
         
         
         OpenIDConnectToken token;
+
+        String localTrustName = origToken.getTrustName();
+        if (this.trustName != null) {
+            localTrustName = this.trustName;
+        }
         
-        
-        token = new OpenIDConnectToken(origToken.getIdpName(),origToken.getTrustName(),request.getRequestURL().toString());
+        token = new OpenIDConnectToken(origToken.getIdpName(),localTrustName,request.getRequestURL().toString());
         token.generateToken(request);
         	
         
@@ -122,7 +144,16 @@ public class KubectlTokenLoader implements TokenLoader {
 
         	HashMap<String,String> tokens = new HashMap<String,String>();
         	
-        	String k8sCert = this.cert2pem(this.k8sCaCertName);
+        	String k8sCert = null;
+
+            if (this.certPem != null) {
+                k8sCert = this.certPem;
+            } else {
+                k8sCert = this.cert2pem(this.k8sCaCertName);
+            }
+
+
+
             if (k8sCert != null) {
                 tokens.put("Kubernetes API Server CA Certificate", k8sCert);
             }
