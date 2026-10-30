@@ -123,9 +123,17 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,K8sWatchTarget {
 		OpenIDConnectTrust trust = new OpenIDConnectTrust();
 		trust.setClientID(spec.get("clientId").toString());
 		trust.setPublicEndpoint((Boolean) spec.get("publicEndpoint"));
+
+		// supports client credentials?
+		Object val = spec.get("enableClientCredentialsGrant");
+		if (val != null && val instanceof Boolean) {
+			trust.setEnableClientCredentialGrant((Boolean) val);
+		}
 		
-		if (! trust.isPublicEndpoint()) {
+		if (! trust.isPublicEndpoint() && ! trust.isEnableClientCredentialGrant()) {
+
 			JSONObject secretInfo = (JSONObject) spec.get("clientSecret");
+
 			if (secretInfo == null) {
 				logger.error("secretInfo not provided for trust " + metadata.get("name"));
 				return;
@@ -165,11 +173,7 @@ public class K8sLoadTrusts implements DynamicLoadTrusts,K8sWatchTarget {
 			trust.setTokenCookieName(spec.get("tokenCookieName").toString());
 		}
 
-		// supports client credentials?
-		Object val = spec.get("enableClientCredentialsGrant");
-		if (val != null && val instanceof Boolean) {
-			trust.setEnableClientCredentialGrant((Boolean) val);
-		}
+
 
 		// check for sts
 		val = spec.get("isSts");
