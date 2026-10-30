@@ -77,10 +77,18 @@ public abstract class OAuth2Bearer implements AuthMechanism {
 		boolean sendError = !request.getMethod().equalsIgnoreCase("OPTIONS");
 		String basicHdr = request.getHeader("Authorization");
 		boolean fromHeader = true;
-		
-		if (basicHdr == null) {
-			basicHdr = request.getParameter("access_token");
+
+
+
+		String clientAssertion = (String) request.getAttribute("tremolo.io/oauth2/token");
+		if (clientAssertion != null) {
+			basicHdr = clientAssertion;
 			fromHeader = false;
+		} else {
+			if (basicHdr == null) {
+				basicHdr = request.getParameter("access_token");
+				fromHeader = false;
+			}
 		}
 		
 		HttpSession session = ((HttpServletRequest) request).getSession();

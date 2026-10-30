@@ -42,6 +42,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
+import com.tremolosecurity.idp.providers.oidc.clientcredentialgrants.JwtBearerClientCredential;
+import com.tremolosecurity.idp.providers.oidc.sdk.ClientCredentialGrant;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
 import com.tremolosecurity.proxy.*;
 import com.tremolosecurity.proxy.auth.*;
@@ -200,6 +202,8 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	private int spiffeRefreshHint;
 
 	private String labelValue;
+
+	private Map<String,ClientCredentialGrant> clientCredentialGrantImplementations;
 
 	private void addCorsHeaders(HttpServletResponse resp, HttpServletRequest req, ProcessAfterFilterChain postProcess) throws IOException, ServletException {
 		/*resp.addHeader("Vary", "Origin");
@@ -601,16 +605,44 @@ public class OpenIDConnectIdP implements IdentityProvider {
 					return;
 				}
 
-				if (clientID == null) {
+				if (grantType != null  && request.getParameter("client_assertion_type") != null) {
 
-					//this means that the clientid is in the Authorization header
-					String azHeader = request.getHeader("Authorization");
+					//for now just assume jwt
+					ClientCredentialGrant grantLoader = this.clientCredentialGrantImplementations.get(request.getParameter("client_assertion_type"));
+					if (grantLoader == null) {
+						response.setStatus(400);
+						response.getWriter().println("{\"error\":\"unrecognized grant type\"}");
+						return;
+					}
 
-					azHeader = azHeader.substring(azHeader.indexOf(' ') + 1).trim();
-					azHeader = new String(org.apache.commons.codec.binary.Base64.decodeBase64(azHeader));
-					clientID = azHeader.substring(0, azHeader.indexOf(':'));
-					clientSecret = azHeader.substring(azHeader.indexOf(':') + 1);
+					clientID = grantLoader.extractClientId(request,response);
+					if (clientID == null) {
+						response.setStatus(400);
+						response.getWriter().println("{\"error\":\"no sub\"}");
+						return;
+					}
+
+				} else {
+					if (clientID == null) {
+
+
+
+
+						//this means that the clientid is in the Authorization header
+						String azHeader = request.getHeader("Authorization");
+
+						azHeader = azHeader.substring(azHeader.indexOf(' ') + 1).trim();
+						azHeader = new String(org.apache.commons.codec.binary.Base64.decodeBase64(azHeader));
+						clientID = azHeader.substring(0, azHeader.indexOf(':'));
+						clientSecret = azHeader.substring(azHeader.indexOf(':') + 1);
+					}
 				}
+
+				if (clientID != null) {
+					clientID = URLDecoder.decode(clientID, "UTF-8");
+				}
+
+
 
 
 				AuthController ac = (AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL);
@@ -1084,6 +1116,9 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 	private void clientCredentialsGrant(HttpServletRequest request, HttpServletResponse response, String clientID,
 										String clientSecret, AuthController ac, UrlHolder holder) throws Exception, IOException, ServletException {
+
+
+
 		OpenIDConnectTrust trust = this.trusts.get(clientID);
 
 		if (trust == null) {
@@ -2283,6 +2318,25 @@ public class OpenIDConnectIdP implements IdentityProvider {
 			} else {
 				this.spiffeRefreshHint = 86400;
 			}
+		}
+
+		this.clientCredentialGrantImplementations = new HashMap<>();
+		attr = init.get("clientCredentialGrantImplementations");
+		if (attr != null) {
+			attr.getValues().forEach(cfg -> {
+				String name = cfg.substring(0, cfg.indexOf("="));
+				String className = cfg.substring(cfg.indexOf("=") + 1);
+                try {
+                    ClientCredentialGrant grant = (ClientCredentialGrant) Class.forName(className).newInstance();
+					this.clientCredentialGrantImplementations.put(name, grant);
+                } catch (InstantiationException e) {
+                    throw new RuntimeException(e);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+            });
 		}
 
 
