@@ -19,11 +19,7 @@ import static org.apache.directory.ldap.client.api.search.FilterBuilder.equal;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -107,9 +103,12 @@ public class TokenPostAuth implements PostAuthSuccess {
 		
 		
 		if (! trust.getAllowedAudiences().contains(stsRequest.getAudience())) {
-			AccessLog.log(AccessEvent.AzFail, holder.getApp(), req, authData, new StringBuilder().append("Audience '").append(stsRequest.getAudience()).append("' is not an authorized audience for sts '").append(trust.getTrustName()).append("'").toString());
-			resp.sendError(403);
-			return;
+			Set<String> dynAudiences = idp.getAudiencesForClientId(trust.getClientID());
+			if (dynAudiences == null || ! dynAudiences.contains(stsRequest.getAudience())) {
+				AccessLog.log(AccessEvent.AzFail, holder.getApp(), req, authData, new StringBuilder().append("Audience '").append(stsRequest.getAudience()).append("' is not an authorized audience for sts '").append(trust.getTrustName()).append("'").toString());
+				resp.sendError(403);
+				return;
+			}
 		}
 		
 		OpenIDConnectTrust targetTrust = idp.getTrusts().get(stsRequest.getAudience());

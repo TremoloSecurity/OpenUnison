@@ -44,6 +44,7 @@ import javax.crypto.spec.IvParameterSpec;
 
 import com.tremolosecurity.idp.providers.oidc.clientcredentialgrants.JwtBearerClientCredential;
 import com.tremolosecurity.idp.providers.oidc.sdk.ClientCredentialGrant;
+import com.tremolosecurity.idp.providers.oidc.trusts.DynamicLoadStsAudiences;
 import com.tremolosecurity.provisioning.util.EncryptedMessage;
 import com.tremolosecurity.proxy.*;
 import com.tremolosecurity.proxy.auth.*;
@@ -204,6 +205,9 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	private String labelValue;
 
 	private Map<String,ClientCredentialGrant> clientCredentialGrantImplementations;
+
+	private Map<String,Set<String>> stsAllowedAudiences;
+	private Map<String,StsAudience> stsAudiences;
 
 	private void addCorsHeaders(HttpServletResponse resp, HttpServletRequest req, ProcessAfterFilterChain postProcess) throws IOException, ServletException {
 		/*resp.addHeader("Vary", "Origin");
@@ -2189,6 +2193,20 @@ public class OpenIDConnectIdP implements IdentityProvider {
 
 		}
 
+		this.stsAllowedAudiences = new HashMap<>();
+		this.stsAudiences = new HashMap<>();
+		if (init.get("stsAllowedAudiencesClassName") != null) {
+			String className = init.get("stsAllowedAudiencesClassName").getValues().get(0);
+
+            try {
+                DynamicLoadStsAudiences loadAudiences = (DynamicLoadStsAudiences) Class.forName(className).newInstance();
+				loadAudiences.loadAudiences(idpName,ctx,init,this);
+            } catch (Exception e) {
+				logger.error("Could not initialize dynanamic audiences", e);
+            }
+
+        }
+
 
 		this.amrToAuthChain = new HashMap<String, String>();
 		this.authChainToAmr = new HashMap<String, String>();
@@ -2847,6 +2865,47 @@ public class OpenIDConnectIdP implements IdentityProvider {
 	public String getLabelValue() {
 		return this.labelValue;
 	}
+
+	public void addAudiences(String name, String clientid,List<String> audiences)  {
+		if (this.stsAudiences.containsKey(name)) {
+			this.removeAudiences(name);
+		}
+		StsAudience stsAud = new StsAudience();
+		stsAud.name = name;
+		stsAud.clientId = clientid;
+		stsAud.audiences = new ArrayList<>();
+		stsAud.audiences.addAll(audiences);
+
+		this.stsAudiences.put(name, stsAud);
+
+		Set<String> allowedAudiences = this.stsAllowedAudiences.get(clientid);
+		if (allowedAudiences == null) {
+			allowedAudiences = new HashSet<>();
+			this.stsAllowedAudiences.put(clientid, allowedAudiences);
+		}
+
+		allowedAudiences.addAll(audiences);
+	}
+
+	public void removeAudiences(String name)  {
+		StsAudience stsAud = this.stsAudiences.get(name);
+		if (stsAud != null) {
+			Set<String> allowedAudiences = this.stsAllowedAudiences.get(stsAud.clientId);
+
+			if (allowedAudiences == null) {
+				return;
+			}
+
+			allowedAudiences.removeAll(stsAud.audiences);
+			this.stsAudiences.remove(name);
+		}
+
+
+	}
+
+	public Set<String> getAudiencesForClientId(String clientid) {
+		return this.stsAllowedAudiences.get(clientid);
+	}
 }
 
 
@@ -2855,4 +2914,10 @@ class TokenData {
 	String amr;
 	JSONObject root;
 	
+}
+
+class StsAudience {
+	String name;
+	String clientId;
+	List<String> audiences;
 }
