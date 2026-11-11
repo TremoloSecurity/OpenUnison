@@ -87,6 +87,12 @@ public class GenerateOIDCTokens implements AuthMechanism {
 		String idpName = authParams.get("idpName").getValues().get(0);
 		String trustName = authParams.get("trustName").getValues().get(0);
 
+		String sessionAttributeName = GenerateOIDCTokens.UNISON_SESSION_OIDC_ID_TOKEN;
+
+		if (authParams.get("sessionAttributeName") != null) {
+			sessionAttributeName = authParams.get("sessionAttributeName").getValues().get(0);
+		}
+
 		if (authParams.get("doNotTieSession") != null) {
 			if (authParams.get("doNotTieSession").getValues().get(0).equals("true")) {
 				request.getSession().setAttribute(OpenIDConnectIdP.DO_NOT_TIE_SESSION,OpenIDConnectIdP.DO_NOT_TIE_SESSION);
@@ -115,7 +121,7 @@ public class GenerateOIDCTokens implements AuthMechanism {
 		
 		
 		
-		request.getSession().setAttribute(GenerateOIDCTokens.UNISON_SESSION_OIDC_ID_TOKEN, token);
+		request.getSession().setAttribute(sessionAttributeName, token);
 		
 		
 		as.setSuccess(true);
