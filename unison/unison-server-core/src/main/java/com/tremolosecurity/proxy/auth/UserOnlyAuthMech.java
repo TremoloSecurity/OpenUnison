@@ -24,6 +24,7 @@ import com.google.gson.Gson;
 import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.proxy.auth.util.ReCaptchaResponse;
 import com.tremolosecurity.server.GlobalEntries;
+import com.tremolosecurity.util.LdapUtils;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -189,22 +190,12 @@ public class UserOnlyAuthMech implements AuthMechanism {
 		
 		String filter = "";
 		if (uidIsFilter) {
-			StringBuffer b = new StringBuffer();
-			int lastIndex = 0;
-			int index = uidAttr.indexOf('$');
-			while (index >= 0) {
-				b.append(uidAttr.substring(lastIndex,index));
-				lastIndex = uidAttr.indexOf('}',index) + 1;
-				String reqName = uidAttr.substring(index + 2,lastIndex - 1);
-				b.append(req.getParameter(reqName));
-				index = uidAttr.indexOf('$',index+1);
-			}
-			b.append(uidAttr.substring(lastIndex));
-			filter = b.toString();
+			filter = LdapUtils.genFilter(uidAttr,req);
+
 		
 		} else {
 			StringBuffer b = new StringBuffer();
-			b.append("(").append(uidAttr).append("=").append(req.getParameter("user")).append(")");
+			b.append("(").append(uidAttr).append("=").append(LdapUtils.escapeLdapFilterValue(req.getParameter("user"))).append(")");
 			filter = b.toString();
 		}
 		

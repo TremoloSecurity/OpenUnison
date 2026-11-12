@@ -23,6 +23,7 @@ import java.util.*;
 
 import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.proxy.TremoloHttpSession;
+import com.tremolosecurity.util.LdapUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -531,18 +532,7 @@ throw new ServletException("Could not load webfinger credential",e);
 		
 		String filter = "";
 		if (uidIsFilter) {
-			StringBuffer b = new StringBuffer();
-			int lastIndex = 0;
-			int index = lookupFilter.indexOf('$');
-			while (index >= 0) {
-				b.append(lookupFilter.substring(lastIndex,index));
-				lastIndex = lookupFilter.indexOf('}',index) + 1;
-				String reqName = lookupFilter.substring(index + 2,lastIndex - 1);
-				b.append(jwtNVP.get(reqName).toString());
-				index = lookupFilter.indexOf('$',index+1);
-			}
-			b.append(lookupFilter.substring(lastIndex));
-			filter = b.toString();
+			filter = LdapUtils.genFilter(lookupFilter,jwtNVP);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Filter : '" + filter + "'");
 			}

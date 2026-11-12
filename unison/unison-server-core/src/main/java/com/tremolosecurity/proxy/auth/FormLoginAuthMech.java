@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import com.novell.ldap.util.ByteArray;
+import com.tremolosecurity.util.LdapUtils;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequestWrapper;
@@ -119,23 +120,12 @@ public class FormLoginAuthMech implements AuthMechanism {
 		
 		String filter = "";
 		if (uidIsFilter) {
-			StringBuffer b = new StringBuffer();
-			int lastIndex = 0;
-			int index = uidAttr.indexOf('$');
-			while (index >= 0) {
-				b.append(uidAttr.substring(lastIndex,index));
-				lastIndex = uidAttr.indexOf('}',index) + 1;
-				String reqName = uidAttr.substring(index + 2,lastIndex - 1);
-				b.append(req.getParameter(reqName));
-				index = uidAttr.indexOf('$',index+1);
-			}
-			b.append(uidAttr.substring(lastIndex));
-			filter = b.toString();
+			filter = LdapUtils.genFilter(uidAttr,req);
 		
 		} else {
 			StringBuffer b = new StringBuffer();
 			String userParam = req.getParameter("user");
-			b.append('(').append(uidAttr).append('=').append(userParam).append(')');
+			b.append('(').append(uidAttr).append('=').append(LdapUtils.escapeLdapFilterValue(userParam)).append(')');
 			if (userParam == null) {
 				filter = "(!(objectClass=*))";
 			} else {

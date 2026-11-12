@@ -30,6 +30,7 @@ import javax.security.auth.x500.X500Principal;
 
 import com.novell.ldap.util.ByteArray;
 import com.tremolosecurity.proxy.TremoloHttpSession;
+import com.tremolosecurity.util.LdapUtils;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -228,18 +229,7 @@ public class CertAuth implements AuthMechanism {
 		
 		String filter = "";
 		if (uidIsFilter) {
-			StringBuffer b = new StringBuffer();
-			int lastIndex = 0;
-			int index = uidAttr.indexOf('$');
-			while (index >= 0) {
-				b.append(uidAttr.substring(lastIndex,index));
-				lastIndex = uidAttr.indexOf('}',index) + 1;
-				String reqName = uidAttr.substring(index + 2,lastIndex - 1);
-				b.append(subject.get(reqName));
-				index = uidAttr.indexOf('$',index+1);
-			}
-			b.append(uidAttr.substring(lastIndex));
-			filter = b.toString();
+			filter = LdapUtils.genFilter(uidAttr,subject);
 		
 		} else {
 			StringBuffer b = new StringBuffer();
