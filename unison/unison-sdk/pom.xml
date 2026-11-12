@@ -93,11 +93,11 @@
 			</exclusions>
 		</dependency>
 
-		<dependency>
-			<groupId>jakarta.jms</groupId>
-			<artifactId>jakarta.jms-api</artifactId>
-			<version>${jakarta.jms-api.version}</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>jakarta.jms</groupId>-->
+<!--			<artifactId>jakarta.jms-api</artifactId>-->
+<!--			<version>${jakarta.jms-api.version}</version>-->
+<!--		</dependency>-->
 		<dependency>
 			<groupId>org.quartz-scheduler</groupId>
 			<artifactId>quartz</artifactId>
@@ -282,6 +282,10 @@
 					<groupId>io.netty</groupId>
 					<artifactId>netty-codec-http</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-transport-native-epoll</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		
@@ -306,7 +310,7 @@
 		<dependency>
 		    <groupId>jakarta.jms</groupId>
 		    <artifactId>jakarta.jms-api</artifactId>
-		    <version>3.1.0</version>
+		    <version>${jakarta.jms-api.version}</version>
 		</dependency>
 
 		<dependency>
