@@ -89,6 +89,12 @@
 		  <artifactId>org.eclipse.jgit</artifactId>
 		  <version>${jgit.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.apache.sshd</groupId>
+			<artifactId>sshd-sftp</artifactId>
+			<version>${sshd-sftp.version}</version>
+		</dependency>
 		
 		<dependency>
 		  <groupId>org.eclipse.jgit</groupId>
@@ -108,7 +114,11 @@
 		    <version>${json-path.version}</version>
 		</dependency>
 
-
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>${commons-codec.version}</version>
+		</dependency>
 	</dependencies>
 
 </project>

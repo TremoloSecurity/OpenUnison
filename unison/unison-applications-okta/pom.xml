@@ -95,6 +95,11 @@
 			<artifactId>httpclient5</artifactId>
 			<version>${http5client.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm</artifactId>
+			<version>${asm.version}</version>
+		</dependency>
 	</dependencies>
 
 	
