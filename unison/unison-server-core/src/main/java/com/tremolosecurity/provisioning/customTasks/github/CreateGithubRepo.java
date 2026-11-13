@@ -287,7 +287,7 @@ public class CreateGithubRepo implements CustomTask {
 				KeyPairGenerator generator;
 				generator = KeyPairGenerator.getInstance("RSA");
 				// or: generator = KeyPairGenerator.getInstance("DSA");
-				generator.initialize(2048);
+				generator.initialize(4096);
 				KeyPair keyPair = generator.genKeyPair();
 				String sshPubKey = "ssh-rsa "
 						+ Base64.encodeBase64String(encodePublicKey((RSAPublicKey) keyPair.getPublic()))
