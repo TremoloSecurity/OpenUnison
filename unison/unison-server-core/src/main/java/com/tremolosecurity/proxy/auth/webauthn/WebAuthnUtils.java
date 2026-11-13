@@ -15,11 +15,10 @@
  *******************************************************************************/
 package com.tremolosecurity.proxy.auth.webauthn;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.Deflater;
@@ -27,12 +26,15 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
+import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
+
+import com.tremolosecurity.provisioning.core.ProvisioningException;
+import com.tremolosecurity.util.JsonTools;
 import jakarta.servlet.ServletException;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -51,8 +53,73 @@ import com.webauthn4j.converter.AttestedCredentialDataConverter;
 import com.webauthn4j.converter.util.ObjectConverter;
 
 public class WebAuthnUtils {
+	static Logger logger = Logger.getLogger(WebAuthnUtils.class.getName());
 	static Gson gson = new Gson();
-	
+
+	public static String encryptServerProperties(ServerPropertyHolder spHolder,String keyName) throws ProvisioningException, IOException {
+		EncryptedMessage msg = new EncryptedMessage();
+
+		SecretKey key = GlobalEntries.getGlobalEntries().getConfigManager().getSecretKey(keyName);
+		if (key == null) {
+			logger.warn(String.format("Could not find key %s", keyName));
+			return null;
+		}
+
+		String srcjson = JsonTools.writeObjectToJson(spHolder);
+
+		byte[] encoded = srcjson.getBytes("UTF-8");
+
+		try {
+			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+			cipher.init(Cipher.ENCRYPT_MODE, key);
+			msg.setMsg(cipher.doFinal(encoded));
+			msg.setIv(cipher.getIV());
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
+				 IllegalBlockSizeException | BadPaddingException e) {
+			throw new ProvisioningException("Could not encrypt serverProperty",e);
+		}
+
+		Gson gson = new Gson();
+		String json = gson.toJson(msg);
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+		DeflaterOutputStream compressor = new DeflaterOutputStream(baos, new Deflater(Deflater.BEST_COMPRESSION, true));
+
+		compressor.write(json.getBytes("UTF-8"));
+		compressor.flush();
+		compressor.close();
+		String base64encoded = java.util.Base64.getUrlEncoder().encodeToString(baos.toByteArray());
+		return base64encoded;
+	}
+
+	public static ServerPropertyHolder decryptServerProperties(String base64encoded,String keyName) throws ProvisioningException, IOException {
+		InflaterInputStream inflater = new InflaterInputStream(new ByteArrayInputStream(java.util.Base64.getUrlDecoder().decode(base64encoded)),new Inflater(true));
+		String json = new String(inflater.readAllBytes());
+		EncryptedMessage msg = gson.fromJson(json, EncryptedMessage.class);
+
+		SecretKey key = GlobalEntries.getGlobalEntries().getConfigManager().getSecretKey(keyName);
+		if (key == null) {
+			throw new ProvisioningException("Queue message encryption key not found");
+		}
+
+		IvParameterSpec spec =  new IvParameterSpec(msg.getIv());
+		Cipher cipher;
+		try {
+			cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+			cipher.init(Cipher.DECRYPT_MODE, key,spec);
+
+
+			byte[] bytes = cipher.doFinal(msg.getMsg());
+
+
+			return (ServerPropertyHolder) JsonTools.readObjectFromJson(new String(bytes,"UTF-8"));
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
+				 InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException |
+				 UnsupportedEncodingException e) {
+			throw new ProvisioningException("Could not decrypt message",e);
+		}
+	}
 	
 	public static void storeWebAuthnUserData(WebAuthnUserData webAuthnUserData,String encryptionKeyName,AuthInfo userData,String workflowName,String uidAttributeName,String challengeStoreAttribute) throws Exception {
 		storeWebAuthnUserData(webAuthnUserData,encryptionKeyName,userData,workflowName,uidAttributeName,challengeStoreAttribute,null,null);

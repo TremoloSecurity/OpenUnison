@@ -35,6 +35,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
 import com.novell.ldap.util.ByteArray;
+import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.proxy.TremoloHttpSession;
 import com.tremolosecurity.proxy.auth.webauthn.ServerPropertyHolder;
 import com.tremolosecurity.util.LdapUtils;
@@ -122,13 +123,14 @@ public class WebAuthn implements AuthMechanism {
 			AuthMechType amt = act.getAuthMech().get(as.getId());
 			HashMap<String, Attribute> authParams = (HashMap<String, Attribute>) session
 					.getAttribute(ProxyConstants.AUTH_MECH_PARAMS);
+			String encryptionKeyName = authParams.get("encryptionKeyName").getValues().get(0);
 
 			JSONArray allowedCredentials = null;
 
 			if (userData.getAuthLevel() != 0) {
 				// the user is already authenticated, we can generate allowedCredentials
 				String attributeName = authParams.get("attribute").getValues().get(0);
-				String encryptionKeyName = authParams.get("encryptionKeyName").getValues().get(0);
+
 
 				if (userData.getAttribs().get(attributeName) == null) {
 					StringBuilder sb = new StringBuilder();
@@ -192,9 +194,11 @@ public class WebAuthn implements AuthMechanism {
 						WebAuthnRegistration.getRpId(request), challenge, null);
 				ServerPropertyHolder serverPropertyHolder = new ServerPropertyHolder();
 				serverPropertyHolder.loadFromServerProperty(serverProperty);
-				byte[] yourBytes = JsonTools.writeObjectToJson(serverPropertyHolder).getBytes("UTF-8");
+//				byte[] yourBytes = JsonTools.writeObjectToJson(serverPropertyHolder).getBytes("UTF-8");
+//
+//				resp.put("serverProperty", java.util.Base64.getUrlEncoder().encodeToString(yourBytes));
 
-				resp.put("serverProperty", java.util.Base64.getUrlEncoder().encodeToString(yourBytes));
+				resp.put("serverProperty", WebAuthnUtils.encryptServerProperties(serverPropertyHolder,encryptionKeyName));
 
 				response.getWriter().println(resp.toString());
 
@@ -257,7 +261,12 @@ public class WebAuthn implements AuthMechanism {
 		
 		
 		if (request.getContentType().toLowerCase().startsWith("application/json")) {
-			
+			HttpSession session = ((HttpServletRequest) request).getSession(); // SharedSession.getSharedSession().getSession(req.getSession().getId());
+			UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
+			HashMap<String, Attribute> authParams = (HashMap<String, Attribute>) session
+					.getAttribute(ProxyConstants.AUTH_MECH_PARAMS);
+			String encryptionKeyName = authParams.get("encryptionKeyName").getValues().get(0);
+
 			byte[] requestBytes = (byte[]) request.getAttribute(ProxySys.MSG_BODY);
 			String requestString = new String(requestBytes,StandardCharsets.UTF_8);
 			JSONObject authResponse = null;
@@ -273,9 +282,15 @@ public class WebAuthn implements AuthMechanism {
 			webauthnResp = (JSONObject) authResponse.get("webauthnResponse");
 			
 			
-			String jsonServerProperty = new String(Base64UrlUtil.decode((String) authResponse.get("serverProperty")));
-			ServerPropertyHolder serverPropertyHolder = (ServerPropertyHolder) JsonTools.readObjectFromJson(jsonServerProperty);
-			ServerProperty serverProperty = serverPropertyHolder.getServerProperty();
+			String jsonServerProperty = (String) authResponse.get("serverProperty");
+			//ServerPropertyHolder serverPropertyHolder = (ServerPropertyHolder) JsonTools.readObjectFromJson(jsonServerProperty);
+            ServerPropertyHolder serverPropertyHolder = null;
+            try {
+                serverPropertyHolder = WebAuthnUtils.decryptServerProperties(jsonServerProperty,encryptionKeyName);
+            } catch (ProvisioningException e) {
+                throw new ServletException("could not decrypt serverProperties",e);
+            }
+            ServerProperty serverProperty = serverPropertyHolder.getServerProperty();
 			
 			
 			
@@ -304,15 +319,15 @@ public class WebAuthn implements AuthMechanism {
 					.getAuthInfo();
 			boolean setNewUserData = false;
 
-			HttpSession session = ((HttpServletRequest) request).getSession(); // SharedSession.getSharedSession().getSession(req.getSession().getId());
-			UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
+//			HttpSession session = ((HttpServletRequest) request).getSession(); // SharedSession.getSharedSession().getSession(req.getSession().getId());
+//			UrlHolder holder = (UrlHolder) request.getAttribute(ProxyConstants.AUTOIDM_CFG);
 			RequestHolder reqHolder = ((AuthController) request.getSession().getAttribute(ProxyConstants.AUTH_CTL))
 					.getHolder();
 			String urlChain = holder.getUrl().getAuthChain();
 			AuthChainType act = holder.getConfig().getAuthChains().get(reqHolder.getAuthChainName());
 			AuthMechType amt = act.getAuthMech().get(as.getId());
-			HashMap<String, Attribute> authParams = (HashMap<String, Attribute>) session
-					.getAttribute(ProxyConstants.AUTH_MECH_PARAMS);
+//			HashMap<String, Attribute> authParams = (HashMap<String, Attribute>) session
+//					.getAttribute(ProxyConstants.AUTH_MECH_PARAMS);
 			
 			String credentialIdAttributeName = null;
 			if (authParams.get("credentialIdAttributeName") == null) {
@@ -340,7 +355,7 @@ public class WebAuthn implements AuthMechanism {
 			userData = newUserData;
 			
 			String attributeName = authParams.get("attribute").getValues().get(0);
-			String encryptionKeyName = authParams.get("encryptionKeyName").getValues().get(0);
+
 			Authenticator auth = null;
 
 			if (newUserData.getAttribs().get(attributeName) == null) {
@@ -503,6 +518,8 @@ public class WebAuthn implements AuthMechanism {
 		HashMap<String, Attribute> authParams = (HashMap<String, Attribute>) session
 				.getAttribute(ProxyConstants.AUTH_MECH_PARAMS);
 
+		String encryptionKeyName = authParams.get("encryptionKeyName").getValues().get(0);
+
 		String uidAttr = "uid";
 		if (authParams.get("uidAttr") != null) {
 			uidAttr = authParams.get("uidAttr").getValues().get(0);
@@ -585,12 +602,18 @@ public class WebAuthn implements AuthMechanism {
 			
 			
 		
-			ServerPropertyHolder serverPropertyHolder = (ServerPropertyHolder) JsonTools.readObjectFromJson(new String(Base64UrlUtil.decode((String) request.getParameter("serverProperty"))));
+			//ServerPropertyHolder serverPropertyHolder = (ServerPropertyHolder) JsonTools.readObjectFromJson(new String(Base64UrlUtil.decode((String) request.getParameter("serverProperty"))));
+			ServerPropertyHolder serverPropertyHolder = null;
+			try {
+				serverPropertyHolder = WebAuthnUtils.decryptServerProperties(request.getParameter("serverProperty"),encryptionKeyName);
+			} catch (ProvisioningException e) {
+				throw new ServletException("could not decrypt serverProperties",e);
+			}
 			ServerProperty serverProperty = serverPropertyHolder.getServerProperty();
 			
 
 			String attributeName = authParams.get("attribute").getValues().get(0);
-			String encryptionKeyName = authParams.get("encryptionKeyName").getValues().get(0);
+
 			Authenticator auth = null;
 
 			if (userData.getAttribs().get(attributeName) == null) {

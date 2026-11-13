@@ -38,6 +38,7 @@ import java.util.zip.DeflaterOutputStream;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
+import com.tremolosecurity.provisioning.core.ProvisioningException;
 import com.tremolosecurity.proxy.auth.webauthn.ServerPropertyHolder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -165,12 +166,15 @@ public class WebAuthnRegistration implements HttpFilter {
 		        
 		        
 		        
-		        byte[] yourBytes = JsonTools.writeObjectToJson(serverPropertyHolder).getBytes("UTF-8");
-		        
-		        
-		        
-		        
-		        request.getSession().setAttribute("tremolo.io/webauthn/serverProperty", serverProperty);
+//		        byte[] yourBytes = JsonTools.writeObjectToJson(serverPropertyHolder).getBytes("UTF-8");
+//
+//
+//
+//
+//		        request.getSession().setAttribute("tremolo.io/webauthn/serverProperty", serverProperty);
+
+				String encServerProperties = WebAuthnUtils.encryptServerProperties(serverPropertyHolder,encryptionKeyName);
+				request.getSession().setAttribute("tremolo.io/webauthn/serverProperty", encServerProperties);
 		        
 		        List<PublicKeyCredentialParameters> pkcp = new ArrayList<PublicKeyCredentialParameters>();
 		        pkcp.add(new PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256));
@@ -207,7 +211,7 @@ public class WebAuthnRegistration implements HttpFilter {
 		        JSONObject publicKeyRoot = new JSONObject();
 		        publicKeyRoot.put("publicKey", root);
 		        
-		        publicKeyRoot.put("serverProperty", Base64.getUrlEncoder().encodeToString(yourBytes));
+		        publicKeyRoot.put("serverProperty", encServerProperties);
 		        
 		        
 		        response.getWriter().println(publicKeyRoot.toString());
@@ -267,10 +271,16 @@ public class WebAuthnRegistration implements HttpFilter {
 		}
 		
 		
-		String jsonServerProperty = new String(Base64.getUrlDecoder().decode((String) root.get("serverProperty")));
+		String jsonServerProperty = (String) root.get("serverProperty");
 
 
-		ServerPropertyHolder serverPropertyHolder = (ServerPropertyHolder) JsonTools.readObjectFromJson(jsonServerProperty);
+		//ServerPropertyHolder serverPropertyHolder = (ServerPropertyHolder) JsonTools.readObjectFromJson(jsonServerProperty);
+		ServerPropertyHolder serverPropertyHolder = null;
+		try {
+			serverPropertyHolder = WebAuthnUtils.decryptServerProperties(jsonServerProperty,encryptionKeyName);
+		} catch (ProvisioningException e) {
+			throw new ServletException("could not decrypt serverProperties",e);
+		}
 		ServerProperty serverProperty = serverPropertyHolder.getServerProperty();
 
 		//ServerProperty serverProperty = (ServerProperty) JsonTools.readObjectFromJson(jsonServerProperty);
