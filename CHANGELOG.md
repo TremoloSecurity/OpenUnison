@@ -1,3 +1,22 @@
+# 1.0.54-2026111601
+
+**bugs:**
+ - fixes for webauthn [\#1113](https://github.com/TremoloSecurity/OpenUnison/issues/1113)
+ - GitHub Create project key size too small [\#1112](https://github.com/TremoloSecurity/OpenUnison/issues/1112)
+ - Not all LDAP Filters escaped [\#1111](https://github.com/TremoloSecurity/OpenUnison/issues/1111)
+ - oidc Trust - do no require clientSecret configuration [\#1106](https://github.com/TremoloSecurity/OpenUnison/issues/1106)
+
+**Tasks:**
+ - 1.0.54 Build [\#1105](https://github.com/TremoloSecurity/OpenUnison/issues/1105)
+
+**enhancements:**
+ - Create filter to inject oidc token into authorization header [\#1110](https://github.com/TremoloSecurity/OpenUnison/issues/1110)
+ - GenerateOidcTokens Auth - Make the session variable tokens are stored in configurable [\#1109](https://github.com/TremoloSecurity/OpenUnison/issues/1109)
+ - STS - create CRD for trusts from an STS Trust to an exchanged Trust [\#1107](https://github.com/TremoloSecurity/OpenUnison/issues/1107)
+ - Add support for multiple clusters with kubectl loader [\#1108](https://github.com/TremoloSecurity/OpenUnison/issues/1108)
+ - oidc - support client_assertion_type [\#1083](https://github.com/TremoloSecurity/OpenUnison/issues/1083)
+
+
 # 1.0.53-2026100301
 
 **Tasks:**
