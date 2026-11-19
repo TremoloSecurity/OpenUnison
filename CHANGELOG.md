@@ -8,6 +8,7 @@
 
 **Tasks:**
  - 1.0.54 Build [\#1105](https://github.com/TremoloSecurity/OpenUnison/issues/1105)
+ - Remove unneeded javascript [\#1114](https://github.com/TremoloSecurity/OpenUnison/issues/1114)
 
 **enhancements:**
  - Create filter to inject oidc token into authorization header [\#1110](https://github.com/TremoloSecurity/OpenUnison/issues/1110)
