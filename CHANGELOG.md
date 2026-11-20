@@ -1,4 +1,4 @@
-# 1.0.54-2026111601
+# 1.0.54-2026111901
 
 **bugs:**
  - fixes for webauthn [\#1113](https://github.com/TremoloSecurity/OpenUnison/issues/1113)
